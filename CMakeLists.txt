@@ -5,5 +5,11 @@ set(SRCS crslice/interface.h
 		 crslice/slice.cpp
 		 )
 
+add_subdirectory(impl)
+
+set(LIBS _CuraEngine)
+
 __add_common_library(crslice)
+
+__set_folder_targets(crslice TARGET crslice _CuraEngine)
 								
