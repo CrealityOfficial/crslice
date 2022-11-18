@@ -126,18 +126,8 @@ __cc_find(RapidJSON)
 __cc_find(boost)
 __cc_find(stb)
 __cc_find(fmt)
+__cc_find(polyclipping)
 #find_package(range-v3 REQUIRED)
-#
-#target_link_libraries(_CuraEngine
-#        PUBLIC
-#        spdlog::spdlog
-#        PRIVATE
-#        range-v3::range-v3
-#        fmt::fmt
-#        clipper::clipper
-#        rapidjson
-#        stb::stb
-#        $<$<BOOL:${ENABLE_TESTING}>:GTest::gtest>)
 
 set(SRCS ${engine_SRCS})
 set(LIBS fmt rapidjson polyclipping stb
