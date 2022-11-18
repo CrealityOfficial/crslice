@@ -25,7 +25,7 @@ void Listener::error(const Arcus::Error& error)
 {
     if (error.getErrorCode() == Arcus::ErrorCode::Debug)
     {
-        spdlog::debug("{}", error.getErrorMessage());
+        LOGD("{}", error.getErrorMessage());
     }
     else
     {

@@ -166,7 +166,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
 
     if (candidateFaces.size() == 0)
     {
-        spdlog::debug("Couldn't find face connected to face {}", notFaceIdx);
+        LOGD("Couldn't find face connected to face {}", notFaceIdx);
         if (! has_disconnected_faces)
         {
             LOGW("Mesh has disconnected faces!");
@@ -182,7 +182,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
 
     if (candidateFaces.size() % 2 == 0)
     {
-        spdlog::debug("Edge with uneven number of faces connecting it!({})\n", candidateFaces.size() + 1);
+        LOGD("Edge with uneven number of faces connecting it!({})\n", candidateFaces.size() + 1);
         if (! has_disconnected_faces)
         {
             LOGW("Mesh has disconnected faces!");
@@ -199,7 +199,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
 
     if (n0.vSize() <= 0)
     {
-        spdlog::debug("Face {} has zero area!", notFaceIdx);
+        LOGD("Face {} has zero area!", notFaceIdx);
     }
 
     double smallestAngle = 1000; // more then 2 PI (impossible angle)
@@ -225,7 +225,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
 
         if (angle == 0)
         {
-            spdlog::debug("Overlapping faces: face {} and face {}.", notFaceIdx, candidateFace);
+            LOGD("Overlapping faces: face {} and face {}.", notFaceIdx, candidateFace);
             if (! has_overlapping_faces)
             {
                 LOGW("Mesh has overlapping faces!");
@@ -240,7 +240,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
     }
     if (bestIdx < 0)
     {
-        spdlog::debug("Couldn't find face connected to face {}.", notFaceIdx);
+        LOGD("Couldn't find face connected to face {}.", notFaceIdx);
         if (! has_disconnected_faces)
         {
             LOGW("Mesh has disconnected faces!");

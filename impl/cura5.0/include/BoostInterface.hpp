@@ -34,7 +34,7 @@ struct point_traits<cura::Point>
     static inline coordinate_type get(
             const cura::Point& point, orientation_2d orient)
     {
-        return (orient == HORIZONTAL) ? point.X : point.Y;
+        return (orient == HORIZONTAL_) ? point.X : point.Y;
     }
 };
 

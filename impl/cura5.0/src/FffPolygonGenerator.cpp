@@ -411,28 +411,28 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     storage.primeTower.generatePaths(storage);
     storage.primeTower.subtractFromSupport(storage);
 
-    spdlog::debug("Processing ooze shield");
+    LOGD("Processing ooze shield");
     processOozeShield(storage);
 
-    spdlog::debug("Processing draft shield");
+    LOGD("Processing draft shield");
     processDraftShield(storage);
 
     // This catches a special case in which the models are in the air, and then
     // the adhesion mustn't be calculated.
     if (! isEmptyLayer(storage, 0) || storage.primeTower.enabled)
     {
-        spdlog::debug("Processing platform adhesion");
+        LOGD("Processing platform adhesion");
         processPlatformAdhesion(storage);
     }
 
-    spdlog::debug("Meshes post-processing");
+    LOGD("Meshes post-processing");
     // meshes post processing
     for (SliceMeshStorage& mesh : storage.meshes)
     {
         processDerivedWallsSkinInfill(mesh);
     }
 
-    spdlog::debug("Processing gradual support");
+    LOGD("Processing gradual support");
     // generate gradual support
     AreaSupport::generateSupportInfillFeatures(storage);
 }
@@ -488,7 +488,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {
-                                   spdlog::debug("Processing insets for layer {} of {}", layer_number, mesh.layers.size());
+                                   LOGD("Processing insets for layer {} of {}", layer_number, mesh.layers.size());
                                    processWalls(mesh, layer_number);
                                    guarded_progress++;
                                });
@@ -530,7 +530,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {
-                                   spdlog::debug("Processing skins and infill layer {} of {}", layer_number, mesh.layers.size());
+                                   LOGD("Processing skins and infill layer {} of {}", layer_number, mesh.layers.size());
                                    if (! magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
                                    {
                                        processSkinsAndInfill(mesh, layer_number, process_infill);

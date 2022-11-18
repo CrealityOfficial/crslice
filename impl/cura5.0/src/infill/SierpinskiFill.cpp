@@ -177,7 +177,7 @@ void SierpinskiFill::createLowerBoundSequence()
 
         if (! change)
         {
-            spdlog::debug("Finished after {} iterations, with a max depth of {}.", iteration + 1, max_depth);
+            LOGD("Finished after {} iterations, with a max depth of {}.", iteration + 1, max_depth);
             break;
         }
     }
@@ -573,7 +573,7 @@ void SierpinskiFill::diffuseError()
                 error += nodal_value - triangle.realized_length;
         }
     }
-    spdlog::debug("pair_constrained_nodes: {}, constrained_nodes: {}, unconstrained_nodes: {}, subdivided_nodes: {}", pair_constrained_nodes, constrained_nodes, unconstrained_nodes, subdivided_nodes);
+    LOGD("pair_constrained_nodes: {}, constrained_nodes: {}, unconstrained_nodes: {}, subdivided_nodes: {}", pair_constrained_nodes, constrained_nodes, unconstrained_nodes, subdivided_nodes);
 }
 
 bool SierpinskiFill::isConstrainedBackward(std::list<SierpinskiTriangle*>::iterator it)
@@ -711,7 +711,7 @@ Polygon SierpinskiFill::generateCross() const
     float realized_length = INT2MM(ret.polygonLength());
     float requested_length = root.requested_length;
     float error = (realized_length - requested_length) / requested_length;
-    spdlog::debug("realized_length: {}, requested_length: {}  :: {}% error", realized_length, requested_length, .01 * static_cast<int>(10000 * error));
+    LOGD("realized_length: {}, requested_length: {}  :: {}% error", realized_length, requested_length, .01 * static_cast<int>(10000 * error));
     return ret;
 }
 

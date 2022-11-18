@@ -244,7 +244,7 @@ FMatrix4x3 Settings::get<FMatrix4x3>(const std::string& key) const
     if (sub_matches.size() != 10) // One match for the whole string, nine for the cells.
     {
         LOGW("Mesh transformation matrix could not be parsed!");
-        spdlog::debug("Format should be [[f,f,f], [f,f,f], [f,f,f]] allowing whitespace anywhere in between. While what was given was {}", value_string);
+        LOGD("Format should be [[f,f,f], [f,f,f], [f,f,f]] allowing whitespace anywhere in between. While what was given was {}", value_string);
         return result; // Standard matrix ([[1,0,0], [0,1,0], [0,0,1]]).
     }
 

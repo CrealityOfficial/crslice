@@ -1,6 +1,7 @@
 # Copyright (c) 2022 Ultimaker B.V.
 # CuraEngine is released under the terms of the AGPLv3 or higher.
 
+__enable_cxx17()
 include(StandardProjectSettings.cmake)
 
 option(EXTENSIVE_WARNINGS "Build with all warnings" ON)
@@ -121,11 +122,9 @@ set(engine_SRCS # Except main.cpp.
         src/utils/VoronoiUtils.cpp
         )
 
-#find_package(clipper REQUIRED)
 __cc_find(RapidJSON)
-#find_package(stb REQUIRED)
-#find_package(Boost REQUIRED)
-#find_package(spdlog REQUIRED)
+__cc_find(boost)
+__cc_find(stb)
 __cc_find(fmt)
 #find_package(range-v3 REQUIRED)
 #
@@ -138,16 +137,17 @@ __cc_find(fmt)
 #        clipper::clipper
 #        rapidjson
 #        stb::stb
-#        boost::boost
 #        $<$<BOOL:${ENABLE_TESTING}>:GTest::gtest>)
 
 set(SRCS ${engine_SRCS})
-set(LIBS fmt rapidjson)
+set(LIBS fmt rapidjson polyclipping stb
+			 boost_system boost_filesystem boost_iostreams
+			)
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR}/include
 		 ${CMAKE_CURRENT_BINARY_DIR}
 		 )
 		 
-set(CVERSION "CURA_ENGINE_VERSION=${CURA_ENGINE_VERSION}")
+set(CVERSION "CURA_ENGINE_VERSION=\"5.2.0\"")
 set(DEFS ${CVERSION} NOMINMAX ASSERT_INSANE_OUTPUT USE_CPU_TIME)
 
 if (ENABLE_OPENMP)

@@ -988,7 +988,7 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
 
 LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIndex layer_nr, const size_t total_layers) const
 {
-    spdlog::debug("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
+    LOGD("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
 
     const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
     coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
