@@ -96,6 +96,7 @@ void Application::printCall() const
 
 void Application::printHelp() const
 {
+#if 0
     fmt::print("\n");
     fmt::print("usage:\n");
     fmt::print("CuraEngine help\n");
@@ -129,10 +130,12 @@ void Application::printHelp() const
     fmt::print("\n");
     fmt::print("In order to load machine definitions from custom locations, you need to create the environment variable CURA_ENGINE_SEARCH_PATH, which should contain all search paths delimited by a (semi-)colon.\n");
     fmt::print("\n");
+#endif
 }
 
 void Application::printLicense() const
 {
+#if 0
     fmt::print("\n");
     fmt::print("Cura_SteamEngine version %s\n", CURA_ENGINE_VERSION);
     fmt::print("Copyright (C) 2022 Ultimaker\n");
@@ -149,6 +152,7 @@ void Application::printLicense() const
     fmt::print("\n");
     fmt::print("You should have received a copy of the GNU Affero General Public License\n");
     fmt::print("along with this program.  If not, see <http://www.gnu.org/licenses/>.\n");
+#endif
 }
 
 void Application::slice()

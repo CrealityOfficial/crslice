@@ -131,7 +131,8 @@ __cc_find(polyclipping)
 
 set(SRCS ${engine_SRCS})
 set(LIBS fmt rapidjson polyclipping stb
-			 boost_system boost_filesystem boost_iostreams
+			 boost_system boost_filesystem boost_iostreams 
+             Bcrypt
 			)
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR}/include
 		 ${CMAKE_CURRENT_BINARY_DIR}
