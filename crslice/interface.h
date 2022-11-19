@@ -14,4 +14,9 @@
 	#endif
 #endif
 
+
+#include "trimesh2/TriMesh.h"
+#include <memory>
+
+
 #endif // MSIMPLIFY_EXPORT

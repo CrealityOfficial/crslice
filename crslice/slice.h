@@ -4,7 +4,6 @@
 #include "crslice/Settings.h"
 namespace crslice
 {
-
 	class CRSLICE_API Slice
 	{
 	public:

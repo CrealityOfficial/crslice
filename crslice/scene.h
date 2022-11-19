@@ -1,0 +1,9 @@
+#ifndef CRSLICE_SCENE_1668840402293_H
+#define CRSLICE_SCENE_1668840402293_H
+
+namespace crslice
+{
+
+}
+
+#endif // CRSLICE_SCENE_1668840402293_H
