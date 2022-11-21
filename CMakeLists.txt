@@ -5,13 +5,11 @@ if (NOT APPLE)
     option(ENABLE_OPENMP "Use OpenMP for parallel code" ON)
 endif ()
 
-set(LIBS trimesh2)
+set(LIBS crcommon polyclipping)
 
 set(SRCS crslice/interface.h
 		 crslice/slice.h
 		 crslice/slice.cpp
-		 crslice/Settings.h
-		 crslice/Settings.cpp
 		 crslice/scene.h
 		 crslice/scene.cpp
 		 )

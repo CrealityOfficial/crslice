@@ -108,10 +108,9 @@ __cc_find(RapidJSON)
 __cc_find(boost)
 __cc_find(stb)
 __cc_find(fmt)
-__cc_find(polyclipping)
 
 list(APPEND SRCS ${engine_SRCS})
-list(APPEND LIBS fmt rapidjson polyclipping stb
+list(APPEND LIBS fmt rapidjson stb
 			 boost_system boost_filesystem boost_iostreams 
 			)
 			

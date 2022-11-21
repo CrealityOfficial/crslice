@@ -1,7 +1,8 @@
 #ifndef CRSLICE_SLICE_H
 #define CRSLICE_SLICE_H
 #include "crslice/interface.h"
-#include "crslice/Settings.h"
+#include "crcommon/Settings.h"
+
 namespace crslice
 {
 	class CRSLICE_API Slice
@@ -10,9 +11,9 @@ namespace crslice
 		Slice();
 		~Slice();
 	private:
-		Settings m_settingsCfg;
+		crcommon::Settings m_settingsCfg;
 	public:
-		void init( Settings *settingsPtr);
+		void init(crcommon::Settings *settingsPtr);
 		void process();
 	};
 }

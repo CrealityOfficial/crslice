@@ -1,5 +1,5 @@
-#ifndef MSIMPLIFY_EXPORT
-#define MSIMPLIFY_EXPORT
+#ifndef CRSLICE_INTERFACE
+#define CRSLICE_INTERFACE
 #include "ccglobal/export.h"
 
 #if USE_CRSLICE_DLL
@@ -15,8 +15,8 @@
 #endif
 
 
-#include "trimesh2/TriMesh.h"
+#include "crcommon/interface.h"
 #include <memory>
 
 
-#endif // MSIMPLIFY_EXPORT
+#endif // CRSLICE_INTERFACE

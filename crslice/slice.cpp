@@ -1,5 +1,6 @@
 #include "slice.h"
-#include "impl/cura5.0/include/Application.h"
+#include "Application.h"
+
 namespace crslice
 {
 	Slice::Slice()
@@ -11,7 +12,7 @@ namespace crslice
 	{
 
 	}
-	void Slice::init(Settings* settingsPtr)
+	void Slice::init(crcommon::Settings* settingsPtr)
 	{
 		if(settingsPtr !=nullptr)
 			m_settingsCfg = *settingsPtr;
