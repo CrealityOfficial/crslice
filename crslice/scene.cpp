@@ -2,5 +2,13 @@
 
 namespace crslice
 {
+	Scene::Scene()
+	{
 
+	}
+
+	Scene::~Scene()
+	{
+
+	}
 }
