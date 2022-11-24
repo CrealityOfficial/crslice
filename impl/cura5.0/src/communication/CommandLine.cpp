@@ -11,6 +11,7 @@
 #include <rapidjson/error/en.h> //Loading JSON documents to get settings from them.
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/rapidjson.h>
+#include <rapidjson/istreamwrapper.h>
 #include "ccglobal/log.h"
 
 #include "Application.h" //To get the extruders for material estimates.
@@ -337,18 +338,34 @@ void CommandLine::sliceNext()
 
 int CommandLine::loadJSON(const std::string& json_filename, Settings& settings)
 {
-    FILE* file = fopen(json_filename.c_str(), "rb");
-    if (! file)
+    //FILE* file = fopen(json_filename.c_str(), "rb");
+    //if (! file)
+    //{
+    //    LOGE("Couldn't open JSON file: %s", json_filename.c_str());
+    //    return 1;
+    //}
+
+    //rapidjson::Document json_document;
+    //char read_buffer[4096];
+    //rapidjson::FileReadStream reader_stream(file, read_buffer, sizeof(read_buffer));
+    //json_document.ParseStream(reader_stream);
+    //fclose(file);
+    //if (json_document.HasParseError())
+    //{
+    //    LOGE("Error parsing JSON (offset %d): %s", (int)json_document.GetErrorOffset(), GetParseError_En(json_document.GetParseError()));
+    //    return 2;
+    //}
+    LOGE("try to open JSON file: %s", json_filename);
+
+    std::ifstream ifs(json_filename.c_str());
+    if (!ifs.is_open())
     {
-        LOGE("Couldn't open JSON file: %s", json_filename.c_str());
+        LOGE("Couldn't open JSON file: %", json_filename);
         return 1;
     }
-
+    rapidjson::IStreamWrapper isw(ifs);
     rapidjson::Document json_document;
-    char read_buffer[4096];
-    rapidjson::FileReadStream reader_stream(file, read_buffer, sizeof(read_buffer));
-    json_document.ParseStream(reader_stream);
-    fclose(file);
+    json_document.ParseStream(isw);
     if (json_document.HasParseError())
     {
         LOGE("Error parsing JSON (offset %d): %s", (int)json_document.GetErrorOffset(), GetParseError_En(json_document.GetParseError()));
@@ -457,12 +474,52 @@ void CommandLine::loadJSONSettings(const rapidjson::Value& element, Settings& se
         const rapidjson::Value& setting_object = setting->value;
         if (! setting_object.IsObject())
         {
-            LOGE("JSON setting %s is not an object!", name.c_str());
+            LOGE("JSON setting %s is not an object! %s", name.c_str());
             continue;
         }
 
         if (setting_object.HasMember("children"))
         {
+            if (!setting_object.HasMember("default_value"))
+            {
+                LOGE("JSON setting %s has no default_value!,but have children", name);
+                goto CHILDRN;
+            }
+            else
+            {
+                const rapidjson::Value& default_value = setting_object["default_value"];
+                std::string value_string;
+                if (default_value.IsString())
+                {
+                    value_string = default_value.GetString();
+                }
+                else if (default_value.IsTrue())
+                {
+                    value_string = "true";
+                }
+                else if (default_value.IsFalse())
+                {
+                    value_string = "false";
+                }
+                else if (default_value.IsNumber())
+                {
+                    std::ostringstream ss;
+                    ss << default_value.GetDouble();
+                    value_string = ss.str();
+                }
+                else if (default_value.IsArray())
+                {
+                    LOGE(" data type is IsArray,but Unrecognized data type in JSON setting %s", name);
+                    goto CHILDRN;;
+                }
+                else
+                {
+                    LOGE("Unrecognized data type in JSON setting %s", name);
+                    goto CHILDRN;;
+                }
+                settings.add(name, value_string);
+            }
+            CHILDRN:
             loadJSONSettings(setting_object["children"], settings);
         }
         else // Only process leaf settings. We don't process categories or settings that have sub-settings.
