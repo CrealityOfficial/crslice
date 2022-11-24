@@ -38,58 +38,7 @@ Application& Application::getInstance()
     return instance;
 }
 
-#ifdef ARCUS
-void Application::connect()
-{
-    std::string ip = "127.0.0.1";
-    int port = 49674;
-
-    // Parse port number from IP address.
-    std::string ip_port(argv[2]);
-    std::size_t found_pos = ip_port.find(':');
-    if (found_pos != std::string::npos)
-    {
-        ip = ip_port.substr(0, found_pos);
-        port = std::stoi(ip_port.substr(found_pos + 1).data());
-    }
-
-    int n_threads;
-
-    for (size_t argn = 3; argn < argc; argn++)
-    {
-        char* str = argv[argn];
-        if (str[0] == '-')
-        {
-            for (str++; *str; str++)
-            {
-                switch (*str)
-                {
-                case 'v':
-                    spdlog::set_level(spdlog::level::debug);
-                    break;
-                case 'm':
-                    str++;
-                    n_threads = std::strtol(str, &str, 10);
-                    str--;
-                    startThreadPool(n_threads);
-                    break;
-                default:
-                    LOGE("Unknown option: {}", str);
-                    printCall();
-                    printHelp();
-                    break;
-                }
-            }
-        }
-    }
-
-    ArcusCommunication* arcus_communication = new ArcusCommunication();
-    arcus_communication->connect(ip, port);
-    communication = arcus_communication;
-}
-#endif // ARCUS
-
-void Application::printCall() const
+void Application::printCall(int argc, const char** argv) const
 {
     LOGE("Command called: %s", *argv);
 }
@@ -157,19 +106,16 @@ void Application::printLicense() const
 
 void Application::slice()
 {
-    std::vector<std::string> arguments;
-    for (size_t argument_index = 0; argument_index < argc; argument_index++)
-    {
-        arguments.emplace_back(argv[argument_index]);
-    }
-
-    communication = new CommandLine(arguments);
+    communication = new CommandLine(m_args);
 }
 
-void Application::run(const size_t argc, char** argv)
+void Application::run(int argc, const char** argv)
 {
-    this->argc = argc;
-    this->argv = argv;
+    for (size_t argument_index = 0; argument_index < argc; argument_index++)
+    {
+        m_args.emplace_back(argv[argument_index]);
+    }
+
 
     printLicense();
     Progress::init();
@@ -180,28 +126,21 @@ void Application::run(const size_t argc, char** argv)
         exit(1);
     }
 
-#ifdef ARCUS
-    if (stringcasecompare(argv[1], "connect") == 0)
+    if (stringcasecompare(argv[1], "slice") == 0)
     {
-        connect();
+        slice();
+    }
+    else if (stringcasecompare(argv[1], "help") == 0)
+    {
+        printHelp();
     }
     else
-#endif // ARCUS
-        if (stringcasecompare(argv[1], "slice") == 0)
-        {
-            slice();
-        }
-        else if (stringcasecompare(argv[1], "help") == 0)
-        {
-            printHelp();
-        }
-        else
-        {
-            LOGE("Unknown command: {}", argv[1]);
-            printCall();
-            printHelp();
-            exit(1);
-        }
+    {
+        LOGE("Unknown command: {}", argv[1]);
+        printCall(argc, argv);
+        printHelp();
+        exit(1);
+    }
 
     if (! communication)
     {

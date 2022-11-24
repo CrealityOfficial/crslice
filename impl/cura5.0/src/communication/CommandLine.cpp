@@ -192,7 +192,7 @@ void CommandLine::sliceNext()
                     argument = arguments[argument_index];
                     if (loadJSON(argument, *last_settings))
                     {
-                        LOGE("Failed to load JSON file: {}", argument);
+                        LOGE("Failed to load JSON file: %s", argument.c_str());
                         exit(1);
                     }
 
@@ -293,7 +293,6 @@ void CommandLine::sliceNext()
                 default:
                 {
                     LOGE("Unknown option: -{}", argument[1]);
-                    Application::getInstance().printCall();
                     Application::getInstance().printHelp();
                     exit(1);
                     break;
@@ -304,7 +303,6 @@ void CommandLine::sliceNext()
         else
         {
             LOGE("Unknown option: {}", argument);
-            Application::getInstance().printCall();
             Application::getInstance().printHelp();
             exit(1);
         }
@@ -342,7 +340,7 @@ int CommandLine::loadJSON(const std::string& json_filename, Settings& settings)
     FILE* file = fopen(json_filename.c_str(), "rb");
     if (! file)
     {
-        LOGE("Couldn't open JSON file: {}", json_filename);
+        LOGE("Couldn't open JSON file: %s", json_filename.c_str());
         return 1;
     }
 
@@ -353,7 +351,7 @@ int CommandLine::loadJSON(const std::string& json_filename, Settings& settings)
     fclose(file);
     if (json_document.HasParseError())
     {
-        LOGE("Error parsing JSON (offset {}): {}", json_document.GetErrorOffset(), GetParseError_En(json_document.GetParseError()));
+        LOGE("Error parsing JSON (offset %d): %s", (int)json_document.GetErrorOffset(), GetParseError_En(json_document.GetParseError()));
         return 2;
     }
 
@@ -397,7 +395,7 @@ int CommandLine::loadJSON(const rapidjson::Document& document, const std::unorde
         std::string parent_file = findDefinitionFile(document["inherits"].GetString(), search_directories);
         if (parent_file == "")
         {
-            LOGE("Inherited JSON file: {} not found.", document["inherits"].GetString());
+            LOGE("Inherited JSON file: %s not found.", document["inherits"].GetString());
             return 1;
         }
         int error_code = loadJSON(parent_file, settings); // Head-recursively load the settings file that we inherit from.
@@ -459,7 +457,7 @@ void CommandLine::loadJSONSettings(const rapidjson::Value& element, Settings& se
         const rapidjson::Value& setting_object = setting->value;
         if (! setting_object.IsObject())
         {
-            LOGE("JSON setting {} is not an object!", name);
+            LOGE("JSON setting %s is not an object!", name.c_str());
             continue;
         }
 
@@ -471,7 +469,7 @@ void CommandLine::loadJSONSettings(const rapidjson::Value& element, Settings& se
         {
             if (! setting_object.HasMember("default_value"))
             {
-                LOGW("JSON setting {} has no default_value!", name);
+                LOGW("JSON setting %s has no default_value!", name.c_str());
                 continue;
             }
             const rapidjson::Value& default_value = setting_object["default_value"];
@@ -496,7 +494,7 @@ void CommandLine::loadJSONSettings(const rapidjson::Value& element, Settings& se
             }
             else
             {
-                LOGW("Unrecognized data type in JSON setting {}", name);
+                LOGW("Unrecognized data type in JSON setting %s", name.c_str());
                 continue;
             }
             settings.add(name, value_string);
@@ -515,7 +513,7 @@ const std::string CommandLine::findDefinitionFile(const std::string& definition_
             return candidate;
         }
     }
-    LOGE("Couldn't find definition file with ID: {}", definition_id);
+    LOGE("Couldn't find definition file with ID: %s", definition_id.c_str());
     return std::string("");
 }
 

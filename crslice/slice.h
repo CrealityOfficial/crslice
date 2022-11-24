@@ -10,6 +10,8 @@ namespace crslice
 	public:
 		Slice();
 		~Slice();
+
+		void sliceFromFakeArguments(int argc, const char* argv[]);
 	private:
 		crcommon::Settings m_settingsCfg;
 	public:

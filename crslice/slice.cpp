@@ -12,15 +12,22 @@ namespace crslice
 	{
 
 	}
+
+	void Slice::sliceFromFakeArguments(int argc, const char* argv[])
+	{
+		cura::Application::getInstance().run(argc, argv);
+	}
+
 	void Slice::init(crcommon::Settings* settingsPtr)
 	{
 		if(settingsPtr !=nullptr)
 			m_settingsCfg = *settingsPtr;
 	}
+
 	void Slice::process()
 	{
 		 int argc = 10;
-		 char* argv[] =
+		 const char* argv[] =
 		{
 		"self_exe",
 		"slice" ,
@@ -35,7 +42,5 @@ namespace crslice
 		};
 
 		cura::Application::getInstance().run(argc, argv);
-
 	}
-
 }

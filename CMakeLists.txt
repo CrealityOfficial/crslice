@@ -5,7 +5,7 @@ if (NOT APPLE)
     option(ENABLE_OPENMP "Use OpenMP for parallel code" ON)
 endif ()
 
-set(LIBS crcommon polyclipping)
+set(ILIBS crcommon polyclipping)
 
 set(SRCS crslice/interface.h
 		 crslice/slice.h
@@ -16,7 +16,7 @@ set(SRCS crslice/interface.h
 		 
 set(INCS)
 set(DEFS)
-set(INTERFACES)
+set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(impl/cura5.0/cura.cmake)
 

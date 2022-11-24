@@ -127,8 +127,6 @@ if (ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
     list(APPEND LIBS OpenMP::OpenMP_CXX)
 endif ()
-
-list(APPEND INTERFACES ${CMAKE_CURRENT_LIST_DIR}/include)
 								  
 
 
