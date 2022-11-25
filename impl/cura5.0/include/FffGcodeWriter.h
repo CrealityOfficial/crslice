@@ -669,6 +669,8 @@ private:
      * \return true if there needs to be a skin edge support wall in this layer, otherwise false
      */
     static bool partitionInfillBySkinAbove(Polygons& infill_below_skin, Polygons& infill_not_below_skin, const LayerPlan& gcode_layer, const SliceMeshStorage& mesh, const SliceLayerPart& part, coord_t infill_line_width) ;
+
+    bool closeGcodeWriterFile();
 };
 
 }//namespace cura

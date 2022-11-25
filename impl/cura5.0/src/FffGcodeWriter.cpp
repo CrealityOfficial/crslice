@@ -3341,6 +3341,15 @@ void FffGcodeWriter::finalize()
     gcode.writeComment(FffProcessor::getInstance()->getAllLocalSettingsString() + FffProcessor::getInstance()->getProfileString());
     */
 }
+bool FffGcodeWriter::closeGcodeWriterFile()
+{
+    if (output_file.is_open())
+    {
+        output_file.close();
+        return true;
+    }
+    return false;
+}
 
 
 } // namespace cura

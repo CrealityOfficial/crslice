@@ -31,6 +31,7 @@ std::vector<Duration> FffProcessor::getTotalPrintTimePerFeature()
 void FffProcessor::finalize()
 {
     gcode_writer.finalize();
+    gcode_writer.closeGcodeWriterFile();
 }
 
 } // namespace cura 
