@@ -14,9 +14,4 @@
 	#endif
 #endif
 
-
-#include "crcommon/interface.h"
-#include <memory>
-
-
 #endif // CRSLICE_INTERFACE

@@ -8,6 +8,7 @@ endif ()
 set(ILIBS crcommon polyclipping)
 
 set(SRCS crslice/interface.h
+		 crslice/header.h
 		 crslice/slice.h
 		 crslice/slice.cpp
 		 crslice/scene.h
