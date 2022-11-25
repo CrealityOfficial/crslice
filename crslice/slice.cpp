@@ -18,6 +18,11 @@ namespace crslice
 		cura::Application::getInstance().run(argc, argv);
 	}
 
+	void Slice::sliceFromScene()
+	{
+
+	}
+
 	void Slice::init(crcommon::Settings* settingsPtr)
 	{
 		if(settingsPtr !=nullptr)

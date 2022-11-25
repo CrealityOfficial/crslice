@@ -11,4 +11,9 @@ namespace crslice
 	{
 
 	}
+
+	void Scene::addScene()
+	{
+
+	}
 }

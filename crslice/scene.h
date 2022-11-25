@@ -9,6 +9,8 @@ namespace crslice
 	public:
 		Scene();
 		~Scene();
+
+		void addScene();
 	};
 }
 

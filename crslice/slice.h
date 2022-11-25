@@ -12,6 +12,7 @@ namespace crslice
 		~Slice();
 
 		void sliceFromFakeArguments(int argc, const char* argv[]);
+		void sliceFromScene();
 	private:
 		crcommon::Settings m_settingsCfg;
 	public:
