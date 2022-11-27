@@ -9,7 +9,7 @@ namespace crslice
 {
 	CrScene::CrScene()
 	{
-
+		m_settings.reset(new crcommon::Settings());
 	}
 
 	CrScene::~CrScene()

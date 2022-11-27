@@ -5,7 +5,7 @@ namespace crslice
 {
 	CrGroup::CrGroup()
 	{
-
+		m_settings.reset(new crcommon::Settings());
 	}
 
 	CrGroup::~CrGroup()
@@ -41,7 +41,7 @@ namespace crslice
 		}
 
 		CrObject& object = m_objects.at(objectID);
-		object.m_setting = settings;
+		object.m_settings = settings;
 	}
 
 	void CrGroup::setSettings(SettingsPtr settings)

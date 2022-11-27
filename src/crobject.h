@@ -11,7 +11,7 @@ namespace crslice
 		~CrObject();
 
 		TriMeshPtr m_mesh;
-		SettingsPtr m_setting;
+		SettingsPtr m_settings;
 	};
 }
 
