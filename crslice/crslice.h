@@ -1,18 +1,18 @@
 #ifndef CRSLICE_SLICE_H
 #define CRSLICE_SLICE_H
 #include "crslice/interface.h"
-#include "crcommon/Settings.h"
+#include "crslice/crscene.h"
 
 namespace crslice
 {
-	class CRSLICE_API Slice
+	class CRSLICE_API CrSlice
 	{
 	public:
-		Slice();
-		~Slice();
+		CrSlice();
+		~CrSlice();
 
 		void sliceFromFakeArguments(int argc, const char* argv[]);
-		void sliceFromScene();
+		void sliceFromScene(CrScenePtr scene);
 	private:
 		crcommon::Settings m_settingsCfg;
 	public:

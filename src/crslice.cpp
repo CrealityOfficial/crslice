@@ -1,35 +1,43 @@
-#include "slice.h"
+#include "crslice/crslice.h"
 #include "Application.h"
+
+#include "ccglobal/log.h"
 
 namespace crslice
 {
-	Slice::Slice()
+	CrSlice::CrSlice()
 	{
 
 	}
 
-	Slice::~Slice()
+	CrSlice::~CrSlice()
 	{
 
 	}
 
-	void Slice::sliceFromFakeArguments(int argc, const char* argv[])
+	void CrSlice::sliceFromFakeArguments(int argc, const char* argv[])
 	{
 		cura::Application::getInstance().run(argc, argv);
 	}
 
-	void Slice::sliceFromScene()
+	void CrSlice::sliceFromScene(CrScenePtr scene)
 	{
+		if (!scene)
+		{
+			LOGM("CrSlice::sliceFromScene empty scene.");
+			return;
+		}
+
 
 	}
 
-	void Slice::init(crcommon::Settings* settingsPtr)
+	void CrSlice::init(crcommon::Settings* settingsPtr)
 	{
 		if(settingsPtr !=nullptr)
 			m_settingsCfg = *settingsPtr;
 	}
 
-	void Slice::process()
+	void CrSlice::process()
 	{
 		 int argc = 10;
 		 const char* argv[] =

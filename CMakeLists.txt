@@ -9,13 +9,22 @@ set(ILIBS crcommon polyclipping)
 
 set(SRCS crslice/interface.h
 		 crslice/header.h
-		 crslice/slice.h
-		 crslice/slice.cpp
-		 crslice/scene.h
-		 crslice/scene.cpp
+		 crslice/crslice.h
+		 crslice/crscene.h
+		 
+		 src/crslice.cpp
+		 src/crscene.cpp
+		 src/crobject.h
+		 src/crobject.cpp
+		 src/crextruder.h
+		 src/crextruder.cpp
+		 src/crgroup.h
+		 src/crgroup.cpp
+		 src/crslicefromscene.h
+		 src/crslicefromscene.cpp
 		 )
 		 
-set(INCS)
+set(INCS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(DEFS)
 set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 

@@ -5,11 +5,5 @@
 
 namespace crslice
 {
-	struct CrObject
-	{
-		TriMeshPtr mesh;
-		trimesh::fxform xf;
-		SettingPtr setting;
-	};
 }
 #endif // CRSLICE_HEADER_INTERFACE

@@ -77,6 +77,7 @@ public:
      */
     void run(int argc, const char** argv);
 
+    void runCommulication(Communication* communication);
     /*!
      * \brief Start the global thread pool.
      *

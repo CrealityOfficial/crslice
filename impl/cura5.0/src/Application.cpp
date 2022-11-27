@@ -157,6 +157,20 @@ void Application::run(int argc, const char** argv)
     }
 }
 
+void Application::runCommulication(Communication* _communication)
+{
+    if (!_communication)
+        return;
+
+    communication = _communication;
+
+    startThreadPool(); // Start the thread pool
+    while (communication->hasSlice())
+    {
+        communication->sliceNext();
+    }
+}
+
 void Application::startThreadPool(int nworkers)
 {
     size_t nthreads;
