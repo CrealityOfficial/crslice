@@ -12,6 +12,11 @@
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/istreamwrapper.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/prettyWriter.h>
+
 #include "ccglobal/log.h"
 
 #include "Application.h" //To get the extruders for material estimates.
@@ -190,6 +195,7 @@ void CommandLine::sliceNext()
                         LOGE("Missing JSON file with -j argument.");
                         exit(1);
                     }
+                    jsonDocPairs.clear();
                     argument = arguments[argument_index];
                     if (loadJSON(argument, *last_settings))
                     {
@@ -334,6 +340,7 @@ void CommandLine::sliceNext()
 
     // Finalize the processor. This adds the end g-code and reports statistics.
     FffProcessor::getInstance()->finalize();
+    //saveJsonDocPairs();
 }
 
 int CommandLine::loadJSON(const std::string& json_filename, Settings& settings)
@@ -364,7 +371,8 @@ int CommandLine::loadJSON(const std::string& json_filename, Settings& settings)
         return 1;
     }
     rapidjson::IStreamWrapper isw(ifs);
-    rapidjson::Document json_document;
+    rapidjson::Document* json_documentPtr = new rapidjson::Document();
+    rapidjson::Document &json_document=*json_documentPtr;
     json_document.ParseStream(isw);
     if (json_document.HasParseError())
     {
@@ -375,7 +383,11 @@ int CommandLine::loadJSON(const std::string& json_filename, Settings& settings)
     std::unordered_set<std::string> search_directories = defaultSearchDirectories(); // For finding the inheriting JSON files.
     std::string directory = std::filesystem::path(json_filename).parent_path().string();
     search_directories.emplace(directory);
+    JSON_INFOR_CFG jsoninfor;
+    jsoninfor.path = json_filename;
+    jsoninfor.doc = json_documentPtr;
 
+    jsonDocPairs.emplace_back(jsoninfor);
     return loadJSON(json_document, search_directories, settings);
 }
 
@@ -572,6 +584,34 @@ const std::string CommandLine::findDefinitionFile(const std::string& definition_
     }
     LOGE("Couldn't find definition file with ID: %s", definition_id.c_str());
     return std::string("");
+}
+
+void  CommandLine::saveJsonDocPairs()
+{
+    int index = 0;
+    for (auto jsondocitem : jsonDocPairs)
+    {
+#if 0
+        rapidjson::StringBuffer buffer{};
+        rapidjson::Writer<rapidjson::StringBuffer> writer{ buffer };
+        jsondocitem.second->Accept(writer);
+#endif
+        std::string directory = std::filesystem::path(jsondocitem.path).parent_path().string();
+        std::string filename = std::filesystem::path(jsondocitem.path).filename().string();
+        std::string tempname= directory +"/0_"+ filename;
+
+        std::ofstream ofs{ tempname };
+        if (!ofs.is_open())
+        {
+            std::cerr << "Could not open file for writing!\n";
+        }
+
+        rapidjson::OStreamWrapper osw{ ofs };
+        //rapidjson::Writer<rapidjson::OStreamWrapper> writer2{ osw };
+        rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer2{ osw };
+        jsondocitem.doc->Accept(writer2);
+        
+    }
 }
 
 } // namespace cura

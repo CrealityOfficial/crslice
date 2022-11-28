@@ -14,6 +14,21 @@
 namespace cura
 {
 class Settings;
+struct JSON_INFOR_CFG
+{
+    enum cfgTypeEnum
+    {
+        BASE_SETTING,
+        MACHINE_TYPE_SETTING,
+        EXTRUDER_SETTING,
+        PRINTER_SETTING,
+        MATERIAL_SETTING,
+    };
+    cfgTypeEnum type;
+    std::string path;
+    rapidjson::Document* doc;
+
+};
 
 /*
  * \brief When slicing via the command line, interprets the command line
@@ -150,11 +165,13 @@ public:
      */
     void sliceNext() override;
 
+    void saveJsonDocPairs() ;
 private:
     /*
      * \brief The command line arguments that the application was called with.
      */
     std::vector<std::string> arguments;
+    std::vector<JSON_INFOR_CFG> jsonDocPairs;
 
     /*
      * The last progress update that we output to stdcerr.
