@@ -83,4 +83,11 @@ namespace crslice
 			delete group;
 		m_groups.clear();
 	}
+	CrGroup* CrScene::getGroupsIndex(int groupID)
+	{
+		if (groupID < m_groups.size())
+			return  m_groups.at(groupID);
+		else
+			return nullptr;
+	}
 }

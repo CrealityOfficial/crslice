@@ -23,7 +23,8 @@ namespace crslice
 		void setSceneSettings(SettingsPtr settings);
 
 		void release();
-	protected:
+		CrGroup* getGroupsIndex(int groupID);
+	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;
 	};

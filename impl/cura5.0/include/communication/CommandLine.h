@@ -37,6 +37,7 @@ struct JSON_INFOR_CFG
 class CommandLine : public Communication
 {
 public:
+    CommandLine();
     /*
      * \brief Construct a new communicator that interprets the command line to
      * start a slice.
@@ -166,13 +167,15 @@ public:
     void sliceNext() override;
 
     void saveJsonDocPairs() ;
+
+    void setsliceHandler(Slice* current_slice);
 private:
     /*
      * \brief The command line arguments that the application was called with.
      */
     std::vector<std::string> arguments;
     std::vector<JSON_INFOR_CFG> jsonDocPairs;
-
+    Slice* current_slice = nullptr;
     /*
      * The last progress update that we output to stdcerr.
      */
@@ -183,7 +186,7 @@ private:
      * \return The default search directories to search for definition files.
      */
     std::unordered_set<std::string> defaultSearchDirectories();
-
+public:
     /*
      * \brief Load a JSON file and store the settings inside it.
      * \param json_filename The location of the JSON file to load settings from.

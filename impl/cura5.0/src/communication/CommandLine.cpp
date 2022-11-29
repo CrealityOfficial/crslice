@@ -29,8 +29,13 @@
 namespace cura
 {
 
+CommandLine::CommandLine()
+{
+    jsonDocPairs.clear();
+}
 CommandLine::CommandLine(const std::vector<std::string>& arguments) : arguments(arguments), last_shown_progress(0)
 {
+    jsonDocPairs.clear();
 }
 
 // These are not applicable to command line slicing.
@@ -461,6 +466,7 @@ int CommandLine::loadJSON(const rapidjson::Document& document, const std::unorde
                 }
                 const std::string extruder_definition_id(extruder_id.GetString());
                 const std::string extruder_file = findDefinitionFile(extruder_definition_id, search_directories);
+                LOGE("start load extruders setting %s", extruder_file.c_str());
                 loadJSON(extruder_file, scene.extruders[extruder_nr].settings);
             }
         }
@@ -613,5 +619,8 @@ void  CommandLine::saveJsonDocPairs()
         
     }
 }
-
+void CommandLine::setsliceHandler(Slice* slicePtr)
+{
+    current_slice = slicePtr;
+}
 } // namespace cura

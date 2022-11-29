@@ -2,6 +2,7 @@
 #include "Application.h"
 
 #include "ccglobal/log.h"
+#include "crslicefromscene.h"
 
 namespace crslice
 {
@@ -22,9 +23,15 @@ namespace crslice
 
 	void CrSlice::sliceFromScene(CrScenePtr scene)
 	{
-		if (!scene)
+		if (scene)
 		{
 			LOGM("CrSlice::sliceFromScene empty scene.");
+			SliceInitCfg sliceCfg;
+			//sliceCfg.initCfgFile =  "G:/Work/CuraEngine/Visualization/testUnit/testData/creality_cr10.def.json";
+			//sliceCfg.gcodeOutFile = "G:/Work/CuraEngine/Visualization/testUnit/testData/output/curaOut.gcode";
+			//sliceCfg.testMeshFile = "G:/Work/CuraEngine/Visualization/testUnit/testData/test.stl";
+			CRSliceFromScene crsliceHandler(scene, sliceCfg);
+			crsliceHandler.sliceNext();
 			return;
 		}
 

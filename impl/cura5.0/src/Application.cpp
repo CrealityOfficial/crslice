@@ -108,6 +108,10 @@ void Application::slice()
 {
     communication = new CommandLine(m_args);
 }
+void Application::setSliceCommunication(Communication *ptr)
+{
+    communication = ptr;
+}
 
 void Application::run(int argc, const char** argv)
 {

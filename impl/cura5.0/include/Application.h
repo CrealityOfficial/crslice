@@ -90,6 +90,7 @@ public:
      */
     void startThreadPool(int nworkers=0);
 
+    void setSliceCommunication(Communication* ptr);
 protected:
 #ifdef ARCUS
     /*!

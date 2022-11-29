@@ -6,10 +6,17 @@
 namespace crslice
 {
     class Settings;
+    typedef struct SLICE_INIT_CONFIGURE
+    {
+        std::string initCfgFile;
+        std::string gcodeOutFile;
+        std::string testMeshFile;
+    }SliceInitCfg;
+
     class CRSliceFromScene : public cura::Communication
     {
     public:
-        CRSliceFromScene(CrScenePtr scene);
+        CRSliceFromScene(CrScenePtr scene, const SliceInitCfg sliceCfg);
         virtual ~CRSliceFromScene();
 
         void beginGCode() override;
@@ -41,6 +48,7 @@ namespace crslice
     private:
         bool m_sliced;
         CrScenePtr m_scene;
+        SliceInitCfg m_sliceInitCfg;
     };
 
 } //namespace crslice
