@@ -6,18 +6,23 @@
 #include "FffProcessor.h"
 #include "Slice.h"
 #include "communication/CommandLine.h"
+#include "utils/Coord_t.h"
 namespace crslice
 {
     static void trimesh2CuraMesh(TriMeshPtr mesh, cura::Mesh *curaMesh)
     {
+        using namespace cura;
+        curaMesh->faces.reserve(mesh->faces.size());
+        curaMesh->vertices.reserve(mesh->vertices.size());
+
         for (size_t i = 0; i < mesh->faces.size(); i++)
         {
             //const cura::FMatrix4x3 transformation ;//= last_settings->get<FMatrix4x3>("mesh_rotation_matrix"); // The transformation applied to the model when loaded.
             //loadMeshIntoMeshGroup(&slice.scene.mesh_groups[mesh_group_index], argument.c_str(), transformation, last_extruder->settings)
             const auto &face = mesh->faces[i];
-            cura::Point3 v0(mesh->vertices[face[0]].x, mesh->vertices[face[0]].y, mesh->vertices[face[0]].z);
-            cura::Point3 v1(mesh->vertices[face[1]].x, mesh->vertices[face[1]].y, mesh->vertices[face[1]].z);
-            cura::Point3 v2(mesh->vertices[face[2]].x, mesh->vertices[face[2]].y, mesh->vertices[face[2]].z);
+            cura::Point3 v0(MM2INT(mesh->vertices[face[0]].x), MM2INT(mesh->vertices[face[0]].y), MM2INT(mesh->vertices[face[0]].z));
+            cura::Point3 v1(MM2INT(mesh->vertices[face[1]].x), MM2INT(mesh->vertices[face[1]].y), MM2INT(mesh->vertices[face[1]].z));
+            cura::Point3 v2(MM2INT(mesh->vertices[face[2]].x), MM2INT(mesh->vertices[face[2]].y), MM2INT(mesh->vertices[face[2]].z));
             curaMesh->addFace(v0, v1, v2);
         }
         curaMesh->finish();
