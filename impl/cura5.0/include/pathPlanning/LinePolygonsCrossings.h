@@ -8,7 +8,7 @@
 #include "../utils/polygon.h"
 #include "../utils/polygonUtils.h"
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -150,6 +150,6 @@ public:
     };
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//PATH_PLANNING_LINE_POLYGONS_CROSSINGS_H

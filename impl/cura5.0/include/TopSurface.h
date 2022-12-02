@@ -6,7 +6,7 @@
 
 #include "utils/polygon.h" //For the polygon areas.
 
-namespace cura
+namespace cura52
 {
 
 class GCodePathConfig;

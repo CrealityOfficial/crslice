@@ -29,7 +29,7 @@
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
 
-namespace cura
+namespace cura52
 {
 
 FffGcodeWriter::FffGcodeWriter() : max_object_height(0), layer_plan_buffer(gcode), slice_uuid(boost::uuids::to_string(boost::uuids::random_generator()()))
@@ -3352,4 +3352,4 @@ bool FffGcodeWriter::closeGcodeWriterFile()
 }
 
 
-} // namespace cura
+} // namespace cura52

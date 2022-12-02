@@ -22,7 +22,7 @@
 #include "settings/types/Velocity.h" //To send to layer view how fast stuff is printing.
 #include "utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 
 /*
@@ -546,6 +546,6 @@ void ArcusCommunication::sliceNext()
     std::this_thread::sleep_for(std::chrono::milliseconds(250)); // Pause before checking again for a slice message.
 }
 
-} // namespace cura
+} // namespace cura52
 
 #endif // ARCUS

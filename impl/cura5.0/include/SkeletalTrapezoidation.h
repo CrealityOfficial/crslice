@@ -21,7 +21,7 @@
 #include "BeadingStrategy/BeadingStrategy.h"
 #include "SkeletalTrapezoidationGraph.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -595,5 +595,5 @@ protected:
     void generateLocalMaximaSingleBeads();
 };
 
-} // namespace cura
+} // namespace cura52
 #endif // VORONOI_QUADRILATERALIZATION_H

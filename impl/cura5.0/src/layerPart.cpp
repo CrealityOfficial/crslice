@@ -24,7 +24,7 @@ And all every bit inside a single part can be printed without the nozzle leaving
 It's also the first step that stores the result in the "data storage" so all other steps can access it.
 */
 
-namespace cura {
+namespace cura52 {
 
 void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer)
 {
@@ -96,7 +96,7 @@ void createLayerParts(SliceMeshStorage& mesh, Slicer* slicer)
     const auto total_layers = slicer->layers.size();
     assert(mesh.layers.size() == total_layers);
 
-    cura::parallel_for<size_t>(0, total_layers, [slicer, &mesh](size_t layer_nr)
+    cura52::parallel_for<size_t>(0, total_layers, [slicer, &mesh](size_t layer_nr)
     {
         SliceLayer& layer_storage = mesh.layers[layer_nr];
         SlicerLayer& slice_layer = slicer->layers[layer_nr];
@@ -114,4 +114,4 @@ void createLayerParts(SliceMeshStorage& mesh, Slicer* slicer)
     }
 }
 
-}//namespace cura
+}//namespace cura52

@@ -7,7 +7,7 @@
 #include "mesh.h"
 #include "utils/NoCopy.h"
 
-namespace cura
+namespace cura52
 {
 
 class FMatrix4x3;
@@ -52,6 +52,6 @@ public:
  */
 bool loadMeshIntoMeshGroup(MeshGroup* meshgroup, const char* filename, const FMatrix4x3& transformation, Settings& object_parent_settings);
 
-} //namespace cura
+} //namespace cura52
 
 #endif //MESH_GROUP_H

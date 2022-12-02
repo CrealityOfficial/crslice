@@ -4,7 +4,7 @@
 #include "sliceDataStorage.h"
 #include "TreeModelVolumes.h"
 
-namespace cura
+namespace cura52
 {
 
 TreeModelVolumes::TreeModelVolumes(const SliceDataStorage& storage, const Settings& settings)

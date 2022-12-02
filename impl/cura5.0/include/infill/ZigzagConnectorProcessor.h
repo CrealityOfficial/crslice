@@ -6,7 +6,7 @@
 
 #include "../utils/polygon.h" //TODO: We have implementation in this header file!
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -235,7 +235,7 @@ inline void ZigzagConnectorProcessor::addPolyline(PolygonRef polyline)
 }
 
 
-} // namespace cura
+} // namespace cura52
 
 
 #endif // INFILL_ZIGZAG_CONNECTOR_PROCESSOR_H

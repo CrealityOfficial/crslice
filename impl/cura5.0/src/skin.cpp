@@ -18,7 +18,7 @@
 
 #define MIN_AREA_SIZE (0.4 * 0.4)
 
-namespace cura
+namespace cura52
 {
 
 coord_t SkinInfillAreaComputation::getSkinLineWidth(const SliceMeshStorage& mesh, const LayerIndex& layer_nr)
@@ -656,4 +656,4 @@ void SkinInfillAreaComputation::generateTopAndBottomMostSkinSurfaces(SliceLayerP
 }
 
 
-}//namespace cura
+}//namespace cura52

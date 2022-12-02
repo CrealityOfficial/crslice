@@ -10,7 +10,7 @@
 #include <math.h>
 
 
-namespace cura
+namespace cura52
 {
     
 /*
@@ -102,5 +102,5 @@ inline float operator*(FPoint3 lhs, const FPoint3& rhs) {
 
 
 
-}//namespace cura
+}//namespace cura52
 #endif//INT_POINT_H

@@ -7,7 +7,7 @@
 #include "utils/IntPoint.h" //Conversion directly into integer-based coordinates.
 #include "settings/types/Ratio.h" //Scale factor.
 
-namespace cura
+namespace cura52
 {
 
 FMatrix4x3 FMatrix4x3::scale(const Ratio scale, const Point3 origin)

@@ -4,7 +4,7 @@
 #include "infill/LightningDistanceField.h" //Class we're implementing.
 #include "utils/polygonUtils.h" //For spreadDotsArea helper function.
 
-namespace cura
+namespace cura52
 {
 
 constexpr coord_t radius_per_cell_size = 6;  // The cell-size should be small compared to the radius, but not so small as to be inefficient.

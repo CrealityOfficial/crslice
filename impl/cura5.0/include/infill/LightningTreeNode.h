@@ -12,7 +12,7 @@
 #include "../utils/polygonUtils.h"
 #include "../utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 
 constexpr coord_t locator_cell_size = 4000;
@@ -267,6 +267,6 @@ protected:
     std::optional<Point> last_grounding_location;  //<! The last known grounding location, see 'getLastGroundingLocation()'.
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // LIGHTNING_TREE_NODE_H

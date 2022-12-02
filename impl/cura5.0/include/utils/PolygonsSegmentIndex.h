@@ -8,7 +8,7 @@
 
 #include "PolygonsPointIndex.h"
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -26,7 +26,7 @@ public:
 };
 
 
-} // namespace cura
+} // namespace cura52
 
 
 #endif//UTILS_POLYGONS_SEGMENT_INDEX_H

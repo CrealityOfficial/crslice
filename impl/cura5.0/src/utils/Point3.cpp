@@ -3,7 +3,7 @@
 
 #include "utils/Point3.h" //The headers we're implementing.
 
-namespace cura
+namespace cura52
 {
 
 Point3 Point3::operator +(const Point3& p) const

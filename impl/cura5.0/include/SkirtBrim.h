@@ -6,7 +6,7 @@
 
 #include "utils/Coord_t.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class Polygons;
@@ -67,6 +67,6 @@ private:
      */
     static coord_t generatePrimarySkirtBrimLines(const coord_t start_distance, size_t& primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder);
 };
-}//namespace cura
+}//namespace cura52
 
 #endif //SKIRT_BRIM_H

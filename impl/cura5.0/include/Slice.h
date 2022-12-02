@@ -6,7 +6,7 @@
 
 #include "Scene.h" //To store the scene to slice.
 
-namespace cura
+namespace cura52
 {
 
 /*
@@ -59,6 +59,6 @@ private:
     Slice& operator =(const Slice& other) = delete;
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //SLICE_H

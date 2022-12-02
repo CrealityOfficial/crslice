@@ -3,7 +3,7 @@
 
 #include "utils/PolygonsPointIndex.h"
 
-namespace cura
+namespace cura52
 {
 
 template<>

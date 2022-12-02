@@ -4,7 +4,7 @@
 #ifndef FMATRIX4X3_H
 #define FMATRIX4X3_H
 
-namespace cura
+namespace cura52
 {
 
 class FPoint3;
@@ -60,5 +60,5 @@ public:
     Point3 apply(const Point3& p) const;
 };
 
-} //namespace cura
+} //namespace cura52
 #endif //FMATRIX4X3_H

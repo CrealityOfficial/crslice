@@ -9,7 +9,7 @@
 
 #define TAU (2.0 * M_PI)
 
-namespace cura
+namespace cura52
 {
 //AngleDegrees and AngleRadians classes defined together here interweaved, to resolve their interdependencies.
 class AngleRadians;

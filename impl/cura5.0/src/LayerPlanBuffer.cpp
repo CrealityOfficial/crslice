@@ -12,7 +12,7 @@
 #include "communication/Communication.h" //To flush g-code through the communication channel.
 #include "gcodeExport.h"
 
-namespace cura
+namespace cura52
 {
 
 
@@ -568,4 +568,4 @@ void LayerPlanBuffer::insertTempCommands()
     }
 }
 
-} // namespace cura
+} // namespace cura52

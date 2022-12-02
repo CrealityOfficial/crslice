@@ -15,7 +15,7 @@
 #include <thread>
 #include <vector>
 
-namespace cura
+namespace cura52
 {
 
 /*!

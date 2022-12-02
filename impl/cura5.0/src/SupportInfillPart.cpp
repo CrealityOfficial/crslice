@@ -4,7 +4,7 @@
 #include "SupportInfillPart.h"
 #include "support.h"
 
-using namespace cura;
+using namespace cura52;
 
 
 SupportInfillPart::SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate)

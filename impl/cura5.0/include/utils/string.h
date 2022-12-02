@@ -10,7 +10,7 @@
 
 #include "ccglobal/log.h"
 
-namespace cura
+namespace cura52
 {
 
 // c++11 no longer supplies a strcasecmp, so define our own version.
@@ -233,6 +233,6 @@ struct Escaped
     }
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // UTILS_STRING_H

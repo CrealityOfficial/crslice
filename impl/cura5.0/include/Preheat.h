@@ -10,7 +10,7 @@
 #include "settings/types/Duration.h"
 #include "settings/types/Temperature.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class Ratio;
@@ -111,6 +111,6 @@ public:
     Duration getTimeToGoFromTempToTemp(const size_t extruder, const Temperature& temp_before, const Temperature& temp_after, const bool during_printing);
 };
 
-} // namespace cura 
+} // namespace cura52 
 
 #endif // PREHEAT_H

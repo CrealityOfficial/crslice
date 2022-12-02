@@ -7,7 +7,7 @@
 #include "EnumSettings.h" //For EZSeamType and EZSeamCornerPrefType.
 #include "../utils/IntPoint.h" //To store the preferred seam position.
 
-namespace cura
+namespace cura52
 {
 
 /*!

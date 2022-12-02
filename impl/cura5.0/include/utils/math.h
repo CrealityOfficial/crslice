@@ -13,7 +13,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-namespace cura
+namespace cura52
 {
 
 static constexpr float sqrt2 = 1.41421356237;
@@ -60,6 +60,6 @@ constexpr T pi_mul(const T mul)
     return  static_cast<T>(M_PI) / mul;
 }
 
-}//namespace cura
+}//namespace cura52
 #endif // UTILS_MATH_H
 

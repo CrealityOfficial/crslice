@@ -5,7 +5,7 @@
 
 #include "utils/linearAlg2D.h"
 
-using namespace cura;
+using namespace cura52;
 
 coord_t LightningTreeNode::getWeightedDistance(const Point& unsupported_location, const coord_t& supporting_radius) const
 {

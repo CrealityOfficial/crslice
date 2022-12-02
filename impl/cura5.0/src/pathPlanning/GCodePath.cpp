@@ -4,7 +4,7 @@
 #include "pathPlanning/GCodePath.h"
 #include "GCodePathConfig.h"
 
-namespace cura
+namespace cura52
 {
 GCodePath::GCodePath(const GCodePathConfig& config, std::string mesh_id, const SpaceFillType space_fill_type, const Ratio flow, const Ratio width_factor, const bool spiralize, const Ratio speed_factor) :
 config(&config),

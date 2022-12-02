@@ -6,7 +6,7 @@
 
 #include "IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 class ConstPolygonRef;
@@ -106,6 +106,6 @@ public:
     Polygon toPolygon() const;
 };
 
-}//namespace cura
+}//namespace cura52
 #endif//UTILS_AABB_H
 

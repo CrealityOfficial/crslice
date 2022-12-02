@@ -14,7 +14,7 @@
 #include "HalfEdgeNode.h"
 #include "SVG.h"
 
-namespace cura
+namespace cura52
 {
 template<class node_data_t, class edge_data_t, class derived_node_t, class derived_edge_t> // types of data contained in nodes and edges
 class HalfEdgeGraph
@@ -26,5 +26,5 @@ public:
     std::list<node_t> nodes;
 };
 
-} // namespace cura
+} // namespace cura52
 #endif // UTILS_HALF_EDGE_GRAPH_H

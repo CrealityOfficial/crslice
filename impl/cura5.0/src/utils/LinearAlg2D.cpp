@@ -9,7 +9,7 @@
 
 #include "utils/IntPoint.h" // dot
 
-namespace cura 
+namespace cura52 
 {
 
 float LinearAlg2D::getAngleLeft(const Point& a, const Point& b, const Point& c)
@@ -290,4 +290,4 @@ coord_t LinearAlg2D::getDistFromLine(const Point& p, const Point& a, const Point
     return px_size;
 }
 
-} // namespace cura
+} // namespace cura52

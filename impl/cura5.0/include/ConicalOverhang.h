@@ -5,7 +5,7 @@
 #ifndef CONICAL_OVERHANG_H
 #define CONICAL_OVERHANG_H
 
-namespace cura {
+namespace cura52 {
 
 class Mesh;
 class Slicer;
@@ -26,6 +26,6 @@ public:
     static void apply(Slicer* slicer, const Mesh& mesh);
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif // CONICAL_OVERHANG_H

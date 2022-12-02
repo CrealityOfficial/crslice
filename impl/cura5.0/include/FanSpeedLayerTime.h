@@ -8,7 +8,7 @@
 #include "settings/types/LayerIndex.h"
 #include "settings/types/Velocity.h"
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -70,6 +70,6 @@ public:
     LayerIndex cool_fan_full_layer;
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // FAN_SPEED_LAYER_TIME_H

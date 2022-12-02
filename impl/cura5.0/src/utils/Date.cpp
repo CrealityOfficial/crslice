@@ -8,7 +8,7 @@
 #include <cstring> // strstr
 #include <iomanip> // setw, setfill
 
-namespace cura
+namespace cura52
 {
 
 Date::Date(int year, int month, int day)
@@ -51,4 +51,4 @@ Date Date::getDate()
 }
 
 
-} // namespace cura
+} // namespace cura52

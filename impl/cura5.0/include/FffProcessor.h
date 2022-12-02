@@ -10,7 +10,7 @@
 #include "utils/NoCopy.h"
 
 
-namespace cura {
+namespace cura52 {
 
 //FusedFilamentFabrication processor. Singleton class
 class FffProcessor : public NoCopy
@@ -87,6 +87,6 @@ public:
     void finalize();
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//FFF_PROCESSOR_H

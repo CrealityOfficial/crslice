@@ -11,7 +11,7 @@
 #include <vector>
 #include <functional>
 
-namespace cura {
+namespace cura52 {
 
 /*!
  * Helper class to calculate coordinates on a square grid, and providing some
@@ -150,6 +150,6 @@ protected:
     grid_coord_t nonzeroSign(const grid_coord_t z) const;
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif //UTILS_SQUARE_GRID_H

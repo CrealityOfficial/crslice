@@ -14,7 +14,7 @@
 #include "ListPolyIt.h"
 
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -43,16 +43,16 @@ struct ProximityPointLink
     bool operator==(const ProximityPointLink& other) const;
 };
 
-}//namespace cura
+}//namespace cura52
 
 namespace std
 {
 template <>
-struct hash<cura::ProximityPointLink>
+struct hash<cura52::ProximityPointLink>
 {
-    size_t operator()(const cura::ProximityPointLink & pp) const
+    size_t operator()(const cura52::ProximityPointLink & pp) const
     { // has to be symmetric wrt a and b!
-        return std::hash<cura::Point>()(pp.a.p()) + std::hash<cura::Point>()(pp.b.p());
+        return std::hash<cura52::Point>()(pp.a.p()) + std::hash<cura52::Point>()(pp.b.p());
     }
 };
 }//namespace std

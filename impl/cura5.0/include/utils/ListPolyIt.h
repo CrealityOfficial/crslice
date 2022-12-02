@@ -12,7 +12,7 @@
 #include "polygon.h"
 
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -131,7 +131,7 @@ public:
 };
 
 
-}//namespace cura
+}//namespace cura52
 
 namespace std
 {
@@ -139,11 +139,11 @@ namespace std
  * Hash function for \ref ListPolyIt
  */
 template <>
-struct hash<cura::ListPolyIt>
+struct hash<cura52::ListPolyIt>
 {
-    size_t operator()(const cura::ListPolyIt& lpi) const
+    size_t operator()(const cura52::ListPolyIt& lpi) const
     {
-        return std::hash<cura::Point>()(lpi.p());
+        return std::hash<cura52::Point>()(lpi.p());
     }
 };
 }//namespace std

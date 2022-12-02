@@ -7,7 +7,7 @@
 #include "Slice.h"
 #include <fstream>      // std::ofstream
 
-namespace cura
+namespace cura52
 {
 
 Slice::Slice(const size_t num_mesh_groups) : scene(num_mesh_groups)
@@ -44,4 +44,4 @@ void Slice::reset()
     scene.settings = Settings();
 }
 
-} // namespace cura
+} // namespace cura52

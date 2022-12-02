@@ -6,7 +6,7 @@
 #include "utils/polygon.h" //To create the AABB of a polygon.
 #include <limits>
 
-namespace cura
+namespace cura52
 {
 
 
@@ -157,4 +157,4 @@ Polygon AABB::toPolygon() const
     return ret;
 }
 
-} // namespace cura
+} // namespace cura52

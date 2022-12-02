@@ -7,7 +7,7 @@
 
 #include "utils/macros.h"
 
-namespace cura
+namespace cura52
 {
 
 Polygons ExtrusionSegment::toPolygons()
@@ -150,4 +150,4 @@ std::vector<ExtrusionSegment> ExtrusionSegment::discretize(coord_t step_size)
     return discretized;
 }
 
-} // namespace cura
+} // namespace cura52

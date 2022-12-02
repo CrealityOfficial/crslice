@@ -8,7 +8,7 @@
 
 #include "IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 template<typename node_data_t, typename edge_data_t, typename derived_node_t, typename derived_edge_t>
@@ -37,5 +37,5 @@ public:
 
 
 
-} // namespace cura
+} // namespace cura52
 #endif // UTILS_HALF_EDGE_NODE_H

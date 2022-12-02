@@ -6,7 +6,7 @@
 
 #include "utils/Simplify.h"
 
-namespace cura
+namespace cura52
 {
 
 Simplify::Simplify(const coord_t max_resolution, const coord_t max_deviation, const coord_t max_area_deviation)

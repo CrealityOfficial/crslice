@@ -6,7 +6,7 @@
 
 #include <utility> // pair
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -67,7 +67,7 @@ public:
     }
 };
 
-}//namespace cura
+}//namespace cura52
 
 namespace std
 {
@@ -76,9 +76,9 @@ namespace std
  * Hash operator which creates a hash regardless of the order between first and second
  */
 template<class A>
-struct hash<cura::SymmetricPair<A>>
+struct hash<cura52::SymmetricPair<A>>
 {
-    size_t operator()(const cura::SymmetricPair<A>& pr) const
+    size_t operator()(const cura52::SymmetricPair<A>& pr) const
     { // has to be symmetric wrt a and b!
         return std::hash<A>()(pr.first) + std::hash<A>()(pr.second);
     }

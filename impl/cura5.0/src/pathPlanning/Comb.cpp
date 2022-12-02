@@ -17,7 +17,7 @@
 #include "sliceDataStorage.h"
 #include "utils/SVG.h"
 
-namespace cura {
+namespace cura52 {
 
 LocToLineGrid& Comb::getOutsideLocToLine(const ExtruderTrain& train)
 {
@@ -510,4 +510,4 @@ std::shared_ptr<std::pair<ClosestPolygonPoint, ClosestPolygonPoint>> Comb::Cross
     return std::make_shared<std::pair<ClosestPolygonPoint, ClosestPolygonPoint>>(*best_in, *best_out);
 }
 
-}//namespace cura
+}//namespace cura52

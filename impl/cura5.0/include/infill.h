@@ -12,7 +12,7 @@
 #include "utils/ExtrusionLine.h"
 #include "utils/IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 class AABB;
@@ -442,6 +442,6 @@ private:
     void connectLines(Polygons& result_lines);
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif // INFILL_H

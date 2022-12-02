@@ -13,7 +13,7 @@
     The Slicer creates layers of polygons from an optimized 3D model.
     The result of the Slicer is a list of polygons without any order or structure.
 */
-namespace cura
+namespace cura52
 {
 
 class AdaptiveLayer;
@@ -567,6 +567,6 @@ private:
 
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//SLICER_H

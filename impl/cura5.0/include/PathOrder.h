@@ -8,7 +8,7 @@
 #include "utils/polygonUtils.h"
 #include "PathOrderPath.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!

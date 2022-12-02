@@ -17,7 +17,7 @@
 #include "utils/polygonUtils.h"
 #include "utils/Simplify.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -622,6 +622,6 @@ protected:
 template<typename PathType>
 const std::unordered_set<std::pair<PathType, PathType>> PathOrderOptimizer<PathType>::no_order_requirements;
 
-} //namespace cura
+} //namespace cura52
 
 #endif //PATHORDEROPTIMIZER_H

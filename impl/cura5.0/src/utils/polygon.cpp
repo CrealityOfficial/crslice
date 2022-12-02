@@ -13,7 +13,7 @@
 
 #include "utils/PolylineStitcher.h"
 
-namespace cura
+namespace cura52
 {
 
 size_t ConstPolygonRef::size() const
@@ -28,7 +28,7 @@ bool ConstPolygonRef::empty() const
 
 bool ConstPolygonRef::shorterThan(const coord_t check_length) const
 {
-    return cura::shorterThan(*this, check_length);
+    return cura52::shorterThan(*this, check_length);
 }
 
 bool ConstPolygonRef::_inside(Point p, bool border_result) const
@@ -1459,4 +1459,4 @@ void Polygons::ensureManifold()
     }
 }
 
-}//namespace cura
+}//namespace cura52

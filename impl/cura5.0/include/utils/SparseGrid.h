@@ -13,7 +13,7 @@
 #include "IntPoint.h"
 #include "SquareGrid.h"
 
-namespace cura {
+namespace cura52 {
 
 /*! \brief Sparse grid which can locate spatially nearby elements efficiently.
  * 
@@ -246,6 +246,6 @@ bool SGI_THIS::getNearest(
 #undef SGI_TEMPLATE
 #undef SGI_THIS
 
-} // namespace cura
+} // namespace cura52
 
 #endif // UTILS_SPARSE_GRID_H

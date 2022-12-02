@@ -9,7 +9,7 @@
 
 #include "types/Temperature.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -44,6 +44,6 @@ public:
     double getTemp(const double flow, const Temperature material_print_temperature, const bool flow_dependent_temperature) const;
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // FLOW_TEMP_GRAPH

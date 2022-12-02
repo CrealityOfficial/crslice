@@ -19,7 +19,7 @@
 #define CIRCLE_RESOLUTION 32 //The number of vertices in each circle.
 
 
-namespace cura 
+namespace cura52 
 {
 
 PrimeTower::PrimeTower()
@@ -255,4 +255,4 @@ void PrimeTower::gotoStartLocation(LayerPlan& gcode_layer, const int extruder_nr
     gcode_layer.addTravel(prime_start);
 }
 
-}//namespace cura
+}//namespace cura52

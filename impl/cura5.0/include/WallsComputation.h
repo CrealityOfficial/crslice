@@ -8,7 +8,7 @@
 #include "settings/types/LayerIndex.h"
 #include "utils/Coord_t.h"
 
-namespace cura
+namespace cura52
 {
 
 class SliceLayer;
@@ -70,6 +70,6 @@ private:
      */
     void generateSpiralInsets(SliceLayerPart *part, coord_t line_width_0, coord_t wall_0_inset, bool recompute_outline_based_on_outer_wall);
 };
-}//namespace cura
+}//namespace cura52
 
 #endif//WALLS_COMPUTATION_H

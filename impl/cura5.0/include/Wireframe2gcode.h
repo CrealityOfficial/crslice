@@ -10,7 +10,7 @@
 #include "settings/types/Angle.h" //For the nozzle expansion angle setting.
 #include "utils/NoCopy.h"
 
-namespace cura
+namespace cura52
 {
 
 class Weaver;
@@ -154,6 +154,6 @@ private:
 
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//WIREFRAME2GCODE_H

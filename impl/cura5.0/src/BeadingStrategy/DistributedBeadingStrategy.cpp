@@ -3,7 +3,7 @@
 #include <numeric>
 #include "BeadingStrategy/DistributedBeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
 
 DistributedBeadingStrategy::DistributedBeadingStrategy
@@ -101,4 +101,4 @@ coord_t DistributedBeadingStrategy::getOptimalBeadCount(coord_t thickness) const
     return naive_count + (remainder >= minimum_line_width); // If there's enough space, fit an extra one.
 }
 
-} // namespace cura
+} // namespace cura52

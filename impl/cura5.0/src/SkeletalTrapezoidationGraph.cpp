@@ -10,7 +10,7 @@
 #include "utils/linearAlg2D.h"
 #include "utils/macros.h"
 
-namespace cura
+namespace cura52
 {
 
 STHalfEdge::STHalfEdge(SkeletalTrapezoidationEdge data) : HalfEdge(data)
@@ -57,8 +57,8 @@ bool STHalfEdge::isUpward() const
     }
 
     // Equidistant edge case:
-    std::optional<cura::coord_t> forward_up_dist = this->distToGoUp();
-    std::optional<cura::coord_t> backward_up_dist = twin->distToGoUp();
+    std::optional<cura52::coord_t> forward_up_dist = this->distToGoUp();
+    std::optional<cura52::coord_t> backward_up_dist = twin->distToGoUp();
     if (forward_up_dist && backward_up_dist)
     {
         return forward_up_dist < backward_up_dist;
@@ -76,7 +76,7 @@ bool STHalfEdge::isUpward() const
     return to->p < from->p; // Arbitrary ordering, which returns the opposite for the twin edge
 }
 
-std::optional<cura::coord_t> STHalfEdge::distToGoUp() const
+std::optional<cura52::coord_t> STHalfEdge::distToGoUp() const
 {
     if (to->data.distance_to_boundary > from->data.distance_to_boundary)
     {
@@ -84,14 +84,14 @@ std::optional<cura::coord_t> STHalfEdge::distToGoUp() const
     }
     if (to->data.distance_to_boundary < from->data.distance_to_boundary)
     {
-        return std::optional<cura::coord_t>();
+        return std::optional<cura52::coord_t>();
     }
 
     // Edge is between equidistqant verts; recurse!
-    std::optional<cura::coord_t> ret;
+    std::optional<cura52::coord_t> ret;
     for (edge_t* outgoing = next; outgoing != twin; outgoing = outgoing->twin->next)
     {
-        std::optional<cura::coord_t> dist_to_up = outgoing->distToGoUp();
+        std::optional<cura52::coord_t> dist_to_up = outgoing->distToGoUp();
         if (dist_to_up)
         {
             if (ret)
@@ -105,14 +105,14 @@ std::optional<cura::coord_t> STHalfEdge::distToGoUp() const
         }
         assert(outgoing->twin);
         if (! outgoing->twin)
-            return std::optional<cura::coord_t>();
+            return std::optional<cura52::coord_t>();
         assert(outgoing->twin->next);
         if (! outgoing->twin->next)
             return 0; // This point is on the boundary?! Should never occur
     }
     if (ret)
     {
-        ret = *ret + cura::vSize(to->p - from->p);
+        ret = *ret + cura52::vSize(to->p - from->p);
     }
     return ret;
 }
@@ -481,4 +481,4 @@ std::pair<Point, Point> SkeletalTrapezoidationGraph::getSource(const edge_t& edg
     return std::make_pair(from_edge->from->p, to_edge->to->p);
 }
 
-} // namespace cura
+} // namespace cura52

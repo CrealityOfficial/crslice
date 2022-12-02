@@ -11,7 +11,7 @@
 #include "IntPoint.h"
 #include "NoCopy.h"
 
-namespace cura
+namespace cura52
 {
 
 class FPoint3;
@@ -196,5 +196,5 @@ void SVG::printf(const char* txt, Args&&... args) const
     fprintf(out, txt, args...);
 }
 
-} // namespace cura
+} // namespace cura52
 #endif // SVG_H

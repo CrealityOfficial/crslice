@@ -30,7 +30,7 @@
 #define POLY_ASSERT(e) do {} while(0)
 #endif
 
-namespace cura {
+namespace cura52 {
 
 template<typename T>
 bool shorterThan(const T& shape, const coord_t check_length)
@@ -659,39 +659,39 @@ public:
     }
 };
 
-} // namespace cura
+} // namespace cura52
 
 
 namespace std
 {
 template<>
-struct hash<cura::ConstPolygonRef>
+struct hash<cura52::ConstPolygonRef>
 {
-    size_t operator()(const cura::ConstPolygonRef& poly) const
+    size_t operator()(const cura52::ConstPolygonRef& poly) const
     {
         return std::hash<const ClipperLib::Path*>()(&*poly);
     }
 };
 template<>
-struct hash<cura::ConstPolygonPointer>
+struct hash<cura52::ConstPolygonPointer>
 {
-    size_t operator()(const cura::ConstPolygonPointer& poly) const
+    size_t operator()(const cura52::ConstPolygonPointer& poly) const
     {
         return std::hash<const ClipperLib::Path*>()(&**poly);
     }
 };
 template<>
-struct hash<cura::PolygonPointer>
+struct hash<cura52::PolygonPointer>
 {
-    size_t operator()(const cura::PolygonPointer& poly) const
+    size_t operator()(const cura52::PolygonPointer& poly) const
     {
-        const cura::ConstPolygonRef ref = *static_cast<cura::PolygonPointer>(poly);
+        const cura52::ConstPolygonRef ref = *static_cast<cura52::PolygonPointer>(poly);
         return std::hash<const ClipperLib::Path*>()(&*ref);
     }
 };
 }//namespace std
 
-namespace cura {
+namespace cura52 {
 
 class Polygon : public PolygonRef
 {
@@ -1448,6 +1448,6 @@ public:
     PolygonsPart assemblePart(unsigned int part_idx) const;
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//UTILS_POLYGON_H

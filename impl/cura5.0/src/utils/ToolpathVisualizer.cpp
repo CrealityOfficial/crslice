@@ -5,7 +5,7 @@
 #include <sstream>
 
 
-namespace cura
+namespace cura52
 {
 
 void ToolpathVisualizer::outline(const Polygons& input)
@@ -146,4 +146,4 @@ void ToolpathVisualizer::widths(const std::vector<ExtrusionSegment>& all_segment
     }
 }
 
-} // namespace cura
+} // namespace cura52

@@ -9,7 +9,7 @@
 
 #include <iterator>
 
-namespace cura
+namespace cura52
 {
 
 InsetOrderOptimizer::InsetOrderOptimizer(const FffGcodeWriter& gcode_writer,
@@ -129,7 +129,7 @@ bool InsetOrderOptimizer::addToLayer()
 
     order_optimizer.optimize();
 
-    cura::Point p_end{ 0, 0 };
+    cura52::Point p_end{ 0, 0 };
     for (const PathOrderPath<const ExtrusionLine*>& path : order_optimizer.paths)
     {
         if (path.vertices->empty())
@@ -148,7 +148,7 @@ bool InsetOrderOptimizer::addToLayer()
         const size_t start_index = (backwards != path.backwards) ? path.vertices->size() - (path.start_vertex + 1) : path.start_vertex;
 
         p_end = path.backwards ? path.vertices->back().p : path.vertices->front().p;
-        const cura::Point p_start = path.backwards ? path.vertices->front().p : path.vertices->back().p;
+        const cura52::Point p_start = path.backwards ? path.vertices->front().p : path.vertices->back().p;
         const bool linked_path = p_start != p_end;
 
         gcode_writer.setExtruder_addPrime(storage, gcode_layer, extruder_nr);
@@ -330,4 +330,4 @@ std::unordered_set<std::pair<const ExtrusionLine*, const ExtrusionLine*>> InsetO
 }
 
 
-} // namespace cura
+} // namespace cura52

@@ -6,7 +6,7 @@
 
 #include "../utils/IntPoint.h" //For coord_t and Point.
 
-namespace cura
+namespace cura52
 {
 //Some forward declarations to increase compilation speed.
 struct LayerIndex;
@@ -180,7 +180,7 @@ public:
     virtual void sliceNext() = 0;
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //COMMUNICATION_H
 

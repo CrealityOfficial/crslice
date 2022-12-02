@@ -33,7 +33,7 @@
 #define PROGRESS_WEIGHT_DROPDOWN 50 // Dropping down support.
 #define PROGRESS_WEIGHT_AREAS 1 // Creating support areas.
 
-namespace cura
+namespace cura52
 {
 
 TreeSupport::TreeSupport(const SliceDataStorage& storage)
@@ -103,7 +103,7 @@ void TreeSupport::drawCircles(SliceDataStorage& storage, const std::vector<std::
     size_t completed = 0; // To track progress, should be locked when altered.
     std::mutex critical_section_volumes;
     std::mutex critical_section_progress;
-    cura::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(0,
                                contact_nodes.size(),
                                [&](const size_t layer_nr)
                                {
@@ -624,4 +624,4 @@ TreeSupport::Node* TreeSupport::insertDroppedNode(std::vector<Node*>& nodes_laye
     return conflicting_node;
 }
 
-} // namespace cura
+} // namespace cura52

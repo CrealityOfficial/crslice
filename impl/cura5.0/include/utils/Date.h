@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -26,6 +26,6 @@ private:
     Date(); //!< Simple constructor initializing all to -1
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // UTILS_DATE_H

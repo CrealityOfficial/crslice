@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <cassert>
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -236,6 +236,6 @@ public:
     static bool isOdd(const Path& line);
 };
 
-}//namespace cura
+}//namespace cura52
 #endif//UTILS_POLYLINE_STITCHER_H
 

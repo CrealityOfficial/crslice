@@ -20,7 +20,7 @@
 #include "utils/IntPoint.h"
 #include "utils/NoCopy.h"
 
-namespace cura
+namespace cura52
 {
 
 struct LayerIndex;

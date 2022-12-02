@@ -7,7 +7,7 @@
 #include "../utils/macros.h"
 #include "BeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -47,5 +47,5 @@ protected:
 };
 
 
-} // namespace cura
+} // namespace cura52
 #endif // LIMITED_DISTRIBUTED_BEADING_STRATEGY_H

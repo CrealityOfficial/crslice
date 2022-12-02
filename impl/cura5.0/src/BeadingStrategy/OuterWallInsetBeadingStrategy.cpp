@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-namespace cura
+namespace cura52
 {
 OuterWallInsetBeadingStrategy::OuterWallInsetBeadingStrategy(coord_t outer_wall_offset, BeadingStrategyPtr parent) :
     BeadingStrategy(*parent),
@@ -59,4 +59,4 @@ BeadingStrategy::Beading OuterWallInsetBeadingStrategy::compute(coord_t thicknes
     return ret;
 }
 
-} // namespace cura
+} // namespace cura52

@@ -7,7 +7,7 @@
 
 #include "IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!

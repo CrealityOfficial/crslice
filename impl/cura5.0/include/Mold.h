@@ -4,7 +4,7 @@
 #ifndef MOLD_H
 #define MOLD_H
 
-namespace cura
+namespace cura52
 {
 
 class Slicer;
@@ -36,6 +36,6 @@ public:
 private:
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//MOLD_H

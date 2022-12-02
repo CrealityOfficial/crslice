@@ -14,7 +14,7 @@
 #include "SparseGrid.h"
 #include "SVG.h" // debug
 
-namespace cura {
+namespace cura52 {
 
 /*! \brief Sparse grid which can locate spatially nearby elements efficiently.
  *
@@ -185,6 +185,6 @@ void SGI_THIS::debugTest()
 #undef SGI_TEMPLATE
 #undef SGI_THIS
 
-} // namespace cura
+} // namespace cura52
 
 #endif // UTILS_SPARSE_LINE_GRID_H

@@ -5,7 +5,7 @@
 
 #include "ccglobal/log.h"
 
-namespace cura
+namespace cura52
 {
 
 double FlowTempGraph::getTemp(const double flow, const Temperature material_print_temperature, const bool flow_dependent_temperature) const
@@ -38,4 +38,4 @@ double FlowTempGraph::getTemp(const double flow, const Temperature material_prin
     return data.back().temp;
 }
 
-} // namespace cura
+} // namespace cura52

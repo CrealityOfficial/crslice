@@ -7,7 +7,7 @@
 #include "TopSurface.h"
 #include "ExtruderTrain.h"
 
-namespace cura
+namespace cura52
 {
 
 TopSurface::TopSurface()

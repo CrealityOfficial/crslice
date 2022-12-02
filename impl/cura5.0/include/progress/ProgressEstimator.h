@@ -6,7 +6,7 @@
 
 #include <vector>
 
-namespace cura
+namespace cura52
 {
 /*
  * ProgressEstimator is a finger-tree with ProgressEstimatorLinear as leaves.
@@ -26,6 +26,6 @@ public:
     }
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // PROGRESS_PROGRESS_ESTIMATOR_H

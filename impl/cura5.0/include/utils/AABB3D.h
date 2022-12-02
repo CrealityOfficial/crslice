@@ -6,7 +6,7 @@
 
 #include "IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 class AABB;
@@ -92,6 +92,6 @@ struct AABB3D
     void expandXY(int outset);
 };
 
-}//namespace cura
+}//namespace cura52
 #endif//UTILS_AABB3D_H
 

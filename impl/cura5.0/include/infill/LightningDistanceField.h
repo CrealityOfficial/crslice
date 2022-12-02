@@ -7,7 +7,7 @@
 #include "../utils/polygon.h" //Using outlines to fill and tracking overhang.
 #include "../utils/SquareGrid.h" //Tracking for each location the distance to overhang.
 
-namespace cura
+namespace cura52
 {
 
 /*!

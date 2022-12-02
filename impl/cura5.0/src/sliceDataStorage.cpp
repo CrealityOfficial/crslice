@@ -16,7 +16,7 @@
 #include "utils/math.h" //For PI.
 
 
-namespace cura
+namespace cura52
 {
 
 SupportStorage::SupportStorage() : generated(false), layer_nr_max_filled_layer(-1), cross_fill_provider(nullptr)
@@ -685,4 +685,4 @@ void SupportLayer::excludeAreasFromSupportInfillAreas(const Polygons& exclude_po
     }
 }
 
-} // namespace cura
+} // namespace cura52

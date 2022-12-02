@@ -16,7 +16,7 @@
 #include "utils/SVG.h"
 #include "utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 
 static constexpr bool diagonal = true;
@@ -832,4 +832,4 @@ void SierpinskiFill::debugCheck(bool check_subdivision)
     }
 }
 
-} // namespace cura
+} // namespace cura52

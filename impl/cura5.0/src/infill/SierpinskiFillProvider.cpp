@@ -10,7 +10,7 @@
 #include "utils/math.h"
 #include "utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 
 
@@ -89,4 +89,4 @@ SierpinskiFillProvider::FractalConfig SierpinskiFillProvider::getFractalConfig(c
 }
 
 
-} // namespace cura
+} // namespace cura52

@@ -11,7 +11,7 @@
 #include "utils/PolylineStitcher.h"
 #include "settings/EnumSettings.h"
 
-namespace cura 
+namespace cura52 
 {
  
 void carveMultipleVolumes(std::vector<Slicer*> &volumes)
@@ -191,4 +191,4 @@ void MultiVolumes::carveCuttingMeshes(std::vector<Slicer*>& volumes, const std::
 }
 
 
-}//namespace cura
+}//namespace cura52

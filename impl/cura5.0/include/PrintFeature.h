@@ -1,7 +1,7 @@
 #ifndef PRINT_FEATURE
 #define PRINT_FEATURE
 
-namespace cura
+namespace cura52
 {
 
 enum class PrintFeatureType: unsigned char
@@ -26,6 +26,6 @@ enum class PrintFeatureType: unsigned char
 
 
 
-} // namespace cura
+} // namespace cura52
 
 #endif // PRINT_FEATURE

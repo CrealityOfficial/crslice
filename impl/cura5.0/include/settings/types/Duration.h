@@ -6,7 +6,7 @@
 
 #include <ostream>
 
-namespace cura
+namespace cura52
 {
 
 /*

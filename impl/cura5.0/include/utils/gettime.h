@@ -16,7 +16,7 @@
 #include <cassert>
 #endif
 
-namespace cura
+namespace cura52
 {
 static inline double getTime()
 {
@@ -53,5 +53,5 @@ public:
     double restart();
 };
 
-}//namespace cura
+}//namespace cura52
 #endif//GETTIME_H

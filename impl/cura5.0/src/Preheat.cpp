@@ -10,7 +10,7 @@
 #include "settings/FlowTempGraph.h"
 #include "settings/types/Ratio.h"
 
-namespace cura
+namespace cura52
 {
 
 Duration Preheat::getTimeToGoFromTempToTemp(const size_t extruder, const Temperature& temp_before, const Temperature& temp_after, const bool during_printing)
@@ -190,4 +190,4 @@ Preheat::CoolDownResult Preheat::getCoolDownPointAfterWarmUp(double time_window,
     return result;
 }
 
-} // namespace cura
+} // namespace cura52

@@ -18,7 +18,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -119,7 +119,7 @@ private:
     std::string getWithoutLimiting(const std::string& key) const;
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //SETTINGS_SETTINGS_H
 

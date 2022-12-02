@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace cura
+namespace cura52
 {
 class Communication;
 class Slice;

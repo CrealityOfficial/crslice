@@ -7,7 +7,7 @@
 
 #include "ccglobal/log.h"
 
-namespace cura
+namespace cura52
 {
 
 std::string LimitedBeadingStrategy::toString() const
@@ -129,4 +129,4 @@ coord_t LimitedBeadingStrategy::getOptimalBeadCount(coord_t thickness) const
         return max_bead_count + 1;
 }
 
-} // namespace cura
+} // namespace cura52

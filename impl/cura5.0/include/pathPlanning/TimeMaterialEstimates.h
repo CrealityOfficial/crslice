@@ -4,7 +4,7 @@
 #ifndef PATH_PLANNING_TIME_MATERIAL_ESTIMATES_H
 #define PATH_PLANNING_TIME_MATERIAL_ESTIMATES_H
 
-namespace cura 
+namespace cura52 
 {
 
 class ExtruderPlan; // forward declaration so that TimeMaterialEstimates can be a friend
@@ -119,6 +119,6 @@ public:
     double getMaterial() const;
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//PATH_PLANNING_TIME_MATERIAL_ESTIMATES_H

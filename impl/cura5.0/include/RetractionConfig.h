@@ -7,7 +7,7 @@
 #include "settings/types/Velocity.h"
 #include "utils/Coord_t.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -27,6 +27,6 @@ public:
 };
 
 
-}//namespace cura
+}//namespace cura52
 
 #endif // RETRACTION_CONFIG_H

@@ -8,7 +8,7 @@
 
 #include "ProgressEstimator.h"
 
-namespace cura
+namespace cura52
 {
 
 
@@ -26,6 +26,6 @@ public:
     }
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // PROGRESS_PROGRESS_ESTIMATOR_LINEAR_H

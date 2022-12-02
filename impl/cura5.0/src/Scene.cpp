@@ -12,7 +12,7 @@
 #include "progress/Progress.h"
 #include "sliceDataStorage.h"
 
-namespace cura
+namespace cura52
 {
 
 Scene::Scene(const size_t num_mesh_groups) : mesh_groups(num_mesh_groups), current_mesh_group(mesh_groups.begin())
@@ -115,4 +115,4 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
     LOGI("Total time elapsed {:3}s.\n", time_keeper_total.restart());
 }
 
-} // namespace cura
+} // namespace cura52

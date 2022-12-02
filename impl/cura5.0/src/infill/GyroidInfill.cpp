@@ -6,7 +6,7 @@
 #include "utils/linearAlg2D.h"
 #include "utils/polygon.h"
 
-namespace cura {
+namespace cura52 {
 
 GyroidInfill::GyroidInfill() {
 }
@@ -402,4 +402,4 @@ void GyroidInfill::generateTotalGyroidInfill(Polygons& result_lines, bool zig_za
     result_lines = result;
 }
 
-} // namespace cura
+} // namespace cura52

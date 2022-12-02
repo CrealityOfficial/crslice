@@ -5,7 +5,7 @@
 #define SPACE_FILL_TYPE
 
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -23,6 +23,6 @@ enum class SpaceFillType
     Lines
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // SPACE_FILL_TYPE

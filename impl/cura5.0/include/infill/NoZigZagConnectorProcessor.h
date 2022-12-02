@@ -6,7 +6,7 @@
 
 #include "ZigzagConnectorProcessor.h"
 
-namespace cura
+namespace cura52
 {
 
 class Polygons;
@@ -30,7 +30,7 @@ public:
 };
 
 
-} // namespace cura
+} // namespace cura52
 
 
 #endif // INFILL_NO_ZIGZAG_CONNECTOR_PROCESSOR_H

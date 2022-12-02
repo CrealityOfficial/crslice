@@ -7,7 +7,7 @@
 #include "utils/linearAlg2D.h"
 #include "utils/Simplify.h"
 
-namespace cura
+namespace cura52
 {
 
 ExtrusionLine::ExtrusionLine(const size_t inset_idx, const bool is_odd)

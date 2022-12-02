@@ -5,7 +5,7 @@
 #include "gcodeExport.h"
 #include "pathPlanning/NozzleTempInsert.h"
 
-namespace cura
+namespace cura52
 {
 
 NozzleTempInsert::NozzleTempInsert(unsigned int path_idx, int extruder, double temperature, bool wait, double time_after_path_start)

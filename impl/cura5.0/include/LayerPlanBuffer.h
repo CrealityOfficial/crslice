@@ -9,7 +9,7 @@
 #include "Preheat.h"
 #include "settings/types/Duration.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class ExtruderPlan;
@@ -202,6 +202,6 @@ private:
 
 
 
-} // namespace cura
+} // namespace cura52
 
 #endif // LAYER_PLAN_BUFFER_H

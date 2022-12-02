@@ -10,7 +10,7 @@
 #include "SierpinskiFill.h"
 #include "../settings/EnumSettings.h" //For EFillMethod.
 
-namespace cura
+namespace cura52
 {
 
 struct AABB3D;
@@ -53,7 +53,7 @@ protected:
      */
     FractalConfig getFractalConfig(const AABB3D aabb_3d, coord_t min_line_distance);
 };
-} // namespace cura
+} // namespace cura52
 
 
 #endif // INFILL_SIERPINSKI_FILL_PROVIDER_H

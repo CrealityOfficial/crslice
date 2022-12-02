@@ -13,7 +13,7 @@
 #include "utils/FMatrix4x3.h" //To convert vertices to integer-points.
 #include "utils/floatpoint.h" //To accept vertices (which are provided in floating point).
 
-namespace cura
+namespace cura52
 {
 
 ArcusCommunication::Private::Private() : socket(nullptr), object_count(0), last_sent_progress(-1), slice_count(0), millisecUntilNextTry(100)
@@ -133,6 +133,6 @@ void ArcusCommunication::Private::readMeshGroupMessage(const proto::ObjectList& 
     mesh_group.finalize();
 }
 
-} // namespace cura
+} // namespace cura52
 
 #endif // ARCUS

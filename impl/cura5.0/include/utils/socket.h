@@ -5,7 +5,7 @@
 #define SOCKET_H
 
 #include <string>
-namespace cura
+namespace cura52
 {
     
 class ClientSocket
@@ -28,5 +28,5 @@ public:
     void close();
 };
 
-}//namespace cura
+}//namespace cura52
 #endif//SOCKET_H

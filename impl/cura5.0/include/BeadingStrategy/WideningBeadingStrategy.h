@@ -6,7 +6,7 @@
 
 #include "BeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -42,5 +42,5 @@ protected:
     const coord_t min_output_width;
 };
 
-} // namespace cura
+} // namespace cura52
 #endif // WIDENING_BEADING_STRATEGY_H

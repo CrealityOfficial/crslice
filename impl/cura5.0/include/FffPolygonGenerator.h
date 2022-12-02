@@ -6,7 +6,7 @@
 
 #include "utils/NoCopy.h"
 
-namespace cura
+namespace cura52
 {
 
 struct LayerIndex;
@@ -169,6 +169,6 @@ private:
     void processFuzzyWalls(SliceMeshStorage& mesh);
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif //FFF_POLYGON_GENERATOR_H

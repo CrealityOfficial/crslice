@@ -18,7 +18,7 @@
 
 #include "utils/socket.h"
 
-namespace cura
+namespace cura52
 {
 
 #ifdef _WIN32
@@ -143,4 +143,4 @@ void ClientSocket::close()
     sockfd = -1;
 }
 
-} // namespace cura
+} // namespace cura52

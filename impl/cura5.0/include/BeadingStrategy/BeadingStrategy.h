@@ -10,7 +10,7 @@
 #include "../settings/types/Ratio.h" //For the wall transition threshold.
 #include "../utils/IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -118,5 +118,5 @@ protected:
 
 using BeadingStrategyPtr = std::unique_ptr<BeadingStrategy>;
 
-} // namespace cura
+} // namespace cura52
 #endif // BEADING_STRATEGY_H

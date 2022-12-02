@@ -9,7 +9,7 @@
 #include "utils/floatpoint.h"
 #include "utils/FMatrix4x3.h"
 
-namespace cura
+namespace cura52
 {
 /*!
 Vertex type to be used in a Mesh.
@@ -125,6 +125,6 @@ private:
     int getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVertexIdx) const;
 };
 
-}//namespace cura
+}//namespace cura52
 #endif//MESH_H
 

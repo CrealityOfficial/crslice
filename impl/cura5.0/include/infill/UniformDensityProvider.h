@@ -6,7 +6,7 @@
 
 #include "DensityProvider.h"
 
-namespace cura
+namespace cura52
 {
 
 struct AABB3D;
@@ -31,7 +31,7 @@ protected:
     float density;
 };
 
-} // namespace cura
+} // namespace cura52
 
 
 #endif // INFILL_UNIFORM_DENSITY_PROVIDER_H

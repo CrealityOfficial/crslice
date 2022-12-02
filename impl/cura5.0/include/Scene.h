@@ -8,7 +8,7 @@
 #include "MeshGroup.h" //To store the mesh groups in the scene.
 #include "settings/Settings.h" //To store the global settings.
 
-namespace cura
+namespace cura52
 {
 
 /*
@@ -26,7 +26,7 @@ public:
      * \brief Which extruder to evaluate each setting on, if different from the
      * normal extruder of the object it's evaluated for.
      */
-    std::unordered_map<std::string, ExtruderTrain*> limit_to_extruder;
+    std::unordered_map<std::string, cura52::ExtruderTrain*> limit_to_extruder;
 
     /*
      * \brief The mesh groups in the scene.
@@ -83,6 +83,6 @@ private:
     Scene& operator =(const Scene&) = delete;
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //SCENE_H

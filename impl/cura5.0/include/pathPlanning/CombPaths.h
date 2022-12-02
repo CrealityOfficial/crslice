@@ -6,7 +6,7 @@
 
 #include "CombPath.h"
 
-namespace cura
+namespace cura52
 {
 
 class CombPaths : public  std::vector<CombPath> //!< A list of paths alternating between inside a part and outside a part
@@ -15,6 +15,6 @@ public:
     bool throughAir = false; //!< Whether the path is one which moves through air.
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//PATH_PLANNING_COMB_PATHS_H

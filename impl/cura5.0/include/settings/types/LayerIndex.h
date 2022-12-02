@@ -6,7 +6,7 @@
 
 #include <functional>
 
-namespace cura
+namespace cura52
 {
 
 /*
@@ -114,9 +114,9 @@ struct LayerIndex
 namespace std
 {
     template<>
-    struct hash<cura::LayerIndex>
+    struct hash<cura52::LayerIndex>
     {
-        size_t operator()(const cura::LayerIndex& layer_index) const
+        size_t operator()(const cura52::LayerIndex& layer_index) const
         {
             return hash<int>()(layer_index.value);
         }

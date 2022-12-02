@@ -12,7 +12,7 @@
 #include "settings/types/Duration.h" //Print time estimates.
 #include "settings/types/Velocity.h" //Speeds and accelerations at which we print.
 
-namespace cura
+namespace cura52
 {
 
 class Ratio;
@@ -117,5 +117,5 @@ private:
     void plannerForwardPassKernel(Block *previous, Block *current, Block *next);
 };
 
-}//namespace cura
+}//namespace cura52
 #endif//TIME_ESTIMATE_H

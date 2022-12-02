@@ -18,7 +18,7 @@
 #include "utils/math.h"
 #include "weaveDataStorage.h"
 
-namespace cura
+namespace cura52
 {
 
 
@@ -664,4 +664,4 @@ void Wireframe2gcode::finalize()
         gcode.writeTemperatureCommand(e, 0, false);
     }
 }
-} // namespace cura
+} // namespace cura52

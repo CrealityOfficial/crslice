@@ -8,7 +8,7 @@
 #include "sliceDataStorage.h"
 #include "utils/SVG.h"
 
-namespace cura {
+namespace cura52 {
 
 LinePolygonsCrossings::Crossing::Crossing(const size_t poly_idx, const coord_t x, const size_t point_idx)
 : poly_idx(poly_idx)
@@ -319,4 +319,4 @@ bool LinePolygonsCrossings::optimizePath(CombPath& comb_path, CombPath& optimize
     return true;
 }
 
-}//namespace cura
+}//namespace cura52

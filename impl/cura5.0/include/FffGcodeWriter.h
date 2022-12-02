@@ -14,7 +14,7 @@
 #include "utils/ExtrusionLine.h" //Processing variable-width paths.
 #include "utils/NoCopy.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class AngleDegrees;
@@ -673,6 +673,6 @@ private:
     bool closeGcodeWriterFile();
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif // GCODE_WRITER_H

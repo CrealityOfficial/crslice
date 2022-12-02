@@ -9,7 +9,7 @@
 
 #include "../utils/AABB.h"
 
-namespace cura
+namespace cura52
 {
 
 class DensityProvider;
@@ -450,7 +450,7 @@ protected:
      */
     void debugCheck(bool check_subdivision = true);
 };
-} // namespace cura
+} // namespace cura52
 
 
 #endif // INFILL_SIERPINSKI_FILL_H

@@ -8,7 +8,7 @@
 #include "slicer.h"
 #include "settings/types/Angle.h" //To process the overhang angle.
 
-namespace cura
+namespace cura52
 {
 
 void ConicalOverhang::apply(Slicer* slicer, const Mesh& mesh)
@@ -74,4 +74,4 @@ void ConicalOverhang::apply(Slicer* slicer, const Mesh& mesh)
     }
 }
 
-}//namespace cura
+}//namespace cura52

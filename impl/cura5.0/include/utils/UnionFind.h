@@ -11,7 +11,7 @@
 #include <vector> //Holds the main data.
 #include <unordered_map> //To map the data type to indices for user's convenience.
 
-namespace cura
+namespace cura52
 {
 
 /*!

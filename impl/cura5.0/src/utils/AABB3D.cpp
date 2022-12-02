@@ -7,7 +7,7 @@
 
 #include "utils/AABB.h"
 
-namespace cura
+namespace cura52
 {
 
 AABB3D::AABB3D() 
@@ -96,5 +96,5 @@ void AABB3D::expandXY(int outset)
     }
 }
 
-}//namespace cura
+}//namespace cura52
 

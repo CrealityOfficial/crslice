@@ -6,7 +6,7 @@
 
 #include "utils/Coord_t.h"
 
-namespace cura
+namespace cura52
 {
 
 class SliceDataStorage;
@@ -59,6 +59,6 @@ public:
 
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//RAFT_H

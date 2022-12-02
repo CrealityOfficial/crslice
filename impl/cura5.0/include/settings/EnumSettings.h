@@ -4,7 +4,7 @@
 #ifndef ENUMSETTINGS_H
 #define ENUMSETTINGS_H
 
-namespace cura
+namespace cura52
 {
 /*!
  * In Cura different infill methods are available.

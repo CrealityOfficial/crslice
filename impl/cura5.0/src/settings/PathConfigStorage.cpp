@@ -10,7 +10,7 @@
 #include "sliceDataStorage.h" // SliceDataStorage
 #include "settings/EnumSettings.h" //For EPlatformAdhesion.
 
-namespace cura
+namespace cura52
 {
 
 std::vector<Ratio> PathConfigStorage::getLineWidthFactorPerExtruder(const LayerIndex& layer_nr)
@@ -248,7 +248,7 @@ void PathConfigStorage::MeshPathConfigs::smoothAllSpeeds(GCodePathConfig::SpeedD
     }
 }
 
-void cura::PathConfigStorage::handleInitialLayerSpeedup(const SliceDataStorage& storage, const LayerIndex& layer_nr, const size_t initial_speedup_layer_count)
+void cura52::PathConfigStorage::handleInitialLayerSpeedup(const SliceDataStorage& storage, const LayerIndex& layer_nr, const size_t initial_speedup_layer_count)
 {
     std::vector<GCodePathConfig::SpeedDerivatives> global_first_layer_config_per_extruder;
     global_first_layer_config_per_extruder.reserve(Application::getInstance().current_slice->scene.extruders.size());
@@ -323,4 +323,4 @@ void cura::PathConfigStorage::handleInitialLayerSpeedup(const SliceDataStorage& 
     }
 }
 
-}//namespace cura
+}//namespace cura52

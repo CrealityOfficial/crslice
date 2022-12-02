@@ -17,7 +17,7 @@
 #include "ccglobal/log.h"
 #endif
 
-namespace cura
+namespace cura52
 {
 
 const std::function<int(Point)> PolygonUtils::no_penalty_function = [](Point) { return 0; };
@@ -1476,4 +1476,4 @@ void PolygonUtils::fixSelfIntersections(const coord_t epsilon, Polygons& thiss)
     ClipperLib::SimplifyPolygons(thiss.paths);
 }
 
-} // namespace cura
+} // namespace cura52

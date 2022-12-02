@@ -4,7 +4,7 @@
 #ifndef PATH_PLANNING_NOZZLE_TEMP_INSERT_H
 #define PATH_PLANNING_NOZZLE_TEMP_INSERT_H
 
-namespace cura
+namespace cura52
 {
 
 class GCodeExport;
@@ -29,6 +29,6 @@ struct NozzleTempInsert
      */
     void write(GCodeExport& gcode);
 };
-}//namespace cura
+}//namespace cura52
 
 #endif//PATH_PLANNING_NOZZLE_TEMP_INSERT_H

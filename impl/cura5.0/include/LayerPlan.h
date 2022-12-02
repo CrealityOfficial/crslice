@@ -24,7 +24,7 @@
 #include "InsetOrderOptimizer.h"
 #include "utils/ExtrusionJunction.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class Comb;
@@ -715,7 +715,7 @@ public:
 
         while (true)
         {
-            const Point& vertex = cura::make_point(wall[curr_idx]);
+            const Point& vertex = cura52::make_point(wall[curr_idx]);
             if (!air_below.inside(vertex, true))
             {
                 // vertex isn't above air so it's OK to use
@@ -816,6 +816,6 @@ private:
     Polygons computeCombBoundary(const CombBoundary boundary_type);
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif // LAYER_PLAN_H

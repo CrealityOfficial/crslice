@@ -6,7 +6,7 @@
 
 #include "IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 class LinearAlg2D
 {
@@ -427,5 +427,5 @@ public:
 
 
 
-}//namespace cura
+}//namespace cura52
 #endif//UTILS_LINEAR_ALG_2D_H

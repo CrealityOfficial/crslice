@@ -11,7 +11,7 @@
 #include "utils/polygon.h"
 
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -44,6 +44,6 @@ inline const Polygons& SupportInfillPart::getInfillArea() const
     return outline;
 }
 
-} // namespace cura
+} // namespace cura52
 
 #endif // SUPPORT_INFILL_PART_H

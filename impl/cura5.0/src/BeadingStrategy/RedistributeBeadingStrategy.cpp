@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace cura
+namespace cura52
 {
 
 RedistributeBeadingStrategy::RedistributeBeadingStrategy
@@ -108,4 +108,4 @@ BeadingStrategy::Beading RedistributeBeadingStrategy::compute(coord_t thickness,
     return ret;
 }
 
-} // namespace cura
+} // namespace cura52

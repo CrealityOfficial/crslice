@@ -10,7 +10,7 @@
 
 #include "TimeMaterialEstimates.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class GCodePathConfig;
@@ -100,6 +100,6 @@ public:
     double getFanSpeed() const;
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//PATH_PLANNING_G_CODE_PATH_H

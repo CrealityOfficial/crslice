@@ -10,7 +10,7 @@
 #include "ArcusCommunication.h" //We're adding a subclass to this.
 #include "SliceDataStruct.h"
 
-namespace cura
+namespace cura52
 {
 
 struct LayerIndex;
@@ -73,7 +73,7 @@ public:
     const size_t millisecUntilNextTry; // How long we wait until we try to connect again.
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //ARCUS
 #endif //ARCUSCOMMUNICATIONPRIVATE_H

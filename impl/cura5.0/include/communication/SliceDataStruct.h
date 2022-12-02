@@ -8,7 +8,7 @@
 #include <memory> //To store pointers to slice data.
 #include <unordered_map> //To store the slice data by layer.
 
-namespace cura
+namespace cura52
 {
 
 /*!

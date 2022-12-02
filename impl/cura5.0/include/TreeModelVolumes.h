@@ -10,7 +10,7 @@
 #include "settings/types/LayerIndex.h" //Part of the RadiusLayerPair.
 #include "utils/polygon.h" //For polygon parameters.
 
-namespace cura
+namespace cura52
 {
 
 class SliceDataStorage;

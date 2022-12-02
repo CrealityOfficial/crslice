@@ -14,7 +14,7 @@
 #include "SparseLineGrid.h"
 #include "PolygonsPointIndex.h"
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -46,16 +46,16 @@ struct ClosestPolygonPoint
     }
 };
 
-} // namespace cura
+} // namespace cura52
 
 namespace std
 {
 template <>
-struct hash<cura::ClosestPolygonPoint>
+struct hash<cura52::ClosestPolygonPoint>
 {
-    size_t operator()(const cura::ClosestPolygonPoint& cpp) const
+    size_t operator()(const cura52::ClosestPolygonPoint& cpp) const
     {
-        return std::hash<cura::Point>()(cpp.p());
+        return std::hash<cura52::Point>()(cpp.p());
     }
 };
 }//namespace std
@@ -74,7 +74,7 @@ struct hash<std::pair<S, T>>
 }//namespace std
 
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -621,6 +621,6 @@ private:
 };
 
 
-}//namespace cura
+}//namespace cura52
 
 #endif//POLYGON_OPTIMIZER_H

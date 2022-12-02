@@ -9,7 +9,7 @@
 #include "sliceDataStorage.h" //For SliceMeshStorage, which is used here at implementation in the header.
 #include "settings/ZSeamConfig.h"
 
-namespace cura
+namespace cura52
 {
 
 class FffGcodeWriter;
@@ -177,6 +177,6 @@ std::unordered_set<std::pair<PathType, PathType>> InsetOrderOptimizer::makeOrder
     return transitive_order;    
 }
 
-} //namespace cura
+} //namespace cura52
 
 #endif // INSET_ORDER_OPTIMIZER_H

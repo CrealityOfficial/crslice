@@ -51,7 +51,7 @@
 #include "utils/Simplify.h"
 // clang-format on
 
-namespace cura
+namespace cura52
 {
 
 
@@ -484,7 +484,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     } guarded_progress = { inset_skin_progress_estimate };
 
     // walls
-    cura::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(0,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {
@@ -526,7 +526,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     }
 
     guarded_progress.reset();
-    cura::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(0,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {
@@ -1135,4 +1135,4 @@ void FffPolygonGenerator::processFuzzyWalls(SliceMeshStorage& mesh)
 }
 
 
-} // namespace cura
+} // namespace cura52

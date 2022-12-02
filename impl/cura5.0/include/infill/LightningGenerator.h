@@ -12,7 +12,7 @@
 #include <memory>
 #include <vector>
 
-namespace cura 
+namespace cura52 
 {
 class SliceMeshStorage;
 
@@ -121,6 +121,6 @@ protected:
     std::vector<LightningLayer> lightning_layers;
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // LIGHTNING_GENERATOR_H

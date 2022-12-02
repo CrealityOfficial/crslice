@@ -6,7 +6,7 @@
 #include <iterator>
 #include <algorithm>
 
-namespace cura
+namespace cura52
 {
 
 MinimumSpanningTree::MinimumSpanningTree(std::vector<Point> vertices) : adjacency_graph(prim(vertices))

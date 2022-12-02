@@ -6,7 +6,7 @@
 
 #include "BeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
     /*
      * This is a meta strategy that allows for the outer wall to be inset towards the inside of the model. 
@@ -31,5 +31,5 @@ namespace cura
         BeadingStrategyPtr parent;
         coord_t outer_wall_offset;
     };
-} // namespace cura
+} // namespace cura52
 #endif // OUTER_WALL_INSET_BEADING_STRATEGY_H

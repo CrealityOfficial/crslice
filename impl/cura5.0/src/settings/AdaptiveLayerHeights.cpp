@@ -13,7 +13,7 @@
 #include "Slice.h"
 #include "utils/floatpoint.h"
 
-namespace cura
+namespace cura52
 {
 
 AdaptiveLayer::AdaptiveLayer(const coord_t layer_height) : layer_height(layer_height) { }

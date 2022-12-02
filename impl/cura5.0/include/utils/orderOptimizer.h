@@ -10,7 +10,7 @@
 #include <utility> // pair
 #include "IntPoint.h"
 
-namespace cura {
+namespace cura52 {
  
 /*!
  * Order optimization class.
@@ -89,6 +89,6 @@ std::list<size_t> OrderOptimizer<T>::optimize(const Point& start_position)
 }
 
 
-}//namespace cura
+}//namespace cura52
 
 #endif//UTILS_ORDER_OPTIMIZER_H

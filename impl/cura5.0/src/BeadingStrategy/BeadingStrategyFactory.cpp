@@ -13,7 +13,7 @@
 #include "BeadingStrategy/RedistributeBeadingStrategy.h"
 #include "BeadingStrategy/WideningBeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
 
 BeadingStrategyPtr BeadingStrategyFactory::makeStrategy(const coord_t preferred_bead_width_outer,
@@ -53,4 +53,4 @@ BeadingStrategyPtr BeadingStrategyFactory::makeStrategy(const coord_t preferred_
     ret = make_unique<LimitedBeadingStrategy>(max_bead_count, move(ret));
     return ret;
 }
-} // namespace cura
+} // namespace cura52

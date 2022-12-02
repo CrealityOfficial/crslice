@@ -26,7 +26,7 @@
 #include "utils/FMatrix4x3.h"
 #include "utils/string.h" //For Escaped.
 
-namespace cura
+namespace cura52
 {
 
 Settings::Settings()
@@ -692,4 +692,4 @@ std::string Settings::getWithoutLimiting(const std::string& key) const
     }
 }
 
-} // namespace cura
+} // namespace cura52

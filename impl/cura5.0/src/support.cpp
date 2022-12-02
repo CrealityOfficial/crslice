@@ -25,7 +25,7 @@
 #include "utils/ThreadPool.h"
 #include "utils/math.h"
 
-namespace cura
+namespace cura52
 {
 
 bool AreaSupport::handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const Slicer* slicer)
@@ -776,7 +776,7 @@ void AreaSupport::generateOverhangAreasForMesh(SliceDataStorage& storage, SliceM
     }
 
     // Generate the actual areas and store them in the mesh.
-    cura::parallel_for<size_t>(1,
+    cura52::parallel_for<size_t>(1,
                                storage.print_layer_count,
                                [&](const size_t layer_idx)
                                {
@@ -848,7 +848,7 @@ void AreaSupport::generateSupportAreasForMesh(SliceDataStorage& storage,
     const coord_t sloped_area_detection_width = 10 + static_cast<coord_t>(layer_thickness / std::tan(sloped_areas_angle)) / 2;
     xy_disallowed_per_layer[0] = storage.getLayerOutlines(0, no_support, no_prime_tower).offset(xy_distance);
 
-    cura::parallel_for<size_t>(1,
+    cura52::parallel_for<size_t>(1,
                                layer_count,
                                [&](const size_t layer_idx)
                                {
@@ -963,7 +963,7 @@ void AreaSupport::generateSupportAreasForMesh(SliceDataStorage& storage,
         // but only in chunks of `bottom_stair_step_layer_count` steps, since, within such a chunk,
         // the order of execution is important.
         // Unless thinking about optimization & threading, you can just think of this as a single for-loop.
-        cura::parallel_for<size_t>(
+        cura52::parallel_for<size_t>(
             1,
             layer_count,
             [&](const size_t layer_idx)
@@ -1114,7 +1114,7 @@ void AreaSupport::generateSupportAreasForMesh(SliceDataStorage& storage,
         // meaning almost no support would be generated in some cases which definitely need support.
         const int max_checking_layer_idx = std::max(0, std::min(static_cast<int>(storage.support.supportLayers.size()), static_cast<int>(layer_count - (layer_z_distance_top - 1))));
 
-        cura::parallel_for<size_t>(0,
+        cura52::parallel_for<size_t>(0,
                                    max_checking_layer_idx,
                                    [&](const size_t layer_idx)
                                    {
@@ -1504,4 +1504,4 @@ void AreaSupport::generateSupportInterfaceLayer(Polygons& support_areas, const P
     support_areas = support_areas.difference(interface_polygons);
 }
 
-} // namespace cura
+} // namespace cura52

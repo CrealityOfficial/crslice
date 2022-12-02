@@ -3,7 +3,7 @@
 
 #include "utils/gettime.h"
 
-namespace cura
+namespace cura52
 {
     
 TimeKeeper::TimeKeeper()
@@ -18,4 +18,4 @@ double TimeKeeper::restart()
     return ret;
 }
 
-}//namespace cura
+}//namespace cura52

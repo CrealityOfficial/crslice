@@ -7,7 +7,7 @@
 #include "../settings/types/Ratio.h"
 #include "BeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
 
 class BeadingStrategyFactory
@@ -31,5 +31,5 @@ public:
     );
 };
 
-} // namespace cura
+} // namespace cura52
 #endif // BEADING_STRATEGY_FACTORY_H

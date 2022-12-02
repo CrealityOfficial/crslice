@@ -12,7 +12,7 @@
 #include "settings/EnumSettings.h" //For EPlatformAdhesion.
 #include "utils/math.h"
 
-namespace cura
+namespace cura52
 {
 
 void Raft::generate(SliceDataStorage& storage)
@@ -131,4 +131,4 @@ size_t Raft::getTotalExtraLayers()
 }
 
 
-}//namespace cura
+}//namespace cura52

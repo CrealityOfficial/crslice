@@ -3,7 +3,7 @@
 
 #include "FffProcessor.h"
 
-namespace cura 
+namespace cura52 
 {
 
 FffProcessor FffProcessor::instance; // definition must be in cpp
@@ -34,4 +34,4 @@ void FffProcessor::finalize()
     gcode_writer.closeGcodeWriterFile();
 }
 
-} // namespace cura 
+} // namespace cura52 

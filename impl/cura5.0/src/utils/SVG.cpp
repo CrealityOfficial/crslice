@@ -10,7 +10,7 @@
 #include "utils/floatpoint.h"
 #include "utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 
 
@@ -406,4 +406,4 @@ void SVG::writeCoordinateGrid(const coord_t grid_size, const Color color, const 
     }
 }
 
-} // namespace cura
+} // namespace cura52

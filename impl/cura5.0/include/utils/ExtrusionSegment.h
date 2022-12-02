@@ -12,7 +12,7 @@
 #include "polygonUtils.h"
 #include "ExtrusionJunction.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -82,5 +82,5 @@ public:
 
 
 
-} // namespace cura
+} // namespace cura52
 #endif // UTILS_EXTRUSION_SEGMENT_H

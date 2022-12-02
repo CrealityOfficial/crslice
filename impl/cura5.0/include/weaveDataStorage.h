@@ -12,7 +12,7 @@
 #include "MeshGroup.h"
 
 
-namespace cura {
+namespace cura52 {
 
     
 enum class WeaveSegmentType
@@ -88,6 +88,6 @@ struct WireFrame : public NoCopy
 };
     
 
-}//namespace cura
+}//namespace cura52
 
 #endif//WEAVE_DATA_STORAGE_H

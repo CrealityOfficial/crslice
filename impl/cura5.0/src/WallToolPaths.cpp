@@ -13,7 +13,7 @@
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h"
 
-namespace cura
+namespace cura52
 {
 
 WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset,
@@ -318,4 +318,4 @@ bool WallToolPaths::removeEmptyToolPaths(std::vector<VariableWidthLines>& toolpa
     return toolpaths.empty();
 }
 
-} // namespace cura
+} // namespace cura52

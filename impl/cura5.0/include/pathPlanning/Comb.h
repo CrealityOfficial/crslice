@@ -11,7 +11,7 @@
 #include "../utils/polygon.h"
 #include "../utils/polygonUtils.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class CombPath;
@@ -214,6 +214,6 @@ public:
     bool calc(const ExtruderTrain& train, Point startPoint, Point endPoint, CombPaths& combPaths, bool startInside, bool endInside, coord_t max_comb_distance_ignored, bool &unretract_before_last_travel_move);
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//PATH_PLANNING_COMB_H

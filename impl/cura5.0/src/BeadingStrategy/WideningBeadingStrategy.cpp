@@ -3,7 +3,7 @@
 
 #include "BeadingStrategy/WideningBeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
 
 WideningBeadingStrategy::WideningBeadingStrategy(BeadingStrategyPtr parent, const coord_t min_input_width, const coord_t min_output_width)
@@ -86,4 +86,4 @@ std::vector<coord_t> WideningBeadingStrategy::getNonlinearThicknesses(coord_t lo
     return ret;
 }
 
-} // namespace cura
+} // namespace cura52

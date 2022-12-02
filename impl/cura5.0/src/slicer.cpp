@@ -18,7 +18,7 @@
 #include "utils/gettime.h"
 
 
-namespace cura
+namespace cura52
 {
 
 constexpr int largest_neglected_gap_first_phase = MM2INT(0.01); //!< distance between two line segments regarded as connected
@@ -804,7 +804,7 @@ Slicer::Slicer(Mesh* i_mesh, const coord_t thickness, const size_t slice_layer_c
 
 void Slicer::buildSegments(const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
 {
-    cura::parallel_for(layers,
+    cura52::parallel_for(layers,
                        [&](auto layer_it)
                        {
                            SlicerLayer& layer = *layer_it;
@@ -971,7 +971,7 @@ std::vector<SlicerLayer>
 
 void Slicer::makePolygons(Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers)
 {
-    cura::parallel_for(layers, [&mesh](auto layer_it) { layer_it->makePolygons(&mesh); });
+    cura52::parallel_for(layers, [&mesh](auto layer_it) { layer_it->makePolygons(&mesh); });
 
     switch (slicing_tolerance)
     {
@@ -1005,7 +1005,7 @@ void Slicer::makePolygons(Mesh& mesh, SlicingTolerance slicing_tolerance, std::v
     const coord_t xy_offset = mesh.settings.get<coord_t>("xy_offset");
     const coord_t xy_offset_0 = mesh.settings.get<coord_t>("xy_offset_layer_0");
 
-    cura::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(0,
                                layers.size(),
                                [&layers, layer_apply_initial_xy_offset, xy_offset, xy_offset_0](size_t layer_nr)
                                {
@@ -1084,4 +1084,4 @@ coord_t Slicer::interpolate(const coord_t x, const coord_t x0, const coord_t x1,
 }
 
 
-} // namespace cura
+} // namespace cura52

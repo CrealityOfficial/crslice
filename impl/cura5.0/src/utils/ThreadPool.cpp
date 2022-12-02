@@ -3,7 +3,7 @@
 
 #include "utils/ThreadPool.h"
 
-namespace cura
+namespace cura52
 {
 
 ThreadPool::ThreadPool(size_t nthreads)

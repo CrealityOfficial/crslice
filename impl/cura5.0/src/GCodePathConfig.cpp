@@ -5,7 +5,7 @@
 #include "utils/IntPoint.h" // INT2MM
 #include "GCodePathConfig.h"
 
-namespace cura 
+namespace cura52 
 {
 
 GCodePathConfig::GCodePathConfig(const GCodePathConfig& other)
@@ -103,4 +103,4 @@ double GCodePathConfig::calculateExtrusion() const
 }
 
 
-}//namespace cura
+}//namespace cura52

@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace cura
+namespace cura52
 {
 
 class TimeKeeper;

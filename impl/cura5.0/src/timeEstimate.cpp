@@ -11,7 +11,7 @@
 #include "settings/Settings.h"
 #include "settings/types/Ratio.h"
 
-namespace cura
+namespace cura52
 {
 
 #define MINIMUM_PLANNER_SPEED 0.05 // mm/sec
@@ -398,4 +398,4 @@ void TimeEstimateCalculator::recalculateTrapezoids()
     }
 }
 
-}//namespace cura
+}//namespace cura52

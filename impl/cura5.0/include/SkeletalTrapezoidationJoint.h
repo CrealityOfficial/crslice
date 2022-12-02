@@ -9,7 +9,7 @@
 #include "BeadingStrategy/BeadingStrategy.h"
 #include "utils/IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 class SkeletalTrapezoidationJoint
@@ -57,5 +57,5 @@ private:
     std::weak_ptr<BeadingPropagation> beading;
 };
 
-} // namespace cura
+} // namespace cura52
 #endif // SKELETAL_TRAPEZOIDATION_JOINT_H

@@ -11,7 +11,7 @@
 
 #include "Application.h"
 
-namespace cura
+namespace cura52
 {
 
 // Signal handler for a "floating point exception", which can also be integer division by zero errors.
@@ -22,7 +22,7 @@ void signal_FPE(int n)
     exit(1);
 }
 
-} // namespace cura
+} // namespace cura52
 
 int main(int argc, char** argv)
 {

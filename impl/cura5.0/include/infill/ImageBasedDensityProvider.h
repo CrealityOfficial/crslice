@@ -9,7 +9,7 @@
 
 #include "DensityProvider.h"
 
-namespace cura
+namespace cura52
 {
 
 struct AABB3D;
@@ -30,7 +30,7 @@ protected:
     AABB print_aabb; //!< bounding box of print coordinates in which to apply the image
 };
 
-} // namespace cura
+} // namespace cura52
 
 
 #endif // INFILL_IMAGE_BASED_DENSITY_PROVIDER_H

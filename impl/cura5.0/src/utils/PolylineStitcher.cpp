@@ -6,7 +6,7 @@
 #include "utils/ExtrusionLine.h"
 #include "utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 
 template<>
@@ -52,5 +52,5 @@ bool PolylineStitcher<Polygons, Polygon, Point>::isOdd(const Polygon&)
     return false;
 }
 
-}//namespace cura
+}//namespace cura52
 

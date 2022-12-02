@@ -26,7 +26,7 @@
 #include "communication/CommandLine.h"
 #include "utils/FMatrix4x3.h" //For the mesh_rotation_matrix setting.
 
-namespace cura
+namespace cura52
 {
 
 CommandLine::CommandLine()
@@ -623,4 +623,4 @@ void CommandLine::setsliceHandler(Slice* slicePtr)
 {
     current_slice = slicePtr;
 }
-} // namespace cura
+} // namespace cura52

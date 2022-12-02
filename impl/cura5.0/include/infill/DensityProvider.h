@@ -5,7 +5,7 @@
 #ifndef INFILL_DENSITY_PROVIDER_H
 #define INFILL_DENSITY_PROVIDER_H
 
-namespace cura
+namespace cura52
 {
 
 struct AABB3D;
@@ -27,7 +27,7 @@ public:
     };
 };
 
-} // namespace cura
+} // namespace cura52
 
 
 #endif // INFILL_DENSITY_PROVIDER_H

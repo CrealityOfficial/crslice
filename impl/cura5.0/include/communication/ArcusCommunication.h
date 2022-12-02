@@ -19,7 +19,7 @@ namespace Arcus
     class Socket;
 }
 
-namespace cura
+namespace cura52
 {
 
 /*
@@ -227,7 +227,7 @@ private:
     const std::unique_ptr<PathCompiler> path_compiler;
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //ARCUS
 #endif //ARCUSCOMMUNICATION_H

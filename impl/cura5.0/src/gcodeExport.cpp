@@ -20,7 +20,7 @@
 #include "utils/Date.h"
 #include "utils/string.h" // MMtoStream, PrecisionedDouble
 
-namespace cura
+namespace cura52
 {
 
 std::string transliterate(const std::string& text)
@@ -1467,4 +1467,4 @@ void GCodeExport::setSliceUUID(const std::string& slice_uuid)
     slice_uuid_ = slice_uuid;
 }
 
-} // namespace cura
+} // namespace cura52

@@ -6,7 +6,7 @@
 #include "utils/linearAlg2D.h"
 #include "utils/AABB.h"
 
-namespace cura 
+namespace cura52 
 {
 
 PolygonConnector::PolygonConnector(const coord_t line_width)
@@ -104,5 +104,5 @@ ExtrusionLine PolygonConnector::createEmpty<ExtrusionLine>() const
     return result; //No copy, via RVO.
 }
 
-}//namespace cura
+}//namespace cura52
 

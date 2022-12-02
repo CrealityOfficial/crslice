@@ -8,7 +8,7 @@
 
 #include "../settings/types/Ratio.h"
 
-namespace cura
+namespace cura52
 {
     /*!
      * A meta-beading-strategy that takes outer and inner wall widths into account.
@@ -94,5 +94,5 @@ namespace cura
         Ratio minimum_variable_line_ratio;
     };
 
-} // namespace cura
+} // namespace cura52
 #endif // INWARD_DISTRIBUTED_BEADING_STRATEGY_H

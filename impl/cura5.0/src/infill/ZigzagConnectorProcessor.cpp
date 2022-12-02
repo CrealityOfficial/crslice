@@ -4,7 +4,7 @@
 #include <cassert>
 #include "infill/ZigzagConnectorProcessor.h"
 
-using namespace cura;
+using namespace cura52;
 
 
 void ZigzagConnectorProcessor::registerVertex(const Point& vertex)

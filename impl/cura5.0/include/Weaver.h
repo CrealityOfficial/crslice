@@ -7,7 +7,7 @@
 #include "weaveDataStorage.h"
 #include "utils/NoCopy.h"
 
-namespace cura
+namespace cura52
 {
 
 class MeshGroup;
@@ -112,6 +112,6 @@ private:
    
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//WEAVER_H

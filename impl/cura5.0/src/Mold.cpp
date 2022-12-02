@@ -11,7 +11,7 @@
 #include "settings/types/Ratio.h"
 #include "utils/IntPoint.h"
 
-namespace cura
+namespace cura52
 {
 
 void Mold::process(std::vector<Slicer*>& slicer_list)
@@ -120,4 +120,4 @@ void Mold::process(std::vector<Slicer*>& slicer_list)
 }
 
 
-}//namespace cura
+}//namespace cura52

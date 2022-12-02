@@ -4,7 +4,7 @@
 #ifndef SUPPORT_H
 #define SUPPORT_H
 
-namespace cura
+namespace cura52
 {
 
 struct LayerIndex;
@@ -294,6 +294,6 @@ private:
 };
 
 
-}//namespace cura
+}//namespace cura52
 
 #endif//SUPPORT_H

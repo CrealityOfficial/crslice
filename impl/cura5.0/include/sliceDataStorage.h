@@ -24,7 +24,7 @@
 // libArachne
 #include "utils/ExtrusionLine.h"
 
-namespace cura
+namespace cura52
 {
 
 class Mesh;
@@ -401,6 +401,6 @@ private:
     std::vector<WipeScriptConfig> initializeWipeConfigs();
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//SLICE_DATA_STORAGE_H

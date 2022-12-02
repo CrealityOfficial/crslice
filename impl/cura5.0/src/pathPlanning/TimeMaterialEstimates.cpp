@@ -3,7 +3,7 @@
 
 #include "pathPlanning/TimeMaterialEstimates.h"
 
-namespace cura
+namespace cura52
 {
 
 TimeMaterialEstimates::TimeMaterialEstimates(double extrude_time, double unretracted_travel_time, double retracted_travel_time, double material)
@@ -83,4 +83,4 @@ void TimeMaterialEstimates::reset()
     material = 0.0;
 }
 
-}//namespace cura
+}//namespace cura52

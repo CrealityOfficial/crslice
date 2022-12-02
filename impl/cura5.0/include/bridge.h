@@ -4,7 +4,7 @@
 #ifndef BRIDGE_H
 #define BRIDGE_H
 
-namespace cura
+namespace cura52
 {
 
 class Polygons;
@@ -29,6 +29,6 @@ class SupportLayer;
  */
 int bridgeAngle(const Settings& settings, const Polygons& skin_outline, const SliceDataStorage& storage, const unsigned layer_nr, const unsigned bridge_layer, const SupportLayer* support_layer, Polygons& supported_regions);
 
-}//namespace cura
+}//namespace cura52
 
 #endif//BRIDGE_H

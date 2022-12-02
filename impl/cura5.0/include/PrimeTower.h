@@ -9,7 +9,7 @@
 #include "utils/polygon.h" // Polygons
 #include "utils/polygonUtils.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class SliceDataStorage;
@@ -136,6 +136,6 @@ private:
 
 
 
-}//namespace cura
+}//namespace cura52
 
 #endif // PRIME_TOWER_H

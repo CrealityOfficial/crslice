@@ -9,7 +9,7 @@
 #include "linearAlg2D.h" //To calculate line deviations and intersecting lines.
 #include "../settings/Settings.h" //To load the parameters from a Settings object.
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -453,6 +453,6 @@ protected:
     coord_t getAreaDeviation(const ExtrusionJunction& before, const ExtrusionJunction& vertex, const ExtrusionJunction& after) const;
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //UTILS_SIMPLIFY_H

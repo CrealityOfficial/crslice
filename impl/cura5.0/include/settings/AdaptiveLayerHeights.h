@@ -6,7 +6,7 @@
 
 #include "../utils/Coord_t.h"
 
-namespace cura {
+namespace cura52 {
 
 class AdaptiveLayer
 {

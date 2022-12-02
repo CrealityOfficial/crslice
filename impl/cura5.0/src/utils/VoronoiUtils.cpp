@@ -9,7 +9,7 @@
 #include "utils/VoronoiUtils.h"
 #include "utils/linearAlg2D.h"
 
-namespace cura
+namespace cura52
 {
 
 Point VoronoiUtils::p(const vd_t::vertex_type* node)
@@ -320,4 +320,4 @@ double VoronoiUtils::getPointProjection(const Point& point, const Segment& segme
     return static_cast<double>(vec_dot) / sqr_segment_length;
 }
 
-} // namespace cura
+} // namespace cura52

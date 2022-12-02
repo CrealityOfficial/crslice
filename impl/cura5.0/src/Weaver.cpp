@@ -16,7 +16,7 @@
 #include "settings/types/Angle.h"
 #include "slicer.h"
 
-namespace cura
+namespace cura52
 {
 
 void Weaver::weave(MeshGroup* meshgroup)
@@ -33,12 +33,12 @@ void Weaver::weave(MeshGroup* meshgroup)
 
     LOGI("Layer count: {}", layer_count);
 
-    std::vector<cura::Slicer*> slicerList;
+    std::vector<cura52::Slicer*> slicerList;
 
     for (Mesh& mesh : meshgroup->meshes)
     {
         constexpr bool variable_layer_heights = false;
-        cura::Slicer* slicer = new cura::Slicer(&mesh, connection_height, layer_count, variable_layer_heights, &layer_thicknesses);
+        cura52::Slicer* slicer = new cura52::Slicer(&mesh, connection_height, layer_count, variable_layer_heights, &layer_thicknesses);
         slicerList.push_back(slicer);
     }
 
@@ -47,7 +47,7 @@ void Weaver::weave(MeshGroup* meshgroup)
         for (starting_layer_idx = 0; starting_layer_idx < LayerIndex(layer_count); starting_layer_idx++)
         {
             Polygons parts;
-            for (cura::Slicer* slicer : slicerList)
+            for (cura52::Slicer* slicer : slicerList)
                 parts.add(slicer->layers[starting_layer_idx].polygons);
 
             if (parts.size() > 0)
@@ -62,7 +62,7 @@ void Weaver::weave(MeshGroup* meshgroup)
     LOGI("Chainifying layers...");
     {
         int starting_z = -1;
-        for (cura::Slicer* slicer : slicerList)
+        for (cura52::Slicer* slicer : slicerList)
             wireFrame.bottom_outline.add(slicer->layers[starting_layer_idx].polygons);
 
         Application::getInstance().communication->sendPolygons(PrintFeatureType::OuterWall, wireFrame.bottom_outline, 1, 1, 1);
@@ -92,7 +92,7 @@ void Weaver::weave(MeshGroup* meshgroup)
             Progress::messageProgress(Progress::Stage::INSET_SKIN, layer_idx + 1, layer_count); // abuse the progress system of the normal mode of CuraEngine
 
             Polygons parts1;
-            for (cura::Slicer* slicer : slicerList)
+            for (cura52::Slicer* slicer : slicerList)
                 parts1.add(slicer->layers[layer_idx].polygons);
 
 
@@ -491,4 +491,4 @@ void Weaver::connect_polygons(Polygons& supporting, int z0, Polygons& supported,
 }
 
 
-} // namespace cura
+} // namespace cura52

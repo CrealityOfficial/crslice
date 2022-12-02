@@ -6,7 +6,7 @@
 
 #include "settings/Settings.h"
 
-namespace cura 
+namespace cura52 
 {
     
 class ExtruderTrain
@@ -32,5 +32,5 @@ public:
     const size_t extruder_nr;
 };
 
-}//namespace cura
+}//namespace cura52
 #endif // EXTRUDER_TRAIN_H

@@ -7,7 +7,7 @@
 #include "settings/types/LayerIndex.h"
 #include "utils/Coord_t.h"
 
-namespace cura 
+namespace cura52 
 {
 
 class Polygons;
@@ -204,6 +204,6 @@ private:
     Polygons getOutlineOnLayer(const SliceLayerPart& part_here, const LayerIndex layer2_nr);
 };
 
-}//namespace cura
+}//namespace cura52
 
 #endif//SKIN_H

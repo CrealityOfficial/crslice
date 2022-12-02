@@ -11,7 +11,7 @@
 #include "utils/ExtrusionLine.h"
 #include "utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 class WallToolPaths
 {
@@ -121,6 +121,6 @@ private:
     Polygons inner_contour;  //<! The inner contour of the generated toolpaths
     const Settings& settings;
 };
-} // namespace cura
+} // namespace cura52
 
 #endif // CURAENGINE_WALLTOOLPATHS_H

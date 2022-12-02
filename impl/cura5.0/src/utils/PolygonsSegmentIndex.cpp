@@ -3,7 +3,7 @@
 
 #include "utils/PolygonsSegmentIndex.h"
 
-namespace cura
+namespace cura52
 {
 
 PolygonsSegmentIndex::PolygonsSegmentIndex() : PolygonsPointIndex() {}

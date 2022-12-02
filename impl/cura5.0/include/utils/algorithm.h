@@ -10,7 +10,7 @@
 
 // extensions to algorithm.h from the standard library
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -43,7 +43,7 @@ std::vector<size_t> order(const std::vector<T> &in)
 }
 
 
-} // namespace cura
+} // namespace cura52
 
 #endif // UTILS_ALGORITHM_H
 

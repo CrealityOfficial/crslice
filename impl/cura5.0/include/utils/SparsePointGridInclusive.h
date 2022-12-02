@@ -12,7 +12,7 @@
 #include "IntPoint.h"
 #include "SparsePointGrid.h"
 
-namespace cura {
+namespace cura52 {
 
 
 namespace SparsePointGridInclusiveImpl {
@@ -124,6 +124,6 @@ SG_THIS::getNearbyVals(const Point &query_pt, coord_t radius) const
 #undef SG_TEMPLATE
 #undef SG_THIS
 
-} // namespace cura
+} // namespace cura52
 
 #endif // UTILS_SPARSE_POINT_GRID_INCLUSIVE_H

@@ -13,7 +13,7 @@
 #include "Coord_t.h"
 
 
-namespace cura
+namespace cura52
 {
 
 class Point3

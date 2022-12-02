@@ -45,7 +45,7 @@ static inline int computeScanSegmentIdx(int x, int line_width)
     return x / line_width;
 }
 
-namespace cura
+namespace cura52
 {
 
 Polygons Infill::generateWallToolPaths(std::vector<VariableWidthLines>& toolpaths, Polygons& outer_contour, const size_t wall_line_count, const coord_t line_width, const coord_t infill_overlap, const Settings& settings)
@@ -898,4 +898,4 @@ bool Infill::InfillLineSegment::operator==(const InfillLineSegment& other) const
     return start == other.start && end == other.end;
 }
 
-} // namespace cura
+} // namespace cura52

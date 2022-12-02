@@ -10,7 +10,7 @@
 #include "progress/Progress.h"
 #include "utils/gettime.h"
 
-namespace cura
+namespace cura52
 {
 
 double Progress::times[] = {
@@ -83,4 +83,4 @@ void Progress::messageProgressStage(Progress::Stage stage, TimeKeeper* time_keep
     }
 }
 
-}// namespace cura
+}// namespace cura52

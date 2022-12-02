@@ -8,7 +8,7 @@
 #include "../utils/IntPoint.h"
 #include "../utils/Point3.h"
 
-namespace cura
+namespace cura52
 {
 
 struct LayerIndex;

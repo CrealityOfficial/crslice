@@ -10,7 +10,7 @@
 #include "SkeletalTrapezoidationEdge.h"
 #include "SkeletalTrapezoidationJoint.h"
 
-namespace cura
+namespace cura52
 {
 
 class STHalfEdgeNode;
@@ -41,7 +41,7 @@ public:
         *
         * If we can go up then the distance includes the length of the \param edge
         */
-    std::optional<cura::coord_t> distToGoUp() const;
+    std::optional<cura52::coord_t> distToGoUp() const;
 
     STHalfEdge* getNextUnconnected();
 };

@@ -3,7 +3,7 @@
 
 #include "utils/ProximityPointLink.h"
 
-namespace cura 
+namespace cura52 
 {
 
 ProximityPointLink::ProximityPointLink(const ListPolyIt a, const ListPolyIt b, int dist, const ProximityPointLinkType type)
@@ -25,4 +25,4 @@ void ProximityPointLink::setDist(coord_t distance) const
     thiss.dist = distance;
 }
 
-}//namespace cura 
+}//namespace cura52 

@@ -14,7 +14,7 @@
 #include "polygonUtils.h"
 #include "linearAlg2D.h"
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -738,7 +738,7 @@ protected:
 };
 
 
-}//namespace cura
+}//namespace cura52
 
 
 

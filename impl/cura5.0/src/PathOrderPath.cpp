@@ -5,7 +5,7 @@
 #include "sliceDataStorage.h" //For SliceLayerPart.
 #include "WallToolPaths.h"
 
-namespace cura
+namespace cura52
 {
 
     template<>

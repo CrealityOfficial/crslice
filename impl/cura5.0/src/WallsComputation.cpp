@@ -10,7 +10,7 @@
 #include "sliceDataStorage.h"
 #include "utils/Simplify.h" // We're simplifying the spiralized insets.
 
-namespace cura
+namespace cura52
 {
 
 WallsComputation::WallsComputation(const Settings& settings, const LayerIndex layer_nr) : settings(settings), layer_nr(layer_nr)
@@ -125,4 +125,4 @@ void WallsComputation::generateSpiralInsets(SliceLayerPart *part, coord_t line_w
     }
 }
 
-}//namespace cura
+}//namespace cura52

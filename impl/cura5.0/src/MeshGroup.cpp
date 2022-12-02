@@ -14,7 +14,7 @@
 #include "utils/gettime.h"
 #include "utils/string.h"
 
-namespace cura
+namespace cura52
 {
 
 FILE* binaryMeshBlob = nullptr;
@@ -285,4 +285,4 @@ bool loadMeshIntoMeshGroup(MeshGroup* meshgroup, const char* filename, const FMa
     return false;
 }
 
-} // namespace cura
+} // namespace cura52

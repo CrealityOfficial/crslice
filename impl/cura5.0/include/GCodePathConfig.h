@@ -9,7 +9,7 @@
 #include "settings/types/Velocity.h"
 #include "utils/Coord_t.h"
 
-namespace cura 
+namespace cura52 
 {
 
 struct LayerIndex;
@@ -100,6 +100,6 @@ private:
 };
 
 
-}//namespace cura
+}//namespace cura52
 
 #endif // G_CODE_PATH_CONFIG_H

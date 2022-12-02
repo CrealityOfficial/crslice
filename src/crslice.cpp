@@ -18,7 +18,7 @@ namespace crslice
 
 	void CrSlice::sliceFromFakeArguments(int argc, const char* argv[])
 	{
-		cura::Application::getInstance().run(argc, argv);
+		cura52::Application::getInstance().run(argc, argv);
 	}
 
 	void CrSlice::sliceFromScene(CrScenePtr scene)
@@ -29,7 +29,7 @@ namespace crslice
 			return;
 		}
 
-		cura::Application::getInstance().runCommulication(new CRSliceFromScene(scene));
+		cura52::Application::getInstance().runCommulication(new CRSliceFromScene(scene));
 	}
 
 	void CrSlice::init(crcommon::Settings* settingsPtr)
@@ -55,6 +55,6 @@ namespace crslice
 		"cura.gcode"
 		};
 
-		cura::Application::getInstance().run(argc, argv);
+		 cura52::Application::getInstance().run(argc, argv);
 	}
 }

@@ -6,9 +6,9 @@
 #include "SVG.h"
 #include "ExtrusionSegment.h"
 
-namespace cura
+namespace cura52
 {
-    using namespace cura;
+    using namespace cura52;
 
 /*!
  * Get statistics of the resulting toolpaths
@@ -33,5 +33,5 @@ private:
 
 
 
-} // namespace cura
+} // namespace cura52
 #endif // TOOLPATH_VISUALIZER_H

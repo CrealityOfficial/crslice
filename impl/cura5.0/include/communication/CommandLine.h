@@ -11,7 +11,7 @@
 
 #include "Communication.h" //The class we're implementing.
 
-namespace cura
+namespace cura52
 {
 class Settings;
 struct JSON_INFOR_CFG
@@ -223,6 +223,6 @@ public:
     const std::string findDefinitionFile(const std::string& definition_id, const std::unordered_set<std::string>& search_directories);
 };
 
-} //namespace cura
+} //namespace cura52
 
 #endif //COMMANDLINE_H

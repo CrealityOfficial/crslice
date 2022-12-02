@@ -7,7 +7,7 @@
 #include "utils/AABB.h"
 #include "utils/polygon.h"
 
-namespace cura
+namespace cura52
 {
 
 int bridgeAngle(const Settings& settings, const Polygons& skin_outline, const SliceDataStorage& storage, const unsigned layer_nr, const unsigned bridge_layer, const SupportLayer* support_layer, Polygons& supported_regions)
@@ -193,5 +193,5 @@ int bridgeAngle(const Settings& settings, const Polygons& skin_outline, const Sl
     return angle(center2 - center1);
 }
 
-}//namespace cura
+}//namespace cura52
 

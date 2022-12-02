@@ -4,7 +4,7 @@
 #ifndef TEMPERATURE_H
 #define TEMPERATURE_H
 
-namespace cura
+namespace cura52
 {
 
 /*

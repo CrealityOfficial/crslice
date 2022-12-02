@@ -9,7 +9,7 @@
 
 #include "TreeModelVolumes.h" //Caching collision and avoidance regions.
 
-namespace cura
+namespace cura52
 {
 
 class SliceDataStorage;
@@ -193,11 +193,11 @@ private:
 
 namespace std
 {
-    template<> struct hash<cura::TreeSupport::Node>
+    template<> struct hash<cura52::TreeSupport::Node>
     {
-        size_t operator()(const cura::TreeSupport::Node& node) const
+        size_t operator()(const cura52::TreeSupport::Node& node) const
         {
-            return hash<cura::Point>()(node.position);
+            return hash<cura52::Point>()(node.position);
         }
     };
 }

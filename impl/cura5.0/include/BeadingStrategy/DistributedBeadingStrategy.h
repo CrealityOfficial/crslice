@@ -7,7 +7,7 @@
 #include "../settings/types/Ratio.h" // For the wall transition threshold.
 #include "BeadingStrategy.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!
@@ -40,5 +40,5 @@ public:
     coord_t getOptimalBeadCount(coord_t thickness) const override;
 };
 
-} // namespace cura
+} // namespace cura52
 #endif // DISTRIBUTED_BEADING_STRATEGY_H

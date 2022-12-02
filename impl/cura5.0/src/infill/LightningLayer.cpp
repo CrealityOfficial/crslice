@@ -12,7 +12,7 @@
 #include "utils/SVG.h"
 #include "utils/SparsePointGridInclusive.h"
 
-using namespace cura;
+using namespace cura52;
 
 coord_t LightningLayer::getWeightedDistance(const Point& boundary_loc, const Point& unsupported_location)
 {

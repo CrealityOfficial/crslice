@@ -4,7 +4,7 @@
 #ifndef RATIO_H
 #define RATIO_H
 
-namespace cura
+namespace cura52
 {
 
 /*

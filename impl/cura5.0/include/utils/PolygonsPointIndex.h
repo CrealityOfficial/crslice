@@ -10,7 +10,7 @@
 #include "polygon.h"
 
 
-namespace cura 
+namespace cura52 
 {
 
 /*!
@@ -175,7 +175,7 @@ struct PathsPointIndexLocator
 
 using PolygonsPointIndexLocator = PathsPointIndexLocator<Polygons>;
 
-}//namespace cura
+}//namespace cura52
 
 namespace std
 {
@@ -183,11 +183,11 @@ namespace std
  * Hash function for \ref PolygonsPointIndex
  */
 template <>
-struct hash<cura::PolygonsPointIndex>
+struct hash<cura52::PolygonsPointIndex>
 {
-    size_t operator()(const cura::PolygonsPointIndex& lpi) const
+    size_t operator()(const cura52::PolygonsPointIndex& lpi) const
     {
-        return std::hash<cura::Point>()(lpi.p());
+        return std::hash<cura52::Point>()(lpi.p());
     }
 };
 }//namespace std

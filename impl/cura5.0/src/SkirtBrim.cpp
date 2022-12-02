@@ -12,7 +12,7 @@
 #include "support.h"
 #include "utils/Simplify.h" //Simplifying the brim/skirt at every inset.
 
-namespace cura
+namespace cura52
 {
 
 void SkirtBrim::getFirstLayerOutline(SliceDataStorage& storage, const size_t primary_line_count, const bool is_skirt, Polygons& first_layer_outline)
@@ -314,4 +314,4 @@ void SkirtBrim::generateSupportBrim(SliceDataStorage& storage, const bool merge_
     }
 }
 
-} // namespace cura
+} // namespace cura52

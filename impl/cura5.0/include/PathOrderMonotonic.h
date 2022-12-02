@@ -11,7 +11,7 @@
 #include "PathOrder.h"
 #include "PathOrderPath.h"
 
-namespace cura
+namespace cura52
 {
 
 /*!

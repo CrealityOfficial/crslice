@@ -24,7 +24,7 @@
  * - Move more complex computations from LightningGenerator constructor to elsewhere.
  */
 
-using namespace cura;
+using namespace cura52;
 
 LightningGenerator::LightningGenerator(const SliceMeshStorage& mesh)
 {

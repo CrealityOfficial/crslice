@@ -12,7 +12,7 @@
 #include <list>
 #include <unordered_map>
 
-namespace cura
+namespace cura52
 {
 class LightningTreeNode;
 
@@ -82,6 +82,6 @@ public:
     void fillLocator(SparseLightningTreeNodeGrid& tree_node_locator);
 };
 
-} // namespace cura
+} // namespace cura52
 
 #endif // LIGHTNING_LAYER_H
