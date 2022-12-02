@@ -83,6 +83,17 @@ namespace crslice
 			delete group;
 		m_groups.clear();
 	}
+
+	void CrScene::setOutputGCodeFileName(const std::string& fileName)
+	{
+		m_gcodeFileName = fileName;
+	}
+
+	bool CrScene::valid()
+	{
+		return true;
+	}
+
 	CrGroup* CrScene::getGroupsIndex(int groupID)
 	{
 		if (groupID < m_groups.size())

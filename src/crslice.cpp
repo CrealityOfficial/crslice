@@ -26,16 +26,10 @@ namespace crslice
 		if (scene)
 		{
 			LOGM("CrSlice::sliceFromScene empty scene.");
-			SliceInitCfg sliceCfg;
-			//sliceCfg.initCfgFile =  "G:/Work/CuraEngine/Visualization/testUnit/testData/creality_cr10.def.json";
-			//sliceCfg.gcodeOutFile = "G:/Work/CuraEngine/Visualization/testUnit/testData/output/curaOut.gcode";
-			//sliceCfg.testMeshFile = "G:/Work/CuraEngine/Visualization/testUnit/testData/test.stl";
-			CRSliceFromScene crsliceHandler(scene, sliceCfg);
-			crsliceHandler.sliceNext();
 			return;
 		}
 
-
+		cura::Application::getInstance().runCommulication(new CRSliceFromScene(scene));
 	}
 
 	void CrSlice::init(crcommon::Settings* settingsPtr)

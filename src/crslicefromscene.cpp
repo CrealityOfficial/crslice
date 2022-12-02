@@ -35,10 +35,9 @@ namespace crslice
         }
 
     }
-    CRSliceFromScene::CRSliceFromScene(CrScenePtr scene, const SliceInitCfg sliceCfg)
+    CRSliceFromScene::CRSliceFromScene(CrScenePtr scene)
         : m_sliced(false)
         , m_scene(scene)
-        , m_sliceInitCfg(sliceCfg)
     {
 
     }
@@ -116,15 +115,25 @@ namespace crslice
     void CRSliceFromScene::sliceNext()
     {
         bool sliceValible = false;
-        if (m_scene == nullptr)
+        if (m_scene == nullptr || !m_scene->valid())
+        {
+            LOGE("input scene is empty or invalid.");
+            runFinished();
             return;
-       // cura::FffProcessor cura::FffProcessor::instance;
+        }
+
+        std::string outputFile = m_scene->m_gcodeFileName;
+        if (outputFile.empty())
+        {
+            LOGE("output file name is not set.");
+            runFinished();
+            return;
+        }
+        cura::FffProcessor::getInstance()->setTargetFile(outputFile.c_str());
         cura::FffProcessor::getInstance()->time_keeper.restart();
-#if 1
-        // Count the number of mesh groups to slice for.
-       size_t num_mesh_groups = m_scene->m_groups.size();
-       if (num_mesh_groups == 0)
-           return;
+
+        size_t num_mesh_groups = m_scene->m_groups.size();
+        assert(num_mesh_groups > 0);
         cura::Slice slice(num_mesh_groups);
 
         cura::Application::getInstance().current_slice = &slice;
@@ -135,7 +144,7 @@ namespace crslice
         cura::Settings* last_settings = &slice.scene.settings;
 
         cura::CommandLine cmdline;
-        cmdline.loadJSON(m_sliceInitCfg.initCfgFile, slice.scene.settings);
+        //cmdline.loadJSON(m_sliceInitCfg.initCfgFile, slice.scene.settings);
         cura::Application::getInstance().setSliceCommunication(&cmdline);
         cmdline.setsliceHandler(&slice);
         crSetting2CuraSettings(m_scene->m_settings, &(slice.scene.settings));
@@ -159,45 +168,15 @@ namespace crslice
 
         }
 
-         last_extruder->settings.add("extruder_nr", std::to_string(last_extruder->extruder_nr));
-         if (sliceValible == false)
-             return;
-         for (size_t mesh_group_index = 0; mesh_group_index < num_mesh_groups; mesh_group_index++)
-         {
-             slice.scene.mesh_groups[mesh_group_index].finalize();
-
-         }
-#else
-        cura::Slice slice(1);
-        cura::Settings* last_settings = &slice.scene.settings;
-        slice.scene.extruders.emplace_back(0, &slice.scene.settings);
-        cura::ExtruderTrain* last_extruder = &slice.scene.extruders[0];
-
-        cura::CommandLine cmdline;
-        cmdline.setsliceHandler(&slice);
-        cura::Application::getInstance().current_slice = &slice;
-        cmdline.loadJSON(m_sliceInitCfg.initCfgFile, slice.scene.settings);
-        cura::Application::getInstance().setSliceCommunication(&cmdline);
-
-        const cura::FMatrix4x3 transformation = last_settings->get<cura::FMatrix4x3>("mesh_rotation_matrix"); // The transformation applied to the model when loaded.
-
         last_extruder->settings.add("extruder_nr", std::to_string(last_extruder->extruder_nr));
+        if (sliceValible == false)
+            return;
 
-        if (!cura::loadMeshIntoMeshGroup(&slice.scene.mesh_groups[0], m_sliceInitCfg.testMeshFile.c_str(), transformation, last_extruder->settings))
+        for (size_t mesh_group_index = 0; mesh_group_index < num_mesh_groups; mesh_group_index++)
         {
-            LOGD("load test mesh error");
-            exit(-1);
-        }
+            slice.scene.mesh_groups[mesh_group_index].finalize();
 
-
-#endif
-        if (m_sliceInitCfg.gcodeOutFile.empty())
-        {
-            LOGE("should set gcodeOutFile!!!!!");
         }
-         cura::FffProcessor::getInstance()->setTargetFile(m_sliceInitCfg.gcodeOutFile.c_str());
-        // Start slicing.
-        cura::Application::getInstance().startThreadPool(); // Start the thread pool
 
         slice.scene.mesh_groups[0].finalize();
 
@@ -205,6 +184,11 @@ namespace crslice
         // Finalize the processor. This adds the end g-code and reports statistics.
         cura::FffProcessor::getInstance()->finalize();
 
+        runFinished();
+    }
+
+    void CRSliceFromScene::runFinished()
+    {
         m_sliced = true;
     }
 

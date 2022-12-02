@@ -24,9 +24,14 @@ namespace crslice
 
 		void release();
 		CrGroup* getGroupsIndex(int groupID);
+
+		void setOutputGCodeFileName(const std::string& fileName);
+		bool valid();
 	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;
+
+		std::string m_gcodeFileName;
 	};
 }
 
