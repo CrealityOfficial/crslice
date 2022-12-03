@@ -33,6 +33,7 @@ namespace crslice
 		SettingsPtr m_settings;
 
 		std::string m_gcodeFileName;
+		std::string m_configurefileName;
 	};
 }
 

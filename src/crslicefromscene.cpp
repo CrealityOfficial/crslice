@@ -5,8 +5,8 @@
 #include "ExtruderTrain.h"
 #include "FffProcessor.h"
 #include "Slice.h"
-#include "communication/CommandLine.h"
 #include "utils/Coord_t.h"
+#include "crcommon/jsonloader.h"
 namespace crslice
 {
     static void trimesh2CuraMesh(TriMeshPtr mesh, cura52::Mesh& curaMesh)
@@ -29,12 +29,13 @@ namespace crslice
         curaMesh.finish();
     }
 
-    static void crSetting2CuraSettings(SettingsPtr crSettings, cura52::Settings *curaSettings)
+    static void crSetting2CuraSettings(const crcommon::Settings &crSettings, cura52::Settings *curaSettings)
     {
-        for (const std::pair<std::string, std::string>& pair : crSettings->settings)
+        for (const std::pair<std::string, std::string> pair : crSettings.settings)
         {
              curaSettings->add(pair.first, pair.second);
         }
+
     }
 
     CRSliceFromScene::CRSliceFromScene(CrScenePtr scene)
@@ -146,16 +147,33 @@ namespace crslice
         cura52::Application::getInstance().current_slice = &slice;
 
         bool sliceValible = false;
+
+        std::string cfgJsonfile = m_scene->m_configurefileName;
+        std::vector<crcommon::KValues> extruderKVs;
+        if (crcommon::loadJSON(cfgJsonfile, slice.scene.settings.settings, extruderKVs) != 0)
+        {
+            LOGE("setSceneJsonFile invalid json file: %s", cfgJsonfile.c_str());
+            return;
+        }
+        for (int extruder_nr = 0; extruder_nr < extruderKVs.size(); extruder_nr++)
+        {
+            while (slice.scene.extruders.size() <= extruder_nr) // Make sure we have enough extruders up to the extruder_nr that the user wanted.
+            {
+                slice.scene.extruders.emplace_back(extruder_nr, &slice.scene.settings);
+                slice.scene.extruders[slice.scene.extruders.size() - 1].settings.settings = extruderKVs[extruder_nr];
+            }
+
+        }
         slice.scene.extruders.emplace_back(0, &slice.scene.settings); // Always have one extruder.
         cura52::ExtruderTrain* last_extruder = &slice.scene.extruders[0];
 
-        crSetting2CuraSettings(m_scene->m_settings, &(slice.scene.settings));
+        crSetting2CuraSettings(*(m_scene->m_settings), &(slice.scene.settings));
         for (size_t i = 0; i < numGroup; i++)
         {
             CrGroup* crGroup = m_scene->getGroupsIndex(i);
             if (crGroup)
             {
-                crSetting2CuraSettings(crGroup->m_settings, &(slice.scene.mesh_groups[i].settings));
+                crSetting2CuraSettings(*(crGroup->m_settings), &(slice.scene.mesh_groups[i].settings));
                 for (const CrObject& object : crGroup->m_objects)
                 {
                     if (object.m_mesh.get() != nullptr)
@@ -163,7 +181,7 @@ namespace crslice
                         slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
                         cura52::Mesh& mesh = slice.scene.mesh_groups[i].meshes.back();
                         trimesh2CuraMesh(object.m_mesh, mesh);
-                        crSetting2CuraSettings(object.m_settings, &(mesh.settings));
+                        crSetting2CuraSettings(*(object.m_settings), &(mesh.settings));
                         sliceValible = true;
                     }
                 }
