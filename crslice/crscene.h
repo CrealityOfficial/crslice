@@ -31,9 +31,9 @@ namespace crslice
 	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;
+		std::vector<SettingsPtr> m_extruders;
 
 		std::string m_gcodeFileName;
-		std::string m_configurefileName;
 	};
 }
 

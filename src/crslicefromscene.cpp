@@ -148,24 +148,18 @@ namespace crslice
 
         bool sliceValible = false;
 
-        std::string cfgJsonfile = m_scene->m_configurefileName;
-        std::vector<crcommon::KValues> extruderKVs;
-        if (crcommon::loadJSON(cfgJsonfile, slice.scene.settings.settings, extruderKVs) != 0)
+        std::vector<SettingsPtr>& extruderKVs = m_scene->m_extruders;
+        int extruder_nr = 0;
+        for (SettingsPtr settings : extruderKVs)
         {
-            LOGE("setSceneJsonFile invalid json file: %s", cfgJsonfile.c_str());
-            return;
+            slice.scene.extruders.emplace_back(extruder_nr, &slice.scene.settings);
+            cura52::ExtruderTrain& extruder = slice.scene.extruders[extruder_nr];
+            extruder.settings.settings.swap(settings->settings);
+            ++extruder_nr;
         }
-        for (int extruder_nr = 0; extruder_nr < extruderKVs.size(); extruder_nr++)
-        {
-            while (slice.scene.extruders.size() <= extruder_nr) // Make sure we have enough extruders up to the extruder_nr that the user wanted.
-            {
-                slice.scene.extruders.emplace_back(extruder_nr, &slice.scene.settings);
-                slice.scene.extruders[slice.scene.extruders.size() - 1].settings.settings = extruderKVs[extruder_nr];
-            }
 
-        }
-        slice.scene.extruders.emplace_back(0, &slice.scene.settings); // Always have one extruder.
-        cura52::ExtruderTrain* last_extruder = &slice.scene.extruders[0];
+        if(slice.scene.extruders.size() == 0)
+            slice.scene.extruders.emplace_back(0, &slice.scene.settings); // Always have one extruder.
 
         crSetting2CuraSettings(*(m_scene->m_settings), &(slice.scene.settings));
         for (size_t i = 0; i < numGroup; i++)

@@ -13,10 +13,7 @@ namespace crslice
 
 		void sliceFromFakeArguments(int argc, const char* argv[]);
 		void sliceFromScene(CrScenePtr scene);
-	private:
-		crcommon::Settings m_settingsCfg;
-	public:
-		void init(crcommon::Settings *settingsPtr);
+
 		void process();
 	};
 }

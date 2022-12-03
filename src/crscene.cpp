@@ -79,13 +79,18 @@ namespace crslice
 
 	void CrScene::setSceneJsonFile(const std::string& fileName)
 	{
-		m_configurefileName = fileName;
-		//std::vector<crcommon::KValues> extruders;
-		//if (crcommon::loadJSON(fileName, m_settings->settings, extruders) != 0)
-		//{
-		//	LOGE("setSceneJsonFile invalid json file: %s", fileName.c_str());
-		//	return;
-		//}
+		std::vector<crcommon::KValues> extruders;
+		if (crcommon::loadJSON(fileName, m_settings->settings, extruders) != 0)
+		{
+			LOGE("setSceneJsonFile invalid json file: %s", fileName.c_str());
+			return;
+		}
+
+		for (crcommon::KValues& kvs : extruders)
+		{
+			SettingsPtr setting(new crcommon::Settings());
+			setting->settings.swap(kvs);
+		}
 	}
 
 	void CrScene::release()

@@ -55,6 +55,24 @@ namespace cura52
         }
 
         for (MeshGroup& meshGroup : scene.mesh_groups)
+        {
+            for (Mesh& mesh : meshGroup.meshes)
+            {
+                if (mesh.settings.has("extruder_nr"))
+                {
+                    size_t i = mesh.settings.get<size_t>("extruder_nr");
+                    if (i <= numExtruder)
+                    {
+                        mesh.settings.setParent(&scene.extruders[i].settings);
+                        continue;
+                    }
+                }
+     
+                mesh.settings.setParent(&meshGroup.settings);
+            }
+        }
+
+        for (MeshGroup& meshGroup : scene.mesh_groups)
             meshGroup.finalize();
     }
 

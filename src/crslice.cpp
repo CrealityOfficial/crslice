@@ -32,12 +32,6 @@ namespace crslice
 		cura52::Application::getInstance().runCommulication(new CRSliceFromScene(scene));
 	}
 
-	void CrSlice::init(crcommon::Settings* settingsPtr)
-	{
-		if(settingsPtr !=nullptr)
-			m_settingsCfg = *settingsPtr;
-	}
-
 	void CrSlice::process()
 	{
 		 int argc = 10;
