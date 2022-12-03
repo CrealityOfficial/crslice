@@ -23,7 +23,7 @@ namespace crslice
 
 	void CrSlice::sliceFromScene(CrScenePtr scene)
 	{
-		if (scene)
+		if (!scene)
 		{
 			LOGM("CrSlice::sliceFromScene empty scene.");
 			return;

@@ -10,38 +10,52 @@
 namespace cura52
 {
 
-Slice::Slice(const size_t num_mesh_groups) : scene(num_mesh_groups)
-{
-}
+    Slice::Slice(const size_t num_mesh_groups) : scene(num_mesh_groups)
+    {
+    }
 
-void Slice::compute()
-{
+    void Slice::compute()
+    {
 #if 0
-    LOGD("All settings: {}", scene.getAllSettingsString());
-    std::ofstream debugsetfile;
-    debugsetfile.open(("ALL_Setting.txt"), std::ofstream::out);
-    if (debugsetfile.is_open())
-    {
-        debugsetfile << scene.getAllSettingsString() << std::endl;
-        debugsetfile.close();
-    }
-#endif
-    for (std::vector<MeshGroup>::iterator mesh_group = scene.mesh_groups.begin(); mesh_group != scene.mesh_groups.end(); mesh_group++)
-    {
-        scene.current_mesh_group = mesh_group;
-        for (ExtruderTrain& extruder : scene.extruders)
+        LOGD("All settings: {}", scene.getAllSettingsString());
+        std::ofstream debugsetfile;
+        debugsetfile.open(("ALL_Setting.txt"), std::ofstream::out);
+        if (debugsetfile.is_open())
         {
-            extruder.settings.setParent(&scene.current_mesh_group->settings);
+            debugsetfile << scene.getAllSettingsString() << std::endl;
+            debugsetfile.close();
         }
-        scene.processMeshGroup(*mesh_group);
+#endif
+        for (std::vector<MeshGroup>::iterator mesh_group = scene.mesh_groups.begin(); mesh_group != scene.mesh_groups.end(); mesh_group++)
+        {
+            scene.current_mesh_group = mesh_group;
+            for (ExtruderTrain& extruder : scene.extruders)
+            {
+                extruder.settings.setParent(&scene.current_mesh_group->settings);
+            }
+            scene.processMeshGroup(*mesh_group);
+        }
     }
-}
 
-void Slice::reset()
-{
-    scene.extruders.clear();
-    scene.mesh_groups.clear();
-    scene.settings = Settings();
-}
+    void Slice::reset()
+    {
+        scene.extruders.clear();
+        scene.mesh_groups.clear();
+        scene.settings = Settings();
+    }
+
+    void Slice::finalize()
+    {
+        size_t numExtruder = scene.extruders.size();
+        for (size_t i = 0; i < numExtruder; ++i)
+        {
+            ExtruderTrain& train = scene.extruders[i];
+            train.extruder_nr = i;
+            train.settings.add("extruder_nr", std::to_string(i));
+        }
+
+        for (MeshGroup& meshGroup : scene.mesh_groups)
+            meshGroup.finalize();
+    }
 
 } // namespace cura52

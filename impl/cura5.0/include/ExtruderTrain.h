@@ -29,7 +29,7 @@ public:
      * This may be used by g-code commands such as T to indicate to which
      * tool we must switch.
      */
-    const size_t extruder_nr;
+    size_t extruder_nr;
 };
 
 }//namespace cura52

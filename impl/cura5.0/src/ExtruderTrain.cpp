@@ -6,7 +6,8 @@
 namespace cura52 
 {
 
-ExtruderTrain::ExtruderTrain(const size_t extruder_nr, Settings* parent_settings) : extruder_nr(extruder_nr)
+ExtruderTrain::ExtruderTrain(const size_t extruder_nr, Settings* parent_settings)
+    : extruder_nr(extruder_nr)
 {
     settings.setParent(parent_settings);
 }

@@ -21,6 +21,7 @@ namespace crslice
 		void setObjectSettings(int groupID, int objectID, SettingsPtr settings);
 		void setGroupSettings(int groupID, SettingsPtr settings);
 		void setSceneSettings(SettingsPtr settings);
+		void setSceneJsonFile(const std::string& fileName);
 
 		void release();
 		CrGroup* getGroupsIndex(int groupID);

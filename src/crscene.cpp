@@ -2,7 +2,7 @@
 
 #include "crgroup.h"
 #include "crobject.h"
-
+#include "crcommon/jsonloader.h"
 #include "ccglobal/log.h"
 
 namespace crslice
@@ -75,6 +75,16 @@ namespace crslice
 	void CrScene::setSceneSettings(SettingsPtr settings)
 	{
 		m_settings = settings;
+	}
+
+	void CrScene::setSceneJsonFile(const std::string& fileName)
+	{
+		std::vector<crcommon::KValues> extruders;
+		if (crcommon::loadJSON(fileName, m_settings->settings, extruders) != 0)
+		{
+			LOGE("setSceneJsonFile invalid json file: %s", fileName.c_str());
+			return;
+		}
 	}
 
 	void CrScene::release()
