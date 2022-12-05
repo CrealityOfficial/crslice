@@ -11,8 +11,8 @@ namespace crslice
 		CrSlice();
 		~CrSlice();
 
-		void sliceFromFakeArguments(int argc, const char* argv[]);
-		void sliceFromScene(CrScenePtr scene);
+		void sliceFromFakeArguments(int argc, const char* argv[], ccglobal::Tracer* tracer = nullptr);
+		void sliceFromScene(CrScenePtr scene, ccglobal::Tracer* tracer = nullptr);
 
 		void process();
 	};

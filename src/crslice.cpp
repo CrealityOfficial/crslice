@@ -16,12 +16,12 @@ namespace crslice
 
 	}
 
-	void CrSlice::sliceFromFakeArguments(int argc, const char* argv[])
+	void CrSlice::sliceFromFakeArguments(int argc, const char* argv[], ccglobal::Tracer* tracer)
 	{
-		cura52::Application::getInstance().run(argc, argv);
+		cura52::Application::getInstance().run(argc, argv, tracer);
 	}
 
-	void CrSlice::sliceFromScene(CrScenePtr scene)
+	void CrSlice::sliceFromScene(CrScenePtr scene, ccglobal::Tracer* tracer)
 	{
 		if (!scene)
 		{
@@ -29,7 +29,7 @@ namespace crslice
 			return;
 		}
 
-		cura52::Application::getInstance().runCommulication(new CRSliceFromScene(scene));
+		cura52::Application::getInstance().runCommulication(new CRSliceFromScene(scene, tracer));
 	}
 
 	void CrSlice::process()

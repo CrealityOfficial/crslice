@@ -29,7 +29,7 @@ namespace cura52
         {
             size_t extruder_nr = extruderKVs.size();
             Scene& scene = Application::getInstance().current_slice->scene;
-            while (scene.extruders.size() <= static_cast<size_t>(extruder_nr))
+            while (scene.extruders.size() < static_cast<size_t>(extruder_nr))
             {
                 scene.extruders.emplace_back(scene.extruders.size(), &scene.settings);
             }
@@ -44,13 +44,12 @@ namespace cura52
     }
 
     CommandLine::CommandLine()
-        : last_shown_progress(0)
     {
     }
 
-    CommandLine::CommandLine(const std::vector<std::string>& arguments)
+    CommandLine::CommandLine(const std::vector<std::string>& arguments, ccglobal::Tracer* tracer)
         : arguments(arguments)
-        , last_shown_progress(0)
+        , m_tracer(tracer)
     {
     }
 
@@ -134,12 +133,8 @@ namespace cura52
 
     void CommandLine::sendProgress(const float& progress) const
     {
-        const unsigned int rounded_amount = 100 * progress;
-        if (last_shown_progress == rounded_amount) // No need to send another tiny update step.
-        {
-            return;
-        }
-        // TODO: Do we want to print a progress bar? We'd need a better solution to not have that progress bar be ruined by any logging.
+        if (m_tracer)
+            m_tracer->progress(progress);
     }
 
     void CommandLine::sliceNext()
@@ -227,7 +222,7 @@ namespace cura52
                             exit(1);
                         }
                         argument = arguments[argument_index];
-                        if (_loadJson(argument, last_settings))
+                        if (!_loadJson(argument, last_settings))
                         {
                             LOGE("Failed to load JSON file: %s", argument.c_str());
                             exit(1);

@@ -104,16 +104,17 @@ void Application::printLicense() const
 #endif
 }
 
-void Application::slice()
+void Application::slice(ccglobal::Tracer* tracer)
 {
-    communication = new CommandLine(m_args);
+    communication = new CommandLine(m_args, tracer);
 }
+
 void Application::setSliceCommunication(Communication *ptr)
 {
     communication = ptr;
 }
 
-void Application::run(int argc, const char** argv)
+void Application::run(int argc, const char** argv, ccglobal::Tracer* tracer)
 {
     for (size_t argument_index = 0; argument_index < argc; argument_index++)
     {
@@ -132,7 +133,7 @@ void Application::run(int argc, const char** argv)
 
     if (stringcasecompare(argv[1], "slice") == 0)
     {
-        slice();
+        slice(tracer);
     }
     else if (stringcasecompare(argv[1], "help") == 0)
     {

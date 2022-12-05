@@ -8,7 +8,7 @@ namespace crslice
     class CRSliceFromScene : public cura52::Communication
     {
     public:
-        CRSliceFromScene(CrScenePtr scene);
+        CRSliceFromScene(CrScenePtr scene, ccglobal::Tracer* tracer = nullptr);
         virtual ~CRSliceFromScene();
 
         void beginGCode() override;
@@ -42,6 +42,8 @@ namespace crslice
     private:
         bool m_sliced;
         CrScenePtr m_scene;
+
+        ccglobal::Tracer* m_tracer;
     };
 
 } //namespace crslice

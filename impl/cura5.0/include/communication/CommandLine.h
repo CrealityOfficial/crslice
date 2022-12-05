@@ -10,6 +10,7 @@
 #include <vector> //To store the command line arguments.
 
 #include "Communication.h" //The class we're implementing.
+#include "ccglobal/tracer.h"
 
 namespace cura52
 {
@@ -26,7 +27,7 @@ namespace cura52
          * start a slice.
          * \param arguments The command line arguments passed to the application.
          */
-        CommandLine(const std::vector<std::string>& arguments);
+        CommandLine(const std::vector<std::string>& arguments, ccglobal::Tracer* tracer = nullptr);
 
         /*
          * \brief Indicate that we're beginning to send g-code.
@@ -154,11 +155,8 @@ namespace cura52
          */
         std::vector<std::string> arguments;
         Slice* current_slice = nullptr;
-        /*
-         * The last progress update that we output to stdcerr.
-         */
-        unsigned int last_shown_progress;
     public:
+        ccglobal::Tracer* m_tracer;
     };
 
 } //namespace cura52

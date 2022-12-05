@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "ccglobal/tracer.h"
+
 namespace cura52
 {
 class Communication;
@@ -75,7 +77,7 @@ public:
      * \param argc The number of arguments provided to the application.
      * \param argv The arguments provided to the application.
      */
-    void run(int argc, const char** argv);
+    void run(int argc, const char** argv, ccglobal::Tracer* tracer = nullptr);
 
     void runCommulication(Communication* communication);
     /*!
@@ -88,7 +90,7 @@ public:
      *
      * \param nworkers The number of workers (including the main thread) that are ran.
      */
-    void startThreadPool(int nworkers=0);
+    void startThreadPool(int nworkers = 0);
 
     void setSliceCommunication(Communication* ptr);
 protected:
@@ -111,7 +113,7 @@ protected:
      * \param argc The number of arguments provided to the application.
      * \param argv The arguments provided to the application.
      */
-    void slice();
+    void slice(ccglobal::Tracer* tracer = nullptr);
 
 private:
     std::vector<std::string> m_args;
