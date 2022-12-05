@@ -88,8 +88,9 @@ namespace crslice
 
 		for (crcommon::KValues& kvs : extruders)
 		{
-			SettingsPtr setting(new crcommon::Settings());
-			setting->settings.swap(kvs);
+			SettingsPtr settings(new crcommon::Settings());
+			settings->settings.swap(kvs);
+			m_extruders.push_back(settings);
 		}
 	}
 

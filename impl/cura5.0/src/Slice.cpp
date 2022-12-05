@@ -68,7 +68,7 @@ namespace cura52
                     }
                 }
      
-                mesh.settings.setParent(&meshGroup.settings);
+                mesh.settings.setParent(&scene.extruders[0].settings);
             }
         }
 
