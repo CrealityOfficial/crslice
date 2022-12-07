@@ -21,7 +21,7 @@
 #include "utils/Simplify.h"
 #include "utils/linearAlg2D.h"
 #include "utils/polygonUtils.h"
-#ifdef  G2G3_ENABLE
+#ifdef  G2G3_CONFIGURE_ENABLE
 #include "slice3rBase/ArcFitter.hpp"
 #endif
 namespace cura52
@@ -1918,7 +1918,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 }
                 if (! coasting) // not same as 'else', cause we might have changed [coasting] in the line above...
                 { // normal path to gcode algorithm
-                    #ifdef G2G3_ENABLE
+                    #ifdef G2G3_CONFIGURE_ENABLE
                     if (1)
                     {
                         switch (path.config->type)
