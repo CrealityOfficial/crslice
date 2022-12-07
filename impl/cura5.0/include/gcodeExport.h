@@ -344,6 +344,8 @@ public:
      * \param update_extrusion_offset whether to update the extrusion offset to match the current flow rate
      */
     void writeExtrusion(const Point& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false);
+    
+    void writeExtrusionG2G3(const Point& pointend, const Point& center_offset, double arc_length, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false, bool is_ccw=true);
 
     /*!
      * Go to a X/Y location with the z-hopped Z value
@@ -367,6 +369,8 @@ public:
      * \param update_extrusion_offset whether to update the extrusion offset to match the current flow rate
      */
     void writeExtrusion(const Point3& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false);
+    
+    void writeExtrusionG2G3(const Point3& p, const Point& center_offset, double arc_length, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset=false, bool is_ccw=true);
 private:
     /*!
      * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.
@@ -394,6 +398,7 @@ private:
      */
     void writeExtrusion(const coord_t x, const coord_t y, const coord_t z, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset = false);
 
+    void writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j, double arc_length, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset = false, const bool is_ccw=true);
     /*!
      * Write the F, X, Y, Z and E value (if they are not different from the last)
      * 
@@ -406,6 +411,7 @@ private:
      */
     void writeFXYZE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const PrintFeatureType& feature);
 
+    void writeFXYZIJE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z,  const coord_t i, const coord_t j,const double e, const PrintFeatureType& feature);
     /*!
      * The writeTravel and/or writeExtrusion when flavor == BFB
      * \param x build plate x

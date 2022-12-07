@@ -4,8 +4,11 @@ include(StandardProjectSettings.cmake)
 if (NOT APPLE)
     option(ENABLE_OPENMP "Use OpenMP for parallel code" ON)
 endif ()
-
-set(ILIBS crcommon polyclipping)
+if(SLICE3RBASE_ENABLE)
+set(ILIBS crcommon polyclipping slice3rBase)
+else()
+set(ILIBS crcommon polyclipping )
+endif()
 
 set(SRCS crslice/interface.h
 		 crslice/header.h

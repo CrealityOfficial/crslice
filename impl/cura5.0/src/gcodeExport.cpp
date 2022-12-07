@@ -618,6 +618,10 @@ void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double e
 {
     writeExtrusion(Point3(p.X, p.Y, current_layer_z), speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
 }
+void GCodeExport::writeExtrusionG2G3(const Point& pointend, const Point& center_offset, double arc_length,const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, bool is_ccw)
+{
+    writeExtrusionG2G3(Point3(pointend.X, pointend.Y, current_layer_z), center_offset, arc_length, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset, is_ccw);
+}
 
 void GCodeExport::writeTravel(const Point3& p, const Velocity& speed)
 {
@@ -637,6 +641,15 @@ void GCodeExport::writeExtrusion(const Point3& p, const Velocity& speed, double 
         return;
     }
     writeExtrusion(p.x, p.y, p.z, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
+}
+void GCodeExport::writeExtrusionG2G3(const Point3& p, const Point& center_offset, double arc_length, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, bool is_ccw)
+{
+    //if (flavor == EGCodeFlavor::BFB)
+    //{
+    //    writeMoveBFB(p.x, p.y, p.z, speed, extrusion_mm3_per_mm, feature);
+    //    return;
+    //}
+    writeExtrusionG2G3(p.x, p.y, p.z, center_offset.X, center_offset.Y , arc_length, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset, is_ccw);
 }
 
 void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature)
@@ -796,7 +809,85 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     *output_stream << "G1";
     writeFXYZE(speed, x, y, z, new_e_value, feature);
 }
+void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j, double arc_length, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset,const bool is_ccw)
+{
+    if (currentPosition.x == x && currentPosition.y == y && currentPosition.z == z)
+    {
+        return;
+    }
 
+#ifdef ASSERT_INSANE_OUTPUT
+    assert(speed < 1000 && speed > 1); // normal F values occurring in UM2 gcode (this code should not be compiled for release)
+    assert(currentPosition != no_point3);
+    assert(Point3(x, y, z) != no_point3);
+    assert((Point3(x, y, z) - currentPosition).vSize() < MM2INT(1000)); // no crazy positions (this code should not be compiled for release)
+    assert(extrusion_mm3_per_mm >= 0.0);
+#endif // ASSERT_INSANE_OUTPUT
+#ifdef DEBUG
+    if (std::isinf(extrusion_mm3_per_mm))
+    {
+        LOGE("Extrusion rate is infinite!");
+        assert(false && "Infinite extrusion move!");
+        std::exit(1);
+    }
+
+    if (std::isnan(extrusion_mm3_per_mm))
+    {
+        LOGE("Extrusion rate is not a number!");
+        assert(false && "NaN extrusion move!");
+        std::exit(1);
+    }
+
+    if (extrusion_mm3_per_mm < 0.0)
+    {
+        LOGW("Warning! Negative extrusion move!\n");
+    }
+#endif
+
+    const double extrusion_per_mm = mm3ToE(extrusion_mm3_per_mm);
+
+    if (is_z_hopped > 0)
+    {
+        writeZhopEnd();
+    }
+
+    //const Point3 diff = Point3(x, y, z) - currentPosition;
+    //const double diff_length = diff.vSizeMM();
+    const double diff_length = INT2MM(arc_length);
+
+    writeUnretractionAndPrime();
+
+    // flow rate compensation
+    double extrusion_offset = 0;
+    if (diff_length)
+    {
+        extrusion_offset = speed * extrusion_mm3_per_mm * extrusion_offset_factor;
+        if (extrusion_offset > max_extrusion_offset)
+        {
+            extrusion_offset = max_extrusion_offset;
+        }
+    }
+    // write new value of extrusion_offset, which will be remembered.
+    if (update_extrusion_offset && (extrusion_offset != current_e_offset))
+    {
+        current_e_offset = extrusion_offset;
+        *output_stream << ";FLOW_RATE_COMPENSATED_OFFSET = " << current_e_offset << new_line;
+    }
+
+    extruder_attr[current_extruder].last_e_value_after_wipe += extrusion_per_mm * diff_length;
+    const double new_e_value = current_e_value + extrusion_per_mm * diff_length;
+    switch (is_ccw)
+    {
+    case true:
+    *output_stream << "G3";
+    break;
+    case false:
+    *output_stream << "G2";
+    break;
+
+    }
+    writeFXYZIJE(speed, x, y, z,i,j, new_e_value, feature);
+}
 void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const PrintFeatureType& feature)
 {
     if (currentSpeed != speed)
@@ -824,7 +915,38 @@ void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord
     current_e_value = e;
     estimateCalculator.plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
 }
+void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j,const double e,  const PrintFeatureType& feature)
+{
+    if (currentSpeed != speed)
+    {
+        *output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
+        currentSpeed = speed;
+    }
 
+    Point gcode_pos = getGcodePos(x, y, current_extruder);
+
+    total_bounding_box.include(Point3(gcode_pos.X, gcode_pos.Y, z));
+
+    *output_stream << " X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y };
+    if (z != currentPosition.z)
+    {
+        *output_stream << " Z" << MMtoStream{ z };
+    }
+
+    *output_stream << " I" << MMtoStream{ i } << " J" << MMtoStream{ j };
+
+    if (e + current_e_offset != current_e_value)
+    {
+        const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
+        *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
+    }
+
+    *output_stream << new_line;
+
+    currentPosition = Point3(x, y, z);
+    current_e_value = e;
+    estimateCalculator.plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
+}
 void GCodeExport::writeUnretractionAndPrime()
 {
     const double prime_volume = extruder_attr[current_extruder].prime_volume;
