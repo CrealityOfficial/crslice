@@ -1588,5 +1588,10 @@ void GCodeExport::setSliceUUID(const std::string& slice_uuid)
 {
     slice_uuid_ = slice_uuid;
 }
+void GCodeExport::flushBuffer()
+{
+    if(output_stream)
+    output_stream->flush();
+}
 
 } // namespace cura52

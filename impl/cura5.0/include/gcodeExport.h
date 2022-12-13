@@ -565,6 +565,7 @@ public:
      * \param wipe_config Config with wipe script settings.
      */
     void insertWipeScript(const WipeScriptConfig& wipe_config);
+    void flushBuffer();
 };
 
 }

@@ -1921,20 +1921,24 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     #ifdef G2G3_CONFIGURE_ENABLE
                     if (1)
                     {
+                        //gcode.flushBuffer();
                         switch (path.config->type)
                         {
                         case PrintFeatureType::OuterWall:
                         case PrintFeatureType::InnerWall:
+                        case PrintFeatureType::SkirtBrim:
                         {
                             {
                                 std::stringstream ss;
                                 ss << "arc_fitting start layer_nr=" << layer_nr;
+                                ss << "    ,arc_fitting  path type=" <<(int)path.config->type;
                                 gcode.writeComment(ss.str());
                             }
 
-                            double tolerance = 100;// 200;
+                            double tolerance = 50;// 200;
                             Slic3r::Points points;
                             std::vector<Slic3r::PathFittingData> fitting_result;
+                            points.emplace_back(Slic3r::Point(gcode.getPosition().x, gcode.getPosition().y));
                             for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                             {
                                 points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
@@ -2028,6 +2032,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                     }
                     #endif
+                    //gcode.flushBuffer();
                 }
             }
             else
