@@ -59,5 +59,35 @@ void Slice::reset()
     scene.mesh_groups.clear();
     scene.settings = Settings();
 }
+void Slice::finalize()
+{
+    size_t numExtruder = scene.extruders.size();
+    for (size_t i = 0; i < numExtruder; ++i)
+    {
+        ExtruderTrain& train = scene.extruders[i];
+        train.extruder_nr = i;
+        train.settings->add("extruder_nr", std::to_string(i));
+    }
 
+    for (MeshGroup& meshGroup : scene.mesh_groups)
+    {
+        for (auto& mesh : meshGroup.meshes)
+        {
+            if (mesh->settings->has("extruder_nr"))
+            {
+                size_t i = mesh->settings->get<size_t>("extruder_nr");
+                if (i <= numExtruder)
+                {
+                    mesh->settings->setParent(scene.extruders[i].settings);
+                    continue;
+                }
+            }
+
+            mesh->settings->setParent(scene.extruders[0].settings);
+        }
+    }
+
+    for (MeshGroup& meshGroup : scene.mesh_groups)
+        meshGroup.finalize();
+}
 }

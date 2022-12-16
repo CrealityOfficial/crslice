@@ -338,15 +338,20 @@ namespace crslice
             runFinished();
             return;
         }
-        cxutil::FffProcessor processor;
-        processor.setTargetFile(outputFile.c_str());
-        processor.time_keeper.restart();
 
         size_t numGroup = m_scene->m_groups.size();
         assert(numGroup > 0);
         cxutil::Slice slice(numGroup);
 
        // cxutil::Application::getInstance().current_slice = &slice;
+        cxutil::FffProcessor processor;
+        processor.setTargetFile(outputFile.c_str());
+        processor.time_keeper.restart();
+        processor.gcode_writer.scene = &slice.scene;
+        processor.gcode_writer.gcode.scene = &slice.scene;
+        processor.polygon_generator.scene = &slice.scene;
+        processor.gcode_writer.layer_plan_buffer.scene = &slice.scene;
+        processor.gcode_writer.layer_plan_buffer.preheat_config.scene = &slice.scene;
 
         bool sliceValible = false;
 
@@ -391,7 +396,7 @@ namespace crslice
             return;
         }
 
-        //slice.finalize();
+        slice.finalize();
         slice.compute();
         // Finalize the processor. This adds the end g-code and reports statistics.
         processor.finalize();

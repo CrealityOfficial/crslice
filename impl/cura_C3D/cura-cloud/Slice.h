@@ -45,6 +45,8 @@ public:
      */
     void reset();
 
+    void finalize();
+
 private:
     /*
      * \brief Disallow copying slice objects since they are heavyweight.
