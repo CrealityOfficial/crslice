@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef INFILL_ZIGZAG_CONNECTOR_PROCESSOR_H
-#define INFILL_ZIGZAG_CONNECTOR_PROCESSOR_H
+#ifndef INFILL_ZIGZAG_CONNECTOR_PROCESSOR_H_520
+#define INFILL_ZIGZAG_CONNECTOR_PROCESSOR_H_520
 
 #include "../utils/polygon.h" //TODO: We have implementation in this header file!
 

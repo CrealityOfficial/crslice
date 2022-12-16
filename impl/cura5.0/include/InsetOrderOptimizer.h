@@ -1,8 +1,8 @@
 //Copyright (c) 2021 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef INSET_ORDER_OPTIMIZER_H
-#define INSET_ORDER_OPTIMIZER_H
+#ifndef INSET_ORDER_OPTIMIZER_H_520
+#define INSET_ORDER_OPTIMIZER_H_520
 
 #include <unordered_set>
 

@@ -2,8 +2,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef INFILL_DENSITY_PROVIDER_H
-#define INFILL_DENSITY_PROVIDER_H
+#ifndef INFILL_DENSITY_PROVIDER_H_520
+#define INFILL_DENSITY_PROVIDER_H_520
 
 namespace cura52
 {

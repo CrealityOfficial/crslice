@@ -1,8 +1,8 @@
 //Copyright (c) 2019 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef BRIDGE_H
-#define BRIDGE_H
+#ifndef BRIDGE_H_520
+#define BRIDGE_H_520
 
 namespace cura52
 {

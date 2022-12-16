@@ -1,8 +1,8 @@
 //Copyright (c) 2021 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef INFILL_H
-#define INFILL_H
+#ifndef INFILL_H_520
+#define INFILL_H_520
 
 #include "infill/LightningGenerator.h"
 #include "infill/ZigzagConnectorProcessor.h"

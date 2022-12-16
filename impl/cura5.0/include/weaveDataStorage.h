@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef WEAVE_DATA_STORAGE_H
-#define WEAVE_DATA_STORAGE_H
+#ifndef WEAVE_DATA_STORAGE_H_520
+#define WEAVE_DATA_STORAGE_H_520
 
 #include "utils/NoCopy.h"
 #include "utils/IntPoint.h"

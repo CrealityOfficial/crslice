@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef SLICE_H
-#define SLICE_H
+#ifndef SLICE_H_520
+#define SLICE_H_520
 
 #include "Scene.h" //To store the scene to slice.
 

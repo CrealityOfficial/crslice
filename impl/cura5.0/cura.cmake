@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Ultimaker B.V.
 # CuraEngine is released under the terms of the AGPLv3 or higher.
-set(PREFIX5.2 impl/cura5.0/)
+set(PREFIX5.2 )
 set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/Application.cpp
         ${PREFIX5.2}src/bridge.cpp

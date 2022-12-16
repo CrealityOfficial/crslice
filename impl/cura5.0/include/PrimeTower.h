@@ -1,8 +1,8 @@
 //Copyright (c) 2022 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef PRIME_TOWER_H
-#define PRIME_TOWER_H
+#ifndef PRIME_TOWER_H_520
+#define PRIME_TOWER_H_520
 
 #include <vector>
 

@@ -1,8 +1,8 @@
 // Copyright (c) 2022 Ultimaker B.V.
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef GCODEEXPORT_H
-#define GCODEEXPORT_H
+#ifndef GCODEEXPORT_H_520
+#define GCODEEXPORT_H_520
 
 #include <deque> // for extrusionAmountAtPreviousRetractions
 #ifdef BUILD_TESTS

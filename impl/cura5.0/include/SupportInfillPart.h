@@ -1,8 +1,8 @@
 // Copyright (c) 2017 Ultimaker B.V.
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef SUPPORT_INFILL_PART_H
-#define SUPPORT_INFILL_PART_H
+#ifndef SUPPORT_INFILL_PART_H_520
+#define SUPPORT_INFILL_PART_H_520
 
 #include <vector>
 

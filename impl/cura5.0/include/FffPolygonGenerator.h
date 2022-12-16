@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef FFF_POLYGON_GENERATOR_H
-#define FFF_POLYGON_GENERATOR_H
+#ifndef FFF_POLYGON_GENERATOR_H_520
+#define FFF_POLYGON_GENERATOR_H_520
 
 #include "utils/NoCopy.h"
 

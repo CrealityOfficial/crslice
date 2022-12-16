@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef INFILL_SUBDIVCUBE_H
-#define INFILL_SUBDIVCUBE_H
+#ifndef INFILL_SUBDIVCUBE_H_520
+#define INFILL_SUBDIVCUBE_H_520
 
 #include "../settings/types/Ratio.h"
 #include "../utils/IntPoint.h"

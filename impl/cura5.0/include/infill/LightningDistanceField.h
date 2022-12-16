@@ -1,8 +1,8 @@
 //Copyright (c) 2021 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef LIGHTNING_DISTANCE_FIELD_H
-#define LIGHTNING_DISTANCE_FIELD_H
+#ifndef LIGHTNING_DISTANCE_FIELD_H_520
+#define LIGHTNING_DISTANCE_FIELD_H_520
 
 #include "../utils/polygon.h" //Using outlines to fill and tracking overhang.
 #include "../utils/SquareGrid.h" //Tracking for each location the distance to overhang.

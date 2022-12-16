@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef APPLICATION_H
-#define APPLICATION_H
+#ifndef APPLICATION_H_520
+#define APPLICATION_H_520
 
 #include "utils/NoCopy.h"
 #include <cstddef> //For size_t.

@@ -1,8 +1,8 @@
 //Copyright (c) 2021 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef TREESUPPORT_H
-#define TREESUPPORT_H
+#ifndef TREESUPPORT_H_520
+#define TREESUPPORT_H_520
 
 #include <forward_list>
 #include <unordered_set>

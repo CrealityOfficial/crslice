@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef LAYER_PLAN_BUFFER_H
-#define LAYER_PLAN_BUFFER_H
+#ifndef LAYER_PLAN_BUFFER_H_520
+#define LAYER_PLAN_BUFFER_H_520
 
 #include <list>
 

@@ -1,8 +1,8 @@
 //Copyright (c) 2021 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef WIREFRAME2GCODE_H
-#define WIREFRAME2GCODE_H
+#ifndef WIREFRAME2GCODE_H_520
+#define WIREFRAME2GCODE_H_520
 
 #include <functional> // passing function pointer or lambda as argument to a function
 

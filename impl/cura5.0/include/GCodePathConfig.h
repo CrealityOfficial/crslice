@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef G_CODE_PATH_CONFIG_H
-#define G_CODE_PATH_CONFIG_H
+#ifndef G_CODE_PATH_CONFIG_H_520
+#define G_CODE_PATH_CONFIG_H_520
 
 #include "PrintFeature.h"
 #include "settings/types/Ratio.h" //For flow rate.

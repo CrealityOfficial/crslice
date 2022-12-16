@@ -1,8 +1,8 @@
 //  Copyright (c) 2022 Ultimaker B.V.
 //  CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef ARCUSCOMMUNICATION_H
-#define ARCUSCOMMUNICATION_H
+#ifndef ARCUSCOMMUNICATION_H_520
+#define ARCUSCOMMUNICATION_H_520
 #ifdef ARCUS
 
 #ifdef BUILD_TESTS

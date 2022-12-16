@@ -1,8 +1,8 @@
 //  Copyright (c) 2018-2022 Ultimaker B.V.
 //  CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef COMMANDLINE_H
-#define COMMANDLINE_H
+#ifndef COMMANDLINE_H_520
+#define COMMANDLINE_H_520
 
 #include <rapidjson/document.h> //Loading JSON documents to get settings from them.
 #include <string> //To store the command line arguments.

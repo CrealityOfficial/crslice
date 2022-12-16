@@ -1,8 +1,8 @@
 //  Copyright (c) 2022 Ultimaker B.V.
 //  CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef GCODE_WRITER_H
-#define GCODE_WRITER_H
+#ifndef GCODE_WRITER_H_520
+#define GCODE_WRITER_H_520
 
 #include <fstream>
 #include <optional>

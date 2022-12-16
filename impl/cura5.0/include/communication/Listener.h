@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef LISTENER_H
-#define LISTENER_H
+#ifndef LISTENER_H_520
+#define LISTENER_H_520
 #ifdef ARCUS //Extends from Arcus::SocketListener, so only compile if we're using libArcus.
 
 #include <Arcus/SocketListener.h> //The class we're extending from.

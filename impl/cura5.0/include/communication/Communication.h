@@ -1,8 +1,8 @@
 //  Copyright (c) 2018-2022 Ultimaker B.V.
 //  CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef COMMUNICATION_H
-#define COMMUNICATION_H
+#ifndef COMMUNICATION_H_520
+#define COMMUNICATION_H_520
 
 #include "../utils/IntPoint.h" //For coord_t and Point.
 

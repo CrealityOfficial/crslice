@@ -1,8 +1,8 @@
 //Copyright (c) 2021 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef SKIN_H
-#define SKIN_H
+#ifndef SKIN_H_520
+#define SKIN_H_520
 
 #include "settings/types/LayerIndex.h"
 #include "utils/Coord_t.h"

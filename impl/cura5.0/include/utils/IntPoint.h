@@ -20,7 +20,7 @@ Integer points are used to avoid floating point rounding errors, and because Cli
 
 #include "Point3.h" //For applying Point3Matrices.
 
-
+#include "cxutil/math/chash.h"
 #include "../utils/math.h" // for M_PI. Use relative path to avoid pulling <math.h>
 
 #ifdef __GNUC__
@@ -156,7 +156,7 @@ INLINE const Point& make_point(const Point& p)
 }
 
 }//namespace cura52
-
+/*
 namespace std {
 template <>
 struct hash<cura52::Point> {
@@ -170,7 +170,7 @@ struct hash<cura52::Point> {
     }
 };
 }
-
+*/
 namespace cura52
 {
 

@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef TOPSURFACE_H
-#define TOPSURFACE_H
+#ifndef TOPSURFACE_H_520
+#define TOPSURFACE_H_520
 
 #include "utils/polygon.h" //For the polygon areas.
 

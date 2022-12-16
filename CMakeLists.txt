@@ -7,15 +7,12 @@ endif ()
 
 option(G2G3_ENABLE "enable G2/G3 gcode" ON)
 if(G2G3_ENABLE)
-	add_definitions(-DG2G3_CONFIGURE_ENABLE)
 	add_subdirectory(slice3rBase)
 endif()
 
-set(ILIBS crcommon polyclipping )
-
-if(G2G3_ENABLE)
-	list(APPEND ILIBS slice3rBase)
-endif()
+add_subdirectory(impl/cura5.0)
+add_subdirectory(cxutil)
+add_subdirectory(impl/cura_C3D/cura-cloud)
 
 set(SRCS crslice/interface.h
 		 crslice/header.h
@@ -34,11 +31,11 @@ set(SRCS crslice/interface.h
 		 src/crslicefromscene.cpp
 		 )
 		 
+set(ILIBS crcommon polyclipping  CuraEngine520 CuraEngine480 cxutil)
+		 
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(DEFS)
 set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
-
-include(impl/cura5.0/cura.cmake)
 
 __add_common_library(crslice)
 

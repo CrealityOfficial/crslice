@@ -1,8 +1,8 @@
 //Copyright (c) 2022 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef LAYER_PLAN_H
-#define LAYER_PLAN_H
+#ifndef LAYER_PLAN_H_520
+#define LAYER_PLAN_H_520
 
 #include <optional>
 #include <vector>

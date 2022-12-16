@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef SUPPORT_H
-#define SUPPORT_H
+#ifndef SUPPORT_H_520
+#define SUPPORT_H_520
 
 namespace cura52
 {

@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef ARCUSCOMMUNICATIONPRIVATE_H
-#define ARCUSCOMMUNICATIONPRIVATE_H
+#ifndef ARCUSCOMMUNICATIONPRIVATE_H_520
+#define ARCUSCOMMUNICATIONPRIVATE_H_520
 #ifdef ARCUS
 
 #include <sstream> //For ostringstream.

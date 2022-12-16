@@ -1,8 +1,8 @@
 //Copyright (c) 2022 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef SETTINGS_PATH_CONFIGS_H
-#define SETTINGS_PATH_CONFIGS_H
+#ifndef SETTINGS_PATH_CONFIGS_H_520
+#define SETTINGS_PATH_CONFIGS_H_520
 
 #include <vector>
 

@@ -1,8 +1,8 @@
 //Copyright (c) 2020 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef FAN_SPEED_LAYER_TIME_H
-#define FAN_SPEED_LAYER_TIME_H
+#ifndef FAN_SPEED_LAYER_TIME_H_520
+#define FAN_SPEED_LAYER_TIME_H_520
 
 #include "settings/types/Duration.h"
 #include "settings/types/LayerIndex.h"

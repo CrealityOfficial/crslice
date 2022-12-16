@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef RAFT_H
-#define RAFT_H
+#ifndef RAFT_H_520
+#define RAFT_H_520
 
 #include "utils/Coord_t.h"
 

@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef LAYERPART_H
-#define LAYERPART_H
+#ifndef LAYERPART_H_520
+#define LAYERPART_H_520
 
 /*
 The layer-part creation step is the first step in creating actual useful data for 3D printing.

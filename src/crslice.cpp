@@ -1,5 +1,5 @@
 #include "crslice/crslice.h"
-#include "Application.h"
+#include "cura5.0/include/Application.h"
 
 #include "ccglobal/log.h"
 #include "crslicefromscene.h"

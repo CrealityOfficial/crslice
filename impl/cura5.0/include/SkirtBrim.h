@@ -1,8 +1,8 @@
 //Copyright (c) 2018 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#ifndef SKIRT_BRIM_H
-#define SKIRT_BRIM_H
+#ifndef SKIRT_BRIM_H_520
+#define SKIRT_BRIM_H_520
 
 #include "utils/Coord_t.h"
 
