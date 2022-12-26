@@ -41,6 +41,7 @@ set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 include(impl/cura5.0/cura.cmake)
 
 __add_common_library(crslice)
+__set_folder_targets(slice TARGET crslice)
 
 use_threads(crslice)
 enable_sanitizers(crslice)
