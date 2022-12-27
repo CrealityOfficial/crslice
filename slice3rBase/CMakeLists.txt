@@ -59,4 +59,5 @@ set(INTERFACES)
 
 set(SLICE3RBASE_STATIC ON)
 __add_common_library(slice3rBase)
+__set_folder_targets(slice TARGET slice3rBase)
 
