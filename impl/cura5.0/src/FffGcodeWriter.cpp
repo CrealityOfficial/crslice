@@ -2220,7 +2220,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
         if (overhang_angle >= 90)
         {
             // clear to disable overhang detection
-            gcode_layer.setOverhangMask(Polygons());
+            gcode_layer.setOverhangMask(Polygons(), 0);
         }
         else
         {
@@ -2228,9 +2228,34 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
             // the supported region is made up of those areas that really are supported by either model or support on the layer below
             // expanded to take into account the overhang angle, the greater the overhang angle, the larger the supported area is
             // considered to be
-            const coord_t overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
-            Polygons overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + overhang_width - half_outer_wall_width)).offset(10);
-            gcode_layer.setOverhangMask(overhang_region);
+            if (mesh.settings.get<bool>("set_wall_overhang_grading"))
+            {
+                Polygons overhang_region_last;
+                AngleDegrees overhang_angle_level[5] = { 0, 20, 45, 60, 75 };
+                for (int i = 1; i < 5; i++)
+                {
+                    const coord_t _overhang_width = layer_height * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
+                    Polygons _overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width)).offset(10);
+                    if (overhang_region_last.empty())
+                    {
+                        overhang_region_last = _overhang_region;
+                        continue;
+                    }
+                    overhang_region_last = overhang_region_last.difference(_overhang_region);
+                    gcode_layer.setOverhangMask(overhang_region_last, i - 2);
+                    overhang_region_last = _overhang_region;
+                    if (i == 4)
+                    {
+                        gcode_layer.setOverhangMask(overhang_region_last, 3);
+                    }
+                }
+            }
+            else
+            {
+                const coord_t _overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
+                Polygons _overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width)).offset(10);
+                gcode_layer.setOverhangMask(_overhang_region, 0);
+            }
         }
     }
     else
@@ -2238,7 +2263,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
         // clear to disable use of bridging settings
         gcode_layer.setBridgeWallMask(Polygons());
         // clear to disable overhang detection
-        gcode_layer.setOverhangMask(Polygons());
+        gcode_layer.setOverhangMask(Polygons(), 0);
     }
 
     if (spiralize && extruder_nr == mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr && ! part.spiral_wall.empty())

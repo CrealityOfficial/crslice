@@ -655,8 +655,22 @@ void LayerPlan::addWallLine(const Point& p0,
     const coord_t min_bridge_line_len = settings.get<coord_t>("bridge_wall_min_length");
     const Ratio bridge_wall_coast = settings.get<Ratio>("bridge_wall_coast");
     const Ratio overhang_speed_factor = settings.get<Ratio>("wall_overhang_speed_factor");
+    const bool set_wall_overhang_grading = settings.get<bool>("set_wall_overhang_grading");
+    std::vector<Ratio> overhang_speed_factor_vec;
+    if (set_wall_overhang_grading)
+    {
+        for (int i = 1; i < 5; i++)
+        {
+            overhang_speed_factor_vec.push_back(Ratio(settings.get<Velocity>("wall_overhang_speed_" + std::to_string(i)) / non_bridge_config.getSpeed()));
+        }
+    }
+    else
+    {
+        overhang_speed_factor_vec.push_back(overhang_speed_factor);
+    }
 
     Point cur_point = p0;
+    bool p0Added = false;
 
     // helper function to add a single non-bridge line
 
@@ -664,7 +678,57 @@ void LayerPlan::addWallLine(const Point& p0,
 
     // alternatively, if the line follows a bridge line, it may be segmented and the print speed gradually increased to reduce under-extrusion
 
-    auto addNonBridgeLine = [&](const Point& line_end)
+    auto getSpeedFactor = [&](const Point& p0, const Point& p1)
+    {
+        if (overhang_mask.empty()) return speed_factor;
+        Ratio sf0 = speed_factor, sf1 = speed_factor;
+        int level_min = -1;
+        for (int i = 0; i < overhang_mask.size(); i++)
+        {
+            if (overhang_mask[i].empty()) continue;
+            if (level_min == -1) level_min = i;
+            if (overhang_mask[i].inside(p0, true))
+                sf0 = overhang_speed_factor_vec[i];
+            if (overhang_mask[i].inside(p1, true))
+                sf1 = overhang_speed_factor_vec[i];
+        }
+        if (sf0 < speed_factor && sf1 < speed_factor)
+        {
+            return std::min(sf0, sf1);
+        }
+        else if (sf0 < speed_factor || sf1 < speed_factor)
+        {
+            //计算出p0p1中的悬空段，仅悬空段降速
+            Polygons pline;
+            pline.addLine(p0, p1);
+            coord_t offsetVal = 0;
+            if (sf0 == speed_factor) offsetVal = (level_min + 1) * non_bridge_config.getLineWidth() / 2.0;
+            Polygons result = overhang_mask[level_min].offset(offsetVal).intersectionPolyLines(pline);
+            if (result.polyLineLength() > 100)
+            {
+                Point point_mid = Point();
+                bool p0clocer = vSize2(result.back()[0] - p0) < vSize2(result.back()[1] - p0);
+                if ((sf0 == speed_factor && p0clocer)
+                    || (sf1 == speed_factor && !p0clocer))
+                    point_mid = result.back()[0];
+                else
+                    point_mid = result.back()[1];
+
+                if (point_mid != Point())
+                {
+                    GCodePath path = extruder_plans.back().paths.back();
+                    p0Added = true;
+                    addExtrusionMove(point_mid, non_bridge_config, SpaceFillType::Polygons, flow,  path.width_factor, spiralize, path.speed_factor);
+                    if (sf0 == speed_factor) return sf1;
+                }
+            }
+        }
+        return speed_factor;
+    };
+
+    Ratio sub_speed_factor = std::min(getSpeedFactor(p0, p1), speed_factor);
+
+    auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true)
     {
         coord_t distance_to_line_end = vSize(cur_point - line_end);
 
@@ -675,7 +739,7 @@ void LayerPlan::addWallLine(const Point& p0,
 
             // flow required for the next line segment - when accelerating after a bridge segment, the flow is increased in inverse proportion to the speed_factor
             // so the slower the feedrate, the greater the flow - the idea is to get the extruder back to normal pressure as quickly as possible
-            const float segment_flow = (speed_factor < 1) ? flow * (1 / speed_factor) : flow;
+            const float segment_flow = changFlow ? ((speed_factor < 1) ? flow * (1 / speed_factor) : flow) : flow;
 
             // if a bridge is present in this wall, this particular segment may need to be partially or wholely coasted
             if (distance_to_bridge_start > 0)
@@ -715,7 +779,7 @@ void LayerPlan::addWallLine(const Point& p0,
                                      segment_flow,
                                      width_factor,
                                      spiralize,
-                                     (overhang_mask.empty() || (! overhang_mask.inside(p0, true) && ! overhang_mask.inside(p1, true))) ? speed_factor : overhang_speed_factor);
+                                     sub_speed_factor);
                 }
 
                 distance_to_bridge_start -= len;
@@ -729,7 +793,7 @@ void LayerPlan::addWallLine(const Point& p0,
                                  segment_flow,
                                  width_factor,
                                  spiralize,
-                                 (overhang_mask.empty() || (! overhang_mask.inside(p0, true) && ! overhang_mask.inside(p1, true))) ? speed_factor : overhang_speed_factor);
+                                 sub_speed_factor);
             }
             non_bridge_line_volume += vSize(cur_point - segment_end) * segment_flow * width_factor * speed_factor * non_bridge_config.getSpeed();
             cur_point = segment_end;
@@ -742,10 +806,10 @@ void LayerPlan::addWallLine(const Point& p0,
         }
     };
 
-    if (bridge_wall_mask.empty())
+    if (bridge_wall_mask.empty() || p0Added)
     {
         // no bridges required
-        addExtrusionMove(p1, non_bridge_config, SpaceFillType::Polygons, flow, width_factor, spiralize, (overhang_mask.empty() || (! overhang_mask.inside(p0, true) && ! overhang_mask.inside(p1, true))) ? 1.0_r : overhang_speed_factor);
+        addExtrusionMove(p1, non_bridge_config, SpaceFillType::Polygons, flow, width_factor, spiralize, sub_speed_factor);
     }
     else
     {
@@ -823,7 +887,7 @@ void LayerPlan::addWallLine(const Point& p0,
             // if we haven't yet reached p1, fill the gap with non_bridge_config line
             addNonBridgeLine(p1);
         }
-        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len)
+        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * sub_speed_factor)
         {
             // both p0 and p1 must be above air (the result will be ugly!)
             addExtrusionMove(p1, bridge_config, SpaceFillType::Polygons, flow, width_factor);
@@ -832,7 +896,7 @@ void LayerPlan::addWallLine(const Point& p0,
         else
         {
             // no part of the line is above air or the line is too short to print as a bridge line
-            addNonBridgeLine(p1);
+            addNonBridgeLine(p1, false);
         }
     }
 }
@@ -1479,8 +1543,8 @@ void ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
             if (path.isTravelPath())
                 continue;
             double speed = path.config->getSpeed() * path.speed_factor * factor;
-            if (speed < minimalSpeed)
-                factor = minimalSpeed / (path.config->getSpeed() * path.speed_factor);
+            if (speed < minimalSpeed) 
+                path.speed_factor = path.speed_factor / factor;
         }
 
         // Only slow down for the minimal time if that will be slower.
@@ -2298,9 +2362,12 @@ void LayerPlan::setBridgeWallMask(const Polygons& polys)
     bridge_wall_mask = polys;
 }
 
-void LayerPlan::setOverhangMask(const Polygons& polys)
+void LayerPlan::setOverhangMask(const Polygons& polys, int idx)
 {
-    overhang_mask = polys;
+    if (overhang_mask.empty())
+        overhang_mask.resize(4);
+    if (idx > 3 || idx < 0) return;
+    overhang_mask[idx].add(polys);
 }
 
 } // namespace cura52
