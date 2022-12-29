@@ -230,6 +230,17 @@ enum class InsetDirection
     CENTER_LAST
 };
 
+/*!
+* Type of retraction.
+*/
+enum class RetractionType
+{
+    DEFAULT,
+    BAMBOO,
+    RAISE3D,
+    NONE
+};
+
 } //Cura namespace.
 
 #endif //ENUMSETTINGS_H

@@ -381,13 +381,14 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
     bool bypass_combing = is_first_travel_of_extruder_after_switch && extruder->settings.get<bool>("retraction_hop_after_extruder_switch");
 
     const bool is_first_travel_of_layer = ! static_cast<bool>(last_planned_position);
-    const bool retraction_enable = extruder->settings.get<bool>("retraction_enable");
+    //const bool retraction_enable = extruder->settings.get<bool>("retraction_enable");
+    const RetractionType retraction_type = extruder->settings.get<RetractionType>("retraction_type");
     if (is_first_travel_of_layer)
     {
         bypass_combing = true; // first travel move is bogus; it is added after this and the previous layer have been planned in LayerPlanBuffer::addConnectingTravelMove
         first_travel_destination = p;
         first_travel_destination_is_inside = is_inside;
-        if (layer_nr == 0 && retraction_enable && extruder->settings.get<bool>("retraction_hop_enabled"))
+        if (layer_nr == 0 && retraction_type != RetractionType::NONE && extruder->settings.get<bool>("retraction_hop_enabled"))
         {
             path->retract = true;
             path->perform_z_hop = true;
@@ -416,12 +417,12 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
         combed = comb->calc(*extruder, *last_planned_position, p, combPaths, was_inside, is_inside, max_distance_ignored, unretract_before_last_travel_move);
         if (combed)
         {
-            bool retract = path->retract || (combPaths.size() > 1 && retraction_enable);
+            bool retract = path->retract || (combPaths.size() > 1 && retraction_type != RetractionType::NONE);
             if (! retract)
             { // check whether we want to retract
                 if (combPaths.throughAir)
                 {
-                    retract = retraction_enable;
+                    retract = (retraction_type != RetractionType::NONE);
                 }
                 else
                 {
@@ -429,7 +430,7 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
                     { // retract when path moves through a boundary
                         if (combPath.cross_boundary)
                         {
-                            retract = retraction_enable;
+                            retract = (retraction_type != RetractionType::NONE);
                             break;
                         }
                     }
@@ -464,7 +465,7 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
                 }
                 distance += vSize(last_point - p);
                 const coord_t retract_threshold = extruder->settings.get<coord_t>("retraction_combing_max_distance");
-                path->retract = retract || (retract_threshold > 0 && distance > retract_threshold && retraction_enable);
+                path->retract = retract || (retract_threshold > 0 && distance > retract_threshold && (retraction_type != RetractionType::NONE));
                 // don't perform a z-hop
             }
             // Whether to unretract before the last travel move of the travel path, which comes before the wall to be printed.
@@ -497,8 +498,8 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
             }
             moveInsideCombBoundary(innermost_wall_line_width);
         }
-        path->retract = retraction_enable;
-        path->perform_z_hop = retraction_enable && extruder->settings.get<bool>("retraction_hop_enabled");
+        path->retract = (retraction_type != RetractionType::NONE);
+        path->perform_z_hop = (retraction_type != RetractionType::NONE) && extruder->settings.get<bool>("retraction_hop_enabled");
     }
 
     // must start new travel path as retraction can be enabled or not depending on path length, etc.
@@ -1724,7 +1725,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 gcode.writeTemperatureCommand(extruder_nr, extruder_plan.required_start_temperature, wait);
             }
 
-            const double extra_prime_amount = extruder.settings.get<bool>("retraction_enable") ? extruder.settings.get<double>("switch_extruder_extra_prime_amount") : 0;
+            const double extra_prime_amount = extruder.settings.get<RetractionType>("retraction_type")!= RetractionType::NONE ? extruder.settings.get<double>("switch_extruder_extra_prime_amount") : 0;
             gcode.addExtraPrimeAmount(extra_prime_amount);
         }
         else if (extruder_plan_idx == 0)
@@ -1835,15 +1836,85 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
             if (path.retract)
             {
-                gcode.writeRetraction(retraction_config);
-                if (path.perform_z_hop)
+                gcode.writeLine(";;retract;;");
+                if(extruder.settings.get<RetractionType>("retraction_type") == RetractionType::BAMBOO)
                 {
-                    gcode.writeZhopStart(z_hop_height);
-                    z_hop_height = retraction_config.zHop; // back to normal z hop
+                    RetractionConfig retraction_config_1 = retraction_config;
+                    retraction_config_1.distance = 0.7 * retraction_config_1.distance;
+                    gcode.writeRetraction(retraction_config_1);
+
+                    auto getLastExtrusionPath = [paths](int curIdx)
+                    {
+                        std::vector<Point> ExtrusionPath;
+
+                        if (curIdx < 1)
+                            return ExtrusionPath;
+                        bool start = false;
+                        for (int i = curIdx - 1; i >= 0; i--)
+                        {
+                            GCodePath path = paths[i];
+                            if (!path.isTravelPath())
+                            {
+                                ClipperLib::ReversePath(path.points);
+                                ExtrusionPath.insert(ExtrusionPath.end(), path.points.begin(), path.points.end());
+                                start = true;
+                            }
+                            else if (start)
+                            {
+                                break;
+                            }
+                        }
+                        ClipperLib::ReversePath(ExtrusionPath);
+                        return ExtrusionPath;
+                    };
+
+                    std::vector<Point> last_path = getLastExtrusionPath(path_idx);
+                    double dis_path = 1600;
+                    double cur_dis_path = 0;
+                    double dis_Extru = 0.285 * retraction_config.distance;
+                    double speed = path.config->getSpeed() * path.speed_factor;
+                    for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
+                    {
+                        Point src_pos = gcode.getPositionXY();
+                        Point cur_pos = last_path[point_idx];
+                        double len = vSize(cur_pos - src_pos);
+                        double theta = 1.0f;
+                        if (len < dis_path - cur_dis_path)
+                        {
+                            theta = len / dis_path;
+                        }
+                        else
+                        {
+                            theta = (dis_path - cur_dis_path) / dis_path;
+                            cur_pos = src_pos + theta * (cur_pos - src_pos);
+                        }
+                        gcode.writeExtrusionG1(speed, cur_pos, -dis_Extru * theta, path.config->type);
+                        cur_dis_path += len;
+                        if (cur_dis_path > dis_path) break;
+                    }
+                    gcode.writeRetraction(retraction_config);
+                    if (path.perform_z_hop)
+                    {
+                        gcode.writeCircle(speed, path.points[0], z_hop_height);
+                        z_hop_height = retraction_config.zHop; // back to normal z hop
+                    }
+                    else
+                    {
+                        gcode.writeZhopEnd();
+                    }
                 }
-                else
+                else//default
                 {
-                    gcode.writeZhopEnd();
+                    gcode.writeRetraction(retraction_config);
+                    if (path.perform_z_hop)
+                    {
+                        gcode.writeZhopStart(z_hop_height);
+                        z_hop_height = retraction_config.zHop; // back to normal z hop
+                    }
+                    else
+                    {
+                        gcode.writeZhopEnd();
+                    }
                 }
             }
             if (! path.config->isTravelPath() && last_extrusion_config != path.config)

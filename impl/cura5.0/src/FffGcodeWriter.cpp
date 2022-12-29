@@ -303,7 +303,7 @@ void FffGcodeWriter::setConfigRetraction(SliceDataStorage& storage)
     {
         ExtruderTrain& train = scene.extruders[extruder_index];
         RetractionConfig& retraction_config = storage.retraction_config_per_extruder[extruder_index];
-        retraction_config.distance = (train.settings.get<bool>("retraction_enable")) ? train.settings.get<double>("retraction_amount") : 0; // Retraction distance in mm.
+        retraction_config.distance = (train.settings.get<RetractionType>("retraction_type")!= RetractionType::NONE) ? train.settings.get<double>("retraction_amount") : 0; // Retraction distance in mm.
         retraction_config.prime_volume = train.settings.get<double>("retraction_extra_prime_amount"); // Extra prime volume in mm^3.
         retraction_config.speed = train.settings.get<Velocity>("retraction_retract_speed");
         retraction_config.primeSpeed = train.settings.get<Velocity>("retraction_prime_speed");
@@ -652,7 +652,8 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     }
     if (gcode.getFlavor() != EGCodeFlavor::GRIFFIN)
     {
-        if (mesh_group_settings.get<bool>("retraction_enable"))
+        //if (mesh_group_settings.get<bool>("retraction_enable"))
+        if (mesh_group_settings.get<RetractionType>("retraction_type") != RetractionType::NONE)
         {
             // ensure extruder is zeroed
             gcode.resetExtrusionValue();

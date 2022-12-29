@@ -391,6 +391,29 @@ EPlatformAdhesion Settings::get<EPlatformAdhesion>(const std::string& key) const
     }
 }
 
+template<> RetractionType Settings::get<RetractionType>(const std::string& key) const
+{
+    const std::string& value = get<std::string>(key);
+    if (value == "default")
+    {
+        return RetractionType::DEFAULT;
+    }
+    else if (value == "bamboo")
+    {
+        return RetractionType::BAMBOO;
+    }
+    else if (value == "raise3d")
+    {
+        return RetractionType::RAISE3D;
+    }
+    else
+    {
+        return RetractionType::NONE;
+    }
+}
+
+
+
 template<>
 ESupportType Settings::get<ESupportType>(const std::string& key) const
 {

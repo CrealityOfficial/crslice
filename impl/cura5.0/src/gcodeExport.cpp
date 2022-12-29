@@ -998,6 +998,36 @@ void GCodeExport::writeUnretractionAndPrime()
     }
 }
 
+void GCodeExport::writeExtrusionG1(const Velocity& speed, Point point, const double e, const PrintFeatureType& feature)
+{
+    ExtruderTrainAttributes& extr_attr = extruder_attr[current_extruder];
+    if (e < 0)
+        extr_attr.retraction_e_amount_current -= e;
+
+    *output_stream << "G1";
+    writeFXYZE(speed, point.X, point.Y, current_layer_z, current_e_value + e, feature);
+}
+
+coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t z_hop_height)
+{
+    is_z_hopped = z_hop_height;
+    const Settings& extruder_settings = Application::getInstance().current_slice->scene.extruders[current_extruder].settings;
+    coord_t retraction_min_travel = extruder_settings.get<coord_t>("retraction_min_travel");
+    Point source = Point(currentPosition.x, currentPosition.y);
+    Point delta_no_z = endPoint - source;
+    float len = (float)vSize(delta_no_z);
+    if (len < retraction_min_travel) return 0;
+    double radius = is_z_hopped / (2 * M_PI * atan(3 * M_PI / 180));
+    Point ij_offset = Point(-radius * (delta_no_z.Y / len), radius * (delta_no_z.X / len));
+
+    //current_layer_z + z_hop_height;
+    *output_stream << "G17\n";
+    *output_stream << "G3" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
+        << " I" << PrecisionedDouble{ 5, ij_offset.X / 1000. } << " J" << PrecisionedDouble{ 5, ij_offset.Y / 1000. }
+    << " P1 F" << PrecisionedDouble{ 1, speed * 60 } << "\n";
+    return is_z_hopped;
+}
+
 void GCodeExport::writeRetraction(const RetractionConfig& config, bool force, bool extruder_switch)
 {
     ExtruderTrainAttributes& extr_attr = extruder_attr[current_extruder];
@@ -1110,7 +1140,15 @@ void GCodeExport::writeZhopEnd(Velocity speed /*= 0*/)
         is_z_hopped = 0;
         currentPosition.z = current_layer_z;
         currentSpeed = speed;
-        *output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z } << new_line;
+        const Settings& extruder_settings = Application::getInstance().current_slice->scene.extruders[current_extruder].settings;
+        if (extruder_settings.get<RetractionType>("retraction_type") == RetractionType::BAMBOO)
+        {
+            *output_stream << "G1 Z" << MMtoStream{ current_layer_z } << new_line;
+        }
+        else//default
+        {
+            *output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z } << new_line;
+        }
         assert(speed > 0.0 && "Z hop speed should be positive.");
     }
 }
@@ -1132,7 +1170,7 @@ void GCodeExport::startExtruder(const size_t new_extruder)
 
     current_extruder = new_extruder;
 
-    assert(getCurrentExtrudedVolume() == 0.0 && "Just after an extruder switch we haven't extruded anything yet!");
+    //assert(getCurrentExtrudedVolume() == 0.0 && "Just after an extruder switch we haven't extruded anything yet!");
     resetExtrusionValue(); // zero the E value on the new extruder, just to be sure
 
     const std::string start_code = Application::getInstance().current_slice->scene.extruders[new_extruder].settings.get<std::string>("machine_extruder_start_code");
@@ -1169,7 +1207,7 @@ void GCodeExport::switchExtruder(size_t new_extruder, const RetractionConfig& re
     }
 
     const Settings& old_extruder_settings = Application::getInstance().current_slice->scene.extruders[current_extruder].settings;
-    if (old_extruder_settings.get<bool>("retraction_enable"))
+    if (old_extruder_settings.get<RetractionType>("retraction_type")!= RetractionType::NONE)
     {
         constexpr bool force = true;
         constexpr bool extruder_switch = true;
