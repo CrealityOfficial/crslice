@@ -3331,7 +3331,7 @@ void FffGcodeWriter::finalize()
     }
     else
     {
-        LOGI("Gcode header after slicing: {}", prefix);
+        LOGI("Gcode header after slicing: {}", prefix.c_str());
     }
     if (mesh_group_settings.get<bool>("acceleration_enabled"))
     {

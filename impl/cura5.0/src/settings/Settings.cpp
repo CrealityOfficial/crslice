@@ -66,7 +66,7 @@ std::string Settings::get<std::string>(const std::string& key) const
         return parent->get<std::string>(key);
     }
 
-    LOGE("Trying to retrieve setting with no value given: {}", key);
+    LOGE("Trying to retrieve setting with no value given: {}", key.c_str());
     std::exit(2);
 }
 
@@ -214,7 +214,7 @@ FlowTempGraph Settings::get<FlowTempGraph>(const std::string& key) const
         }
         catch (const std::invalid_argument& e)
         {
-            LOGE("Couldn't read 2D graph element [{},{}] in setting {}. Ignored.", first_substring, second_substring, key);
+            LOGE("Couldn't read 2D graph element [{},{}] in setting {}. Ignored.", first_substring.c_str(), second_substring.c_str(), key.c_str());
         }
     }
 
@@ -244,7 +244,7 @@ FMatrix4x3 Settings::get<FMatrix4x3>(const std::string& key) const
     if (sub_matches.size() != 10) // One match for the whole string, nine for the cells.
     {
         LOGW("Mesh transformation matrix could not be parsed!");
-        LOGD("Format should be [[f,f,f], [f,f,f], [f,f,f]] allowing whitespace anywhere in between. While what was given was {}", value_string);
+        LOGD("Format should be [[f,f,f], [f,f,f], [f,f,f]] allowing whitespace anywhere in between. While what was given was {}", value_string.c_str());
         return result; // Standard matrix ([[1,0,0], [0,1,0], [0,0,1]]).
     }
 
@@ -649,7 +649,7 @@ std::vector<double> Settings::get<std::vector<double>>(const std::string& key) c
             }
             catch (const std::invalid_argument& e)
             {
-                LOGE("Couldn't read floating point value ({}) in setting {}. Ignored.", value, key);
+                LOGE("Couldn't read floating point value ({}) in setting {}. Ignored.", value.c_str(), key.c_str());
             }
         }
     }
@@ -710,7 +710,7 @@ std::string Settings::getWithoutLimiting(const std::string& key) const
     }
     else
     {
-        LOGE("Trying to retrieve setting with no value given: {}", key);
+        LOGE("Trying to retrieve setting with no value given: {}", key.c_str());
         std::exit(2);
     }
 }

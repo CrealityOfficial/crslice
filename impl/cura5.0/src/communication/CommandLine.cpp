@@ -189,7 +189,7 @@ namespace cura52
                     }
                     else
                     {
-                        LOGE("Unknown option: {}", argument);
+                        LOGE("Unknown option: {}", argument.c_str());
                     }
                 }
                 else // Starts with "-" but not with "--".
@@ -270,7 +270,7 @@ namespace cura52
 
                         if (!loadMeshIntoMeshGroup(&slice.scene.mesh_groups[mesh_group_index], argument.c_str(), transformation, last_extruder->settings))
                         {
-                            LOGE("Failed to load model: {}. (error number {})", argument, errno);
+                            LOGE("Failed to load model: {}. (error number {})", argument.c_str(), errno);
                             exit(1);
                         }
                         else
@@ -315,7 +315,7 @@ namespace cura52
                         std::string key = argument.substr(0, value_position);
                         if (value_position == std::string::npos)
                         {
-                            LOGE("Missing value in setting argument: -s {}", argument);
+                            LOGE("Missing value in setting argument: -s {}", argument.c_str());
                             exit(1);
                         }
                         std::string value = argument.substr(value_position + 1);
@@ -334,7 +334,7 @@ namespace cura52
             }
             else
             {
-                LOGE("Unknown option: {}", argument);
+                LOGE("Unknown option: {}", argument.c_str());
                 Application::getInstance().printHelp();
                 exit(1);
             }

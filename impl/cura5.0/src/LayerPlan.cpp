@@ -611,7 +611,7 @@ void LayerPlan::addPolygonsByOptimizer(const Polygons& polygons,
     {
         return;
     }
-    PathOrderOptimizer<ConstPolygonPointer> orderOptimizer(start_near_location ? start_near_location.value() : getLastPlannedPositionOrStartingPosition(), z_seam_config);
+    PathOrderOptimizer<ConstPolygonPointer> orderOptimizer(start_near_location ? *start_near_location: getLastPlannedPositionOrStartingPosition(), z_seam_config);
     for (size_t poly_idx = 0; poly_idx < polygons.size(); poly_idx++)
     {
         orderOptimizer.addPolygon(polygons[poly_idx]);
