@@ -1314,7 +1314,7 @@ void GCodeExport::setExtruderFanNumber(int extruder)
     }
 }
 
-void GCodeExport::writeFanCommand(double speed)
+void GCodeExport::writeFanCommand(double speed, double cds_speed)
 {
     if (std::abs(current_fan_speed - speed) < 0.1)
     {
@@ -1340,6 +1340,11 @@ void GCodeExport::writeFanCommand(double speed)
             *output_stream << " P" << fan_number;
         }
         *output_stream << new_line;
+
+        if (cds_speed>0.0)
+        {
+            *output_stream << "M106 P2 S" << cds_speed * 255 / 100 << new_line;
+        }
     }
     else
     {

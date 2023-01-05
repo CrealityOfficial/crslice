@@ -276,6 +276,7 @@ void FffGcodeWriter::findLayerSeamsForSpiralize(SliceDataStorage& storage, size_
 
 void FffGcodeWriter::setConfigFanSpeedLayerTime()
 {
+    fan_speed_layer_time_settings_per_extruder.clear();
     for (const ExtruderTrain& train : Application::getInstance().current_slice->scene.extruders)
     {
         fan_speed_layer_time_settings_per_extruder.emplace_back();
@@ -287,6 +288,11 @@ void FffGcodeWriter::setConfigFanSpeedLayerTime()
         fan_speed_layer_time_settings.cool_fan_speed_max = train.settings.get<Ratio>("cool_fan_speed_max") * 100.0;
         fan_speed_layer_time_settings.cool_min_speed = train.settings.get<Velocity>("cool_min_speed");
         fan_speed_layer_time_settings.cool_fan_full_layer = train.settings.get<LayerIndex>("cool_fan_full_layer");
+        fan_speed_layer_time_settings.cds_fan_speed = train.settings.get<Ratio>("cool_cds_fan_speed") * 100.0;
+        if (!train.settings.get<bool>("cool_cds_fan_enable"))
+        {
+            fan_speed_layer_time_settings.cds_fan_speed = 0;
+        }
         if (! train.settings.get<bool>("cool_fan_enabled"))
         {
             fan_speed_layer_time_settings.cool_fan_speed_0 = 0;

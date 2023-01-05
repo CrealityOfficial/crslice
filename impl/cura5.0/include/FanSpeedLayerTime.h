@@ -68,6 +68,11 @@ public:
      * layers.
      */
     LayerIndex cool_fan_full_layer;
+
+    /*!
+     * cds Fan speed.
+    */
+    double cds_fan_speed;
 };
 
 } // namespace cura52

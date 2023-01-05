@@ -1656,6 +1656,7 @@ void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_t
     */
     // interpolate fan speed (for cool_fan_full_layer and for cool_min_layer_time_fan_speed_max)
     fan_speed = fan_speed_layer_time_settings.cool_fan_speed_min;
+    cds_fan_speed = fan_speed_layer_time_settings.cds_fan_speed;
     double totalLayerTime = estimates.unretracted_travel_time + estimates.extrude_time;
     if (force_minimal_layer_time && totalLayerTime < fan_speed_layer_time_settings.cool_min_layer_time)
     {
@@ -1807,7 +1808,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 }
             }
         }
-        gcode.writeFanCommand(extruder_plan.getFanSpeed());
+        gcode.writeFanCommand(extruder_plan.getFanSpeed(),extruder_plan.cds_fan_speed);
         std::vector<GCodePath>& paths = extruder_plan.paths;
 
         extruder_plan.inserts.sort([](const NozzleTempInsert& a, const NozzleTempInsert& b) -> bool { return a.path_idx < b.path_idx; });

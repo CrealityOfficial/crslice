@@ -181,6 +181,7 @@ protected:
     double totalPrintTime; //!< The total naive time estimate for this extruder plan
 
     double fan_speed; //!< The fan speed to be used during this extruder plan
+    double cds_fan_speed; //!< The cds fan speed to be used during this extruder plan
 
     /*!
      * Set the fan speed to be used while printing this extruder plan
