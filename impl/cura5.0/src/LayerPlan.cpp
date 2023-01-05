@@ -1544,8 +1544,8 @@ void ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
             if (path.isTravelPath())
                 continue;
             double speed = path.config->getSpeed() * path.speed_factor * factor;
-            if (speed < minimalSpeed) 
-                path.speed_factor = path.speed_factor / factor;
+            if (speed < minimalSpeed)
+                path.speed_factor = minimalSpeed / path.config->getSpeed() / factor;
         }
 
         // Only slow down for the minimal time if that will be slower.
