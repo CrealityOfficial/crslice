@@ -5,17 +5,10 @@ if (NOT APPLE)
     option(ENABLE_OPENMP "Use OpenMP for parallel code" ON)
 endif ()
 
-#option(G2G3_ENABLE "enable G2/G3 gcode" ON)
-#if(G2G3_ENABLE)
-#	add_definitions(-DG2G3_CONFIGURE_ENABLE)
-#	add_subdirectory(slice3rBase)
-#endif()
+#add_definitions(-DG2G3_CONFIGURE_ENABLE)
+add_subdirectory(slice3rBase)
 
-set(ILIBS crcommon polyclipping )
-
-#if(G2G3_ENABLE)
-#	list(APPEND ILIBS slice3rBase)
-#endif()
+set(ILIBS crcommon polyclipping slice3rBase)
 
 set(SRCS crslice/interface.h
 		 crslice/header.h

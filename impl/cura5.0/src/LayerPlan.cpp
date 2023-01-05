@@ -21,9 +21,7 @@
 #include "utils/Simplify.h"
 #include "utils/linearAlg2D.h"
 #include "utils/polygonUtils.h"
-#ifdef  G2G3_CONFIGURE_ENABLE
 #include "slice3rBase/ArcFitter.hpp"
-#endif
 namespace cura52
 {
 
@@ -2053,86 +2051,101 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 }
                 if (! coasting) // not same as 'else', cause we might have changed [coasting] in the line above...
                 { // normal path to gcode algorithm
-                    #ifdef G2G3_CONFIGURE_ENABLE
-                    if (1)
+                    bool arc_configure_enable = Application::getInstance().current_slice->scene.settings.get<bool>("arc_configure_enable");
+                    if (arc_configure_enable)
                     {
-                        switch (path.config->type)
+                        if (1)
                         {
-                        case PrintFeatureType::OuterWall:
-                        case PrintFeatureType::InnerWall:
-                        {
+                            switch (path.config->type)
                             {
-                                std::stringstream ss;
-                                ss << "arc_fitting start layer_nr=" << layer_nr;
-                                gcode.writeComment(ss.str());
-                            }
-
-                            double tolerance = 100;// 200;
-                            Slic3r::Points points;
-                            std::vector<Slic3r::PathFittingData> fitting_result;
-                            for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
+                            case PrintFeatureType::OuterWall:
+                            case PrintFeatureType::InnerWall:
                             {
-                                points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
-                            }
-                            //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
-                            bool arcFittingValiable = Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
-
-                            // BBS: start to generate gcode from arc fitting data which includes line and arc
-                            for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
-                            {
-
-                                switch (fitting_result[fitting_index].path_type)
                                 {
-                                case Slic3r::EMovePathType::Linear_move:
-                                {
-                                    size_t start_index = fitting_result[fitting_index].start_point_index;
-                                    size_t end_index = fitting_result[fitting_index].end_point_index;
-                                    const double extrude_speed = speed * path.speed_back_pressure_factor;
-
-                                    for (size_t point_index = start_index; point_index < end_index + 1; point_index++)
-                                    {
-                                        Point gcodePt(points[point_index].x(), points[point_index].y());
-                                        communication->sendLineTo(path.config->type, gcodePt, path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
-                                        //
-                                        gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
-
-                                    }
+                                    std::stringstream ss;
+                                    ss << "arc_fitting start layer_nr=" << layer_nr;
+                                    gcode.writeComment(ss.str());
                                 }
-                                break;
-                                case  Slic3r::EMovePathType::Arc_move_cw:
-                                case  Slic3r::EMovePathType::Arc_move_ccw:
+                                double tolerance = Application::getInstance().current_slice->scene.settings.get<double>("arc_tolerance");
+                                //double tolerance = 100;// 200;
+                                Slic3r::Points points;
+                                std::vector<Slic3r::PathFittingData> fitting_result;
+                                for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                                 {
-                                    const  Slic3r::ArcSegment& arc = fitting_result[fitting_index].arc_data;
-                                    const double arc_length = arc.length;
-                                    Point start_point(arc.start_point.x(), arc.start_point.y());
-                                    Point end_point(arc.end_point.x(), arc.end_point.y());
-                                    Point center(arc.center.x(), arc.center.y());
-                                    Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
-                                    const double extrude_speed = speed * path.speed_back_pressure_factor;
-                                    {
-                                        std::stringstream ss;
-                                        ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
-                                        gcode.writeComment(ss.str());
-                                    }
-
-                                    gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == Slic3r::ArcDirection::Arc_Dir_CCW);
+                                    points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
                                 }
-                                break;
-                                default:
-                                    //BBS: should never happen that a empty path_type has been stored
-                                    assert(0);
+                                //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
+                                bool arcFittingValiable = Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
+
+                                // BBS: start to generate gcode from arc fitting data which includes line and arc
+                                for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
+                                {
+
+                                    switch (fitting_result[fitting_index].path_type)
+                                    {
+                                    case Slic3r::EMovePathType::Linear_move:
+                                    {
+                                        size_t start_index = fitting_result[fitting_index].start_point_index;
+                                        size_t end_index = fitting_result[fitting_index].end_point_index;
+                                        const double extrude_speed = speed * path.speed_back_pressure_factor;
+
+                                        for (size_t point_index = start_index; point_index < end_index + 1; point_index++)
+                                        {
+                                            Point gcodePt(points[point_index].x(), points[point_index].y());
+                                            communication->sendLineTo(path.config->type, gcodePt, path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
+                                            //
+                                            gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+
+                                        }
+                                    }
                                     break;
+                                    case  Slic3r::EMovePathType::Arc_move_cw:
+                                    case  Slic3r::EMovePathType::Arc_move_ccw:
+                                    {
+                                        const  Slic3r::ArcSegment& arc = fitting_result[fitting_index].arc_data;
+                                        const double arc_length = arc.length;
+                                        Point start_point(arc.start_point.x(), arc.start_point.y());
+                                        Point end_point(arc.end_point.x(), arc.end_point.y());
+                                        Point center(arc.center.x(), arc.center.y());
+                                        Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
+                                        const double extrude_speed = speed * path.speed_back_pressure_factor;
+                                        {
+                                            std::stringstream ss;
+                                            ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
+                                            gcode.writeComment(ss.str());
+                                        }
+
+                                        gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == Slic3r::ArcDirection::Arc_Dir_CCW);
+                                    }
+                                    break;
+                                    default:
+                                        //BBS: should never happen that a empty path_type has been stored
+                                        assert(0);
+                                        break;
+                                    }
                                 }
+                                {
+                                    std::stringstream ss;
+                                    ss << "arc_fitting end layer_nr=" << layer_nr;
+                                    gcode.writeComment(ss.str());
+                                }
+
                             }
-                            {
-                                std::stringstream ss;
-                                ss << "arc_fitting end layer_nr=" << layer_nr;
-                                gcode.writeComment(ss.str());
+                            break;
+                            default:
+                                for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
+                                {
+                                    const double extrude_speed = speed * path.speed_back_pressure_factor;
+                                    communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
+                                    //
+                                    gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+                                }
+                                break;
                             }
 
                         }
-                        break;
-                        default:
+                        else
+                        {
                             for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                             {
                                 const double extrude_speed = speed * path.speed_back_pressure_factor;
@@ -2140,9 +2153,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 //
                                 gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                             }
-                            break;
-                        }
 
+                        }
                     }
                     else
                     {
@@ -2150,19 +2162,9 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         {
                             const double extrude_speed = speed * path.speed_back_pressure_factor;
                             communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
-                            //
                             gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                         }
-
                     }
-                    #else
-                    for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
-                    {
-                        const double extrude_speed = speed * path.speed_back_pressure_factor;
-                        communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
-                        gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
-                    }
-                    #endif
                 }
             }
             else
