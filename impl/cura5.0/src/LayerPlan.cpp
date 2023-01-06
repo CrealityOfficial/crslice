@@ -2043,7 +2043,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             {
                 // if path provides a valid (in range 0-100) fan speed, use it
                 const double path_fan_speed = path.getFanSpeed();
-                gcode.writeFanCommand(path_fan_speed != GCodePathConfig::FAN_SPEED_DEFAULT ? path_fan_speed : extruder_plan.getFanSpeed());
+                gcode.writeFanCommand(path_fan_speed != GCodePathConfig::FAN_SPEED_DEFAULT ? path_fan_speed : extruder_plan.getFanSpeed(), extruder_plan.cds_fan_speed);
 
                 bool coasting = extruder.settings.get<bool>("coasting_enable");
                 if (coasting)
