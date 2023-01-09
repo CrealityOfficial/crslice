@@ -1541,9 +1541,9 @@ void ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
         {
             if (path.isTravelPath())
                 continue;
-            double speed = path.config->getSpeed() * path.speed_factor * factor;
+            double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor * factor;
             if (speed < minimalSpeed)
-                path.speed_factor = minimalSpeed / path.config->getSpeed() / factor;
+                path.speed_factor = minimalSpeed / path.config->getSpeed() / path.speed_back_pressure_factor / factor;
         }
 
         // Only slow down for the minimal time if that will be slower.
@@ -2383,7 +2383,7 @@ bool LayerPlan::writePathWithCoasting(GCodeExport& gcode, const size_t extruder_
     for (size_t point_idx = point_idx_before_start + 1; point_idx < path.points.size(); point_idx++)
     {
         const Ratio coasting_speed_modifier = extruder.settings.get<Ratio>("coasting_speed");
-        const Velocity speed = Velocity(coasting_speed_modifier * path.config->getSpeed() * extruder_plan.getExtrudeSpeedFactor());
+        const Velocity speed = Velocity(coasting_speed_modifier * path.config->getSpeed()* path.speed_factor * extruder_plan.getExtrudeSpeedFactor());
         gcode.writeTravel(path.points[point_idx], speed);
     }
     return true;
