@@ -88,6 +88,8 @@ size_t FffPolygonGenerator::getDraftShieldLayerCount(const size_t total_layers) 
 
 bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeeper, SliceDataStorage& storage) /// slices the model
 {
+    Progress::init();
+
     Progress::messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
 
     storage.model_min = meshgroup->min();
