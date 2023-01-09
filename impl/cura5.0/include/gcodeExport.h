@@ -552,6 +552,7 @@ public:
      * \param extruder Extruder number to check.
      */
     double getExtrudedVolumeAfterLastWipe(size_t extruder);
+    void initExtruderAttr(size_t extruder);
 
     /*!
      *  Reset the last_e_value_after_wipe.

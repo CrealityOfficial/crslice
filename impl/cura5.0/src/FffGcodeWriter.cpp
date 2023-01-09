@@ -3363,6 +3363,7 @@ void FffGcodeWriter::finalize()
     for (size_t e = 0; e < Application::getInstance().current_slice->scene.extruders.size(); e++)
     {
         gcode.writeTemperatureCommand(e, 0, false);
+        gcode.initExtruderAttr(e);
     }
 
     gcode.writeComment("End of Gcode");

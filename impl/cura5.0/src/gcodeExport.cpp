@@ -1580,6 +1580,12 @@ double GCodeExport::getExtrudedVolumeAfterLastWipe(size_t extruder)
     return eToMm3(extruder_attr[extruder].last_e_value_after_wipe, extruder);
 }
 
+void GCodeExport::initExtruderAttr(size_t extruder)
+{
+    if(!extruder_attr[extruder].extruded_volume_at_previous_n_retractions.empty())
+        extruder_attr[extruder].extruded_volume_at_previous_n_retractions.clear();
+}
+
 void GCodeExport::ResetLastEValueAfterWipe(size_t extruder)
 {
     extruder_attr[extruder].last_e_value_after_wipe = 0;
