@@ -1948,7 +1948,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         }
                         else
                         {
-                            theta = (dis_path - cur_dis_path) / dis_path;
+                            theta = (dis_path - cur_dis_path) / len;
                             cur_pos = src_pos + theta * (cur_pos - src_pos);
                         }
                         gcode.writeExtrusionG1(speed, cur_pos, -dis_Extru * theta, path.config->type);
