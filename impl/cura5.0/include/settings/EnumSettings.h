@@ -231,14 +231,12 @@ enum class InsetDirection
 };
 
 /*!
-* Type of retraction.
+* Type of Z Hop.
 */
-enum class RetractionType
+enum class RetractionHopType
 {
-    DEFAULT,
-    BAMBOO,
-    RAISE3D,
-    NONE
+    DIRECTLIFT,
+    SPIRALLIFT
 };
 
 } //Cura namespace.

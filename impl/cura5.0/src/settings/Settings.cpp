@@ -391,29 +391,6 @@ EPlatformAdhesion Settings::get<EPlatformAdhesion>(const std::string& key) const
     }
 }
 
-template<> RetractionType Settings::get<RetractionType>(const std::string& key) const
-{
-    const std::string& value = get<std::string>(key);
-    if (value == "default")
-    {
-        return RetractionType::DEFAULT;
-    }
-    else if (value == "bamboo")
-    {
-        return RetractionType::BAMBOO;
-    }
-    else if (value == "raise3d")
-    {
-        return RetractionType::RAISE3D;
-    }
-    else
-    {
-        return RetractionType::NONE;
-    }
-}
-
-
-
 template<>
 ESupportType Settings::get<ESupportType>(const std::string& key) const
 {
@@ -431,6 +408,22 @@ ESupportType Settings::get<ESupportType>(const std::string& key) const
         return ESupportType::NONE;
     }
 }
+
+
+template<>
+RetractionHopType Settings::get<RetractionHopType>(const std::string& key) const
+{
+	const std::string& value = get<std::string>(key);
+	if (value == "directlift")
+	{
+		return RetractionHopType::DIRECTLIFT;
+	}
+	else // spirallift.
+	{
+		return RetractionHopType::SPIRALLIFT;
+	}
+}
+
 
 template<>
 ESupportStructure Settings::get<ESupportStructure>(const std::string& key) const

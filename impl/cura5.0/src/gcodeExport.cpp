@@ -1141,14 +1141,14 @@ void GCodeExport::writeZhopEnd(Velocity speed /*= 0*/)
         currentPosition.z = current_layer_z;
         currentSpeed = speed;
         const Settings& extruder_settings = Application::getInstance().current_slice->scene.extruders[current_extruder].settings;
-        if (extruder_settings.get<RetractionType>("retraction_type") == RetractionType::BAMBOO)
+        if (extruder_settings.get<RetractionHopType>("retraction_hop_type") == RetractionHopType::SPIRALLIFT)
         {
             *output_stream << "G1 Z" << MMtoStream{ current_layer_z } << new_line;
-        }
-        else//default
-        {
-            *output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z } << new_line;
-        }
+		}
+		else
+		{
+			*output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z } << new_line;
+		}
         assert(speed > 0.0 && "Z hop speed should be positive.");
     }
 }
@@ -1207,7 +1207,7 @@ void GCodeExport::switchExtruder(size_t new_extruder, const RetractionConfig& re
     }
 
     const Settings& old_extruder_settings = Application::getInstance().current_slice->scene.extruders[current_extruder].settings;
-    if (old_extruder_settings.get<RetractionType>("retraction_type")!= RetractionType::NONE)
+    if (old_extruder_settings.get<bool>("retraction_enable"))
     {
         constexpr bool force = true;
         constexpr bool extruder_switch = true;
