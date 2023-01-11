@@ -1035,6 +1035,11 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
     const bool is_small_feature = (small_feature_max_length > 0) && cura52::shorterThan(wall, small_feature_max_length);
     Ratio small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "small_feature_speed_factor_0" : "small_feature_speed_factor");
     const Velocity min_speed = fan_speed_layer_time_settings_per_extruder[getLastPlannedExtruderTrain()->extruder_nr].cool_min_speed;
+    if (is_small_feature)
+    {
+        int64_t wall_length = wall.getLength();
+        small_feature_speed_factor = wall_length / (double)small_feature_max_length * small_feature_speed_factor;
+    }
     small_feature_speed_factor = std::max((double)small_feature_speed_factor, (double)(min_speed / non_bridge_config.getSpeed()));
     const coord_t max_area_deviation = std::max(settings.get<int>("meshfix_maximum_extrusion_area_deviation"), 1); // Square micrometres!
     const coord_t max_resolution = std::max(settings.get<coord_t>("meshfix_maximum_resolution"), coord_t(1));

@@ -56,6 +56,7 @@ GCodeExport::GCodeExport() : output_stream(&std::cout), currentPosition(0, 0, MM
     bed_temperature = 0;
     build_volume_temperature = 0;
     machine_heated_build_volume = false;
+    m_preFixLen = 0;
 
     fan_number = 0;
     use_extruder_offset_to_offset_coords = false;
@@ -494,6 +495,19 @@ void GCodeExport::updateTotalPrintTime()
     }
     estimateCalculator.reset();
     writeTimeComment(getSumTotalPrintTimes());
+}
+
+void GCodeExport::reWritePreFixStr(std::string preFix)
+{
+    output_stream->seekp(0, std::ios::beg);
+    *output_stream << preFix;
+    size_t len = preFix.length();
+    while (len < m_preFixLen)
+    {
+        *output_stream << " ";
+        len++;
+    }
+    output_stream->seekp(0, std::ios::end);
 }
 
 void GCodeExport::writeComment(const std::string& unsanitized_comment)

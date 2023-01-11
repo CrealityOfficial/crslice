@@ -599,6 +599,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     {
         std::string prefix = gcode.getFileHeader(extruder_is_used);
         gcode.writeCode(prefix.c_str());
+        gcode.setPreFixLen(prefix.length());
     }
 
     gcode.writeComment("Generated with Cura_SteamEngine " CURA_ENGINE_VERSION);
@@ -3337,6 +3338,7 @@ void FffGcodeWriter::finalize()
     else
     {
         LOGI("Gcode header after slicing: {}", prefix.c_str());
+        gcode.reWritePreFixStr(prefix);
     }
     if (mesh_group_settings.get<bool>("acceleration_enabled"))
     {

@@ -155,6 +155,7 @@ private:
     Temperature bed_temperature; //!< Current build plate temperature.
     Temperature build_volume_temperature;  //!< build volume temperature
     bool machine_heated_build_volume;  //!< does the machine have the ability to control/stabilize build-volume-temperature
+    size_t m_preFixLen;
 protected:
     /*!
      * Convert an E value to a value in mm (if it wasn't already in mm) for the current extruder.
@@ -287,6 +288,8 @@ public:
      */
     double getSumTotalPrintTimes();
     void updateTotalPrintTime();
+    void reWritePreFixStr(std::string preFix);
+    void setPreFixLen(size_t len) { m_preFixLen = len; }
     void resetTotalPrintTimeAndFilament();
     
     void writeComment(const std::string& comment);
