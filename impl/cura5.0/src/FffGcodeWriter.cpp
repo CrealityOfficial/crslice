@@ -2224,7 +2224,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
         }
 
         const AngleDegrees overhang_angle = mesh.settings.get<AngleDegrees>("wall_overhang_angle");
-        if (overhang_angle >= 90)
+        if (overhang_angle >= 90 && !mesh.settings.get<bool>("set_wall_overhang_grading"))
         {
             // clear to disable overhang detection
             gcode_layer.setOverhangMask(Polygons(), 0);
