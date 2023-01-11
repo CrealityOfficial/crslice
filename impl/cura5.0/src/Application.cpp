@@ -28,7 +28,7 @@ Application::Application()
 
 Application::~Application()
 {
-    delete communication;
+    releaseCommulication();
     delete thread_pool;
 }
 
@@ -167,12 +167,22 @@ void Application::runCommulication(Communication* _communication)
     if (!_communication)
         return;
 
+    releaseCommulication();
     communication = _communication;
 
     startThreadPool(); // Start the thread pool
     while (communication->hasSlice())
     {
         communication->sliceNext();
+    }
+}
+
+void Application::releaseCommulication()
+{
+    if (communication)
+    {
+        delete communication;
+        communication = nullptr;
     }
 }
 

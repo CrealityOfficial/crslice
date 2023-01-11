@@ -179,7 +179,7 @@ void GCodeExport::writeGcodeHead()
 }
 void GCodeExport::writeMashineConfig()
 {
-    static Scene * scene = &Application::getInstance().current_slice->scene;
+    Scene * scene = &Application::getInstance().current_slice->scene;
     Settings* groupSettings = &scene->current_mesh_group->settings;
     Settings* meshSettings = &scene->current_mesh_group->meshes[0].settings;
     Settings* extruderSettings = &scene->extruders[0].settings;
@@ -205,7 +205,7 @@ void GCodeExport::writeMashineConfig()
 }
 void GCodeExport::writeProfileConfig()
 {
-    static Scene* scene = &Application::getInstance().current_slice->scene;
+    Scene* scene = &Application::getInstance().current_slice->scene;
     Settings* groupSettings = &scene->current_mesh_group->settings;
     Settings* meshSettings = &scene->current_mesh_group->meshes[0].settings;
     Settings* extruderSettings = &scene->extruders[0].settings;
@@ -259,7 +259,7 @@ void GCodeExport::writeProfileConfig()
 
 void GCodeExport::writeShellConfig()
 {
-    static Scene* scene = &Application::getInstance().current_slice->scene;
+    Scene* scene = &Application::getInstance().current_slice->scene;
     Settings* groupSettings = &scene->current_mesh_group->settings;
     Settings* meshSettings = &scene->current_mesh_group->meshes[0].settings;
     Settings* extruderSettings = &scene->extruders[0].settings;
@@ -291,7 +291,7 @@ void GCodeExport::writeShellConfig()
 
 void GCodeExport::writeSupportConfig()
 {
-    static Scene* scene = &Application::getInstance().current_slice->scene;
+    Scene* scene = &Application::getInstance().current_slice->scene;
     Settings* groupSettings = &scene->current_mesh_group->settings;
     Settings* meshSettings = &scene->current_mesh_group->meshes[0].settings;
     Settings* extruderSettings = &scene->extruders[0].settings;
@@ -313,7 +313,7 @@ void GCodeExport::writeSupportConfig()
 }
 void GCodeExport::writeSpeedAndTravelConfig()
 {
-    static Scene* scene = &Application::getInstance().current_slice->scene;
+    Scene* scene = &Application::getInstance().current_slice->scene;
     Settings* groupSettings = &scene->current_mesh_group->settings;
     Settings* meshSettings = &scene->current_mesh_group->meshes[0].settings;
     Settings* extruderSettings = &scene->extruders[0].settings;
@@ -344,7 +344,7 @@ void GCodeExport::writeSpeedAndTravelConfig()
 }
 void GCodeExport::writeSpecialModelAndMeshConfig()
 {
-    static Scene* scene = &Application::getInstance().current_slice->scene;
+    Scene* scene = &Application::getInstance().current_slice->scene;
     Settings* groupSettings = &scene->current_mesh_group->settings;
     Settings* meshSettings = &scene->current_mesh_group->meshes[0].settings;
     Settings* extruderSettings = &scene->extruders[0].settings;

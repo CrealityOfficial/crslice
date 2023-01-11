@@ -80,6 +80,7 @@ public:
     void run(int argc, const char** argv, ccglobal::Tracer* tracer = nullptr);
 
     void runCommulication(Communication* communication);
+    void releaseCommulication();
     /*!
      * \brief Start the global thread pool.
      *
