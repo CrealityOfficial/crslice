@@ -9,7 +9,7 @@
 #include <boost/uuid/random_generator.hpp> //For generating a UUID.
 #include <boost/uuid/uuid_io.hpp> //For generating a UUID.
 #include "ccglobal/log.h"
-
+#include "narrow_infill.h"
 #include "Application.h"
 #include "ExtruderTrain.h"
 #include "FffGcodeWriter.h"
@@ -2643,6 +2643,32 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
                                              bool& added_something,
                                              double fan_speed) const
 {
+
+
+    bool is_narrow = result_is_narrow_infill_area(area);
+
+
+    Polygons upper_polygons;
+    bool is_top;
+    int cuurr_idx = gcode_layer.getLayerNr();
+    int upper_layer_idx = (cuurr_idx + 1 < mesh.layers.size()) ? cuurr_idx + 1 : INT16_MAX;
+
+    if (upper_layer_idx < mesh.layers.size() && 1)
+    {
+        for (int i = 0; i < mesh.layers.at(upper_layer_idx).parts.size(); i++)
+        {
+            upper_polygons.add(mesh.layers.at(upper_layer_idx).parts.at(i).outline);
+        }
+        is_top = result_is_top_area(area, upper_polygons);
+
+        if (is_narrow && !is_top && !config.isBridgePath())
+        {
+            pattern = EFillMethod::CONCENTRIC;
+        }
+    }
+    upper_polygons.clear();
+
+
     Polygons skin_polygons;
     Polygons skin_lines;
     std::vector<VariableWidthLines> skin_paths;

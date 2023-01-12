@@ -20,6 +20,7 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/MeshGroup.cpp
         ${PREFIX5.2}src/Mold.cpp
         ${PREFIX5.2}src/multiVolumes.cpp
+		${PREFIX5.2}src/narrow_infill.cpp
         ${PREFIX5.2}src/PathOrderPath.cpp
         ${PREFIX5.2}src/Preheat.cpp
         ${PREFIX5.2}src/PrimeTower.cpp
@@ -110,7 +111,7 @@ __cc_find(stb)
 __cc_find(fmt)
 
 list(APPEND SRCS ${engine_SRCS})
-list(APPEND LIBS fmt rapidjson stb
+list(APPEND LIBS fmt rapidjson stb slice3rBase clipper
 			 boost_system boost_filesystem boost_iostreams 
 			)
 			
