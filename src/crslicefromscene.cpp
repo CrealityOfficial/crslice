@@ -148,6 +148,7 @@ namespace crslice
         cura52::Slice slice(numGroup);
 
         cura52::Application::getInstance().current_slice = &slice;
+        slice.scene.m_tracer = m_tracer;
 
         bool sliceValible = false;
 

@@ -79,6 +79,11 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         gcode.setInitialAndBuildVolumeTemps(start_extruder_nr);
     }
 
+	if (scene.m_tracer->interrupt())
+	{
+		return;
+	}
+
     Application::getInstance().communication->beginGCode();
 
     setConfigFanSpeedLayerTime();
@@ -95,6 +100,11 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
     {
         processNextMeshGroupCode(storage);
     }
+
+	if (scene.m_tracer->interrupt())
+	{
+		return;
+	}
 
     size_t total_layers = 0;
     for (SliceMeshStorage& mesh : storage.meshes)
@@ -121,12 +131,21 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         }
     }
     calculateExtruderOrderPerLayer(storage);
+	if (scene.m_tracer->interrupt())
+	{
+		return;
+	}
     calculatePrimeLayerPerExtruder(storage);
 
     if (scene.current_mesh_group->settings.get<bool>("magic_spiralize"))
     {
         findLayerSeamsForSpiralize(storage, total_layers);
     }
+
+	if (scene.m_tracer->interrupt())
+	{
+		return;
+	}
 
     int process_layer_starting_layer_nr = 0;
     const bool has_raft = scene.current_mesh_group->settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT;
@@ -144,7 +163,10 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
             }
         }
     }
-
+	if (scene.m_tracer->interrupt())
+	{
+		return;
+	}
     run_multiple_producers_ordered_consumer(
         process_layer_starting_layer_nr,
         total_layers,
@@ -155,7 +177,10 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
             layer_plan_buffer.handle(*gcode_layer, gcode);
         });
 
-
+	if (scene.m_tracer->interrupt())
+	{
+		return;
+	}
     layer_plan_buffer.flush();
 
     Progress::messageProgressStage(Progress::Stage::FINISH, &time_keeper);
@@ -241,6 +266,10 @@ void FffGcodeWriter::findLayerSeamsForSpiralize(SliceDataStorage& storage, size_
 
     for (unsigned layer_nr = 0; layer_nr < total_layers; ++layer_nr)
     {
+		if (Application::getInstance().current_slice->scene.m_tracer->interrupt())
+		{
+			return;
+		}
         bool done_this_layer = false;
 
         // iterate through extruders until we find a mesh that has a part with insets
@@ -763,6 +792,10 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
 
         for (const Polygons& raft_outline_path : raft_outline_paths)
         {
+			if (Application::getInstance().current_slice->scene.m_tracer->interrupt())
+			{
+				return;
+			}
             Infill infill_comp(EFillMethod::LINES,
                                zig_zaggify_infill,
                                connect_polygons,
@@ -904,6 +937,10 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
         last_planned_position = gcode_layer.getLastPlannedPositionOrStartingPosition();
     }
 
+	if (Application::getInstance().current_slice->scene.m_tracer->interrupt())
+	{
+		return;
+	}
     const coord_t surface_layer_height = surface_settings.get<coord_t>("raft_surface_thickness");
     const coord_t surface_line_spacing = surface_settings.get<coord_t>("raft_surface_line_spacing");
     const coord_t surface_max_resolution = surface_settings.get<coord_t>("meshfix_maximum_resolution");

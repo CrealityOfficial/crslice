@@ -7,6 +7,7 @@
 #include "ExtruderTrain.h" //To store the extruders in the scene.
 #include "MeshGroup.h" //To store the mesh groups in the scene.
 #include "settings/Settings.h" //To store the global settings.
+#include "ccglobal/tracer.h"
 
 namespace cura52
 {
@@ -70,6 +71,8 @@ public:
      * \param mesh_group The mesh group to slice.
      */
     void processMeshGroup(MeshGroup& mesh_group);
+
+    ccglobal::Tracer* m_tracer;
 
 private:
     /*
