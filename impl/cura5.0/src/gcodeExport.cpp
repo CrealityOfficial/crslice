@@ -248,9 +248,9 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Support Density:" << (float)groupSettings->get<coord_t>("support_infill_rate") / 1000.0f << new_line;
     tmp << ";Support Angle:" << (int)(groupSettings->get<AngleRadians>("support_angle") * 180 / 3.141592f) << new_line;
     tmp << ";Adhesion Type:" << groupSettings->get<std::string>("adhesion_type") << new_line;
-    //tmp << ";machine is belt:" << (groupSettings->get<bool>("machine_is_belt") ? "true" : "false") << new_line;
-    //tmp << ";machine belt offset:" << (float)groupSettings->get<coord_t>("machine_belt_offset") / 1000.0f << new_line;
-    //tmp << ";machine belt offset Y:" << (float)groupSettings->get<coord_t>("machine_belt_offset_Y") / 1000.0f << new_line;
+    tmp << ";machine is belt:" << (groupSettings->get<bool>("machine_is_belt") ? "true" : "false") << new_line;
+    tmp << ";machine belt offset:" << (float)groupSettings->get<coord_t>("machine_belt_offset") / 1000.0f << new_line;
+    tmp << ";machine belt offset Y:" << (float)groupSettings->get<coord_t>("machine_belt_offset_Y") / 1000.0f << new_line;
     tmp << ";Raft Base Line Spacing:" << (float)groupSettings->get<coord_t>("raft_base_line_spacing") / 1000.0f << new_line;
     tmp << ";Wait Heatup Sync:" << (groupSettings->get<bool>("bed_print_temp_wait_sync") ? "true" : "false") << new_line;
     tmp << ";Enable Ironing:" << (groupSettings->get<bool>("ironing_enabled") ? "true" : "false") << new_line;

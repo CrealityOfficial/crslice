@@ -767,6 +767,13 @@ void FffPolygonGenerator::removeEmptyFirstLayers(SliceDataStorage& storage, size
     {
         LOGI("Removing {} layers because they are empty", n_empty_first_layers);
         const coord_t layer_height = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<coord_t>("layer_height");
+        
+        //belt ²¹³¥Öµ
+        //QString str = QString::number(-minZ.y, 'f', 2);
+        float num = layer_height * n_empty_first_layers / 1000.0f;
+        std::string str = std::to_string(num);
+        Application::getInstance().current_slice->scene.current_mesh_group->settings.add("machine_belt_offset_Y", str);
+        
         for (SliceMeshStorage& mesh : storage.meshes)
         {
             std::vector<SliceLayer>& layers = mesh.layers;
