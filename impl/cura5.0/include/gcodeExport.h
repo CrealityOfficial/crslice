@@ -479,6 +479,8 @@ public:
 
     void writeCode(const char* str);
 
+    std::string substitution(std::string str);
+
     void resetExtruderToPrimed(const size_t extruder, const double initial_retraction);
 
     /*!

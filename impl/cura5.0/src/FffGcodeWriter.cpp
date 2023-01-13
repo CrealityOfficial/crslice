@@ -649,7 +649,8 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
 
     gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
-    gcode.writeCode(mesh_group_settings.get<std::string>("machine_start_gcode").c_str());
+	std::string strTemp = gcode.substitution(mesh_group_settings.get<std::string>("machine_start_gcode"));
+	gcode.writeCode(strTemp.c_str());
 
     // in case of shared nozzle assume that the machine-start gcode reset the extruders as per machine description
     if (Application::getInstance().current_slice->scene.settings.get<bool>("machine_extruders_share_nozzle"))

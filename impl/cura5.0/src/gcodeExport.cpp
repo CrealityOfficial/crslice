@@ -1465,6 +1465,57 @@ void GCodeExport::writeCode(const char* str)
     *output_stream << str << new_line;
 }
 
+void SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
+{
+	std::string::size_type pos1, pos2;
+	pos2 = Src.find(c);
+	pos1 = 0;
+	while (std::string::npos != pos2)
+	{
+		Vctdest.push_back(Src.substr(pos1, pos2 - pos1));
+
+		pos1 = pos2 + c.size();
+		pos2 = Src.find(c, pos1);
+	}
+	if (pos1 != Src.length())
+	{
+		Vctdest.push_back(Src.substr(pos1));
+	}
+
+}
+std::string GCodeExport::substitution(std::string str)
+{
+    std::vector<std::string> Vctdest;
+    SplitString(str, Vctdest,"[");
+    for (std::string& aStr:Vctdest)
+    {
+        size_t pos = aStr.find(']');
+        if (pos == std::string::npos)
+        {
+            aStr.clear();
+        }
+        else
+        {
+            aStr = aStr.substr(0,pos);
+        }
+    }
+
+    for (std::string& aStr : Vctdest)
+    {
+        if (!aStr.empty() && Application::getInstance().current_slice->scene.settings.has(aStr))
+        {
+            float value =Application::getInstance().current_slice->scene.settings.get<double>(aStr);
+            int npos =str.find(aStr);
+			if (npos != std::string::npos)
+			{
+                str.replace(npos, aStr.length(), std::to_string(value));
+			}
+        }
+    }
+
+    return str;
+}
+
 void GCodeExport::resetExtruderToPrimed(const size_t extruder, const double initial_retraction)
 {
     extruder_attr[extruder].is_primed = true;
