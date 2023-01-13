@@ -189,7 +189,7 @@ void GCodeExport::writeMashineConfig()
     tmp << ";Machine Height:" << (float)groupSettings->get<coord_t>("machine_height") / 1000.0f << new_line;
     tmp << ";Machine Width:" << (float)groupSettings->get<coord_t>("machine_width") / 1000.0f << new_line;
     tmp << ";Machine Depth:" << (float)groupSettings->get<coord_t>("machine_depth") / 1000.0f << new_line;
-    //tmp << ";Material name:" << groupSettings->get<std::string>("material_type") << new_line;
+    tmp << ";Material name:" << groupSettings->get<std::string>("material_type") << new_line;
     int exsize = scene->extruders.size();
     tmp << ";Number of Extruders:" << exsize << new_line;
     tmp << ";ExtruderParams[0] Nozzle Diameter:" << extruderSettings->get<coord_t>("machine_nozzle_tip_outer_diameter") << new_line;
