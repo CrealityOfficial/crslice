@@ -1576,6 +1576,17 @@ void ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
         }
         totalPrintTime = (extrudeTime * inv_factor) + travelTime;
     }
+    else
+    {
+        for (GCodePath& path : paths)
+        {
+            if (path.isTravelPath())
+                continue;
+            double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor;
+            if (speed < minimalSpeed)
+                path.speed_factor = minimalSpeed / path.config->getSpeed() / path.speed_back_pressure_factor;
+        }
+    }
 }
 
 TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_position)
@@ -1946,6 +1957,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         Point src_pos = gcode.getPositionXY();
                         Point cur_pos = last_path[point_idx];
                         double len = vSize(cur_pos - src_pos);
+                        if (len == 0.) continue;
                         double theta = 1.0f;
                         if (len < dis_path - cur_dis_path)
                         {
