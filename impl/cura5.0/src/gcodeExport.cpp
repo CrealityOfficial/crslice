@@ -1483,10 +1483,11 @@ void SplitString(const std::string& Src, std::vector<std::string>& Vctdest, cons
 	}
 
 }
-std::string GCodeExport::substitution(std::string str)
+bool GCodeExport::substitution(std::string& srcStr)
 {
+    bool hasParm = false;
     std::vector<std::string> Vctdest;
-    SplitString(str, Vctdest,"[");
+    SplitString(srcStr, Vctdest,"[");
     for (std::string& aStr:Vctdest)
     {
         size_t pos = aStr.find(']');
@@ -1505,15 +1506,16 @@ std::string GCodeExport::substitution(std::string str)
         if (!aStr.empty() && Application::getInstance().current_slice->scene.settings.has(aStr))
         {
             float value =Application::getInstance().current_slice->scene.settings.get<double>(aStr);
-            int npos =str.find(aStr);
+            int npos = srcStr.find(aStr);
 			if (npos != std::string::npos)
 			{
-                str.replace(npos, aStr.length(), std::to_string(value));
+                srcStr.replace(npos-1, aStr.length()+2, std::to_string(value));
 			}
+            hasParm = true;
         }
     }
 
-    return str;
+    return hasParm;
 }
 
 void GCodeExport::resetExtruderToPrimed(const size_t extruder, const double initial_retraction)

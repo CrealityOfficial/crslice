@@ -635,21 +635,22 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     //gcode.writeComment("Generated with Cura_SteamEngine " VERSION);
     gcode.writeGcodeHead();
 
+    const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
+	std::string strTemp = mesh_group_settings.get<std::string>("machine_start_gcode");
+	bool hasParm = gcode.substitution(strTemp);
+
     if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
     {
         std::ostringstream tmp;
         tmp << "T" << start_extruder_nr;
         gcode.writeLine(tmp.str().c_str());
     }
-    else
+    else if (!hasParm)//start_gcode中手动填写温度参数，则不自动生成温度指令了
     {
         processInitialLayerTemperature(storage, start_extruder_nr);
     }
 
-    const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
-
     gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
-	std::string strTemp = gcode.substitution(mesh_group_settings.get<std::string>("machine_start_gcode"));
 	gcode.writeCode(strTemp.c_str());
 
     // in case of shared nozzle assume that the machine-start gcode reset the extruders as per machine description

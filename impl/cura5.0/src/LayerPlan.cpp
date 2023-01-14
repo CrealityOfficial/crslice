@@ -1939,7 +1939,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     std::vector<Point> last_path = getLastExtrusionPath(path_idx);
                     double dis_path = MM2INT(extruder.settings.get<double>("wipe_length"));
                     double cur_dis_path = 0;
-                    double dis_Extru = 0.285 * retraction_config.distance;
+                    double dis_Extru = (1 - INT2MM(extruder.settings.get<coord_t>("before_wipe_retraction_amount_percent") * 0.01) - 0.015) * retraction_config.distance;
                     double speed = path.config->getSpeed() * path.speed_factor;
                     for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
                     {
