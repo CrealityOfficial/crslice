@@ -432,7 +432,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         break;
     default:
         prefix << ";FLAVOR:" << flavorToString(flavor) << new_line;
-        prefix << ";TIME:" << ((print_time) ? static_cast<int>(*print_time) : 6666) << new_line;
+        prefix << ";TIME:" << ((print_time) ? static_cast<double>(*print_time) : 100000.00) << new_line;
         if (flavor == EGCodeFlavor::ULTIGCODE)
         {
             prefix << ";MATERIAL:" << ((filament_used.size() >= 1) ? static_cast<int>(filament_used[0]) : 6666) << new_line;
@@ -463,7 +463,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
             }
             else
             {
-                prefix << "0m";
+                prefix << "00.0000m";
             }
             prefix << new_line;
             prefix << ";Layer height: " << Application::getInstance().current_slice->scene.current_mesh_group->settings.get<double>("layer_height") << new_line;
@@ -704,6 +704,11 @@ void GCodeExport::updateTotalPrintTime()
 
 void GCodeExport::reWritePreFixStr(std::string preFix)
 {
+    if (preFix.length() > m_preFixLen)
+    {
+        return;
+    }
+
     output_stream->seekp(0, std::ios::beg);
     *output_stream << preFix;
     size_t len = preFix.length();
