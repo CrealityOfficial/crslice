@@ -363,6 +363,10 @@ EFillMethod Settings::get<EFillMethod>(const std::string& key) const
     {
         return EFillMethod::LIGHTNING;
     }
+	else if (value == "honeycomb")
+	{
+		return EFillMethod::HONEYCOMB;
+	}
     else // Default.
     {
         return EFillMethod::NONE;

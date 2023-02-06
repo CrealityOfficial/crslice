@@ -264,6 +264,8 @@ private:
      */
     void generateConcentricInfill(std::vector<VariableWidthLines>& toolpaths, const Settings& settings);
 
+    void generateHoneycombInfill(Polygons& result, int _line_distance);
+
     /*!
      * Generate a rectangular grid of infill lines
      * \param[out] result (output) The resulting lines

@@ -219,6 +219,9 @@ void Infill::_generate(std::vector<VariableWidthLines>& toolpaths,
     case EFillMethod::CONCENTRIC:
         generateConcentricInfill(toolpaths, settings);
         break;
+	case EFillMethod::HONEYCOMB:
+		generateHoneycombInfill(result_polygons, line_distance);
+		break;
     case EFillMethod::ZIG_ZAG:
         generateZigZagInfill(result_lines, line_distance, fill_angle);
         break;
@@ -381,6 +384,162 @@ void Infill::generateConcentricInfill(std::vector<VariableWidthLines>& toolpaths
         toolpaths.insert(toolpaths.end(), inset_paths.begin(), inset_paths.end());
 
         current_inset = wall_toolpaths.getInnerContour();
+    }
+}
+
+
+struct CacheID
+{
+	CacheID(float adensity, double aspacing) :
+		density(adensity), spacing(aspacing) {}
+	float		density;
+	double	spacing;
+	bool operator<(const CacheID& other) const
+	{
+		return (density < other.density) || (density == other.density && spacing < other.spacing);
+	}
+	bool operator==(const CacheID& other) const
+	{
+		return density == other.density && spacing == other.spacing;
+	}
+};
+struct CacheData
+{
+	coord_t	distance;
+	coord_t hex_side;
+	coord_t hex_width;
+	coord_t	pattern_height;
+	coord_t y_short;
+	coord_t x_offset;
+	coord_t	y_offset;
+	Point	hex_center;
+};
+
+typedef std::map<CacheID, CacheData> Cache;
+Cache cache;
+
+// Align a coordinate to a grid. The coordinate may be negative,
+// the aligned value will never be bigger than the original one.
+static coord_t _align_to_grid(const coord_t coord, const coord_t spacing) {
+	// Current C++ standard defines the result of integer division to be rounded to zero,
+	// for both positive and negative numbers. Here we want to round down for negative
+	// numbers as well.
+	coord_t aligned = (coord < 0) ?
+		((coord - spacing + 1) / spacing) * spacing :
+		(coord / spacing) * spacing;
+	assert(aligned <= coord);
+	return aligned;
+}
+
+static Point   _align_to_grid(Point   coord, Point   spacing)
+{
+	return Point(_align_to_grid(coord.X, spacing.X), _align_to_grid(coord.Y, spacing.Y));
+}
+static coord_t _align_to_grid(coord_t coord, coord_t spacing, coord_t base)
+{
+	return base + _align_to_grid(coord - base, spacing);
+}
+static Point   _align_to_grid(Point   coord, Point   spacing, Point   base)
+{
+	return Point(_align_to_grid(coord.X, spacing.X, base.X), _align_to_grid(coord.Y, spacing.Y, base.Y));
+}
+void Infill::generateHoneycombInfill(Polygons& result, int _line_distance)
+{
+	// cache hexagons math
+	CacheID cache_id(0.1, _line_distance);
+	Cache::iterator it_m = cache.find(cache_id);
+	if (it_m == cache.end())
+	{
+		it_m = cache.insert(it_m, std::pair<CacheID, CacheData>(cache_id, CacheData()));
+		CacheData& m = it_m->second;
+		coord_t min_spacing = _line_distance * 0.5;//coord_t(scale_(_line_distance));
+		m.distance = _line_distance * 0.5;//coord_t(min_spacing / params.density);
+		m.hex_side = coord_t(m.distance / (sqrt(3) / 2));
+		m.hex_width = m.distance * 2; // $m->{hex_width} == $m->{hex_side} * sqrt(3);
+		coord_t hex_height = m.hex_side * 2;
+		m.pattern_height = hex_height + m.hex_side;
+		m.y_short = coord_t(m.distance * sqrt(3) / 3);
+		m.x_offset = infill_line_width / 2;//min_spacing / 2;
+		m.y_offset = coord_t(m.x_offset * sqrt(3) / 3);
+		m.hex_center = Point(m.hex_width / 2, m.hex_side);
+	}
+	CacheData& m = it_m->second;
+
+	infill_overlap;
+	Polygons outline = outer_contour.offset(-infill_line_width / 2 + infill_overlap);
+	Polygons all_polylines;
+	{
+		AABB bounding_box;
+		bounding_box.calculate(outline);
+		//
+		Point aPoint = _align_to_grid(bounding_box.min, Point(m.hex_width, m.pattern_height));
+		bounding_box.include(aPoint);
+
+		coord_t x = bounding_box.min.X;
+		while (x <= bounding_box.max.X)
+		{
+			Polygon p;
+			coord_t ax[2] = { x + infill_line_width / 2, x + m.distance }; //{ x + infill_line_width, x + m.distance};
+			for (size_t i = 0; i < 2; ++i)
+			{
+				std::reverse(p.begin(), p.end()); // turn first half upside down
+				for (coord_t y = bounding_box.min.Y; y <= bounding_box.max.Y; y += m.y_short + m.hex_side + m.y_short + m.hex_side)
+				{
+					p.add(Point(ax[1], y + m.y_offset));
+					p.add(Point(ax[0], y + m.y_short - m.y_offset));
+					p.add(Point(ax[0], y + m.y_short + m.hex_side + m.y_offset));
+					p.add(Point(ax[1], y + m.y_short + m.hex_side + m.y_short - m.y_offset));
+					p.add(Point(ax[1], y + m.y_short + m.hex_side + m.y_short + m.hex_side + m.y_offset));
+				}
+				ax[0] = ax[0] + m.distance;
+				ax[1] = ax[1] + m.distance;
+				std::swap(ax[0], ax[1]); // draw symmetrical pattern
+				x += m.distance;
+			}
+			//p.rotate(-direction.first, m.hex_center);
+			all_polylines.add(p);
+		}
+	}
+
+	//TEST
+	//ClipperLib::save(all_polylines.getPaths(), "infill.path");
+	//ClipperLib::save(outline.getPaths(), "outline.path");
+
+	// init Clipper
+	ClipperLib::Clipper clipper;
+	clipper.Clear();
+	// add polygons
+    ClipperLib::Paths all_paths;
+    for (int n=0;n<all_polylines.size();n++)
+    {
+        all_paths.push_back(*all_polylines[n]);
+    }
+    ClipperLib::Paths outline_paths;
+	for (int n = 0; n < outline.size(); n++)
+	{
+        outline_paths.push_back(*outline[n]);
+	}
+
+	clipper.AddPaths(all_paths, ClipperLib::ptSubject, true);
+	clipper.AddPaths(outline_paths, ClipperLib::ptClip, true);
+	// perform operation
+	ClipperLib::PolyTree retval;
+	ClipperLib::Paths resultPaths;
+	clipper.Execute(ClipperLib::ClipType::ctIntersection, retval, ClipperLib::pftEvenOdd, ClipperLib::pftEvenOdd);
+	ClipperLib::PolyTreeToPaths(retval, resultPaths);
+
+	ClipperLib::Paths resultPaths2;
+	for (ClipperLib::Path aPath : resultPaths)
+	{
+		if (aPath.size() > 2)
+		{
+			resultPaths2.push_back(aPath);
+		}
+	}
+
+    for (ClipperLib::Path& apath: resultPaths2)
+    {
+        result.add(apath);
     }
 }
 
