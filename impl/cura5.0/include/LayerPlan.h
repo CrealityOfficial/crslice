@@ -75,7 +75,7 @@ protected:
 
 public:
     size_t extruder_nr; //!< The extruder used for this paths in the current plan.
-
+    Duration cool_min_layer_time_correct;
     /*!
      * Simple contructor.
      * 

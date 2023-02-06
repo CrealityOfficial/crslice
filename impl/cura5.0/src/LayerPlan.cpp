@@ -47,6 +47,7 @@ ExtruderPlan::ExtruderPlan(const size_t extruder,
     , extrudeSpeedFactor(1.0)
     , extraTime(0.0)
     , totalPrintTime(0)
+    , cool_min_layer_time_correct(0)
 {
 }
 
@@ -1032,18 +1033,65 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
 
     bool first_line = true;
     const coord_t small_feature_max_length = settings.get<coord_t>("small_feature_max_length");
-    const bool is_small_feature = (small_feature_max_length > 0) && cura52::shorterThan(wall, small_feature_max_length);
-    Ratio small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "small_feature_speed_factor_0" : "small_feature_speed_factor");
+    bool is_small_feature = (small_feature_max_length > 0) && cura52::shorterThan(wall, small_feature_max_length);
     const Velocity min_speed = fan_speed_layer_time_settings_per_extruder[getLastPlannedExtruderTrain()->extruder_nr].cool_min_speed;
-    if (is_small_feature)
-    {
-        int64_t wall_length = wall.getLength();
-        small_feature_speed_factor = wall_length / (double)small_feature_max_length * small_feature_speed_factor;
-    }
-    small_feature_speed_factor = std::max((double)small_feature_speed_factor, (double)(min_speed / non_bridge_config.getSpeed()));
     const coord_t max_area_deviation = std::max(settings.get<int>("meshfix_maximum_extrusion_area_deviation"), 1); // Square micrometres!
     const coord_t max_resolution = std::max(settings.get<coord_t>("meshfix_maximum_resolution"), coord_t(1));
 
+    Ratio small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "small_feature_speed_factor_0" : "small_feature_speed_factor");
+    Ratio smaller_level_factor = 0;
+    coord_t big_length = small_feature_max_length;
+    coord_t smaller_length = 0;
+    int64_t wall_length = wall.getLength();
+    if (settings.get<bool>("set_small_feature_grading"))
+    {
+        int level = -1;
+        if (wall_length < settings.get<coord_t>("special_small_feature_max_length_4"))
+        {
+            level = 4;
+            small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "special_small_feature_speed_factor_0_4" : "special_small_feature_speed_factor_4");
+            extruder_plans.back().cool_min_layer_time_correct = settings.get<Duration>("special_cool_min_layer_time_4");
+            is_small_feature = true;
+        }
+        else if (wall_length < settings.get<coord_t>("special_small_feature_max_length_3"))
+        {
+            level = 3;
+            small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "special_small_feature_speed_factor_0_3" : "special_small_feature_speed_factor_3");
+            extruder_plans.back().cool_min_layer_time_correct = settings.get<Duration>("special_cool_min_layer_time_3");
+            is_small_feature = true;
+        }
+        else if (wall_length < settings.get<coord_t>("special_small_feature_max_length_2"))
+        {
+            level = 2;
+            small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "special_small_feature_speed_factor_0_2" : "special_small_feature_speed_factor_2");
+            extruder_plans.back().cool_min_layer_time_correct = settings.get<Duration>("special_cool_min_layer_time_2");
+            is_small_feature = true;
+        }
+        else if (wall_length < settings.get<coord_t>("special_small_feature_max_length_1"))
+        {
+            level = 1;
+            small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "special_small_feature_speed_factor_0_1" : "special_small_feature_speed_factor_1");
+            extruder_plans.back().cool_min_layer_time_correct = settings.get<Duration>("special_cool_min_layer_time_1");
+            is_small_feature = true;
+        }
+        if (level > 0 && level < 4)
+        {
+            std::string factor_name = (layer_nr == 0) ? "special_small_feature_speed_factor_0_%d" : "special_small_feature_speed_factor_%d";
+            factor_name.replace(factor_name.find("%d"), 2, std::to_string(level + 1));
+            smaller_level_factor = settings.get<Ratio>(factor_name);
+            std::string length_name = "special_small_feature_max_length_%d";
+            length_name.replace(length_name.find("%d"), 2, std::to_string(level));
+            big_length = settings.get<coord_t>(length_name);
+            length_name.replace(length_name.find_last_of("_") + 1, 1, std::to_string(level + 1));
+            smaller_length = settings.get<coord_t>(length_name);
+        }
+    }
+    if (is_small_feature)
+    {
+        small_feature_speed_factor = ((wall_length - smaller_length) / (float)(big_length - smaller_length)) * (small_feature_speed_factor - smaller_level_factor) + smaller_level_factor;
+    }
+    
+    
     ExtrusionJunction p0 = wall[start_idx];
 
     const int direction = is_reversed ? -1 : 1;
@@ -1452,7 +1500,11 @@ void LayerPlan::spiralizeWallSlice(const GCodePathConfig& config, ConstPolygonRe
         // the layer to be printed at a similar speed to the previous layer to avoid abrupt changes in extrusion rate so we slow it down
 
         const FanSpeedLayerTimeSettings& layer_time_settings = extruder_plans.back().fan_speed_layer_time_settings;
-        const double min_time = layer_time_settings.cool_min_layer_time;
+        double min_time = layer_time_settings.cool_min_layer_time;
+        if (extruder_plans.back().cool_min_layer_time_correct != 0.)
+        {
+            min_time = extruder_plans.back().cool_min_layer_time_correct;
+        }
         const double normal_layer_time = total_length / config.getSpeed();
 
         // would this layer's speed normally get reduced to satisfy the min layer time?
@@ -1648,11 +1700,16 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
 
 void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position)
 {
+    Duration cool_min_layer_time = fan_speed_layer_time_settings.cool_min_layer_time;
+    if (cool_min_layer_time_correct != 0.)
+    {
+        cool_min_layer_time = cool_min_layer_time_correct;
+    }
     TimeMaterialEstimates estimates = computeNaiveTimeEstimates(starting_position);
     totalPrintTime = estimates.getTotalTime();
     if (force_minimal_layer_time)
     {
-        forceMinimalLayerTime(fan_speed_layer_time_settings.cool_min_layer_time, fan_speed_layer_time_settings.cool_min_speed, estimates.getTravelTime(), estimates.getExtrudeTime());
+        forceMinimalLayerTime(cool_min_layer_time, fan_speed_layer_time_settings.cool_min_speed, estimates.getTravelTime(), estimates.getExtrudeTime());
     }
 
     /*
