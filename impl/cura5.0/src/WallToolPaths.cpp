@@ -57,6 +57,24 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
+    coord_t offset_insert = 0;
+    double scaled_spacing_wall_0 = bead_width_0;
+    double scaled_spacing_wall_X = bead_width_x;
+    const coord_t layer_thickness = settings.get<coord_t>("layer_height");
+    const bool exact_flow_enable = settings.get<bool>("special_exact_flow_enable");
+    auto getScaledSpacing = [layer_thickness](size_t line_width)
+    {
+        size_t out = line_width - layer_thickness * float(1. - 0.25 * M_PI);
+        if (out <= 0.f)
+            return line_width;
+        return out;
+    };
+    if (exact_flow_enable)
+    {
+        scaled_spacing_wall_0 = getScaledSpacing(bead_width_0);
+        scaled_spacing_wall_X = getScaledSpacing(bead_width_x);        
+    }
+
     Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);
     prepared_outline = Simplify(settings).polygon(prepared_outline);
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
@@ -90,8 +108,8 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     const size_t max_bead_count = (inset_count < std::numeric_limits<coord_t>::max() / 2) ? 2 * inset_count : std::numeric_limits<coord_t>::max();
     const auto beading_strat = BeadingStrategyFactory::makeStrategy
         (
-            bead_width_0,
-            bead_width_x,
+            scaled_spacing_wall_0,
+            scaled_spacing_wall_X,
             wall_transition_length,
             transitioning_angle,
             print_thin_walls,

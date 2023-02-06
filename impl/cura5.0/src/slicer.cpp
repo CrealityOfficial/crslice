@@ -1004,12 +1004,13 @@ void Slicer::makePolygons(Mesh& mesh, SlicingTolerance slicing_tolerance, std::v
 
     const coord_t xy_offset = mesh.settings.get<coord_t>("xy_offset");
     const coord_t xy_offset_0 = mesh.settings.get<coord_t>("xy_offset_layer_0");
+    const coord_t offset_exact = mesh.settings.get<bool>("special_exact_flow_enable") ? 0.5 * mesh.settings.get<coord_t>("layer_height") * float(1. - 0.25 * M_PI) + 0.5 : 0;
 
     cura52::parallel_for<size_t>(0,
                                layers.size(),
-                               [&layers, layer_apply_initial_xy_offset, xy_offset, xy_offset_0](size_t layer_nr)
+                               [&layers, layer_apply_initial_xy_offset, xy_offset, xy_offset_0, offset_exact](size_t layer_nr)
                                {
-                                   const coord_t xy_offset_local = (layer_nr <= layer_apply_initial_xy_offset) ? xy_offset_0 : xy_offset;
+                                   const coord_t xy_offset_local = (layer_nr <= layer_apply_initial_xy_offset) ? xy_offset_0 - offset_exact : xy_offset - offset_exact;
                                    if (xy_offset_local != 0)
                                    {
                                        layers[layer_nr].polygons = layers[layer_nr].polygons.offset(xy_offset_local, ClipperLib::JoinType::jtRound);
