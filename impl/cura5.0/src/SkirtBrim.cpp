@@ -325,8 +325,202 @@ size_t SkirtBrim::generateBrimCount(SliceDataStorage& storage, std::vector<size_
 
 
 
+void generateLace(FloatPaths& originPaths, FloatPaths& newPaths)
+{
+	double currentDis = 0.0;
+	double const radius = 3.0;
+	for (FloatPath& originFPath : originPaths)
+	{
+		//ClipperLib::Path& pathTemp = *ppathTemp;
+		if (originFPath.size() == 0)
+			continue;
+
+		FloatPath newPath;
+		FloatPoint pointStart = originFPath.at(originFPath.size() - 1);
+		newPath.push_back(pointStart);
+		for (int nn = 0; nn < originFPath.size(); nn++)
+		{
+			currentDis = sqrt(pow(originFPath[nn].x - pointStart.x, 2) + pow(originFPath[nn].y - pointStart.y, 2));
+			if (currentDis == 0)
+			{
+				continue;
+			}
+			else if (abs(currentDis - radius) < 0.01)
+			{
+				newPath.push_back(originFPath[nn]);
+				pointStart = originFPath[nn];
+			}
+			else if (currentDis > radius)
+			{
+				FloatPoint pointEnd;
+				if (originFPath[nn].y == pointStart.y)
+				{
+					pointEnd.y = pointStart.y;
+					if (originFPath[nn].x > pointStart.x)
+					{
+						pointEnd.x = pointStart.x + radius;
+					}
+					else
+					{
+						pointEnd.x = pointStart.x - radius;
+					}
+
+				}
+				else if (originFPath[nn].x == pointStart.x)
+				{
+					pointEnd.x = pointStart.x;
+					if (originFPath[nn].y > pointStart.y)
+					{
+						pointEnd.y = pointStart.y + radius;
+					}
+					else
+					{
+						pointEnd.y = pointStart.y - radius;
+					}
+				}
+				else
+				{
+					pointEnd.x = (originFPath[nn].x - pointStart.x) / currentDis * radius + pointStart.x;
+					pointEnd.y = (originFPath[nn].y - pointStart.y) / currentDis * radius + pointStart.y;
+				}
+				newPath.push_back(pointEnd);
+				pointStart = pointEnd;
+				nn--;
+			}
+			else
+			{
+				if (originFPath.size() > nn + 1)
+				{
+					if (originFPath[nn + 1].x == originFPath[nn].x && originFPath[nn + 1].y == originFPath[nn].y)
+					{
+						continue;
+					}
+
+					double A = pow(originFPath[nn + 1].x - originFPath[nn].x, 2) + pow(originFPath[nn + 1].y - originFPath[nn].y, 2);
+					double B = 2 * (originFPath[nn + 1].x - originFPath[nn].x) * (originFPath[nn].x - pointStart.x) + (originFPath[nn + 1].y - originFPath[nn].y) * (originFPath[nn].y - pointStart.y);
+					double C = pow(pointStart.x, 2) + pow(pointStart.y, 2) + pow(originFPath[nn].x, 2) + pow(originFPath[nn].y, 2) - 2 * (pointStart.x * originFPath[nn].x + pointStart.y * originFPath[nn].y) - pow(radius, 2);
+					double u_1 = (-B + sqrt(pow(B, 2) - 4 * A * C)) / (2 * A);
+					double u_2 = (-B - sqrt(pow(B, 2) - 4 * A * C)) / (2 * A);
+					if (u_1 > 0 && u_1 < 1 && u_2>0 && u_2 < 1)//如果线段和圆有两个交点，则u值得两个解都在0和1之间
+					{
+
+						FloatPoint pointOne;
+						pointOne.x = originFPath[nn].x + u_1 * (originFPath[nn + 1].x - originFPath[nn].x);
+						pointOne.y = originFPath[nn].y + u_1 * (originFPath[nn + 1].y - originFPath[nn].y);
+						FloatPoint pointSecond;
+						pointSecond.x = originFPath[nn].x + u_2 * (originFPath[nn + 1].x - originFPath[nn].x);
+						pointSecond.y = originFPath[nn].y + u_2 * (originFPath[nn + 1].y - originFPath[nn].y);
+
+						//2个交点离最后一个点的距离，选择最近的点
+						double OneDis = sqrt(pow(originFPath[nn + 1].x - pointOne.x, 2) + pow(originFPath[nn + 1].y - pointOne.y, 2));
+						double SecondDis = sqrt(pow(originFPath[nn + 1].x - pointSecond.x, 2) + pow(originFPath[nn + 1].y - pointSecond.y, 2));
+						if (OneDis < SecondDis)
+						{
+							newPath.push_back(pointOne);
+							pointStart = pointOne;
+						}
+						else
+						{
+							newPath.push_back(pointSecond);
+							pointStart = pointSecond;
+						}
+
+					}
+					else if ((u_1 > 0 && u_1 < 1) || (u_2 > 0 && u_2 < 1)) //如果线段和圆只有一个交点，则u值中有一个是在0和1之间，另一个不是
+					{
+						double ture_u;
+						if (u_1 > 0 && u_1 < 1)
+						{
+							ture_u = u_1;
+						}
+						else
+						{
+							ture_u = u_2;
+						}
+						FloatPoint pointOne;
+						pointOne.x = originFPath[nn].x + u_1 * (originFPath[nn + 1].x - originFPath[nn].x);
+						pointOne.y = originFPath[nn].y + u_1 * (originFPath[nn + 1].y - originFPath[nn].y);
+						newPath.push_back(pointOne);
+						pointStart = pointOne;
+					}
+				}
+			}
+		}
+		newPaths.push_back(newPath);
+	}
+}
 
 
+ClipperLib::Paths SkirtBrim::skirt2Lace(ClipperLib::Paths& outlinePaths)
+{
+	ClipperLib::PolyTree polyTree;
+
+	ClipperLib::Paths oldPaths = outlinePaths;
+	size_t size = oldPaths.size();
+	//if (size == 0)
+	//	return polyTree;
+
+	//INT2MM 缩小1000
+	std::vector<FloatPath> fpathes(size);
+	for (size_t i = 0; i < size; ++i)
+	{
+		ClipperLib::Path path = oldPaths.at(i);
+		FloatPath& fpath = fpathes.at(i);
+
+		for (ClipperLib::IntPoint& pointTemp : path)
+		{
+			FloatPoint fPoint;
+			fPoint.x = INT2MM(pointTemp.X);
+			fPoint.y = INT2MM(pointTemp.Y);
+			fpath.push_back(fPoint);
+		}
+	}
+
+	FloatPaths newPathes;
+
+	generateLace(fpathes, newPathes);
+	//画圆
+	FloatPaths circleFPathes;
+	for (FloatPath fPathTemp : newPathes)
+	{
+		FloatPath circlePath;
+		for (int n = 1; n < fPathTemp.size(); n += 2)
+		{
+			float Rx = 3.0;
+			FloatPath newPath;
+			for (unsigned int i = 0; i < 100; i++)//顺时针取点
+			{
+				float Angle = 2 * M_PIf * (i / 100.0);
+				size_t nSize = newPath.size();
+				newPath.emplace_back();
+				newPath[nSize].x = (fPathTemp.at(n).x + Rx * cosf(Angle));
+				newPath[nSize].y = (fPathTemp.at(n).y + Rx * sinf(Angle));
+			}
+			circleFPathes.push_back(newPath);
+		}
+	}
+
+	ClipperLib::Clipper clipper;
+	for (ClipperLib::Path path : oldPaths)
+		clipper.AddPath(path, ClipperLib::ptSubject, true);
+
+	for (FloatPath& fpath : circleFPathes)
+	{
+		ClipperLib::Path circlePath;// = new ClipperLib::Path();
+		for (FloatPoint& pointTemp : fpath)
+		{
+			ClipperLib::IntPoint p;
+			p.X = (int)(1000.0f * pointTemp.x);
+			p.Y = (int)(1000.0f * pointTemp.y);
+			circlePath.push_back(p);
+		}
+		clipper.AddPath(circlePath, ClipperLib::ptClip, true);
+	}
+	clipper.Execute(ClipperLib::ctUnion, polyTree, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+	ClipperLib::Paths pathsTemp;
+	ClipperLib::PolyTreeToPaths(polyTree, pathsTemp);
+	return pathsTemp;
+}
 
 coord_t SkirtBrim::generatePrimarySkirtBrimLines(const coord_t start_distance, size_t& primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder)
 {
@@ -434,7 +628,17 @@ void SkirtBrim::generate(SliceDataStorage& storage, Polygons first_layer_outline
         gap = start_distance;
     }
 
-    coord_t offset_distance = generatePrimarySkirtBrimLines(gap, primary_line_count, primary_extruder_minimal_length, first_layer_outline, skirt_brim_primary_extruder);
+	//add LACE
+	coord_t offset_distance = 0;
+	if (scene.current_mesh_group->settings.get<std::string>("adhesion_type") == "lace")
+	{
+		skirt_brim_primary_extruder.add(first_layer_outline);
+	}
+	else
+	{
+		coord_t offset_distance = generatePrimarySkirtBrimLines(gap, primary_line_count, primary_extruder_minimal_length, first_layer_outline, skirt_brim_primary_extruder);
+	}
+    //coord_t offset_distance = generatePrimarySkirtBrimLines(gap, primary_line_count, primary_extruder_minimal_length, first_layer_outline, skirt_brim_primary_extruder);
 
     // Skirt needs to be 'locked' first, otherwise the optimizer can change to order, which can cause undesirable outcomes w.r.t combo w. support-brim or prime-tower brim.
     // If this method is called multiple times, the max order shouldn't reset to 0, so the maximum is taken.

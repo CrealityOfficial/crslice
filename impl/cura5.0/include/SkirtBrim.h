@@ -9,6 +9,18 @@
 namespace cura52 
 {
 
+    # define M_PIf          3.1415927f
+
+	struct FloatPoint
+	{
+		float x;
+		float y;
+	};
+	typedef std::vector< FloatPoint > FloatPath;
+	typedef std::vector< FloatPath > FloatPaths;
+
+
+
 class Polygons;
 class SliceDataStorage;
 
@@ -52,6 +64,9 @@ public:
 
     //auto brim line count
     static size_t generateBrimCount(SliceDataStorage& storage, std::vector<size_t>& vct_primary_line_count);
+
+    //generate race
+    static ClipperLib::Paths skirt2Lace(ClipperLib::Paths& outlinePaths);
 private:
     static void generateSupportBrim(SliceDataStorage& storage, const bool merge_with_model_skirtbrim);
 

@@ -1061,6 +1061,28 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
         SkirtBrim::generate(storage, first_layer_outline, train.settings.get<coord_t>("skirt_gap"), primary_line_count);
     }
 
+	if (adhesion_type == EPlatformAdhesion::LACE)
+	{
+		primary_line_count = train.settings.get<size_t>("skirt_line_count");
+		SkirtBrim::getFirstLayerOutline(storage, primary_line_count, true, first_layer_outline);
+
+		ClipperLib::Paths pathsTemp;
+        ClipperLib::Paths outlinePaths;
+        for (ClipperLib::Paths::iterator it = first_layer_outline.begin();it != first_layer_outline.end();it ++)
+        {
+            outlinePaths.push_back(*it);
+        }
+
+		pathsTemp = SkirtBrim::skirt2Lace(outlinePaths);
+		first_layer_outline.clear();
+        for (ClipperLib::Path& apath:pathsTemp)
+        {
+            Polygon aPolygon(apath);
+            first_layer_outline.add(aPolygon);
+        }
+		SkirtBrim::generate(storage, first_layer_outline, train.settings.get<coord_t>("skirt_gap"), primary_line_count);
+	}
+
     // Generate any brim for the prime tower, should happen _after_ any skirt, but _before_ any other brim (since FffGCodeWriter assumes that the outermost contour is last).
     if (adhesion_type != EPlatformAdhesion::RAFT && storage.primeTower.enabled && mesh_group_settings.get<bool>("prime_tower_brim_enable"))
     {
