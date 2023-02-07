@@ -1043,7 +1043,7 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
     coord_t big_length = small_feature_max_length;
     coord_t smaller_length = 0;
     int64_t wall_length = wall.getLength();
-    if (settings.get<bool>("set_small_feature_grading"))
+    if (settings.get<bool>("set_small_feature_grading") && wall_length > 0)
     {
         int level = -1;
         if (wall_length < settings.get<coord_t>("special_small_feature_max_length_4"))
@@ -1086,10 +1086,11 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
             smaller_length = settings.get<coord_t>(length_name);
         }
     }
-    if (is_small_feature)
+    if (is_small_feature && wall_length > 0)
     {
         small_feature_speed_factor = ((wall_length - smaller_length) / (float)(big_length - smaller_length)) * (small_feature_speed_factor - smaller_level_factor) + smaller_level_factor;
-    }
+        small_feature_speed_factor = std::max(small_feature_speed_factor, Ratio(min_speed / non_bridge_config.getSpeed()));
+    }  
     
     
     ExtrusionJunction p0 = wall[start_idx];

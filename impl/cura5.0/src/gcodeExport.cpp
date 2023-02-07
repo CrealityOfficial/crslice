@@ -474,6 +474,12 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";MAXX:" << INT2MM(total_bounding_box.max.x) << new_line;
         prefix << ";MAXY:" << INT2MM(total_bounding_box.max.y) << new_line;
         prefix << ";MAXZ:" << INT2MM(total_bounding_box.max.z) << new_line;
+
+        if (!print_time)
+        {
+            for (int i = 0; i < 100; i++) prefix << " ";
+            prefix << new_line;
+        }
     }
 
     return prefix.str();
@@ -703,12 +709,7 @@ void GCodeExport::updateTotalPrintTime()
 }
 
 void GCodeExport::reWritePreFixStr(std::string preFix)
-{
-    if (preFix.length() > m_preFixLen)
-    {
-        return;
-    }
-
+{  
     output_stream->seekp(0, std::ios::beg);
     *output_stream << preFix;
     size_t len = preFix.length();
