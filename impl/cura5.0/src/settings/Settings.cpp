@@ -376,23 +376,35 @@ EFillMethod Settings::get<EFillMethod>(const std::string& key) const
 template<>
 EPlatformAdhesion Settings::get<EPlatformAdhesion>(const std::string& key) const
 {
-    const std::string& value = get<std::string>(key);
-    if (value == "brim")
-    {
-        return EPlatformAdhesion::BRIM;
-    }
-    else if (value == "raft")
-    {
-        return EPlatformAdhesion::RAFT;
-    }
-    else if (value == "none")
-    {
-        return EPlatformAdhesion::NONE;
-    }
-    else // Default.
-    {
-        return EPlatformAdhesion::SKIRT;
-    }
+	const std::string& value = get<std::string>(key);
+	if (value == "brim")
+	{
+		return EPlatformAdhesion::BRIM;
+	}
+	else if (value == "autobrim")
+	{
+		return EPlatformAdhesion::AUTOBRIM;
+	}
+	else if (value == "raft")
+	{
+		return EPlatformAdhesion::RAFT;
+	}
+	else if (value == "simpleraft")
+	{
+		return EPlatformAdhesion::SIMPLERAFT;
+	}
+	else if (value == "none")
+	{
+		return EPlatformAdhesion::NONE;
+	}
+	else if (value == "lace")
+	{
+		return EPlatformAdhesion::LACE;
+	}
+	else //Default.
+	{
+		return EPlatformAdhesion::SKIRT;
+	}
 }
 
 template<>

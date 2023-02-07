@@ -36,10 +36,13 @@ enum class EFillMethod
  */
 enum class EPlatformAdhesion
 {
-    SKIRT,
-    BRIM,
-    RAFT,
-    NONE
+	SKIRT,
+	BRIM,
+	AUTOBRIM,
+	RAFT,
+	SIMPLERAFT,
+	LACE,
+	NONE
 };
 
 /*!

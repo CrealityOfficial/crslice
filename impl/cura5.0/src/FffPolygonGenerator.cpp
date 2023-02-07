@@ -1068,6 +1068,8 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
         SkirtBrim::generate(storage, storage.primeTower.outer_poly, 0, train.settings.get<size_t>("brim_line_count"), dont_allow_helpers);
     }
 
+	size_t max_line_count = 0;
+	std::vector<size_t> vct_primary_line_count;
     switch (adhesion_type)
     {
     case EPlatformAdhesion::SKIRT:
@@ -1078,6 +1080,11 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
         SkirtBrim::getFirstLayerOutline(storage, primary_line_count, false, first_layer_outline);
         SkirtBrim::generate(storage, first_layer_outline, 0, primary_line_count);
         break;
+	case EPlatformAdhesion::AUTOBRIM:
+		max_line_count = SkirtBrim::generateBrimCount(storage, vct_primary_line_count);
+		SkirtBrim::getFirstLayerOutline(storage, max_line_count, false, first_layer_outline);
+		SkirtBrim::generateEX(storage, first_layer_outline, 0, vct_primary_line_count);
+		break;
     case EPlatformAdhesion::RAFT:
         Raft::generate(storage);
         break;

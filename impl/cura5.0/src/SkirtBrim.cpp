@@ -90,6 +90,244 @@ void SkirtBrim::getFirstLayerOutline(SliceDataStorage& storage, const size_t pri
     }
 }
 
+// BBS: properties of an expolygon
+struct ExPolyProp
+{
+	double aera = 0;
+	ClipperLib::DoublePoint  centroid;
+	ClipperLib::DoublePoint  secondMomentOfAreaRespectToCentroid;
+
+};
+
+// center of mass ÖÊÐÄ
+// source: https://en.wikipedia.org/wiki/Centroid
+ClipperLib::IntPoint centroid(ClipperLib::Path aPath)
+{
+	double area_sum = 0.;
+	ClipperLib::IntPoint  c(0., 0.);
+	if (aPath.size() >= 3) {
+		ClipperLib::IntPoint p1 = aPath.back();
+		for (const ClipperLib::IntPoint& p : aPath) {
+			ClipperLib::IntPoint p2 = p;
+			double a = p1.X * p2.Y - p1.Y * p2.X; //cross(p1, p2);
+			area_sum += a;
+			c += (p1 + p2) * a;
+			p1 = p2;
+		}
+	}
+	return Point(c / (3. * area_sum));
+}
+
+// BBS: second moment of area of a polygon
+bool compSecondMoment3(ClipperLib::Path poly, ClipperLib::DoublePoint& sm)
+{
+	//if (ClipperLib::Orientation(poly))
+//          ClipperLib::ReversePath(poly);
+
+	sm = ClipperLib::DoublePoint(0., 0.);
+	if (poly.size() >= 3) {
+		Point p1 = poly.back();
+		for (const Point& p : poly)
+		{
+			Point p2 = p;
+			double a = p1.X * p2.Y - p1.Y * p2.X;
+			ClipperLib::DoublePoint temp((p1.Y * p1.Y + p1.Y * p2.Y + p2.Y * p2.Y) * a / 12, (p1.X * p1.X + p1.X * p2.X + p2.X * p2.X) * a / 12);
+			sm.X += temp.X;
+			sm.Y += temp.Y;
+			p1 = p2;
+		}
+		return true;
+	}
+	return false;
+}
+
+// BBS: second moment of area of an expolyon
+bool compSecondMoment2(const ClipperLib::Path& expoly, ExPolyProp& expolyProp, ClipperLib::Paths& aPolysHolePaths, ClipperLib::DoublePoint& secondMomentOfAreaRespectToCentroid)
+{
+	double aera = ClipperLib::Area(expoly);//expoly.contour.area();
+	Point cent = centroid(expoly) * aera;
+	ClipperLib::DoublePoint sm(0.0, 0.0);
+	if (!compSecondMoment3(expoly, sm))
+		return false;
+
+	for (auto& hole : aPolysHolePaths)
+	{
+		double a = ClipperLib::Area(hole);
+		aera += ClipperLib::Area(hole);
+		cent += centroid(hole) * a;
+		ClipperLib::DoublePoint  smh(0.0, 0.0);
+		if (compSecondMoment3(hole, smh))
+		{
+			//sm += -smh;
+			sm.X += -smh.X;
+			sm.Y += -smh.Y;
+		}
+
+	}
+
+	cent = cent / aera;
+	sm.X -= cent.Y * cent.Y * aera;
+	sm.Y -= cent.X * cent.X * aera;
+	expolyProp.aera = aera;
+	expolyProp.centroid = cent;
+	expolyProp.secondMomentOfAreaRespectToCentroid = sm;
+	secondMomentOfAreaRespectToCentroid = sm;
+	return true;
+}
+
+
+// BBS: second moment of area of expolygons
+bool compSecondMoment(const ClipperLib::Paths& expolys, double& smExpolysX, double& smExpolysY, ClipperLib::Paths& aExpolysHole)
+{
+	if (expolys.empty()) return false;
+	//std::vector<ExPolyProp> props;
+	std::vector<ExPolyProp> props;
+	ClipperLib::DoublePoint secondMomentOfAreaRespectToCentroid;
+	for (const ClipperLib::Path& expoly : expolys)
+	{
+		ExPolyProp prop;
+		if (compSecondMoment2(expoly, prop, aExpolysHole, secondMomentOfAreaRespectToCentroid))
+			props.push_back(prop);
+	}
+	if (props.empty())
+		return false;
+	double totalArea = 0.;
+	ClipperLib::DoublePoint staticMoment(0., 0.);
+	for (const ExPolyProp& prop : props)
+	{
+		totalArea += prop.aera;
+		staticMoment.X += prop.centroid.X * prop.aera;
+		staticMoment.Y += prop.centroid.Y * prop.aera;
+	}
+	double totalCentroidX = staticMoment.X / totalArea;
+	double totalCentroidY = staticMoment.Y / totalArea;
+
+	smExpolysX = 0;
+	smExpolysY = 0;
+	for (const ExPolyProp& prop : props)
+	{
+		double deltaX = prop.centroid.X - totalCentroidX;
+		double deltaY = prop.centroid.Y - totalCentroidY;
+		smExpolysX += secondMomentOfAreaRespectToCentroid.X + prop.aera * deltaY * deltaY;
+		smExpolysY += secondMomentOfAreaRespectToCentroid.Y + prop.aera * deltaX * deltaX;
+	}
+
+	return true;
+}
+
+double getMaxSpeed(SliceDataStorage& storage)
+{
+	double objMaxSpeed = -1.;
+	const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
+	if (mesh_group_settings.get<Velocity>("speed_print").value > objMaxSpeed)
+	{
+		objMaxSpeed = mesh_group_settings.get<Velocity>("speed_print").value;
+	}
+	if (mesh_group_settings.get<Velocity>("speed_infill").value > objMaxSpeed)
+	{
+		objMaxSpeed = mesh_group_settings.get<Velocity>("speed_infill").value;
+	}
+	if (mesh_group_settings.get<Velocity>("speed_wall").value > objMaxSpeed)
+	{
+		objMaxSpeed = mesh_group_settings.get<Velocity>("speed_wall").value;
+	}
+
+	if (objMaxSpeed <= 0) objMaxSpeed = 250.;
+	return objMaxSpeed;
+}
+
+size_t SkirtBrim::generateBrimCount(SliceDataStorage& storage, std::vector<size_t>& vct_primary_line_count)
+{
+	size_t max_line_count = 0;
+	double maxSpeed = getMaxSpeed(storage);
+
+	for (SliceMeshStorage& amesh : storage.meshes)
+	{
+		if (amesh.layers.size() > 0)
+		{
+			for (SliceLayerPart& apart : amesh.layers[0].parts)
+			{
+				Polygons aExpolysHole;
+				Polygons aExpolys = apart.print_outline;
+				ClipperLib::IntPoint center((apart.boundaryBox.max.X + apart.boundaryBox.min.X) * 0.5, (apart.boundaryBox.max.Y + apart.boundaryBox.min.Y) * 0.5);
+				aExpolysHole = aExpolys.getEmptyHoles();
+				aExpolys = aExpolys.removeEmptyHoles();
+
+
+				for (ClipperLib::IntPoint& aPoint : *(aExpolys.begin()))
+				{
+					aPoint -= center;
+					aPoint.X *= 1000.0;
+					aPoint.Y *= 1000.0;
+				}
+				for (ClipperLib::Paths::iterator it = aExpolysHole.begin();it != aExpolysHole.end();it++)
+				{
+					for (ClipperLib::IntPoint& aPoint : *it)
+					{
+						aPoint -= center;
+						aPoint.X *= 1000.0;
+						aPoint.Y *= 1000.0;
+					}
+				}
+
+
+
+				ClipperLib::Paths aPolysPaths;
+				for (ClipperLib::Paths::iterator it = aExpolys.begin(); it != aExpolys.end(); it++)
+				{
+					aPolysPaths.push_back(*it);
+				}
+				ClipperLib::Paths aPolysHolePaths;
+				for (ClipperLib::Paths::iterator it = aExpolysHole.begin(); it != aExpolysHole.end(); it++)
+				{
+					aPolysHolePaths.push_back(*it);
+				}
+
+				auto bbox_size = amesh.bounding_box;
+				double height = INT2MM(bbox_size.max.z - bbox_size.min.z);
+				double Ixx = -1.e30, Iyy = -1.e30;
+				if (!aExpolys.empty())
+				{
+					if (!compSecondMoment(aPolysPaths, Ixx, Iyy, aPolysHolePaths))
+						Ixx = Iyy = -1.e30;
+
+					static constexpr double SCALING_FACTOR = 0.000001;
+					Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+					Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+
+					// bounding box of the expolygons of the first layer of the volume
+					//BoundingBox bbox2;
+					//for (const auto& expoly : expolys)
+					//	bbox2.merge(get_extents(expoly.contour));
+					const double& bboxX = MM2INT(amesh.bounding_box.max.x - amesh.bounding_box.min.x);
+					const double& bboxY = MM2INT(amesh.bounding_box.max.y - amesh.bounding_box.min.y);
+					double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
+					double thermalLengthRef = 200;//Ä¬ÈÏPla;
+
+					double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
+					double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
+					// small brims are omitted
+					if (brim_width < 5 && brim_width < 1.5 * thermalLength)
+						brim_width = 0;
+					// large brims are omitted
+					if (brim_width > 18) brim_width = 18.;
+					if (max_line_count < brim_width)
+					{
+						max_line_count = brim_width;
+					}
+					vct_primary_line_count.push_back(brim_width);
+				}
+			}
+		}
+	}
+	return max_line_count;
+}
+
+
+
+
+
+
 coord_t SkirtBrim::generatePrimarySkirtBrimLines(const coord_t start_distance, size_t& primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder)
 {
     const Settings& adhesion_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").settings;
@@ -121,6 +359,50 @@ coord_t SkirtBrim::generatePrimarySkirtBrimLines(const coord_t start_distance, s
     }
     return offset_distance;
 }
+
+
+coord_t SkirtBrim::generatePrimaryAutoBrimLines(SliceDataStorage& storage, const coord_t start_distance, std::vector<size_t>& vct_primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder)
+{
+	const Settings& adhesion_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").settings;
+	const coord_t primary_extruder_skirt_brim_line_width = adhesion_settings.get<coord_t>("skirt_brim_line_width") * adhesion_settings.get<Ratio>("initial_layer_line_width_factor");	
+	coord_t max_offset_distance = 0;
+
+	//for (const ClipperLib::Path& apath : first_layer_outline.paths)
+	for (int n = 0; n < first_layer_outline.size(); n++)
+	{
+		coord_t offset_distance = start_distance - primary_extruder_skirt_brim_line_width / 2;
+		for (unsigned int skirt_brim_number = 0; skirt_brim_number < vct_primary_line_count[n]; skirt_brim_number++)
+		{
+			offset_distance += primary_extruder_skirt_brim_line_width;
+
+			Polygons outer_skirt_brim_line = first_layer_outline[n].offset(offset_distance, ClipperLib::jtRound);
+
+			//Remove small inner skirt and brim holes. Holes have a negative area, remove anything smaller then 100x extrusion "area"
+			for (unsigned int n = 0; n < outer_skirt_brim_line.size(); n++)
+			{
+				double area = outer_skirt_brim_line[n].area();
+				if (area < 0 && area > -primary_extruder_skirt_brim_line_width * primary_extruder_skirt_brim_line_width * 100)
+				{
+					outer_skirt_brim_line.remove(n--);
+				}
+			}
+
+			skirt_brim_primary_extruder.add(outer_skirt_brim_line);
+
+			//const coord_t length = skirt_brim_primary_extruder.polygonLength();
+			//if (skirt_brim_number + 1 >= vct_primary_line_count[n] && length > 0 && length < primary_extruder_minimal_length) //Make brim or skirt have more lines when total length is too small.
+			//{
+			//  vct_primary_line_count[n]++;
+			//}
+		}
+		if (max_offset_distance < offset_distance)
+		{
+			max_offset_distance = offset_distance;
+		}
+	}
+	return max_offset_distance;
+}
+
 
 void SkirtBrim::generate(SliceDataStorage& storage, Polygons first_layer_outline, const coord_t start_distance, size_t primary_line_count, const bool allow_helpers /*= true*/)
 {
@@ -236,6 +518,94 @@ void SkirtBrim::generate(SliceDataStorage& storage, Polygons first_layer_outline
         }
     }
 }
+
+void SkirtBrim::generateEX(SliceDataStorage& storage, Polygons first_layer_outline, const coord_t start_distance, std::vector<size_t> vct_primary_line_count, const bool allow_helpers /*= true*/)
+{
+	if (first_layer_outline.size() != vct_primary_line_count.size())
+	{
+		return;
+	}
+	size_t max_line_count = 0;
+	for (size_t& acount : vct_primary_line_count)
+	{
+		if (max_line_count < acount)
+		{
+			max_line_count = acount;
+		}
+	}
+
+
+
+	Scene& scene = Application::getInstance().current_slice->scene;
+	const size_t skirt_brim_extruder_nr = scene.current_mesh_group->settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr;
+	const Settings& adhesion_settings = scene.extruders[skirt_brim_extruder_nr].settings;
+	const coord_t primary_extruder_skirt_brim_line_width = adhesion_settings.get<coord_t>("skirt_brim_line_width") * adhesion_settings.get<Ratio>("initial_layer_line_width_factor");
+	const coord_t primary_extruder_minimal_length = adhesion_settings.get<coord_t>("skirt_brim_minimal_length");
+
+	Polygons& skirt_brim_primary_extruder = storage.skirt_brim[skirt_brim_extruder_nr];
+
+	const bool has_ooze_shield = allow_helpers && storage.oozeShield.size() > 0 && storage.oozeShield[0].size() > 0;
+	const bool has_draft_shield = allow_helpers && storage.draft_protection_shield.size() > 0;
+
+	coord_t offset_distance = generatePrimaryAutoBrimLines(storage, start_distance, vct_primary_line_count, primary_extruder_minimal_length, first_layer_outline, skirt_brim_primary_extruder);
+
+	storage.skirt_brim_max_locked_part_order[skirt_brim_extruder_nr] = std::max(max_line_count, storage.skirt_brim_max_locked_part_order[skirt_brim_extruder_nr]);
+
+	// handle support-brim
+	const ExtruderTrain& support_infill_extruder = scene.current_mesh_group->settings.get<ExtruderTrain&>("support_infill_extruder_nr");
+	if (allow_helpers && support_infill_extruder.settings.get<bool>("support_brim_enable"))
+	{
+		generateSupportBrim(storage, true);
+	}
+
+	// generate brim for ooze shield and draft shield
+	if (has_ooze_shield || has_draft_shield)
+	{
+		// generate areas where to make extra brim for the shields
+		// avoid gap in the middle
+		//    V
+		//  +---+     +----+
+		//  |+-+|     |+--+|
+		//  || ||     ||[]|| > expand to fit an extra brim line
+		//  |+-+|     |+--+|
+		//  +---+     +----+ 
+		const coord_t primary_skirt_brim_width = (max_line_count + max_line_count % 2) * primary_extruder_skirt_brim_line_width; // always use an even number, because we will fil the area from both sides
+
+		Polygons shield_brim;
+		if (has_ooze_shield)
+		{
+			shield_brim = storage.oozeShield[0].difference(storage.oozeShield[0].offset(-primary_skirt_brim_width - primary_extruder_skirt_brim_line_width));
+		}
+		if (has_draft_shield)
+		{
+			shield_brim = shield_brim.unionPolygons(storage.draft_protection_shield.difference(storage.draft_protection_shield.offset(-primary_skirt_brim_width - primary_extruder_skirt_brim_line_width)));
+		}
+		const Polygons outer_primary_brim = first_layer_outline.offset(offset_distance, ClipperLib::jtRound);
+		shield_brim = shield_brim.difference(outer_primary_brim.offset(primary_extruder_skirt_brim_line_width));
+
+		// generate brim within shield_brim
+		skirt_brim_primary_extruder.add(shield_brim);
+		while (shield_brim.size() > 0)
+		{
+			shield_brim = shield_brim.offset(-primary_extruder_skirt_brim_line_width);
+			skirt_brim_primary_extruder.add(shield_brim);
+		}
+
+		// update parameters to generate secondary skirt around
+		first_layer_outline = outer_primary_brim;
+		if (has_draft_shield)
+		{
+			first_layer_outline = first_layer_outline.unionPolygons(storage.draft_protection_shield);
+		}
+		if (has_ooze_shield)
+		{
+			first_layer_outline = first_layer_outline.unionPolygons(storage.oozeShield[0]);
+		}
+
+		offset_distance = 0;
+	}
+}
+
 
 void SkirtBrim::generateSupportBrim(SliceDataStorage& storage, const bool merge_with_model_skirtbrim)
 {
