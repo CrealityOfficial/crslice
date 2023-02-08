@@ -1,6 +1,8 @@
 __enable_cxx17()
 include(StandardProjectSettings.cmake)
 
+__build_crslice_info_header()
+
 if (NOT APPLE)
     option(ENABLE_OPENMP "Use OpenMP for parallel code" ON)
 endif ()
