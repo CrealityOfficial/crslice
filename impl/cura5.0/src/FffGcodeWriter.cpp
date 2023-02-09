@@ -177,11 +177,11 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
             layer_plan_buffer.handle(*gcode_layer, gcode);
         });
 
+    layer_plan_buffer.flush();
 	if (scene.m_tracer->interrupt())
 	{
 		return;
 	}
-    layer_plan_buffer.flush();
 
     Progress::messageProgressStage(Progress::Stage::FINISH, &time_keeper);
 
