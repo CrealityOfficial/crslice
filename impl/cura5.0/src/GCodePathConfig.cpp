@@ -14,7 +14,6 @@ GCodePathConfig::GCodePathConfig(const GCodePathConfig& other)
 , line_width(other.line_width)
 , layer_thickness(other.layer_thickness)
 , flow(other.flow)
-, is_exact_flow(other.is_exact_flow)
 , extrusion_mm3_per_mm(other.extrusion_mm3_per_mm)
 , is_bridge_path(other.is_bridge_path)
 , fan_speed(other.fan_speed)
@@ -23,13 +22,12 @@ GCodePathConfig::GCodePathConfig(const GCodePathConfig& other)
 
 
 
-GCodePathConfig::GCodePathConfig(const PrintFeatureType& type, const coord_t line_width, const coord_t layer_height, const Ratio& flow, const bool is_exact_flow, const GCodePathConfig::SpeedDerivatives speed_derivatives, const bool is_bridge_path, const double fan_speed)
+GCodePathConfig::GCodePathConfig(const PrintFeatureType& type, const coord_t line_width, const coord_t layer_height, const Ratio& flow, const GCodePathConfig::SpeedDerivatives speed_derivatives, const bool is_bridge_path, const double fan_speed)
 : type(type)
 , speed_derivatives(speed_derivatives)
 , line_width(line_width)
 , layer_thickness(layer_height)
 , flow(flow)
-, is_exact_flow(is_exact_flow)
 , extrusion_mm3_per_mm(calculateExtrusion())
 , is_bridge_path(is_bridge_path)
 , fan_speed(fan_speed)
@@ -101,10 +99,6 @@ Ratio GCodePathConfig::getFlowRatio() const
 
 double GCodePathConfig::calculateExtrusion() const
 {
-    if (is_exact_flow)
-    {
-        return float(INT2MM(layer_thickness) * (INT2MM(line_width) - INT2MM(layer_thickness) * (1. - 0.25 * M_PI))) * double(flow);
-    }
     return INT2MM(line_width) * INT2MM(layer_thickness) * double(flow);
 }
 

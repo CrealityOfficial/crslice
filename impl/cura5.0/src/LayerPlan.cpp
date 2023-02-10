@@ -115,6 +115,10 @@ GCodePath* LayerPlan::getLatestPathWithConfig(const GCodePathConfig& config, Spa
     }
     paths.emplace_back(config, current_mesh, space_fill_type, flow, width_factor, spiralize, speed_factor);
     GCodePath* ret = &paths.back();
+    if (config.type == PrintFeatureType::Infill || config.type == PrintFeatureType::Skin)
+    {
+        ret->width_factor = (config.getLineWidth() - fill_lineWidth_diff) / (Ratio)config.getLineWidth();
+    }
     ret->skip_agressive_merge_hint = mode_skip_agressive_merge;
     return ret;
 }
@@ -158,6 +162,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     , comb_boundary_preferred(computeCombBoundary(CombBoundary::PREFERRED))
     , comb_move_inside_distance(comb_move_inside_distance)
     , fan_speed_layer_time_settings_per_extruder(fan_speed_layer_time_settings_per_extruder)
+    , fill_lineWidth_diff(0)
 {
     size_t current_extruder = start_extruder;
     was_inside = true; // not used, because the first travel move is bogus
@@ -2526,6 +2531,11 @@ void LayerPlan::setOverhangMask(const Polygons& polys, int idx)
         overhang_mask.resize(4);
     if (idx > 3 || idx < 0) return;
     overhang_mask[idx].add(polys);
+}
+
+void LayerPlan::setFillLineWidthDiff(coord_t diff)
+{
+    fill_lineWidth_diff = diff;
 }
 
 } // namespace cura52

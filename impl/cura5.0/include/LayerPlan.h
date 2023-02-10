@@ -266,6 +266,7 @@ private:
     coord_t comb_move_inside_distance;  //!< Whenever using the minimum boundary for combing it tries to move the coordinates inside by this distance after calculating the combing.
     Polygons bridge_wall_mask; //!< The regions of a layer part that are not supported, used for bridging
     std::vector<Polygons> overhang_mask; //!< The regions of a layer part where the walls overhang
+    coord_t fill_lineWidth_diff;
 
     const std::vector<FanSpeedLayerTimeSettings> fan_speed_layer_time_settings_per_extruder;
 
@@ -804,6 +805,8 @@ public:
      * the back-pressure is compensated for. This is conjectured to be especially important if the printer has a Bowden-tube style setup.
      */
     void applyBackPressureCompensation();
+
+    void setFillLineWidthDiff(coord_t diff);
 
 private:
 

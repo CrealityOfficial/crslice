@@ -37,12 +37,11 @@ private:
     const coord_t line_width; //!< width of the line extruded
     const coord_t layer_thickness; //!< current layer height in micron
     const Ratio flow; //!< extrusion flow modifier.
-    const bool is_exact_flow;
     const double extrusion_mm3_per_mm;//!< current mm^3 filament moved per mm line traversed
     const bool is_bridge_path; //!< whether current config is used when bridging
     const double fan_speed; //!< fan speed override for this path, value should be within range 0-100 (inclusive) and ignored otherwise
 public:
-    GCodePathConfig(const PrintFeatureType& type, const coord_t line_width, const coord_t layer_height, const Ratio& flow, const bool is_exact_flow, const SpeedDerivatives speed_derivatives, const bool is_bridge_path = false, const double fan_speed = FAN_SPEED_DEFAULT);
+    GCodePathConfig(const PrintFeatureType& type, const coord_t line_width, const coord_t layer_height, const Ratio& flow, const SpeedDerivatives speed_derivatives, const bool is_bridge_path = false, const double fan_speed = FAN_SPEED_DEFAULT);
 
     /*!
      * copy constructor

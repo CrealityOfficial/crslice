@@ -1111,6 +1111,11 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 
     const coord_t first_outer_wall_line_width = scene.extruders[extruder_order.front()].settings.get<coord_t>("wall_line_width_0");
     LayerPlan& gcode_layer = *new LayerPlan(storage, layer_nr, z, layer_thickness, extruder_order.front(), fan_speed_layer_time_settings_per_extruder, comb_offset_from_outlines, first_outer_wall_line_width, avoid_distance);
+    
+    if (scene.extruders[extruder_order.front()].settings.get<bool>("special_exact_flow_enable"))
+    {
+        gcode_layer.setFillLineWidthDiff(layer_thickness * float(1. - 0.25 * M_PI) + 0.5);
+    }
 
     if (include_helper_parts && layer_nr == 0)
     { // process the skirt or the brim of the starting extruder.
@@ -2693,12 +2698,19 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
     constexpr int zag_skip_count = 0;
     constexpr coord_t pocket_size = 0;
 
+    coord_t line_distance = config.getLineWidth();
+    const coord_t layer_thickness = mesh.settings.get<coord_t>("layer_height");
+    if (mesh.settings.get<bool>("special_exact_flow_enable"))
+    {
+        line_distance = line_distance - layer_thickness * float(1. - 0.25 * M_PI);
+    }
+
     Infill infill_comp(pattern,
                        zig_zaggify_infill,
                        connect_polygons,
                        area,
                        config.getLineWidth(),
-                       config.getLineWidth() / skin_density,
+                       line_distance / skin_density,
                        skin_overlap,
                        infill_multiplier,
                        skin_angle,
