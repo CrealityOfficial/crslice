@@ -149,6 +149,7 @@ namespace crslice
 
         cura52::Application::getInstance().current_slice = &slice;
         slice.scene.m_tracer = m_tracer;
+        slice.scene.machine_center_is_zero = m_scene->machine_center_is_zero;
 
         bool sliceValible = false;
 

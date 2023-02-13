@@ -38,6 +38,7 @@ public:
      * \brief The extruders in the scene.
      */
     std::vector<ExtruderTrain> extruders;
+    bool machine_center_is_zero = false;
 
     /*
      * \brief The mesh group that is being processed right now.

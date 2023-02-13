@@ -48,6 +48,15 @@ void Raft::generate(SliceDataStorage& storage)
         storage.raftOutline = storage.raftOutline.offset(smoothing, ClipperLib::jtRound).offset(-smoothing, ClipperLib::jtRound); // remove small holes and smooth inward corners
     }
 
+    Polygon machine_box;
+    machine_box.add(Point(storage.machine_size.min.x, storage.machine_size.min.y));
+    machine_box.add(Point(storage.machine_size.min.x, storage.machine_size.max.y));
+    machine_box.add(Point(storage.machine_size.max.x, storage.machine_size.max.y));
+    machine_box.add(Point(storage.machine_size.max.x, storage.machine_size.min.y));
+    Polygons machine_boxs;
+    machine_boxs.add(machine_box);
+    storage.raftOutline = storage.raftOutline.intersection(machine_boxs);
+
     if (storage.primeTower.enabled && ! storage.primeTower.would_have_actual_tower)
     {
         // Find out if the prime-tower part of the raft still needs to be printed, even if there is no actual tower.
@@ -68,7 +77,7 @@ void Raft::generate(SliceDataStorage& storage)
         storage.primeRaftOutline = storage.primeRaftOutline.unionPolygons(storage.raftOutline);
         storage.primeRaftOutline.makeConvex();
     }
-    storage.primeRaftOutline = storage.primeRaftOutline.difference(storage.raftOutline); // In case of overlaps.
+    storage.primeRaftOutline = storage.primeRaftOutline.difference(storage.raftOutline).intersection(machine_boxs); // In case of overlaps.
 }
 
 coord_t Raft::getTotalThickness()

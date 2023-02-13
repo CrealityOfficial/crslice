@@ -32,6 +32,7 @@ namespace crslice
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;
 		std::vector<SettingsPtr> m_extruders;
+		bool machine_center_is_zero;
 
 		std::string m_gcodeFileName;
 	};

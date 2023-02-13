@@ -284,14 +284,12 @@ SliceDataStorage::SliceDataStorage()
     const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
     Point3 machine_max(mesh_group_settings.get<coord_t>("machine_width"), mesh_group_settings.get<coord_t>("machine_depth"), mesh_group_settings.get<coord_t>("machine_height"));
     Point3 machine_min(0, 0, 0);
-    if (mesh_group_settings.get<bool>("machine_center_is_zero"))
-    {
-        machine_max /= 2;
-        machine_min -= machine_max;
-    }
     machine_size.include(machine_min);
     machine_size.include(machine_max);
-
+    if (Application::getInstance().current_slice->scene.machine_center_is_zero)
+    {
+        machine_size.offset(Point3(-machine_size.max.x / 2, -machine_size.max.y / 2, 0));
+    }
     std::fill(skirt_brim_max_locked_part_order, skirt_brim_max_locked_part_order + MAX_EXTRUDERS, 0);
 }
 
