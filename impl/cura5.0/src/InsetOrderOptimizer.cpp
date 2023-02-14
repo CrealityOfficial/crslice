@@ -56,6 +56,7 @@ bool InsetOrderOptimizer::addToLayer()
     const auto pack_by_inset = ! settings.get<bool>("optimize_wall_printing_order");
     const auto inset_direction = settings.get<InsetDirection>("inset_direction");
     const auto alternate_walls = settings.get<bool>("material_alternate_walls");
+    const auto wipe_length = settings.get<coord_t>("wipe_length");
 
     const bool outer_to_inner = inset_direction == InsetDirection::OUTSIDE_IN;
     const bool use_one_extruder = wall_0_extruder_nr == wall_x_extruder_nr;
@@ -132,7 +133,7 @@ bool InsetOrderOptimizer::addToLayer()
     cura52::Point p_end{ 0, 0 };
     for (const PathOrderPath<const ExtrusionLine*>& path : order_optimizer.paths)
     {
-        if (path.vertices->empty())
+        if (path.vertices->empty() || (!path.vertices->is_closed && path.vertices->getLength() < wipe_length))
             continue;
 
         const bool is_outer_wall = path.vertices->inset_idx == 0; // or thin wall 'gap filler'
