@@ -1004,7 +1004,7 @@ void Slicer::makePolygons(Mesh& mesh, SlicingTolerance slicing_tolerance, std::v
 
     const coord_t xy_offset = mesh.settings.get<coord_t>("xy_offset");
     const coord_t xy_offset_0 = mesh.settings.get<coord_t>("xy_offset_layer_0");
-    const coord_t offset_rectify =  0.5 * mesh.settings.get<coord_t>("layer_height") * float(1. - 0.25 * M_PI) + 0.5;
+    const coord_t offset_rectify = 0.5 * mesh.settings.get<coord_t>("layer_height") * float(1. - 0.25 * M_PI) + 0.5;
 
     cura52::parallel_for<size_t>(0,
                                layers.size(),

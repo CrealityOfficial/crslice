@@ -2285,10 +2285,11 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
             {
                 Polygons overhang_region_last;
                 AngleDegrees overhang_angle_level[5] = { 0, 20, 45, 60, 75 };
+                const coord_t offset_rectify = 0.5 * layer_height * float(1. - 0.25 * M_PI) + 0.5;
                 for (int i = 1; i < 5; i++)
                 {
                     const coord_t _overhang_width = layer_height * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
-                    Polygons _overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width)).offset(10);
+                    Polygons _overhang_region = part.outline.offset(-half_outer_wall_width + offset_rectify).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width + offset_rectify)).offset(10);
                     if (overhang_region_last.empty())
                     {
                         overhang_region_last = _overhang_region;

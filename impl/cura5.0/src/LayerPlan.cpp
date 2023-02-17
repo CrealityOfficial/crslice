@@ -732,6 +732,21 @@ void LayerPlan::addWallLine(const Point& p0,
                 }
             }
         }
+        else
+        {
+            for (int i = 0; i < overhang_mask.size(); i++)
+            {
+                if (overhang_mask[i].empty()) continue;
+                Polygons line_polys;
+                line_polys.addLine(p0, p1);
+                constexpr bool restitch = false; // only a single line doesn't need stitching
+                Polygons inter_line_polys = overhang_mask[i].intersectionPolyLines(line_polys, restitch);
+                if (!inter_line_polys.empty() && inter_line_polys.polyLineLength() > line_polys.polyLineLength() * 0.5)
+                {
+                    return overhang_speed_factor_vec[i];
+                }
+            }
+        }
         return speed_factor;
     };
 
