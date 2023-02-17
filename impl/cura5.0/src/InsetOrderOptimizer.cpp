@@ -135,10 +135,10 @@ bool InsetOrderOptimizer::addToLayer()
     for (int i = 0; i < wall_path_size; i++)
     {
         const PathOrderPath<const ExtrusionLine*>& path = order_optimizer.paths[i];
-        if (path.vertices->empty() || (wall_path_size == 2 && i == wall_path_size - 1 && !path.vertices->is_closed && path.vertices->getLength() < wipe_length))
+        const bool is_outer_wall = path.vertices->inset_idx == 0; // or thin wall 'gap filler'
+        if (path.vertices->empty() || (!is_outer_wall && wall_path_size == 2 && i == wall_path_size - 1 && !path.vertices->is_closed && path.vertices->getLength() < wipe_length))
             continue;
 
-        const bool is_outer_wall = path.vertices->inset_idx == 0; // or thin wall 'gap filler'
         const bool is_gap_filler = path.vertices->is_odd;
         const GCodePathConfig& non_bridge_config = is_outer_wall ? inset_0_non_bridge_config : inset_X_non_bridge_config;
         const GCodePathConfig& bridge_config = is_outer_wall ? inset_0_bridge_config : inset_X_bridge_config;

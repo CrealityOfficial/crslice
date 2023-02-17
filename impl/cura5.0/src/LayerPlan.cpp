@@ -266,6 +266,7 @@ Polygons LayerPlan::computeCombBoundary(const CombBoundary boundary_type)
             }
         }
     }
+
     return comb_boundary;
 }
 
@@ -459,6 +460,10 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
                 }
                 for (Point& comb_point : combPath)
                 {
+                    if (comb_point.X < storage.machine_size.min.x) comb_point.X = storage.machine_size.min.x;
+                    if (comb_point.X > storage.machine_size.max.x) comb_point.X = storage.machine_size.max.x;
+                    if (comb_point.Y < storage.machine_size.min.y) comb_point.Y = storage.machine_size.min.y;
+                    if (comb_point.Y > storage.machine_size.max.y) comb_point.Y = storage.machine_size.max.y;
                     if (path->points.empty() || vSize2(path->points.back() - comb_point) > maximum_travel_resolution * maximum_travel_resolution)
                     {
                         path->points.push_back(comb_point);
