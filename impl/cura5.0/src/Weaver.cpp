@@ -38,7 +38,7 @@ void Weaver::weave(MeshGroup* meshgroup)
     for (Mesh& mesh : meshgroup->meshes)
     {
         constexpr bool variable_layer_heights = false;
-        cura52::Slicer* slicer = new cura52::Slicer(&mesh, connection_height, layer_count, variable_layer_heights, &layer_thicknesses);
+        cura52::Slicer* slicer = new cura52::Slicer(application, &mesh, connection_height, layer_count, variable_layer_heights, &layer_thicknesses);
         slicerList.push_back(slicer);
     }
 

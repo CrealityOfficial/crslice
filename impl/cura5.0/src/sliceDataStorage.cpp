@@ -276,6 +276,7 @@ std::vector<WipeScriptConfig> SliceDataStorage::initializeWipeConfigs()
 
 SliceDataStorage::SliceDataStorage(Application* _application)
     : application(_application)
+    , primeTower(_application)
     , print_layer_count(0)
     , wipe_config_per_extruder(initializeWipeConfigs())
     , retraction_config_per_extruder(initializeRetractionConfigs())
@@ -296,7 +297,7 @@ SliceDataStorage::SliceDataStorage(Application* _application)
 
 Polygons SliceDataStorage::getLayerOutlines(const LayerIndex layer_nr, const bool include_support, const bool include_prime_tower, const bool external_polys_only, const bool for_brim) const
 {
-    if (layer_nr < 0 && layer_nr < -static_cast<LayerIndex>(Raft::getFillerLayerCount()))
+    if (layer_nr < 0 && layer_nr < -static_cast<LayerIndex>(Raft::getFillerLayerCount(application)))
     { // when processing raft
         if (include_support)
         {
@@ -448,7 +449,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
     if (layer_nr < 0)
     {
         include_models = false;
-        if (layer_nr < -static_cast<LayerIndex>(Raft::getFillerLayerCount()))
+        if (layer_nr < -static_cast<LayerIndex>(Raft::getFillerLayerCount(application)))
         {
             include_helper_parts = false;
         }
@@ -473,7 +474,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
         }
         if (adhesion_type == EPlatformAdhesion::RAFT)
         {
-            const LayerIndex raft_layers = Raft::getTotalExtraLayers();
+            const LayerIndex raft_layers = Raft::getTotalExtraLayers(application);
             if (layer_nr == -raft_layers) // Base layer.
             {
                 ret[mesh_group_settings.get<ExtruderTrain&>("raft_base_extruder_nr").extruder_nr] = true;
@@ -490,7 +491,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
             {
                 ret[mesh_group_settings.get<ExtruderTrain&>("raft_interface_extruder_nr").extruder_nr] = true;
             }
-            else if (layer_nr < -static_cast<LayerIndex>(Raft::getFillerLayerCount())) // Any of the surface layers.
+            else if (layer_nr < -static_cast<LayerIndex>(Raft::getFillerLayerCount(application))) // Any of the surface layers.
             {
                 ret[mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr").extruder_nr] = true;
             }

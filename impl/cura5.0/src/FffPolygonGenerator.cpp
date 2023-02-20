@@ -213,7 +213,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
         }
 
         Mesh& mesh = meshgroup->meshes[mesh_idx];
-        Slicer* slicer = new Slicer(&mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, adaptive_layer_height_values);
+        Slicer* slicer = new Slicer(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, adaptive_layer_height_values);
 
         slicerList.push_back(slicer);
 
@@ -235,7 +235,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 	{
 		return false;
 	}
-    Mold::process(slicerList);
+    Mold::process(application, slicerList);
 
     Scene& scene = application->current_slice->scene;
     for (unsigned int mesh_idx = 0; mesh_idx < slicerList.size(); mesh_idx++)
@@ -247,13 +247,13 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
         }
     }
 
-    MultiVolumes::carveCuttingMeshes(slicerList, scene.current_mesh_group->meshes);
+    MultiVolumes::carveCuttingMeshes(application, slicerList, scene.current_mesh_group->meshes);
 
     application->progressor.messageProgressStage(Progress::Stage::PARTS, &timeKeeper);
 
     if (scene.current_mesh_group->settings.get<bool>("carve_multiple_volumes"))
     {
-        carveMultipleVolumes(slicerList);
+        carveMultipleVolumes(application, slicerList);
     }
 	if (application->current_slice->scene.m_tracer->interrupt())
 	{
@@ -338,7 +338,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
             if (has_raft)
             {
                 const ExtruderTrain& train = mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr");
-                layer.printZ += Raft::getTotalThickness() + train.settings.get<coord_t>("raft_airgap") - train.settings.get<coord_t>("layer_0_z_overlap"); // shift all layers (except 0) down
+                layer.printZ += Raft::getTotalThickness(application) + train.settings.get<coord_t>("raft_airgap") - train.settings.get<coord_t>("layer_0_z_overlap"); // shift all layers (except 0) down
 
                 if (layer_nr == 0)
                 {
@@ -894,7 +894,7 @@ void FffPolygonGenerator::computePrintHeightStatistics(SliceDataStorage& storage
 
     std::vector<int>& max_print_height_per_extruder = storage.max_print_height_per_extruder;
     assert(max_print_height_per_extruder.size() == 0 && "storage.max_print_height_per_extruder shouldn't have been initialized yet!");
-    const int raft_layers = Raft::getTotalExtraLayers();
+    const int raft_layers = Raft::getTotalExtraLayers(application);
     max_print_height_per_extruder.resize(extruder_count, -(raft_layers + 1)); // Initialize all as -1 (or lower in case of raft).
     { // compute max_object_height_per_extruder
         // Height of the meshes themselves.

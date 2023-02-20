@@ -8,7 +8,7 @@ namespace cura52
 {
 
 class Slicer;
-
+class Application;
 /*!
  * Class for transforming the outlines of a model into a mold into which the model can be cast.
  */
@@ -32,7 +32,7 @@ public:
      * \param layer_height The overall layer height used (used to compute an
      * offset from the mold angle).
      */
-    static void process(std::vector<Slicer*>& slicer_list);
+    static void process(Application* application, std::vector<Slicer*>& slicer_list);
 private:
 };
 

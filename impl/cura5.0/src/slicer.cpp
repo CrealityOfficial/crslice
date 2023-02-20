@@ -780,10 +780,12 @@ void SlicerLayer::makePolygons(const Mesh* mesh)
     openPolylines.removeDegenerateVertsPolyline();
 }
 
-Slicer::Slicer(Mesh* i_mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers) : mesh(i_mesh)
+Slicer::Slicer(Application* _application, Mesh* i_mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers)
+    : mesh(i_mesh)
+    , application(_application)
 {
     const SlicingTolerance slicing_tolerance = mesh->settings.get<SlicingTolerance>("slicing_tolerance");
-    const coord_t initial_layer_thickness = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<coord_t>("layer_height_0");
+    const coord_t initial_layer_thickness = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("layer_height_0");
 
     assert(slice_layer_count > 0);
 

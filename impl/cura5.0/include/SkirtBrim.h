@@ -86,7 +86,7 @@ private:
      * \return The offset of the last brim/skirt line from the reference polygon
      * \p first_layer_outline.
      */
-    static coord_t generatePrimarySkirtBrimLines(const coord_t start_distance, size_t& primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder);
+    static coord_t generatePrimarySkirtBrimLines(SliceDataStorage& storage, const coord_t start_distance, size_t& primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder);
 
 	//Generate the auto brim lines around the model.
 	static coord_t generatePrimaryAutoBrimLines(SliceDataStorage& storage, const coord_t start_distance, std::vector<size_t>& vct_primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder);

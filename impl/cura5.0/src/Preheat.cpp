@@ -12,10 +12,9 @@
 
 namespace cura52
 {
-
 Duration Preheat::getTimeToGoFromTempToTemp(const size_t extruder, const Temperature& temp_before, const Temperature& temp_after, const bool during_printing)
 {
-    const Settings& extruder_settings = Application::getInstance().current_slice->scene.extruders[extruder].settings;
+    const Settings& extruder_settings = application->current_slice->scene.extruders[extruder].settings;
     Duration time;
     if (temp_after > temp_before)
     {
@@ -40,7 +39,7 @@ Duration Preheat::getTimeToGoFromTempToTemp(const size_t extruder, const Tempera
 
 Temperature Preheat::getTemp(const size_t extruder, const Ratio& flow, const bool is_initial_layer)
 {
-    const Settings& extruder_settings = Application::getInstance().current_slice->scene.extruders[extruder].settings;
+    const Settings& extruder_settings = application->current_slice->scene.extruders[extruder].settings;
     if (is_initial_layer && extruder_settings.get<Temperature>("material_print_temperature_layer_0") != 0)
     {
         return extruder_settings.get<Temperature>("material_print_temperature_layer_0");
@@ -51,7 +50,7 @@ Temperature Preheat::getTemp(const size_t extruder, const Ratio& flow, const boo
 Preheat::WarmUpResult Preheat::getWarmUpPointAfterCoolDown(double time_window, unsigned int extruder, double temp_start, double temp_mid, double temp_end, bool during_printing)
 {
     WarmUpResult result;
-    const Settings& extruder_settings = Application::getInstance().current_slice->scene.extruders[extruder].settings;
+    const Settings& extruder_settings = application->current_slice->scene.extruders[extruder].settings;
     Temperature cool_down_speed = extruder_settings.get<Temperature>("machine_nozzle_cool_down_speed");
     if (during_printing)
     {
@@ -121,7 +120,7 @@ Preheat::WarmUpResult Preheat::getWarmUpPointAfterCoolDown(double time_window, u
 Preheat::CoolDownResult Preheat::getCoolDownPointAfterWarmUp(double time_window, unsigned int extruder, double temp_start, double temp_mid, double temp_end, bool during_printing)
 {
     CoolDownResult result;
-    const Settings& extruder_settings = Application::getInstance().current_slice->scene.extruders[extruder].settings;
+    const Settings& extruder_settings = application->current_slice->scene.extruders[extruder].settings;
     Temperature cool_down_speed = extruder_settings.get<Temperature>("machine_nozzle_cool_down_speed");
     if (during_printing)
     {

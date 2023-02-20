@@ -161,7 +161,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         {
             if (extruder_is_used_in_filler_layers)
             {
-                process_layer_starting_layer_nr = -Raft::getFillerLayerCount();
+                process_layer_starting_layer_nr = -Raft::getFillerLayerCount(storage.application);
                 break;
             }
         }
@@ -728,7 +728,7 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
     const size_t surface_extruder_nr = mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr").extruder_nr;
 
     coord_t z = 0;
-    const LayerIndex initial_raft_layer_nr = -Raft::getTotalExtraLayers();
+    const LayerIndex initial_raft_layer_nr = -Raft::getTotalExtraLayers(storage.application);
     const Settings& interface_settings = mesh_group_settings.get<ExtruderTrain&>("raft_interface_extruder_nr").settings;
     const size_t num_interface_layers = interface_settings.get<size_t>("raft_interface_layers");
     const Settings& surface_settings = mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr").settings;
@@ -1050,9 +1050,9 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 #ifdef DEBUG
         assert(mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT && "negative layer_number means post-raft, pre-model layer!");
 #endif // DEBUG
-        const int filler_layer_count = Raft::getFillerLayerCount();
-        layer_thickness = Raft::getFillerLayerHeight();
-        z = Raft::getTotalThickness() + (filler_layer_count + layer_nr + 1) * layer_thickness;
+        const int filler_layer_count = Raft::getFillerLayerCount(storage.application);
+        layer_thickness = Raft::getFillerLayerHeight(storage.application);
+        z = Raft::getTotalThickness(storage.application) + (filler_layer_count + layer_nr + 1) * layer_thickness;
     }
     else
     {
@@ -1361,7 +1361,7 @@ void FffGcodeWriter::calculateExtruderOrderPerLayer(const SliceDataStorage& stor
     {
         last_extruder = gcode.getExtruderNr();
     }
-    for (LayerIndex layer_nr = -Raft::getTotalExtraLayers(); layer_nr < static_cast<LayerIndex>(storage.print_layer_count); layer_nr++)
+    for (LayerIndex layer_nr = -Raft::getTotalExtraLayers(storage.application); layer_nr < static_cast<LayerIndex>(storage.print_layer_count); layer_nr++)
     {
         std::vector<std::vector<size_t>>& extruder_order_per_layer_here = (layer_nr < 0) ? extruder_order_per_layer_negative_layers : extruder_order_per_layer;
         extruder_order_per_layer_here.push_back(getUsedExtrudersOnLayerExcludingStartingExtruder(storage, last_extruder, layer_nr));
@@ -1371,7 +1371,7 @@ void FffGcodeWriter::calculateExtruderOrderPerLayer(const SliceDataStorage& stor
 
 void FffGcodeWriter::calculatePrimeLayerPerExtruder(const SliceDataStorage& storage)
 {
-    for (LayerIndex layer_nr = -Raft::getTotalExtraLayers(); layer_nr < static_cast<LayerIndex>(storage.print_layer_count); ++layer_nr)
+    for (LayerIndex layer_nr = -Raft::getTotalExtraLayers(storage.application); layer_nr < static_cast<LayerIndex>(storage.print_layer_count); ++layer_nr)
     {
         const std::vector<bool> used_extruders = storage.getExtrudersUsed(layer_nr);
         for (size_t extruder_nr = 0; extruder_nr < used_extruders.size(); ++extruder_nr)
@@ -1400,7 +1400,7 @@ std::vector<size_t> FffGcodeWriter::getUsedExtrudersOnLayerExcludingStartingExtr
     }
 
     // check if we are on the first layer
-    if ((mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT && layer_nr == -static_cast<LayerIndex>(Raft::getTotalExtraLayers()))
+    if ((mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT && layer_nr == -static_cast<LayerIndex>(Raft::getTotalExtraLayers(storage.application)))
         || (mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") != EPlatformAdhesion::RAFT && layer_nr == 0))
     {
         // check if we need prime blob on the first layer
@@ -3336,8 +3336,8 @@ void FffGcodeWriter::setExtruder_addPrime(const SliceDataStorage& storage, Layer
     const size_t outermost_prime_tower_extruder = storage.primeTower.extruder_order[0];
 
     const size_t previous_extruder = gcode_layer.getExtruder();
-    if (previous_extruder == extruder_nr && ! (gcode_layer.getLayerNr() > -static_cast<LayerIndex>(Raft::getFillerLayerCount()) && extruder_nr == outermost_prime_tower_extruder)
-        && ! (gcode_layer.getLayerNr() == -static_cast<LayerIndex>(Raft::getFillerLayerCount()))) // No unnecessary switches, unless switching to extruder for the outer shell of the prime tower.
+    if (previous_extruder == extruder_nr && ! (gcode_layer.getLayerNr() > -static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)) && extruder_nr == outermost_prime_tower_extruder)
+        && ! (gcode_layer.getLayerNr() == -static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)))) // No unnecessary switches, unless switching to extruder for the outer shell of the prime tower.
     {
         return;
     }

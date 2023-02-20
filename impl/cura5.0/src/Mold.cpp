@@ -14,9 +14,9 @@
 namespace cura52
 {
 
-void Mold::process(std::vector<Slicer*>& slicer_list)
+void Mold::process(Application* application, std::vector<Slicer*>& slicer_list)
 {
-    Scene& scene = Application::getInstance().current_slice->scene;
+    Scene& scene = application->current_slice->scene;
     { // check whether we even need to process molds
         bool has_any_mold = false;
         for (unsigned int mesh_idx = 0; mesh_idx < slicer_list.size(); mesh_idx++)

@@ -14,7 +14,7 @@ namespace cura52
 
 class SliceDataStorage;
 class SliceMeshStorage;
-
+class Application;
 /*!
  * \brief Generates a tree structure to support your models.
  */
@@ -132,6 +132,7 @@ public:
     };
 
 private:
+    Application* application = nullptr;
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes
      *

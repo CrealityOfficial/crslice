@@ -10,6 +10,7 @@ namespace cura52
 {
 
 class SliceDataStorage;
+class Application;
 
 class Raft
 {
@@ -27,7 +28,7 @@ public:
      * This is used for the filler layers because they don't use the
      * layer_0_z_overlap.
      */
-    static coord_t getZdiffBetweenRaftAndLayer1();
+    static coord_t getZdiffBetweenRaftAndLayer1(Application* application);
 
     /*!
      * \brief Get the amount of layers to fill the airgap and initial layer with
@@ -36,18 +37,18 @@ public:
      * The initial layer gets a separate filler layer because we don't want to
      * apply the layer_0_z_overlap to it.
      */
-    static size_t getFillerLayerCount();
+    static size_t getFillerLayerCount(Application* application);
 
     /*!
      * \brief Get the layer height of the filler layers in between the raft and
      * layer 1.
      */
-    static coord_t getFillerLayerHeight();
+    static coord_t getFillerLayerHeight(Application* application);
 
     /*!
      * \brief Get the total thickness of the raft (without airgap).
      */
-    static coord_t getTotalThickness();
+    static coord_t getTotalThickness(Application* application);
 
     /*!
      * \brief Get the total amount of extra layers below zero because there is a
@@ -55,7 +56,7 @@ public:
      * 
      * This includes the filler layers which are introduced in the air gap.
      */
-    static size_t getTotalExtraLayers();
+    static size_t getTotalExtraLayers(Application* application);
 
 };
 

@@ -28,6 +28,7 @@ Application::Application()
     processor.polygon_generator.application = this;
     processor.gcode_writer.gcode.application = this;
     processor.gcode_writer.layer_plan_buffer.application = this;
+    processor.gcode_writer.layer_plan_buffer.preheat_config.application = this;
 }
 
 Application::~Application()

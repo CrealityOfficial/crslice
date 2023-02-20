@@ -19,6 +19,7 @@ namespace cura52
 class AdaptiveLayer;
 class Mesh;
 class MeshVertex;
+class Application;
 
 class SlicerSegment
 {
@@ -488,10 +489,11 @@ class Slicer
 {
 public:
     std::vector<SlicerLayer> layers;
+    Application* application = nullptr;
 
     const Mesh* mesh = nullptr; //!< The sliced mesh
 
-    Slicer(Mesh* mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers);
+    Slicer(Application* application, Mesh* mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer> *adaptive_layers);
 
 
 private:

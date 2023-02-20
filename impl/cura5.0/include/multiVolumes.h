@@ -12,8 +12,8 @@ namespace cura52
 
 class Mesh;
 class Slicer;
-
-void carveMultipleVolumes(std::vector<Slicer*> &meshes);
+class Application;
+void carveMultipleVolumes(Application* application, std::vector<Slicer*> &meshes);
 
 /*!
  * Expand each layer a bit and then keep the extra overlapping parts that overlap with other volumes.
@@ -37,7 +37,7 @@ public:
      * \param[in,out] volumes The outline data of each mesh
      * \param meshes The meshes which contain the settings for each volume
      */
-    static void carveCuttingMeshes(std::vector<Slicer*>& volumes, const std::vector<Mesh>& meshes);
+    static void carveCuttingMeshes(Application* application, std::vector<Slicer*>& volumes, const std::vector<Mesh>& meshes);
 };
 
 }//namespace cura52
