@@ -295,7 +295,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 			{
 				return false;
 			}
-            createLayerParts(meshStorage, slicer);
+            createLayerParts(application, meshStorage, slicer);
         }
 
         // Do not add and process support _modifier_ meshes further, and ONLY skip support _modifiers_. They have been
@@ -539,7 +539,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     } guarded_progress = { inset_skin_progress_estimate, application };
 
     // walls
-    cura52::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(application, 0,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {
@@ -585,7 +585,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     }
 
     guarded_progress.reset();
-    cura52::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(application, 0,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {

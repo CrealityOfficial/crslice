@@ -796,17 +796,17 @@ Slicer::Slicer(Application* _application, Mesh* i_mesh, const coord_t thickness,
 
     std::vector<std::pair<int32_t, int32_t>> zbbox = buildZHeightsForFaces(*mesh);
 
-    buildSegments(*mesh, zbbox, slicing_tolerance, layers);
+    buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
 
     LOGI("Slice of mesh took {:3} seconds", slice_timer.restart());
 
-    makePolygons(*i_mesh, slicing_tolerance, layers);
+    makePolygons(application, *i_mesh, slicing_tolerance, layers);
     LOGI("Make polygons took {:3} seconds", slice_timer.restart());
 }
 
-void Slicer::buildSegments(const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
+void Slicer::buildSegments(Application* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
 {
-    cura52::parallel_for(layers,
+    cura52::parallel_for(application, layers,
                        [&](auto layer_it)
                        {
                            SlicerLayer& layer = *layer_it;
@@ -971,9 +971,9 @@ std::vector<SlicerLayer>
     return layers_res;
 }
 
-void Slicer::makePolygons(Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers)
+void Slicer::makePolygons(Application* application, Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers)
 {
-    cura52::parallel_for(layers, [&mesh](auto layer_it) { layer_it->makePolygons(&mesh); });
+    cura52::parallel_for(application, layers, [&mesh](auto layer_it) { layer_it->makePolygons(&mesh); });
 
     switch (slicing_tolerance)
     {
@@ -1008,7 +1008,7 @@ void Slicer::makePolygons(Mesh& mesh, SlicingTolerance slicing_tolerance, std::v
     const coord_t xy_offset_0 = mesh.settings.get<coord_t>("xy_offset_layer_0");
     const coord_t offset_rectify = 0.5 * mesh.settings.get<coord_t>("layer_height") * float(1. - 0.25 * M_PI) + 0.5;
 
-    cura52::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(application, 0,
                                layers.size(),
                                [&layers, layer_apply_initial_xy_offset, xy_offset, xy_offset_0, offset_rectify](size_t layer_nr)
                                {

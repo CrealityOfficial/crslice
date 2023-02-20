@@ -91,12 +91,12 @@ void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, Sl
         }
     }
 }
-void createLayerParts(SliceMeshStorage& mesh, Slicer* slicer)
+void createLayerParts(Application* application, SliceMeshStorage& mesh, Slicer* slicer)
 {
     const auto total_layers = slicer->layers.size();
     assert(mesh.layers.size() == total_layers);
 
-    cura52::parallel_for<size_t>(0, total_layers, [slicer, &mesh](size_t layer_nr)
+    cura52::parallel_for<size_t>(application, 0, total_layers, [slicer, &mesh](size_t layer_nr)
     {
         SliceLayer& layer_storage = mesh.layers[layer_nr];
         SlicerLayer& slice_layer = slicer->layers[layer_nr];

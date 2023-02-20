@@ -140,15 +140,16 @@ namespace crslice
             runFinished();
             return;
         }
-        cura52::Application::getInstance().processor.setTargetFile(outputFile.c_str());
-        cura52::Application::getInstance().processor.time_keeper.restart();
+
+        application->processor.setTargetFile(outputFile.c_str());
+        application->processor.time_keeper.restart();
 
         size_t numGroup = m_scene->m_groups.size();
         assert(numGroup > 0);
         cura52::Slice slice(numGroup);
 
-        cura52::Application::getInstance().current_slice = &slice;
-        slice.scene.application = &cura52::Application::getInstance();
+        application->current_slice = &slice;
+        slice.scene.application = application;
 
         slice.scene.m_tracer = m_tracer;
         slice.scene.machine_center_is_zero = m_scene->machine_center_is_zero;
@@ -199,7 +200,7 @@ namespace crslice
         slice.finalize();
         slice.compute();
         // Finalize the processor. This adds the end g-code and reports statistics.
-        cura52::Application::getInstance().processor.finalize();
+        application->processor.finalize();
 
         runFinished();
     }

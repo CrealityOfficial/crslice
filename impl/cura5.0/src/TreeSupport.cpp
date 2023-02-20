@@ -104,7 +104,7 @@ void TreeSupport::drawCircles(SliceDataStorage& storage, const std::vector<std::
     size_t completed = 0; // To track progress, should be locked when altered.
     std::mutex critical_section_volumes;
     std::mutex critical_section_progress;
-    cura52::parallel_for<size_t>(0,
+    cura52::parallel_for<size_t>(storage.application, 0,
                                contact_nodes.size(),
                                [&](const size_t layer_nr)
                                {

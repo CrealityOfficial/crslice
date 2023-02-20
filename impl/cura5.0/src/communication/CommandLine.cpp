@@ -21,14 +21,14 @@
 
 namespace cura52
 {
-    bool _loadJson(const std::string& json_filename, cura52::Settings* settings)
+    bool _loadJson(Application* application, const std::string& json_filename, cura52::Settings* settings)
     {
         std::vector<crcommon::KValues> extruderKVs;
         int r = crcommon::loadJSON(json_filename, settings->settings, extruderKVs);
         if (r == 0)
         {
             size_t extruder_nr = extruderKVs.size();
-            Scene& scene = Application::getInstance().current_slice->scene;
+            Scene& scene = application->current_slice->scene;
             while (scene.extruders.size() < static_cast<size_t>(extruder_nr))
             {
                 scene.extruders.emplace_back(scene.extruders.size(), &scene.settings);
@@ -44,6 +44,7 @@ namespace cura52
     }
 
     CommandLine::CommandLine()
+        :m_tracer(nullptr)
     {
     }
 
@@ -125,7 +126,7 @@ namespace cura52
         LOGI("Total print time: {:3}", sum);
 
         sum = 0.0;
-        for (size_t extruder_nr = 0; extruder_nr < Application::getInstance().current_slice->scene.extruders.size(); extruder_nr++)
+        for (size_t extruder_nr = 0; extruder_nr < application->current_slice->scene.extruders.size(); extruder_nr++)
         {
             sum += application->processor.getTotalFilamentUsed(extruder_nr);
         }
@@ -150,10 +151,11 @@ namespace cura52
                 num_mesh_groups++;
             }
         }
+
         Slice slice(num_mesh_groups);
 
-        Application::getInstance().current_slice = &slice;
-        slice.scene.application = &Application::getInstance();
+        application->current_slice = &slice;
+        slice.scene.application = application;
 
         size_t mesh_group_index = 0;
         Settings* last_settings = &slice.scene.settings;
@@ -206,7 +208,7 @@ namespace cura52
                     case 'm':
                     {
                         int threads = stoi(argument.substr(2));
-                        Application::getInstance().startThreadPool(threads);
+                        application->startThreadPool(threads);
                         break;
                     }
                     case 'p':
@@ -223,7 +225,7 @@ namespace cura52
                             exit(1);
                         }
                         argument = arguments[argument_index];
-                        if (!_loadJson(argument, last_settings))
+                        if (!_loadJson(application, argument, last_settings))
                         {
                             LOGE("Failed to load JSON file: %s", argument.c_str());
                             exit(1);
@@ -326,7 +328,7 @@ namespace cura52
                     default:
                     {
                         LOGE("Unknown option: -{}", argument[1]);
-                        Application::getInstance().printHelp();
+                        application->printHelp();
                         exit(1);
                         break;
                     }
@@ -336,7 +338,7 @@ namespace cura52
             else
             {
                 LOGE("Unknown option: {}", argument.c_str());
-                Application::getInstance().printHelp();
+                application->printHelp();
                 exit(1);
             }
         }

@@ -28,9 +28,23 @@ class ThreadPool;
  * maintains communication with other applications and uses that to schedule
  * slices.
  */
-class Application : NoCopy
+class Application
 {
 public:
+    /*!
+     * \brief Constructs a new Application instance.
+     *
+     * You cannot call this because this goes via the getInstance() function.
+     */
+    Application();
+
+    /*!
+     * \brief Destroys the Application instance.
+     *
+     * This destroys the Communication instance along with it.
+     */
+    ~Application();
+
     FffProcessor processor;
     Progress progressor;
 
@@ -56,11 +70,6 @@ public:
      * \brief ThreadPool with lifetime tied to Application
      */
     ThreadPool* thread_pool = nullptr;
-
-    /*!
-     * Gets the instance of this application class.
-     */
-    static Application& getInstance();
 
     /*!
      * \brief Print to the stderr channel what the original call to the executable was.
@@ -124,20 +133,6 @@ protected:
 
 private:
     std::vector<std::string> m_args;
-
-    /*!
-     * \brief Constructs a new Application instance.
-     *
-     * You cannot call this because this goes via the getInstance() function.
-     */
-    Application();
-
-    /*!
-     * \brief Destroys the Application instance.
-     *
-     * This destroys the Communication instance along with it.
-     */
-    ~Application();
 };
 
 } //Cura namespace.

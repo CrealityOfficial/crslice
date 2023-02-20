@@ -46,18 +46,23 @@ namespace cura52
 
     void Slice::finalize()
     {
+        scene.settings.application = scene.application;
+
         size_t numExtruder = scene.extruders.size();
         for (size_t i = 0; i < numExtruder; ++i)
         {
             ExtruderTrain& train = scene.extruders[i];
             train.extruder_nr = i;
+            train.settings.application = scene.application;
             train.settings.add("extruder_nr", std::to_string(i));
         }
 
         for (MeshGroup& meshGroup : scene.mesh_groups)
         {
+            meshGroup.settings.application = scene.application;
             for (Mesh& mesh : meshGroup.meshes)
             {
+                mesh.settings.application = scene.application;
                 if (mesh.settings.has("extruder_nr"))
                 {
                     size_t i = mesh.settings.get<size_t>("extruder_nr");

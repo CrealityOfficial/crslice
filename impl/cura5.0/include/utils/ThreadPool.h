@@ -109,7 +109,7 @@ inline Signed distance(const Int& first, const Int& last)
  * \param chunks_per_worker Maximum number of tasks that are queue at once (defaults to 4 times the number of workers).
  */
 template<typename T, typename F>
-void parallel_for(T first, T last, F&& loop_body, size_t chunk_size_factor=1, const size_t chunks_per_worker=8)
+void parallel_for(Application* application, T first, T last, F&& loop_body, size_t chunk_size_factor=1, const size_t chunks_per_worker=8)
 {
     using lock_t = ThreadPool::lock_t;
 
@@ -121,7 +121,7 @@ void parallel_for(T first, T last, F&& loop_body, size_t chunk_size_factor=1, co
     }
     const size_t nitems = dist;
 
-    ThreadPool* const thread_pool = Application::getInstance().thread_pool;
+    ThreadPool* const thread_pool = application->thread_pool;
     assert(thread_pool);
     const size_t nworkers = thread_pool->thread_count() + 1; // One task per std::thread + 1 for main thread
 
@@ -194,10 +194,10 @@ void parallel_for(T first, T last, F&& loop_body, size_t chunk_size_factor=1, co
  *  Overload for iterating over containers with random access iterators.
  */
 template<typename Container, typename F>
-auto parallel_for(Container& container, F&& loop_body, size_t chunk_size_factor=1, size_t chunks_per_worker=8)
+auto parallel_for(Application* application, Container& container, F&& loop_body, size_t chunk_size_factor=1, size_t chunks_per_worker=8)
   -> std::void_t<decltype(container.end() - container.begin())>
 {
-    parallel_for(container.begin(), container.end(), std::forward<F>(loop_body), chunk_size_factor, chunks_per_worker);
+    parallel_for(application, container.begin(), container.end(), std::forward<F>(loop_body), chunk_size_factor, chunks_per_worker);
 }
 
 
@@ -223,9 +223,9 @@ template<typename Producer, typename Consumer> class MultipleProducersOrderedCon
  * \param max_pending_per_worker Number of allocated slots per worker for items waiting to be consumed.
  */
 template<typename P, typename C>
-void run_multiple_producers_ordered_consumer(ptrdiff_t first, ptrdiff_t last, P&& producer, C&& consumer, size_t max_pending_per_worker=8)
+void run_multiple_producers_ordered_consumer(Application* application, ptrdiff_t first, ptrdiff_t last, P&& producer, C&& consumer, size_t max_pending_per_worker=8)
 {
-    ThreadPool* thread_pool = Application::getInstance().thread_pool;
+    ThreadPool* thread_pool = application->thread_pool;
     assert(thread_pool);
     assert(max_pending_per_worker > 0);
     const size_t max_pending = max_pending_per_worker * (thread_pool->thread_count() + 1);

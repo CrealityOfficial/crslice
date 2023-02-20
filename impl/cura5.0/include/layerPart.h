@@ -24,7 +24,7 @@ class SliceLayer;
 class Slicer;
 class SlicerLayer;
 class SliceMeshStorage;
-
+class Application;
 /*!
  * \brief Split a layer into parts.
  * \param settings The settings to get the settings from (whether to union or
@@ -39,7 +39,7 @@ void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, Sl
  * \param mesh The mesh of which to split the layers into parts.
  * \param slicer The slicer to get the layers from.
  */
-void createLayerParts(SliceMeshStorage& mesh, Slicer* slicer);
+void createLayerParts(Application* application, SliceMeshStorage& mesh, Slicer* slicer);
 
 }//namespace cura52
 

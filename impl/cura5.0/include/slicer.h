@@ -537,7 +537,7 @@ private:
     * \param[in] slicing_tolerance The way the slicing tolerance should be applied (MIDDLE/INCLUSIVE/EXCLUSIVE).
     * \param[in, out] layers The polygon are created here.
     */
-    static void makePolygons(Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers);
+    static void makePolygons(Application* application, Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers);
 
     /*! Creates a vector of layers and set their z value.
     * \param[in] mesh The mesh which is analyzed.
@@ -561,6 +561,7 @@ private:
     */
     static void buildSegments
     (
+        Application* application,
         const Mesh& mesh,
         const std::vector<std::pair<int32_t, int32_t>> &zbboxes,
         const SlicingTolerance& slicing_tolerance,

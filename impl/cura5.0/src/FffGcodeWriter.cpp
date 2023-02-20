@@ -170,7 +170,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
 	{
 		return;
 	}
-    run_multiple_producers_ordered_consumer(
+    run_multiple_producers_ordered_consumer(application,
         process_layer_starting_layer_nr,
         total_layers,
         [&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
