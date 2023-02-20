@@ -30,9 +30,11 @@ namespace cura52
  * Before the settings can be returned, the settings have to be added first
  * using the add() function.
  */
+    class Application;
 class Settings
 {
 public:
+    Application* application = nullptr;
     /*
      * \brief Properly initialises the Settings instance.
      */

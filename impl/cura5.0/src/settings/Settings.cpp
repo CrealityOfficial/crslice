@@ -55,7 +55,7 @@ std::string Settings::get<std::string>(const std::string& key) const
         return settings.at(key);
     }
 
-    const std::unordered_map<std::string, ExtruderTrain*>& limit_to_extruder = Application::getInstance().current_slice->scene.limit_to_extruder;
+    const std::unordered_map<std::string, ExtruderTrain*>& limit_to_extruder = application->current_slice->scene.limit_to_extruder;
     if (limit_to_extruder.find(key) != limit_to_extruder.end())
     {
         return limit_to_extruder.at(key)->settings.getWithoutLimiting(key);
@@ -108,7 +108,7 @@ ExtruderTrain& Settings::get<ExtruderTrain&>(const std::string& key) const
     {
         extruder_nr = get<size_t>("extruder_nr");
     }
-    return Application::getInstance().current_slice->scene.extruders[extruder_nr];
+    return application->current_slice->scene.extruders[extruder_nr];
 }
 
 template<>
