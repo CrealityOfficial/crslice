@@ -108,6 +108,13 @@ ExtruderTrain& Settings::get<ExtruderTrain&>(const std::string& key) const
     {
         extruder_nr = get<size_t>("extruder_nr");
     }
+
+    if (extruder_nr < 0 || extruder_nr >= application->current_slice->scene.extruders.size())
+    {
+        LOGI("Settings::get<ExtruderTrain&>  [%s] [%d]", key.c_str(), extruder_nr);
+        extruder_nr = 0;
+    }
+
     return application->current_slice->scene.extruders[extruder_nr];
 }
 
