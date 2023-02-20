@@ -79,7 +79,7 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
     }
     if (empty)
     {
-        Progress::messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+        Application::getInstance().progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
         LOGI("Total time elapsed {:3}s.", time_keeper_total.restart());
         return;
     }
@@ -105,11 +105,11 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
             return;
         }
 
-        Progress::messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
+        Application::getInstance().progressor.messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
         fff_processor.gcode_writer.writeGCode(storage, fff_processor.time_keeper);
     }
 
-    Progress::messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+    Application::getInstance().progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
     Application::getInstance().communication->flushGCode();
     Application::getInstance().communication->sendOptimizedLayerData();
     LOGI("Total time elapsed {:3}s.\n", time_keeper_total.restart());

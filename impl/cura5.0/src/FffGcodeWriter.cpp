@@ -173,7 +173,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         [&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
         [this, total_layers](LayerPlan* gcode_layer)
         {
-            Progress::messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
+            Application::getInstance().progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
             layer_plan_buffer.handle(*gcode_layer, gcode);
         });
 
@@ -183,7 +183,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
 		return;
 	}
 
-    Progress::messageProgressStage(Progress::Stage::FINISH, &time_keeper);
+    Application::getInstance().progressor.messageProgressStage(Progress::Stage::FINISH, &time_keeper);
 
     // Store the object height for when we are printing multiple objects, as we need to clear every one of them when moving to the next position.
     max_object_height = std::max(max_object_height, storage.model_max.z);

@@ -33,9 +33,6 @@ std::string Progress::names [] =
     "process"
 };
 
-double Progress::accumulated_times [N_PROGRESS_STAGES] = {-1};
-double Progress::total_timing = -1;
-
 float Progress::calcOverallProgress(Stage stage, float stage_progress)
 {
     assert(stage_progress <= 1.0);
@@ -43,6 +40,16 @@ float Progress::calcOverallProgress(Stage stage, float stage_progress)
     return ( accumulated_times[(int)stage] + stage_progress * times[(int)stage] ) / total_timing;
 }
 
+Progress::Progress()
+{
+    accumulated_times[N_PROGRESS_STAGES] = { -1 };
+    total_timing = -1.0;
+}
+
+Progress::~Progress()
+{
+
+}
 
 void Progress::init()
 {

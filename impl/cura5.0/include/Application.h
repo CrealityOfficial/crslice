@@ -11,6 +11,8 @@
 #include <vector>
 
 #include "FffProcessor.h"
+#include "progress/Progress.h"
+
 #include "ccglobal/tracer.h"
 
 namespace cura52
@@ -30,6 +32,8 @@ class Application : NoCopy
 {
 public:
     FffProcessor processor;
+    Progress progressor;
+
     /*
      * \brief The communication currently in use.
      *

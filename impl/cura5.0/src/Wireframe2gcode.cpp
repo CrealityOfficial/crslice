@@ -89,10 +89,10 @@ void Wireframe2gcode::writeGCode()
             else
                 gcode.writeExtrusion(segment.to, speedBottom, extrusion_mm3_per_mm_flat, PrintFeatureType::Skin);
         });
-    Progress::messageProgressStage(Progress::Stage::EXPORT, nullptr);
+    Application::getInstance().progressor.messageProgressStage(Progress::Stage::EXPORT, nullptr);
     for (LayerIndex layer_nr = 0; layer_nr < static_cast<LayerIndex>(wireFrame.layers.size()); layer_nr++)
     {
-        Progress::messageProgress(Progress::Stage::EXPORT, layer_nr + 1, total_layers); // abuse the progress system of the normal mode of CuraEngine
+        Application::getInstance().progressor.messageProgress(Progress::Stage::EXPORT, layer_nr + 1, total_layers); // abuse the progress system of the normal mode of CuraEngine
 
         WeaveLayer& layer = wireFrame.layers[layer_nr];
 

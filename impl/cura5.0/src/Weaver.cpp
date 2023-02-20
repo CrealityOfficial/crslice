@@ -86,10 +86,10 @@ void Weaver::weave(MeshGroup* meshgroup)
             starting_point_in_layer = (Point(0, 0) + meshgroup->max() + meshgroup->min()) / 2;
         }
 
-        Progress::messageProgressStage(Progress::Stage::INSET_SKIN, nullptr);
+        Application::getInstance().progressor.messageProgressStage(Progress::Stage::INSET_SKIN, nullptr);
         for (LayerIndex layer_idx = starting_layer_idx + 1; layer_idx < LayerIndex(layer_count); layer_idx++)
         {
-            Progress::messageProgress(Progress::Stage::INSET_SKIN, layer_idx + 1, layer_count); // abuse the progress system of the normal mode of CuraEngine
+            Application::getInstance().progressor.messageProgress(Progress::Stage::INSET_SKIN, layer_idx + 1, layer_count); // abuse the progress system of the normal mode of CuraEngine
 
             Polygons parts1;
             for (cura52::Slicer* slicer : slicerList)
@@ -121,10 +121,10 @@ void Weaver::weave(MeshGroup* meshgroup)
 
     LOGI("Finding horizontal parts...");
     {
-        Progress::messageProgressStage(Progress::Stage::SUPPORT, nullptr);
+        Application::getInstance().progressor.messageProgressStage(Progress::Stage::SUPPORT, nullptr);
         for (unsigned int layer_idx = 0; layer_idx < wireFrame.layers.size(); layer_idx++)
         {
-            Progress::messageProgress(Progress::Stage::SUPPORT, layer_idx + 1, wireFrame.layers.size()); // abuse the progress system of the normal mode of CuraEngine
+            Application::getInstance().progressor.messageProgress(Progress::Stage::SUPPORT, layer_idx + 1, wireFrame.layers.size()); // abuse the progress system of the normal mode of CuraEngine
 
             WeaveLayer& layer = wireFrame.layers[layer_idx];
 

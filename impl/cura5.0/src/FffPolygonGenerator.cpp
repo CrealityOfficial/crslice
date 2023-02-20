@@ -93,9 +93,9 @@ size_t FffPolygonGenerator::getDraftShieldLayerCount(const size_t total_layers) 
 
 bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeeper, SliceDataStorage& storage) /// slices the model
 {
-    Progress::init();
+    Application::getInstance().progressor.init();
 
-    Progress::messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
+    Application::getInstance().progressor.messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
 
     storage.model_min = meshgroup->min();
     storage.model_max = meshgroup->max();
@@ -226,7 +226,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
         }
         */
 
-        Progress::messageProgress(Progress::Stage::SLICING, mesh_idx + 1, meshgroup->meshes.size());
+        Application::getInstance().progressor.messageProgress(Progress::Stage::SLICING, mesh_idx + 1, meshgroup->meshes.size());
     }
 
     // Clear the mesh face and vertex data, it is no longer needed after this point, and it saves a lot of memory.
@@ -249,7 +249,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 
     MultiVolumes::carveCuttingMeshes(slicerList, scene.current_mesh_group->meshes);
 
-    Progress::messageProgressStage(Progress::Stage::PARTS, &timeKeeper);
+    Application::getInstance().progressor.messageProgressStage(Progress::Stage::PARTS, &timeKeeper);
 
     if (scene.current_mesh_group->settings.get<bool>("carve_multiple_volumes"))
     {
@@ -352,7 +352,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 		{
 			return false;
 		}
-        Progress::messageProgress(Progress::Stage::PARTS, meshIdx + 1, slicerList.size());
+        Application::getInstance().progressor.messageProgress(Progress::Stage::PARTS, meshIdx + 1, slicerList.size());
     }
     return true;
 }
@@ -380,7 +380,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     }
     ProgressStageEstimator inset_skin_progress_estimate(mesh_timings);
 
-    Progress::messageProgressStage(Progress::Stage::INSET_SKIN, &time_keeper);
+    Application::getInstance().progressor.messageProgressStage(Progress::Stage::INSET_SKIN, &time_keeper);
     std::vector<size_t> mesh_order;
     { // compute mesh order
         std::multimap<int, size_t> order_to_mesh_indices;
@@ -396,7 +396,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     for (size_t mesh_order_idx = 0; mesh_order_idx < mesh_order.size(); ++mesh_order_idx)
     {
         processBasicWallsSkinInfill(storage, mesh_order_idx, mesh_order, inset_skin_progress_estimate);
-        Progress::messageProgress(Progress::Stage::INSET_SKIN, mesh_order_idx + 1, storage.meshes.size());
+        Application::getInstance().progressor.messageProgress(Progress::Stage::INSET_SKIN, mesh_order_idx + 1, storage.meshes.size());
     }
 
     const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
@@ -412,7 +412,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
 
     // layerparts2HTML(storage, "output/output.html");
 
-    Progress::messageProgressStage(Progress::Stage::SUPPORT, &time_keeper);
+    Application::getInstance().progressor.messageProgressStage(Progress::Stage::SUPPORT, &time_keeper);
 
     AreaSupport::generateOverhangAreas(storage);
 	if (scene.m_tracer->interrupt())
@@ -523,7 +523,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
             { // progress estimation is done only in one thread so that no two threads message progress at the same time
                 size_t processed_layer_count_ = processed_layer_count.fetch_add(1, std::memory_order_relaxed);
                 double progress = progress_estimator.progress(processed_layer_count_);
-                Progress::messageProgress(Progress::Stage::INSET_SKIN, progress * 100, 100);
+                Application::getInstance().progressor.messageProgress(Progress::Stage::INSET_SKIN, progress * 100, 100);
             }
             else
             {

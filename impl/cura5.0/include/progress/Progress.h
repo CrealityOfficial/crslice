@@ -38,8 +38,8 @@ public:
 private:
     static double times [N_PROGRESS_STAGES]; //!< Time estimates per stage
     static std::string names[N_PROGRESS_STAGES]; //!< name of each stage
-    static double accumulated_times [N_PROGRESS_STAGES]; //!< Time past before each stage
-    static double total_timing; //!< An estimate of the total time
+    double accumulated_times [N_PROGRESS_STAGES]; //!< Time past before each stage
+    double total_timing; //!< An estimate of the total time
     /*!
      * Give an estimate between 0 and 1 of how far the process is.
      * 
@@ -47,9 +47,12 @@ private:
      * \param stage_process How far we currently are in the \p stage
      * \return An estimate of the overall progress.
      */
-    static float calcOverallProgress(Stage stage, float stage_progress);
+    float calcOverallProgress(Stage stage, float stage_progress);
 public:
-    static void init(); //!< Initialize some values needed in a fast computation of the progress
+    Progress();
+    ~Progress();
+
+    void init(); //!< Initialize some values needed in a fast computation of the progress
     /*!
      * Message progress over the CommandSocket and to the terminal (if the command line arg '-p' is provided).
      * 
@@ -57,14 +60,14 @@ public:
      * \param progress_in_stage Any number giving the progress within the stage
      * \param progress_in_stage_max The maximal value of \p progress_in_stage
      */
-    static void messageProgress(Stage stage, int progress_in_stage, int progress_in_stage_max);
+    void messageProgress(Stage stage, int progress_in_stage, int progress_in_stage_max);
     /*!
      * Message the progress stage over the command socket.
      * 
      * \param stage The current stage
      * \param timeKeeper The stapwatch keeping track of the timings for each stage (optional)
      */
-    static void messageProgressStage(Stage stage, TimeKeeper* timeKeeper);
+    void messageProgressStage(Stage stage, TimeKeeper* timeKeeper);
 };
 
 

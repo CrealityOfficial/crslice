@@ -124,7 +124,7 @@ void Application::run(int argc, const char** argv, ccglobal::Tracer* tracer)
 
 
     printLicense();
-    Progress::init();
+    progressor.init();
 
     if (argc < 2)
     {
@@ -171,6 +171,8 @@ void Application::runCommulication(Communication* _communication)
     releaseCommulication();
     communication = _communication;
     communication->application = this;
+
+    progressor.init();
 
     startThreadPool(); // Start the thread pool
     while (communication->hasSlice())
