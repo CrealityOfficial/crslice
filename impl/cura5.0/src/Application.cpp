@@ -24,6 +24,9 @@ namespace cura52
 
 Application::Application()
 {
+    processor.gcode_writer.application = this;
+    processor.polygon_generator.application = this;
+    processor.gcode_writer.gcode.application = this;
 }
 
 Application::~Application()

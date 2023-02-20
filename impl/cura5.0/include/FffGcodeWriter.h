@@ -25,7 +25,7 @@ class SliceMeshStorage;
 class SliceLayer;
 class SliceLayerPart;
 class TimeKeeper;
-
+class Application;
 /*!
  * Secondary stage in Fused Filament Fabrication processing: The generated polygons are used in the gcode generation.
  * Some polygons in the SliceDataStorage signify areas which are to be filled with parallel lines, 
@@ -33,7 +33,7 @@ class TimeKeeper;
  * 
  * The main function of this class is FffGcodeWriter::writeGCode().
  */
-class FffGcodeWriter : public NoCopy
+class FffGcodeWriter
 {
     friend class Scene; // cause WireFrame2Gcode uses the member [gcode] (TODO)
     friend class FffProcessor; //Because FffProcessor exposes finalize (TODO)
@@ -48,13 +48,14 @@ private:
      */
     LayerPlanBuffer layer_plan_buffer; 
 
+public:
     /*!
      * The class holding the current state of the gcode being written.
      * 
      * It holds information such as the last written position etc.
      */
     GCodeExport gcode;
-
+private:
     /*!
      * The gcode file to write to when using CuraEngine as command line tool.
      */
@@ -85,6 +86,8 @@ private:
 
     std::string slice_uuid; //!< The UUID of the current slice.
   public:
+
+      Application* application = nullptr;
     /*
      * \brief Construct a g-code writer.
      *

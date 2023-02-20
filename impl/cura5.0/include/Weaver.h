@@ -12,11 +12,12 @@ namespace cura52
 
 class MeshGroup;
 class Polygons;
+class Application;
 
 /*!
  * The main weaver / WirePrint / wireframe printing class, which computes the basic paths to be followed.
  */
-class Weaver : public NoCopy
+class Weaver
 {
     friend class Wireframe2gcode;
 private:
@@ -33,6 +34,7 @@ public:
      */
     void weave(MeshGroup* objects);
 
+    Application* application = nullptr;
 private:
     WireFrame wireFrame;
     

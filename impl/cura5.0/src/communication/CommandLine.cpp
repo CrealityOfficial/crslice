@@ -153,6 +153,7 @@ namespace cura52
         Slice slice(num_mesh_groups);
 
         Application::getInstance().current_slice = &slice;
+        slice.scene.application = &Application::getInstance();
 
         size_t mesh_group_index = 0;
         Settings* last_settings = &slice.scene.settings;

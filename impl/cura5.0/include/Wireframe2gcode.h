@@ -18,7 +18,7 @@ class Weaver;
 /*!
  * Export class for exporting wireframe print gcode / weaver gcode / wireprint gcode.
  */
-class Wireframe2gcode : public NoCopy
+class Wireframe2gcode
 {
 private:
     static const int STRATEGY_COMPENSATE = 0;

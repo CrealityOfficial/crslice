@@ -25,7 +25,7 @@ void Weaver::weave(MeshGroup* meshgroup)
 
     const coord_t maxz = meshgroup->max().z;
 
-    const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     const coord_t initial_layer_thickness = mesh_group_settings.get<coord_t>("layer_height_0");
     const coord_t connection_height = mesh_group_settings.get<coord_t>("wireframe_height");
     const size_t layer_count = (maxz - initial_layer_thickness) / connection_height + 1;
@@ -65,7 +65,7 @@ void Weaver::weave(MeshGroup* meshgroup)
         for (cura52::Slicer* slicer : slicerList)
             wireFrame.bottom_outline.add(slicer->layers[starting_layer_idx].polygons);
 
-        Application::getInstance().communication->sendPolygons(PrintFeatureType::OuterWall, wireFrame.bottom_outline, 1, 1, 1);
+        application->communication->sendPolygons(PrintFeatureType::OuterWall, wireFrame.bottom_outline, 1, 1, 1);
 
         if (slicerList.empty()) // Wait, there is nothing to slice.
         {
@@ -86,10 +86,10 @@ void Weaver::weave(MeshGroup* meshgroup)
             starting_point_in_layer = (Point(0, 0) + meshgroup->max() + meshgroup->min()) / 2;
         }
 
-        Application::getInstance().progressor.messageProgressStage(Progress::Stage::INSET_SKIN, nullptr);
+        application->progressor.messageProgressStage(Progress::Stage::INSET_SKIN, nullptr);
         for (LayerIndex layer_idx = starting_layer_idx + 1; layer_idx < LayerIndex(layer_count); layer_idx++)
         {
-            Application::getInstance().progressor.messageProgress(Progress::Stage::INSET_SKIN, layer_idx + 1, layer_count); // abuse the progress system of the normal mode of CuraEngine
+            application->progressor.messageProgress(Progress::Stage::INSET_SKIN, layer_idx + 1, layer_count); // abuse the progress system of the normal mode of CuraEngine
 
             Polygons parts1;
             for (cura52::Slicer* slicer : slicerList)
@@ -100,7 +100,7 @@ void Weaver::weave(MeshGroup* meshgroup)
 
             chainify_polygons(parts1, starting_point_in_layer, chainified);
 
-            Application::getInstance().communication->sendPolygons(PrintFeatureType::OuterWall, chainified, 1, 1, 1);
+            application->communication->sendPolygons(PrintFeatureType::OuterWall, chainified, 1, 1, 1);
 
             if (chainified.size() > 0)
             {
@@ -121,10 +121,10 @@ void Weaver::weave(MeshGroup* meshgroup)
 
     LOGI("Finding horizontal parts...");
     {
-        Application::getInstance().progressor.messageProgressStage(Progress::Stage::SUPPORT, nullptr);
+        application->progressor.messageProgressStage(Progress::Stage::SUPPORT, nullptr);
         for (unsigned int layer_idx = 0; layer_idx < wireFrame.layers.size(); layer_idx++)
         {
-            Application::getInstance().progressor.messageProgress(Progress::Stage::SUPPORT, layer_idx + 1, wireFrame.layers.size()); // abuse the progress system of the normal mode of CuraEngine
+            application->progressor.messageProgress(Progress::Stage::SUPPORT, layer_idx + 1, wireFrame.layers.size()); // abuse the progress system of the normal mode of CuraEngine
 
             WeaveLayer& layer = wireFrame.layers[layer_idx];
 
@@ -176,7 +176,7 @@ void Weaver::weave(MeshGroup* meshgroup)
 
 void Weaver::createHorizontalFill(WeaveLayer& layer, Polygons& layer_above)
 {
-    const coord_t bridgable_dist = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<coord_t>("wireframe_height");
+    const coord_t bridgable_dist = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("wireframe_height");
 
     //     Polygons& polys_below = lower_top_parts;
     Polygons& polys_here = layer.supported;
@@ -209,7 +209,7 @@ void Weaver::fillRoofs(Polygons& supporting, Polygons& to_be_supported, int dire
 
     Polygons roofs = supporting.difference(to_be_supported);
 
-    const coord_t roof_inset = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<coord_t>("wireframe_roof_inset");
+    const coord_t roof_inset = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("wireframe_roof_inset");
     roofs = roofs.offset(-roof_inset).offset(roof_inset);
 
     if (roofs.size() == 0)
@@ -276,7 +276,7 @@ void Weaver::fillFloors(Polygons& supporting, Polygons& to_be_supported, int dir
 
     Polygons floors = to_be_supported.difference(supporting);
 
-    const coord_t roof_inset = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<coord_t>("wireframe_roof_inset");
+    const coord_t roof_inset = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("wireframe_roof_inset");
     floors = floors.offset(-roof_inset).offset(roof_inset);
 
     if (floors.size() == 0)
@@ -325,7 +325,7 @@ void Weaver::fillFloors(Polygons& supporting, Polygons& to_be_supported, int dir
 
 void Weaver::connections2moves(WeaveRoofPart& inset)
 {
-    const coord_t line_width = Application::getInstance().current_slice->scene.current_mesh_group->settings.get<coord_t>("wall_line_width_x");
+    const coord_t line_width = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("wall_line_width_x");
 
     constexpr bool include_half_of_last_down = true;
 
@@ -401,7 +401,7 @@ void Weaver::connect(Polygons& parts0, int z0, Polygons& parts1, int z1, WeaveCo
 
 void Weaver::chainify_polygons(Polygons& parts1, Point start_close_to, Polygons& result)
 {
-    const Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     const coord_t connection_height = mesh_group_settings.get<coord_t>("wireframe_height");
     const coord_t nozzle_outer_diameter = mesh_group_settings.get<coord_t>("machine_nozzle_tip_outer_diameter"); //  ___     ___
     const AngleRadians nozzle_expansion_angle = mesh_group_settings.get<AngleRadians>("machine_nozzle_expansion_angle"); //     \_U_/

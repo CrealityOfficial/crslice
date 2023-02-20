@@ -148,6 +148,8 @@ namespace crslice
         cura52::Slice slice(numGroup);
 
         cura52::Application::getInstance().current_slice = &slice;
+        slice.scene.application = &cura52::Application::getInstance();
+
         slice.scene.m_tracer = m_tracer;
         slice.scene.machine_center_is_zero = m_scene->machine_center_is_zero;
 

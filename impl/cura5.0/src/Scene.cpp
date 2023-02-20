@@ -63,7 +63,7 @@ const std::string Scene::getAllSettingsString() const
 
 void Scene::processMeshGroup(MeshGroup& mesh_group)
 {
-    FffProcessor& fff_processor = Application::getInstance().processor;
+    FffProcessor& fff_processor = application->processor;
     fff_processor.time_keeper.restart();
 
     TimeKeeper time_keeper_total;
@@ -79,7 +79,7 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
     }
     if (empty)
     {
-        Application::getInstance().progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+        application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
         LOGI("Total time elapsed {:3}s.", time_keeper_total.restart());
         return;
     }
@@ -89,6 +89,8 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
         LOGI("Starting Neith Weaver...");
 
         Weaver weaver;
+        weaver.application = application;
+
         weaver.weave(&mesh_group);
 
         LOGI("Starting Neith Gcode generation...");
@@ -98,20 +100,20 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
     }
     else // Normal operation (not wireframe).
     {
-        SliceDataStorage storage;
+        SliceDataStorage storage(application);
 
         if (! fff_processor.polygon_generator.generateAreas(storage, &mesh_group, fff_processor.time_keeper))
         {
             return;
         }
 
-        Application::getInstance().progressor.messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
+        application->progressor.messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
         fff_processor.gcode_writer.writeGCode(storage, fff_processor.time_keeper);
     }
 
-    Application::getInstance().progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
-    Application::getInstance().communication->flushGCode();
-    Application::getInstance().communication->sendOptimizedLayerData();
+    application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+    application->communication->flushGCode();
+    application->communication->sendOptimizedLayerData();
     LOGI("Total time elapsed {:3}s.\n", time_keeper_total.restart());
 }
 

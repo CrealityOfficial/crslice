@@ -11,7 +11,7 @@
 
 namespace cura52
 {
-
+    class Application;
 /*
  * Represents a scene that should be sliced.
  */
@@ -39,7 +39,7 @@ public:
      */
     std::vector<ExtruderTrain> extruders;
     bool machine_center_is_zero = false;
-
+    Application* application = nullptr;
     /*
      * \brief The mesh group that is being processed right now.
      *
