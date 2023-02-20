@@ -24,12 +24,12 @@ namespace cura52
 
 void Wireframe2gcode::writeGCode()
 {
-    Settings& scene_settings = Application::getInstance().current_slice->scene.settings;
+    Settings& scene_settings = application->current_slice->scene.settings;
     const size_t start_extruder_nr = scene_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr; // TODO: figure out how Wireframe works with dual extrusion
     gcode.preSetup(start_extruder_nr);
     gcode.setInitialAndBuildVolumeTemps(start_extruder_nr);
 
-    Application::getInstance().communication->beginGCode();
+    application->communication->beginGCode();
 
     processStartingCode();
 
@@ -89,10 +89,10 @@ void Wireframe2gcode::writeGCode()
             else
                 gcode.writeExtrusion(segment.to, speedBottom, extrusion_mm3_per_mm_flat, PrintFeatureType::Skin);
         });
-    Application::getInstance().progressor.messageProgressStage(Progress::Stage::EXPORT, nullptr);
+    application->progressor.messageProgressStage(Progress::Stage::EXPORT, nullptr);
     for (LayerIndex layer_nr = 0; layer_nr < static_cast<LayerIndex>(wireFrame.layers.size()); layer_nr++)
     {
-        Application::getInstance().progressor.messageProgress(Progress::Stage::EXPORT, layer_nr + 1, total_layers); // abuse the progress system of the normal mode of CuraEngine
+        application->progressor.messageProgress(Progress::Stage::EXPORT, layer_nr + 1, total_layers); // abuse the progress system of the normal mode of CuraEngine
 
         WeaveLayer& layer = wireFrame.layers[layer_nr];
 
@@ -245,7 +245,7 @@ void Wireframe2gcode::strategy_retract(WeaveConnectionPart& part, unsigned int s
     WeaveConnectionSegment& segment = part.connection.segments[segment_idx];
     Point3 from = (segment_idx == 0) ? part.connection.from : part.connection.segments[segment_idx - 1].to;
 
-    Settings& scene_settings = Application::getInstance().current_slice->scene.settings;
+    Settings& scene_settings = application->current_slice->scene.settings;
     RetractionConfig retraction_config;
     // TODO: get these from the settings!
     retraction_config.distance = MM2INT(0.5); // INT2MM(getSettingInt("retraction_amount"))
@@ -491,9 +491,12 @@ void Wireframe2gcode::writeMoveWithRetract(Point to)
     gcode.writeTravel(to, moveSpeed);
 }
 
-Wireframe2gcode::Wireframe2gcode(Weaver& weaver, GCodeExport& gcode) : gcode(gcode), wireFrame(weaver.wireFrame)
+Wireframe2gcode::Wireframe2gcode(Weaver& weaver, GCodeExport& gcode)
+    : gcode(gcode)
+    , wireFrame(weaver.wireFrame)
+    , application(gcode.application)
 {
-    const Settings& scene_settings = Application::getInstance().current_slice->scene.settings;
+    const Settings& scene_settings = application->current_slice->scene.settings;
     initial_layer_thickness = scene_settings.get<coord_t>("layer_height_0");
     connectionHeight = scene_settings.get<coord_t>("wireframe_height");
     roof_inset = scene_settings.get<coord_t>("wireframe_roof_inset");
@@ -561,11 +564,11 @@ Wireframe2gcode::Wireframe2gcode(Weaver& weaver, GCodeExport& gcode) : gcode(gco
 
 void Wireframe2gcode::processStartingCode()
 {
-    const Settings& scene_settings = Application::getInstance().current_slice->scene.settings;
-    const size_t extruder_count = Application::getInstance().current_slice->scene.extruders.size();
+    const Settings& scene_settings = application->current_slice->scene.settings;
+    const size_t extruder_count = application->current_slice->scene.extruders.size();
     size_t start_extruder_nr = scene_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr;
 
-    if (Application::getInstance().communication->isSequential())
+    if (application->communication->isSequential())
     {
         std::vector<bool> extruder_is_used;
         extruder_is_used.resize(extruder_count, false);
@@ -616,7 +619,7 @@ void Wireframe2gcode::processStartingCode()
     else if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
     { // initialize extruder trains
         gcode.writeCode("T0"); // Toolhead already assumed to be at T0, but writing it just to be safe...
-        Application::getInstance().communication->sendCurrentPosition(gcode.getPositionXY());
+        application->communication->sendCurrentPosition(gcode.getPositionXY());
         gcode.startExtruder(start_extruder_nr);
         constexpr bool wait = true;
         gcode.writeTemperatureCommand(start_extruder_nr, scene_settings.get<Temperature>("material_print_temperature"), wait);
@@ -640,7 +643,7 @@ void Wireframe2gcode::processSkirt()
     }
     order.optimize();
 
-    const Settings& scene_settings = Application::getInstance().current_slice->scene.settings;
+    const Settings& scene_settings = application->current_slice->scene.settings;
     for (const PathOrderPath<PolygonPointer>& path : order.paths)
     {
         gcode.writeTravel((*path.vertices)[path.start_vertex], scene_settings.get<Velocity>("speed_travel"));
@@ -658,8 +661,8 @@ void Wireframe2gcode::processSkirt()
 
 void Wireframe2gcode::finalize()
 {
-    gcode.finalize(Application::getInstance().current_slice->scene.settings.get<std::string>("machine_end_gcode").c_str());
-    for (size_t e = 0; e < Application::getInstance().current_slice->scene.extruders.size(); e++)
+    gcode.finalize(application->current_slice->scene.settings.get<std::string>("machine_end_gcode").c_str());
+    for (size_t e = 0; e < application->current_slice->scene.extruders.size(); e++)
     {
         gcode.writeTemperatureCommand(e, 0, false);
     }

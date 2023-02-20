@@ -14,7 +14,7 @@ namespace cura52
 {
 
 class Weaver;
-
+class Application;
 /*!
  * Export class for exporting wireframe print gcode / weaver gcode / wireprint gcode.
  */
@@ -61,7 +61,8 @@ private:
 
 public:
     GCodeExport& gcode; //!< Where the result is 'stored'
-    
+    Application* application = nullptr;
+
     Wireframe2gcode(Weaver& weaver, GCodeExport& gcode);
     
     void writeGCode();

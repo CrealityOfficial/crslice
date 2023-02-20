@@ -230,7 +230,7 @@ public:
     bool mode_skip_agressive_merge; //!< Whether to give every new path the 'skip_agressive_merge_hint' property (see GCodePath); default is false.
 
 private:
-
+    Application* application = nullptr;
     const SliceDataStorage& storage; //!< The polygon data obtained from FffPolygonProcessor
     const LayerIndex layer_nr; //!< The layer number of this layer plan
     const bool is_initial_layer; //!< Whether this is the first layer (which might be raft)

@@ -49,10 +49,13 @@ class LayerPlanBuffer
      */
     std::list<LayerPlan*> buffer;
 public:
+    Application* application = nullptr;
+
     LayerPlanBuffer(GCodeExport& gcode)
     : gcode(gcode)
     , extruder_used_in_meshgroup(MAX_EXTRUDERS, false)
-    { }
+    {
+    }
 
     void setPreheatConfig();
 

@@ -32,7 +32,10 @@
 namespace cura52
 {
 
-FffGcodeWriter::FffGcodeWriter() : max_object_height(0), layer_plan_buffer(gcode), slice_uuid(boost::uuids::to_string(boost::uuids::random_generator()()))
+FffGcodeWriter::FffGcodeWriter() 
+    : max_object_height(0)
+    , layer_plan_buffer(gcode)
+    , slice_uuid(boost::uuids::to_string(boost::uuids::random_generator()()))
 {
     for (unsigned int extruder_nr = 0; extruder_nr < MAX_EXTRUDERS; extruder_nr++)
     { // initialize all as max layer_nr, so that they get updated to the lowest layer on which they are used.
