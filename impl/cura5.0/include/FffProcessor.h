@@ -13,24 +13,9 @@
 namespace cura52 {
 
 //FusedFilamentFabrication processor. Singleton class
-class FffProcessor : public NoCopy
+class FffProcessor
 {
-private:
-    /*!
-     * The FffProcessor used for the (current) slicing (The instance of this singleton)
-     */
-    static FffProcessor instance;
-
 public:
-    /*!
-     * Get the instance
-     * \return The instance
-     */
-    static FffProcessor* getInstance()
-    {
-        return &instance;
-    }
-
     /*!
      * The gcode writer, which generates paths in layer plans in a buffer, which converts these paths into gcode commands.
      */

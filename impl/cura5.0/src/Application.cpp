@@ -107,6 +107,7 @@ void Application::printLicense() const
 void Application::slice(ccglobal::Tracer* tracer)
 {
     communication = new CommandLine(m_args, tracer);
+    communication->application = this;
 }
 
 void Application::setSliceCommunication(Communication *ptr)
@@ -169,6 +170,7 @@ void Application::runCommulication(Communication* _communication)
 
     releaseCommulication();
     communication = _communication;
+    communication->application = this;
 
     startThreadPool(); // Start the thread pool
     while (communication->hasSlice())

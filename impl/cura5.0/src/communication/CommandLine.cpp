@@ -120,14 +120,14 @@ namespace cura52
 
     void CommandLine::sendPrintTimeMaterialEstimates() const
     {
-        std::vector<Duration> time_estimates = FffProcessor::getInstance()->getTotalPrintTimePerFeature();
+        std::vector<Duration> time_estimates = application->processor.getTotalPrintTimePerFeature();
         double sum = std::accumulate(time_estimates.begin(), time_estimates.end(), 0.0);
         LOGI("Total print time: {:3}", sum);
 
         sum = 0.0;
         for (size_t extruder_nr = 0; extruder_nr < Application::getInstance().current_slice->scene.extruders.size(); extruder_nr++)
         {
-            sum += FffProcessor::getInstance()->getTotalFilamentUsed(extruder_nr);
+            sum += application->processor.getTotalFilamentUsed(extruder_nr);
         }
     }
 
@@ -139,7 +139,7 @@ namespace cura52
 
     void CommandLine::sliceNext()
     {
-        FffProcessor::getInstance()->time_keeper.restart();
+        application->processor.time_keeper.restart();
 
         // Count the number of mesh groups to slice for.
         size_t num_mesh_groups = 1;
@@ -172,10 +172,10 @@ namespace cura52
                     {
                         try
                         {
-                            LOGI("Loaded from disk in {}", FffProcessor::getInstance()->time_keeper.restart());
+                            LOGI("Loaded from disk in {}", application->processor.time_keeper.restart());
 
                             mesh_group_index++;
-                            FffProcessor::getInstance()->time_keeper.restart();
+                            application->processor.time_keeper.restart();
                             last_settings = &slice.scene.mesh_groups[mesh_group_index].settings;
                         }
                         catch (...)
@@ -288,7 +288,7 @@ namespace cura52
                             exit(1);
                         }
                         argument = arguments[argument_index];
-                        if (!FffProcessor::getInstance()->setTargetFile(argument.c_str()))
+                        if (!application->processor.setTargetFile(argument.c_str()))
                         {
                             LOGE("Failed to open {} for output.", argument.c_str());
                             exit(1);
@@ -347,7 +347,7 @@ namespace cura52
         {
 #endif // DEBUG
             slice.scene.mesh_groups[mesh_group_index].finalize();
-            LOGI("Loaded from disk in {:3}s\n", FffProcessor::getInstance()->time_keeper.restart());
+            LOGI("Loaded from disk in {:3}s\n", application->processor.time_keeper.restart());
 
             // Start slicing.
             slice.compute();
@@ -364,7 +364,7 @@ namespace cura52
 #endif // DEBUG
 
         // Finalize the processor. This adds the end g-code and reports statistics.
-        FffProcessor::getInstance()->finalize();
+        application->processor.finalize();
     }
 
 } // namespace cura52

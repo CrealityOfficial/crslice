@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "FffProcessor.h"
 #include "ccglobal/tracer.h"
 
 namespace cura52
@@ -28,6 +29,7 @@ class ThreadPool;
 class Application : NoCopy
 {
 public:
+    FffProcessor processor;
     /*
      * \brief The communication currently in use.
      *

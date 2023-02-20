@@ -63,8 +63,8 @@ const std::string Scene::getAllSettingsString() const
 
 void Scene::processMeshGroup(MeshGroup& mesh_group)
 {
-    FffProcessor* fff_processor = FffProcessor::getInstance();
-    fff_processor->time_keeper.restart();
+    FffProcessor& fff_processor = Application::getInstance().processor;
+    fff_processor.time_keeper.restart();
 
     TimeKeeper time_keeper_total;
 
@@ -92,7 +92,7 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
         weaver.weave(&mesh_group);
 
         LOGI("Starting Neith Gcode generation...");
-        Wireframe2gcode gcoder(weaver, fff_processor->gcode_writer.gcode);
+        Wireframe2gcode gcoder(weaver, fff_processor.gcode_writer.gcode);
         gcoder.writeGCode();
         LOGI("Finished Neith Gcode generation...");
     }
@@ -100,13 +100,13 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
     {
         SliceDataStorage storage;
 
-        if (! fff_processor->polygon_generator.generateAreas(storage, &mesh_group, fff_processor->time_keeper))
+        if (! fff_processor.polygon_generator.generateAreas(storage, &mesh_group, fff_processor.time_keeper))
         {
             return;
         }
 
-        Progress::messageProgressStage(Progress::Stage::EXPORT, &fff_processor->time_keeper);
-        fff_processor->gcode_writer.writeGCode(storage, fff_processor->time_keeper);
+        Progress::messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
+        fff_processor.gcode_writer.writeGCode(storage, fff_processor.time_keeper);
     }
 
     Progress::messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup

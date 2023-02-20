@@ -15,7 +15,7 @@ enum class PrintFeatureType : unsigned char;
 class Polygons;
 class ConstPolygonRef;
 class ExtruderTrain;
-
+class Application;
 /*
  * An abstract class to provide a common interface for all methods of
  * communicating instructions from and to CuraEngine.
@@ -23,6 +23,7 @@ class ExtruderTrain;
 class Communication
 {
 public:
+    Application* application = nullptr;
     /*
      * \brief Close the communication channel.
      */

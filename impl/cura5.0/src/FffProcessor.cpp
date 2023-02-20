@@ -3,35 +3,32 @@
 
 #include "FffProcessor.h"
 
-namespace cura52 
+namespace cura52
 {
+    bool FffProcessor::setTargetFile(const char* filename)
+    {
+        return gcode_writer.setTargetFile(filename);
+    }
 
-FffProcessor FffProcessor::instance; // definition must be in cpp
+    void FffProcessor::setTargetStream(std::ostream* stream)
+    {
+        return gcode_writer.setTargetStream(stream);
+    }
 
-bool FffProcessor::setTargetFile(const char* filename)
-{
-    return gcode_writer.setTargetFile(filename);
-}
+    double FffProcessor::getTotalFilamentUsed(int extruder_nr)
+    {
+        return gcode_writer.getTotalFilamentUsed(extruder_nr);
+    }
 
-void FffProcessor::setTargetStream(std::ostream* stream)
-{
-    return gcode_writer.setTargetStream(stream);
-}
+    std::vector<Duration> FffProcessor::getTotalPrintTimePerFeature()
+    {
+        return gcode_writer.getTotalPrintTimePerFeature();
+    }
 
-double FffProcessor::getTotalFilamentUsed(int extruder_nr)
-{
-    return gcode_writer.getTotalFilamentUsed(extruder_nr);
-}
-
-std::vector<Duration> FffProcessor::getTotalPrintTimePerFeature()
-{
-    return gcode_writer.getTotalPrintTimePerFeature();
-}
-
-void FffProcessor::finalize()
-{
-    gcode_writer.finalize();
-    gcode_writer.closeGcodeWriterFile();
-}
+    void FffProcessor::finalize()
+    {
+        gcode_writer.finalize();
+        gcode_writer.closeGcodeWriterFile();
+    }
 
 } // namespace cura52 

@@ -140,8 +140,8 @@ namespace crslice
             runFinished();
             return;
         }
-        cura52::FffProcessor::getInstance()->setTargetFile(outputFile.c_str());
-        cura52::FffProcessor::getInstance()->time_keeper.restart();
+        cura52::Application::getInstance().processor.setTargetFile(outputFile.c_str());
+        cura52::Application::getInstance().processor.time_keeper.restart();
 
         size_t numGroup = m_scene->m_groups.size();
         assert(numGroup > 0);
@@ -197,7 +197,7 @@ namespace crslice
         slice.finalize();
         slice.compute();
         // Finalize the processor. This adds the end g-code and reports statistics.
-        cura52::FffProcessor::getInstance()->finalize();
+        cura52::Application::getInstance().processor.finalize();
 
         runFinished();
     }
