@@ -66,7 +66,7 @@ std::string Settings::get<std::string>(const std::string& key) const
         return parent->get<std::string>(key);
     }
 
-    LOGE("Trying to retrieve setting with no value given: {}", key.c_str());
+    LOGE("Trying to retrieve setting with no value given: %s", key.c_str());
     std::exit(2);
 }
 
