@@ -8,117 +8,119 @@
 
 namespace cura52 {
 
-class AdaptiveLayer
-{
-public:
-    /*!
-     * Height of the layer in microns.
-     */
-    coord_t layer_height;
+    class Application;
+    class AdaptiveLayer
+    {
+    public:
+        /*!
+         * Height of the layer in microns.
+         */
+        coord_t layer_height;
 
-    /*!
-     * The absolute z position of the layer.
-     */
-    int z_position;
+        /*!
+         * The absolute z position of the layer.
+         */
+        int z_position;
 
-    /*!
-     * Temperature to use for this layer.
-     */
-    int temperature;
+        /*!
+         * Temperature to use for this layer.
+         */
+        int temperature;
 
-    /*!
-     * The print speed for this layer.
-     */
-    int print_speed;
+        /*!
+         * The print speed for this layer.
+         */
+        int print_speed;
 
-    explicit AdaptiveLayer(const coord_t layer_height);
-};
-
-/**
- * Adaptive layer heights calculates the desired layer heights depending mesh.
- */
-class AdaptiveLayerHeights
-{
-public:
-    /**
-     * The base layer height.
-     */
-    int base_layer_height;
+        explicit AdaptiveLayer(const coord_t layer_height);
+    };
 
     /**
-     * The maximum deviation from the base layer height.
+     * Adaptive layer heights calculates the desired layer heights depending mesh.
      */
-    int max_variation;
+    class AdaptiveLayerHeights
+    {
+    public:
+        Application* application = nullptr;
+        /**
+         * The base layer height.
+         */
+        int base_layer_height;
 
-    /**
-     * The layer height change per step to try between min and max deviation from the base layer height.
-     */
-    int step_size;
+        /**
+         * The maximum deviation from the base layer height.
+         */
+        int max_variation;
 
-    /*!
-     * Target topography size. Adaptive layers will try to keep the horizontal
-     * distance the same.
-     */
-    coord_t threshold;
+        /**
+         * The layer height change per step to try between min and max deviation from the base layer height.
+         */
+        int step_size;
 
-    /*!
-     * Stores the found layer heights
-     */
-    std::vector<AdaptiveLayer> layers;
+        /*!
+         * Target topography size. Adaptive layers will try to keep the horizontal
+         * distance the same.
+         */
+        coord_t threshold;
 
-    /*!
-     * Stores the allowed layer heights in microns.
-     */
-    std::vector<int> allowed_layer_heights;
+        /*!
+         * Stores the found layer heights
+         */
+        std::vector<AdaptiveLayer> layers;
 
-    /*!
-     * Get the amount of adaptive layers found.
-     * @return
-     */
-    int getLayerCount();
+        /*!
+         * Stores the allowed layer heights in microns.
+         */
+        std::vector<int> allowed_layer_heights;
 
-    /*!
-     * Get the adaptive layers found.
-     * @return
-     */
-    std::vector<AdaptiveLayer>* getLayers();
+        /*!
+         * Get the amount of adaptive layers found.
+         * @return
+         */
+        int getLayerCount();
 
-    /*!
-     * \brief Creates a new adaptive layer height calculator.
-     * \param base_layer_height The base layer height to calculate adaptive layers from.
-     * \param variation How much variation is allowed in the layer thickness.
-     * \param step_size The maximum difference in layer height between two
-     * adjacent layers.
-     * \param threshold Threshold to compare the tangent of the steepest slope
-     * to.
-     */
-    AdaptiveLayerHeights(const coord_t base_layer_height, const coord_t variation, const coord_t step_size, const coord_t threshold);
+        /*!
+         * Get the adaptive layers found.
+         * @return
+         */
+        std::vector<AdaptiveLayer>* getLayers();
 
-private:
+        /*!
+         * \brief Creates a new adaptive layer height calculator.
+         * \param base_layer_height The base layer height to calculate adaptive layers from.
+         * \param variation How much variation is allowed in the layer thickness.
+         * \param step_size The maximum difference in layer height between two
+         * adjacent layers.
+         * \param threshold Threshold to compare the tangent of the steepest slope
+         * to.
+         */
+        AdaptiveLayerHeights(Application* _application, const coord_t base_layer_height, const coord_t variation, const coord_t step_size, const coord_t threshold);
 
-    /*!
-     * Stores the found slopes of each face using the same index.
-     */
-    std::vector<double> face_slopes;
-    std::vector<int> face_min_z_values;
-    std::vector<int> face_max_z_values;
+    private:
 
-    /*!
-     * Calculate the allowed layer heights depending on variation and step input
-     */
-    void calculateAllowedLayerHeights();
+        /*!
+         * Stores the found slopes of each face using the same index.
+         */
+        std::vector<double> face_slopes;
+        std::vector<int> face_min_z_values;
+        std::vector<int> face_max_z_values;
 
-    /*!
-     * Calculates the layers based on the given mesh and allowed layer heights
-     */
-    void calculateLayers();
+        /*!
+         * Calculate the allowed layer heights depending on variation and step input
+         */
+        void calculateAllowedLayerHeights();
 
-    /*!
-     * Calculates the slopes for each triangle in the mesh.
-     * These are uses later by calculateLayers to find the steepest triangle in a potential layer.
-     */
-    void calculateMeshTriangleSlopes();
-};
+        /*!
+         * Calculates the layers based on the given mesh and allowed layer heights
+         */
+        void calculateLayers();
+
+        /*!
+         * Calculates the slopes for each triangle in the mesh.
+         * These are uses later by calculateLayers to find the steepest triangle in a potential layer.
+         */
+        void calculateMeshTriangleSlopes();
+    };
 
 }
 

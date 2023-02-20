@@ -18,9 +18,10 @@ namespace cura52
 
 AdaptiveLayer::AdaptiveLayer(const coord_t layer_height) : layer_height(layer_height) { }
 
-AdaptiveLayerHeights::AdaptiveLayerHeights(const coord_t base_layer_height, const coord_t variation,
+AdaptiveLayerHeights::AdaptiveLayerHeights(Application* _application, const coord_t base_layer_height, const coord_t variation,
                                            const coord_t step_size, const coord_t threshold)
-    : base_layer_height(base_layer_height)
+    : application(_application)
+    , base_layer_height(base_layer_height)
     , max_variation(variation)
     , step_size(step_size)
     , threshold(threshold)
@@ -60,7 +61,7 @@ void AdaptiveLayerHeights::calculateAllowedLayerHeights()
 void AdaptiveLayerHeights::calculateLayers()
 {
     const coord_t minimum_layer_height = *std::min_element(allowed_layer_heights.begin(), allowed_layer_heights.end());
-    Settings& mesh_group_settings = Application::getInstance().current_slice->scene.current_mesh_group->settings;
+    Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     SlicingTolerance slicing_tolerance = mesh_group_settings.get<SlicingTolerance>("slicing_tolerance");
     std::vector<size_t> triangles_of_interest;
     coord_t z_level = 0;
@@ -194,7 +195,7 @@ void AdaptiveLayerHeights::calculateLayers()
 void AdaptiveLayerHeights::calculateMeshTriangleSlopes()
 {
     // loop over all mesh faces (triangles) and find their slopes
-    for (const Mesh& mesh : Application::getInstance().current_slice->scene.current_mesh_group->meshes)
+    for (const Mesh& mesh : application->current_slice->scene.current_mesh_group->meshes)
     {
         // Skip meshes that are not printable
         if (mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("cutting_mesh") || mesh.settings.get<bool>("anti_overhang_mesh"))

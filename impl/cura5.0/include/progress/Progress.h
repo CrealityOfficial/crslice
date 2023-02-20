@@ -8,7 +8,7 @@
 
 namespace cura52
 {
-
+    class Application;
 class TimeKeeper;
 
 #define N_PROGRESS_STAGES 7
@@ -49,6 +49,8 @@ private:
      */
     float calcOverallProgress(Stage stage, float stage_progress);
 public:
+    Application* application = nullptr;
+
     Progress();
     ~Progress();
 
