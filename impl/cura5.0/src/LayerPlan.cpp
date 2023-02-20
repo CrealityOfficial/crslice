@@ -737,7 +737,8 @@ void LayerPlan::addWallLine(const Point& p0,
         {
             for (int i = overhang_mask.size()-1; i >= 0; i--)
             {
-                if (overhang_mask[i].empty()) continue;
+                if (overhang_mask[i].empty() || !PolygonUtils::polygonCollidesWithLineSegment(overhang_mask[i], p0, p1))
+                    continue;
                 Polygons line_polys;
                 line_polys.addLine(p0, p1);
                 constexpr bool restitch = false; // only a single line doesn't need stitching
