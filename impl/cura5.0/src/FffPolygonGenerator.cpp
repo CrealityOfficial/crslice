@@ -547,7 +547,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 			                        {
 				                        return;
 			                        }
-                                   LOGD("Processing insets for layer {} of {}", layer_number, mesh.layers.size());
+                                   //LOGD("Processing insets for layer {} of {}", layer_number, mesh.layers.size());
                                    processWalls(mesh, layer_number);
                                    guarded_progress++;
                                });
@@ -593,7 +593,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 			                        {
 				                        return;
 			                        }
-                                   LOGD("Processing skins and infill layer {} of {}", layer_number, mesh.layers.size());
+                                   //LOGD("Processing skins and infill layer {} of {}", layer_number, mesh.layers.size());
                                    if (! magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
                                    {
                                        processSkinsAndInfill(mesh, layer_number, process_infill);

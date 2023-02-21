@@ -34,22 +34,22 @@ BeadingStrategyPtr BeadingStrategyFactory::makeStrategy(const coord_t preferred_
     using std::move;
     BeadingStrategyPtr ret =
         make_unique<DistributedBeadingStrategy>(preferred_bead_width_inner, preferred_transition_length, transitioning_angle, wall_split_middle_threshold, wall_add_middle_threshold, inward_distributed_center_wall_count);
-    LOGD("Applying the Redistribute meta-strategy with outer-wall width = {}, inner-wall width = {}", preferred_bead_width_outer, preferred_bead_width_inner);
+    //LOGD("Applying the Redistribute meta-strategy with outer-wall width = {}, inner-wall width = {}", preferred_bead_width_outer, preferred_bead_width_inner);
     ret = make_unique<RedistributeBeadingStrategy>(preferred_bead_width_outer, minimum_variable_line_ratio, move(ret));
 
     if (print_thin_walls)
     {
-        LOGD("Applying the Widening Beading meta-strategy with minimum input width {} and minimum output width {}.", min_feature_size, min_bead_width);
+        //LOGD("Applying the Widening Beading meta-strategy with minimum input width {} and minimum output width {}.", min_feature_size, min_bead_width);
         ret = make_unique<WideningBeadingStrategy>(move(ret), min_feature_size, min_bead_width);
     }
     if (outer_wall_offset > 0)
     {
-        LOGD("Applying the OuterWallOffset meta-strategy with offset = {}", outer_wall_offset);
+        //LOGD("Applying the OuterWallOffset meta-strategy with offset = {}", outer_wall_offset);
         ret = make_unique<OuterWallInsetBeadingStrategy>(outer_wall_offset, move(ret));
     }
 
     // Apply the LimitedBeadingStrategy last, since that adds a 0-width marker wall which other beading strategies shouldn't touch.
-    LOGD("Applying the Limited Beading meta-strategy with maximum bead count = {}", max_bead_count);
+   //LOGD("Applying the Limited Beading meta-strategy with maximum bead count = {}", max_bead_count);
     ret = make_unique<LimitedBeadingStrategy>(max_bead_count, move(ret));
     return ret;
 }
