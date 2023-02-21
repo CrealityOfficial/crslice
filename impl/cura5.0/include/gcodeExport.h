@@ -480,6 +480,7 @@ public:
     void switchExtruder(size_t new_extruder, const RetractionConfig& retraction_config_old_extruder, coord_t perform_z_hop = 0);
 
     void writeCode(const char* str);
+    void writeComplexCode(const std::string& str);
 
     bool substitution(std::string& str);
 
@@ -551,7 +552,7 @@ public:
      * 
      * \param endCode The end gcode to be appended at the very end.
      */
-    void finalize(const char* endCode);
+    void finalize(const std::string& endCode);
 
     /*!
      * Get amount of material extruded since last wipe script was inserted.

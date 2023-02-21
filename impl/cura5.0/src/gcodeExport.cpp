@@ -25,6 +25,23 @@
 #include "crsliceinfo.h"
 namespace cura52
 {
+    void SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
+    {
+        std::string::size_type pos1, pos2;
+        pos2 = Src.find(c);
+        pos1 = 0;
+        while (std::string::npos != pos2)
+        {
+            Vctdest.push_back(Src.substr(pos1, pos2 - pos1));
+
+            pos1 = pos2 + c.size();
+            pos2 = Src.find(c, pos1);
+        }
+        if (pos1 != Src.length())
+        {
+            Vctdest.push_back(Src.substr(pos1));
+        }
+    }
 
 std::string transliterate(const std::string& text)
 {
@@ -1473,24 +1490,15 @@ void GCodeExport::writeCode(const char* str)
     *output_stream << str << new_line;
 }
 
-void SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
+void GCodeExport::writeComplexCode(const std::string& str)
 {
-	std::string::size_type pos1, pos2;
-	pos2 = Src.find(c);
-	pos1 = 0;
-	while (std::string::npos != pos2)
-	{
-		Vctdest.push_back(Src.substr(pos1, pos2 - pos1));
-
-		pos1 = pos2 + c.size();
-		pos2 = Src.find(c, pos1);
-	}
-	if (pos1 != Src.length())
-	{
-		Vctdest.push_back(Src.substr(pos1));
-	}
-
+    std::vector<std::string> lines;
+    SplitString(str, lines, "\\n");
+    for (const std::string& line : lines)
+        if(line.size() > 0)
+            *output_stream << line << new_line;
 }
+
 bool GCodeExport::substitution(std::string& srcStr)
 {
     bool hasParm = false;
@@ -1840,10 +1848,10 @@ void GCodeExport::writeJerk(const Velocity& jerk)
     }
 }
 
-void GCodeExport::finalize(const char* endCode)
+void GCodeExport::finalize(const std::string& endCode)
 {
     writeFanCommand(0);
-    writeCode(endCode);
+    writeComplexCode(endCode);
     int64_t print_time = getSumTotalPrintTimes();
     int mat_0 = getTotalFilamentUsed(0);
     LOGI("Print time (s): {}", print_time);
