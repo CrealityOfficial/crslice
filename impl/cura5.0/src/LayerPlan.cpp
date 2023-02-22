@@ -2005,7 +2005,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if (extruder.settings.get<bool>("retraction_wipe"))
                 {
                     RetractionConfig retraction_config_1 = retraction_config;
-                    retraction_config_1.distance =INT2MM(extruder.settings.get<coord_t>("before_wipe_retraction_amount_percent")*0.01)* retraction_config_1.distance;
+                    retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")* retraction_config_1.distance;
                     gcode.writeRetraction(retraction_config_1);
 
                     auto getLastExtrusionPath = [paths](int curIdx)
@@ -2034,9 +2034,9 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     };
 
                     std::vector<Point> last_path = getLastExtrusionPath(path_idx);
-                    double dis_path = MM2INT(extruder.settings.get<double>("wipe_length"));
+                    double wipe_length = MM2INT(extruder.settings.get<double>("wipe_length"));
                     double cur_dis_path = 0;
-                    double dis_Extru = (1 - INT2MM(extruder.settings.get<coord_t>("before_wipe_retraction_amount_percent") * 0.01) - 0.015) * retraction_config.distance;
+                    double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
                     double speed = path.config->getSpeed() * path.speed_factor;
                     for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
                     {
@@ -2045,18 +2045,18 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         double len = vSize(cur_pos - src_pos);
                         if (len == 0.) continue;
                         double theta = 1.0f;
-                        if (len < dis_path - cur_dis_path)
+                        if (len < wipe_length - cur_dis_path)
                         {
-                            theta = len / dis_path;
+                            theta = len / wipe_length;
                         }
                         else
                         {
-                            theta = (dis_path - cur_dis_path) / len;
-                            cur_pos = src_pos + theta * (cur_pos - src_pos);
+                            theta = (wipe_length - cur_dis_path) / wipe_length;
+                            cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
                         }
                         gcode.writeExtrusionG1(speed, cur_pos, -dis_Extru * theta, path.config->type);
                         cur_dis_path += len;
-                        if (cur_dis_path > dis_path) break;
+                        if (cur_dis_path > wipe_length) break;
                     }
                     //gcode.writeRetraction(retraction_config);
                     //if (path.perform_z_hop)

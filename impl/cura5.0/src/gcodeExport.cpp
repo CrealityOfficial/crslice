@@ -62,6 +62,7 @@ GCodeExport::GCodeExport() : output_stream(&std::cout), currentPosition(0, 0, MM
     current_e_value = 0;
     current_extruder = 0;
     current_fan_speed = -1;
+    current_e_offset = 0;
 
     total_print_times = std::vector<Duration>(static_cast<unsigned char>(PrintFeatureType::NumPrintFeatureTypes), 0.0);
 
