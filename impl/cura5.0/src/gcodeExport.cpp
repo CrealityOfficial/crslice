@@ -1263,11 +1263,11 @@ coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t 
     float len = (float)vSize(delta_no_z);
     if (len < retraction_min_travel) return 0;
     double radius = is_z_hopped / (2 * M_PI * atan(3 * M_PI / 180));
-    Point ij_offset = Point(-radius * (delta_no_z.Y / len), radius * (delta_no_z.X / len));
+    Point ij_offset = Point(radius * (delta_no_z.Y / len), -radius * (delta_no_z.X / len));
 
     //current_layer_z + z_hop_height;
     *output_stream << "G17\n";
-    *output_stream << "G3" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
+    *output_stream << "G2" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
         << " I" << PrecisionedDouble{ 5, ij_offset.X / 1000. } << " J" << PrecisionedDouble{ 5, ij_offset.Y / 1000. }
     << " P1 F" << PrecisionedDouble{ 1, speed * 60 } << "\n";
     return is_z_hopped;
