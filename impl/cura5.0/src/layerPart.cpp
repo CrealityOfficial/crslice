@@ -59,10 +59,24 @@ void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, Sl
         result = layer->polygons.splitIntoParts(union_layers || union_all_remove_holes);
     }
     const coord_t hole_offset = settings.get<coord_t>("hole_xy_offset");
+    bool magic_spiralize = settings.get<bool>("magic_spiralize");
     for(auto & part : result)
     {
         storageLayer.parts.emplace_back();
-        if (hole_offset != 0)
+        if (magic_spiralize)
+        {
+            // holes remove
+            Polygons outline;
+            for (const PolygonRef poly : part)
+            {
+                if (poly.orientation())
+                {
+                    outline.add(poly);
+                }
+            }
+            storageLayer.parts.back().outline.add(outline.unionPolygons());
+        }
+        else if (hole_offset != 0)
         {
             // holes are to be expanded or shrunk
             Polygons outline;

@@ -2325,6 +2325,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     communication->sendLineTo(path.config->type, path.points[0], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
                 }
                 path_idx--; // the last path_idx didnt spiralize, so it's not part of the current spiralize path
+                if(paths[path_idx].spiralize)
+                   extruder_plan.handleInserts(path_idx, gcode);
             }
         } // paths for this extruder /\  .
 
