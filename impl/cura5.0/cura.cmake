@@ -111,7 +111,7 @@ __cc_find(stb)
 __cc_find(fmt)
 
 list(APPEND SRCS ${engine_SRCS})
-list(APPEND LIBS fmt rapidjson stb slice3rBase clipper
+list(APPEND LIBS fmt rapidjson stb slice3rBase
 			 boost_system boost_filesystem boost_iostreams 
 			)
 			
