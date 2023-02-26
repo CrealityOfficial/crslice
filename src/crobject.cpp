@@ -14,7 +14,15 @@ namespace crslice
 
 	void CrObject::load(std::ifstream& in)
 	{
+		m_settings->load(in);
+		int have = templateLoad<int>(in);
 
+		if (have)
+		{
+			m_mesh.reset(new trimesh::TriMesh());
+			templateLoad(m_mesh->faces, in);
+			templateLoad(m_mesh->vertices, in);
+		}
 	}
 
 	void CrObject::save(std::ofstream& out)
