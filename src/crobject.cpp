@@ -11,4 +11,22 @@ namespace crslice
 	{
 
 	}
+
+	void CrObject::load(std::ifstream& in)
+	{
+
+	}
+
+	void CrObject::save(std::ofstream& out)
+	{
+		m_settings->save(out);
+		int have = m_mesh ? 1 : 0;
+		templateSave(have, out);
+
+		if (m_mesh)
+		{
+			templateSave(m_mesh->faces, out);
+			templateSave(m_mesh->vertices, out);
+		}
+	}
 }

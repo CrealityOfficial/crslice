@@ -48,4 +48,18 @@ namespace crslice
 	{
 		m_settings = settings;
 	}
+
+	void CrGroup::load(std::ifstream& in)
+	{
+
+	}
+
+	void CrGroup::save(std::ofstream& out)
+	{
+		m_settings->save(out);
+		int objectCount = (int)m_objects.size();
+		templateSave<int>(objectCount, out);
+		for (int i = 0; i < objectCount; ++i)
+			m_objects.at(i).save(out);
+	}
 }

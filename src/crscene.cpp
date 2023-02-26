@@ -112,6 +112,37 @@ namespace crslice
 		return true;
 	}
 
+	void CrScene::save(const std::string& fileName)
+	{
+		std::ofstream out;
+		out.open(fileName, std::ios_base::binary);
+		if (out.is_open())
+		{
+			m_settings->save(out);
+			int extruderCount = (int)m_extruders.size();
+			templateSave<int>(extruderCount, out);
+			for (int i = 0; i < extruderCount; ++i)
+				m_extruders.at(i)->save(out);
+
+			int groupCount = (int)m_groups.size();
+			templateSave<int>(groupCount, out);
+			for (int i = 0; i < groupCount; ++i)
+				m_groups.at(i)->save(out);
+		}
+		out.close();
+	}
+
+	void CrScene::load(const std::string& fileName)
+	{
+		std::ifstream in;
+		in.open(fileName, std::ios_base::binary);
+		if (in.is_open())
+		{
+
+		}
+		in.close();
+	}
+
 	CrGroup* CrScene::getGroupsIndex(int groupID)
 	{
 		if (groupID < m_groups.size())

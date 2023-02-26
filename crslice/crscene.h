@@ -4,6 +4,8 @@
 #include "crslice/header.h"
 #include <vector>
 
+#include <fstream>
+
 namespace crslice
 {
 	class CrGroup;
@@ -28,6 +30,9 @@ namespace crslice
 
 		void setOutputGCodeFileName(const std::string& fileName);
 		bool valid();
+
+		void save(const std::string& fileName);
+		void load(const std::string& fileName);
 	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;
