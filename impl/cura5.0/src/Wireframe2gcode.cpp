@@ -45,6 +45,7 @@ void Wireframe2gcode::writeGCode()
 
     gcode.setZ(initial_layer_thickness);
 
+    gcode.writeLayerCountComment(1);
     processSkirt();
 
     unsigned int total_layers = wireFrame.layers.size();
