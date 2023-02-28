@@ -482,7 +482,7 @@ public:
     void writeCode(const char* str);
     void writeComplexCode(const std::string& str);
 
-    bool substitution(std::string& str);
+    bool substitution(std::string& str,const size_t start_extruder_nr);
 
     void resetExtruderToPrimed(const size_t extruder, const double initial_retraction);
 

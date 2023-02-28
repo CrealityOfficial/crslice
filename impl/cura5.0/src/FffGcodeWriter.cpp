@@ -548,10 +548,10 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
     std::vector<bool> extruder_is_used = storage.getExtrudersUsed();
     Scene& scene = application->current_slice->scene;
     const size_t num_extruders = scene.extruders.size();
+    ExtruderTrain& train = scene.extruders[start_extruder_nr];
 
     if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
-    {
-        ExtruderTrain& train = scene.extruders[start_extruder_nr];
+    {      
         constexpr bool wait = true;
         const Temperature print_temp_0 = train.settings.get<Temperature>("material_print_temperature_layer_0");
         const Temperature print_temp_here = (print_temp_0 != 0) ? print_temp_0 : train.settings.get<Temperature>("material_print_temperature");
@@ -566,26 +566,25 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
             gcode.writeLine(tmp.str().c_str());
         }
 
-        if (scene.current_mesh_group->settings.get<bool>("material_bed_temp_prepend") && scene.current_mesh_group->settings.get<bool>("machine_heated_bed"))
+        if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
         {
-            const Temperature bed_temp = scene.current_mesh_group->settings.get<Temperature>("material_bed_temperature_layer_0");
+            const Temperature bed_temp = train.settings.get<Temperature>("material_bed_temperature_layer_0");
             if (scene.current_mesh_group == scene.mesh_groups.begin() // Always write bed temperature for first mesh group.
-                || bed_temp != (scene.current_mesh_group - 1)->settings.get<Temperature>("material_bed_temperature")) // Don't write bed temperature if identical to temperature of previous group.
+                || bed_temp != train.settings.get<Temperature>("material_bed_temperature")) // Don't write bed temperature if identical to temperature of previous group.
             {
                 if (bed_temp != 0)
                 {
-                    gcode.writeBedTemperatureCommand(bed_temp, scene.current_mesh_group->settings.get<bool>("material_bed_temp_wait"));
+                    gcode.writeBedTemperatureCommand(bed_temp, train.settings.get<bool>("material_bed_temp_wait"));
                 }
             }
         }
 
-        if (scene.current_mesh_group->settings.get<bool>("material_print_temp_prepend"))
+        if (train.settings.get<bool>("material_print_temp_prepend"))
         {
             for (unsigned extruder_nr = 0; extruder_nr < num_extruders; extruder_nr++)
             {
                 if (extruder_is_used[extruder_nr])
                 {
-                    const ExtruderTrain& train = scene.extruders[extruder_nr];
                     Temperature extruder_temp;
                     if (extruder_nr == start_extruder_nr)
                     {
@@ -599,13 +598,12 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
                     gcode.writeTemperatureCommand(extruder_nr, extruder_temp);
                 }
             }
-            if (scene.current_mesh_group->settings.get<bool>("material_print_temp_wait"))
+            if (train.settings.get<bool>("material_print_temp_wait"))
             {
                 for (unsigned extruder_nr = 0; extruder_nr < num_extruders; extruder_nr++)
                 {
                     if (extruder_is_used[extruder_nr])
                     {
-                        const ExtruderTrain& train = scene.extruders[extruder_nr];
                         Temperature extruder_temp;
                         if (extruder_nr == start_extruder_nr)
                         {
@@ -640,7 +638,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
 
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
 	std::string strTemp = mesh_group_settings.get<std::string>("machine_start_gcode");
-	bool hasParm = gcode.substitution(strTemp);
+	bool hasParm = gcode.substitution(strTemp, start_extruder_nr);
 
     if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
     {

@@ -261,8 +261,8 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Infill Sparse Density:" << (float)meshSettings->get <coord_t>("infill_sparse_density") / 1000.0f << new_line;
 
     tmp << ";Infill Wipe Distance:" << (float)meshSettings->get <coord_t>("infill_wipe_dist") / 1000.0f << new_line;
-    tmp << ";Print Temperature:" << groupSettings->get<Temperature>("material_print_temperature") << new_line;
-    tmp << ";Bed Temperature:" << groupSettings->get<Temperature>("material_bed_temperature") << new_line;
+    tmp << ";Print Temperature:" << extruderSettings->get<Temperature>("material_print_temperature") << new_line;
+    tmp << ";Bed Temperature:" << extruderSettings->get<Temperature>("material_bed_temperature") << new_line;
 
     tmp << ";Support Enable:" << (groupSettings->get<bool>("support_enable") ? "true" : "false") << new_line;
     tmp << ";Support Density:" << (float)groupSettings->get<coord_t>("support_infill_rate") / 1000.0f << new_line;
@@ -1500,7 +1500,7 @@ void GCodeExport::writeComplexCode(const std::string& str)
             *output_stream << line << new_line;
 }
 
-bool GCodeExport::substitution(std::string& srcStr)
+bool GCodeExport::substitution(std::string& srcStr, const size_t start_extruder_nr)
 {
     bool hasParm = false;
     std::vector<std::string> Vctdest;
@@ -1520,9 +1520,9 @@ bool GCodeExport::substitution(std::string& srcStr)
 
     for (std::string& aStr : Vctdest)
     {
-        if (!aStr.empty() && application->current_slice->scene.settings.has(aStr))
+        if (!aStr.empty() && application->current_slice->scene.extruders[start_extruder_nr].settings.has(aStr))
         {
-            float value =application->current_slice->scene.settings.get<double>(aStr);
+            float value =application->current_slice->scene.extruders[start_extruder_nr].settings.get<double>(aStr);
             int npos = srcStr.find(aStr);
 			if (npos != std::string::npos)
 			{
