@@ -117,4 +117,14 @@ void Scene::processMeshGroup(MeshGroup& mesh_group)
     LOGI("Total time elapsed {:3}s.\n", time_keeper_total.restart());
 }
 
+void Scene::progress(float r){}
+bool Scene::interrupt() 
+{ 
+    return false; 
+}
+
+void Scene::message(const char* msg) {}
+void Scene::failed(const char* msg) {}
+void Scene::success() {}
+
 } // namespace cura52

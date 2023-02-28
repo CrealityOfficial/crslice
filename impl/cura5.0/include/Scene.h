@@ -15,7 +15,7 @@ namespace cura52
 /*
  * Represents a scene that should be sliced.
  */
-class Scene
+class Scene : public ccglobal::Tracer
 {
 public:
     /*
@@ -75,6 +75,12 @@ public:
 
     ccglobal::Tracer* m_tracer;
 
+    void progress(float r) override;
+    bool interrupt() override;
+
+    void message(const char* msg) override;
+    void failed(const char* msg) override;
+    void success() override;
 private:
     /*
      * \brief You are not allowed to copy the scene.

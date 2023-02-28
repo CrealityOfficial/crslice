@@ -152,6 +152,9 @@ namespace crslice
         slice.scene.application = application;
 
         slice.scene.m_tracer = m_tracer;
+        if (!slice.scene.m_tracer)
+            slice.scene.m_tracer = &slice.scene;
+
         slice.scene.machine_center_is_zero = m_scene->machine_center_is_zero;
 
         bool sliceValible = false;

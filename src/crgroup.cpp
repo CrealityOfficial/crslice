@@ -30,6 +30,7 @@ namespace crslice
 
 		CrObject& object = m_objects.at(objectID);
 		object.m_mesh = mesh;
+        object.m_mesh->need_bbox();
 	}
 
 	void CrGroup::setObjectSettings(int objectID, SettingsPtr settings)
