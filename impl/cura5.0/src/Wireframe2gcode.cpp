@@ -567,6 +567,7 @@ void Wireframe2gcode::processStartingCode()
     const Settings& scene_settings = application->current_slice->scene.settings;
     const size_t extruder_count = application->current_slice->scene.extruders.size();
     size_t start_extruder_nr = scene_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr;
+    const Settings& start_extruder_settings = application->current_slice->scene.extruders[start_extruder_nr].settings;
 
     if (application->communication->isSequential())
     {
@@ -581,26 +582,26 @@ void Wireframe2gcode::processStartingCode()
 
     if (gcode.getFlavor() != EGCodeFlavor::ULTIGCODE && gcode.getFlavor() != EGCodeFlavor::GRIFFIN)
     {
-        if (scene_settings.get<bool>("material_bed_temp_prepend"))
+        if (start_extruder_settings.get<bool>("material_bed_temp_prepend"))
         {
-            if (scene_settings.get<bool>("machine_heated_bed") && scene_settings.get<Temperature>("material_bed_temperature") != 0)
+            if (start_extruder_settings.get<bool>("machine_heated_bed") && start_extruder_settings.get<Temperature>("material_bed_temperature") != 0)
             {
-                gcode.writeBedTemperatureCommand(scene_settings.get<Temperature>("material_bed_temperature"), scene_settings.get<bool>("material_bed_temp_wait"));
+                gcode.writeBedTemperatureCommand(start_extruder_settings.get<Temperature>("material_bed_temperature"), start_extruder_settings.get<bool>("material_bed_temp_wait"));
             }
         }
 
-        if (scene_settings.get<bool>("material_print_temp_prepend"))
+        if (start_extruder_settings.get<bool>("material_print_temp_prepend"))
         {
             for (size_t extruder_nr = 0; extruder_nr < extruder_count; extruder_nr++)
             {
-                Temperature print_temp = scene_settings.get<Temperature>("material_print_temperature");
+                Temperature print_temp = start_extruder_settings.get<Temperature>("material_print_temperature");
                 gcode.writeTemperatureCommand(extruder_nr, print_temp);
             }
-            if (scene_settings.get<bool>("material_print_temp_wait"))
+            if (start_extruder_settings.get<bool>("material_print_temp_wait"))
             {
                 for (size_t extruder_nr = 0; extruder_nr < extruder_count; extruder_nr++)
                 {
-                    const Temperature print_temp = scene_settings.get<Temperature>("material_print_temperature");
+                    const Temperature print_temp = start_extruder_settings.get<Temperature>("material_print_temperature");
                     gcode.writeTemperatureCommand(extruder_nr, print_temp, true);
                 }
             }
@@ -613,7 +614,7 @@ void Wireframe2gcode::processStartingCode()
     {
         gcode.writeComment("enable auto-retraction");
         std::ostringstream tmp;
-        tmp << "M227 S" << (scene_settings.get<coord_t>("retraction_amount") * 2560 / 1000) << " P" << (scene_settings.get<coord_t>("retraction_amount") * 2560 / 1000);
+        tmp << "M227 S" << (start_extruder_settings.get<coord_t>("retraction_amount") * 2560 / 1000) << " P" << (start_extruder_settings.get<coord_t>("retraction_amount") * 2560 / 1000);
         gcode.writeLine(tmp.str().c_str());
     }
     else if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
@@ -622,7 +623,7 @@ void Wireframe2gcode::processStartingCode()
         application->communication->sendCurrentPosition(gcode.getPositionXY());
         gcode.startExtruder(start_extruder_nr);
         constexpr bool wait = true;
-        gcode.writeTemperatureCommand(start_extruder_nr, scene_settings.get<Temperature>("material_print_temperature"), wait);
+        gcode.writeTemperatureCommand(start_extruder_nr, start_extruder_settings.get<Temperature>("material_print_temperature"), wait);
         gcode.writePrimeTrain(scene_settings.get<Velocity>("speed_travel"));
         gcode.writeRetraction(standard_retraction_config);
     }
