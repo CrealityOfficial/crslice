@@ -20,7 +20,8 @@ NozzleTempInsert::NozzleTempInsert(unsigned int path_idx, int extruder, double t
 
 void NozzleTempInsert::write(GCodeExport& gcode)
 {
-    gcode.writeTemperatureCommand(extruder, temperature, wait);
+    //屏蔽喷嘴切换时的提前加热
+    //gcode.writeTemperatureCommand(extruder, temperature, wait);
 }
 
 }
