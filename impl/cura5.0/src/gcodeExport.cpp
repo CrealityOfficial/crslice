@@ -25,10 +25,13 @@
 #include "crsliceinfo.h"
 namespace cura52
 {
-    void SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
+    bool SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
     {
         std::string::size_type pos1, pos2;
         pos2 = Src.find(c);
+        if (std::string::npos == pos2)
+            return false;
+
         pos1 = 0;
         while (std::string::npos != pos2)
         {
@@ -41,6 +44,7 @@ namespace cura52
         {
             Vctdest.push_back(Src.substr(pos1));
         }
+        return true;
     }
 
 std::string transliterate(const std::string& text)
@@ -1418,7 +1422,8 @@ void GCodeExport::startExtruder(const size_t new_extruder)
     //assert(getCurrentExtrudedVolume() == 0.0 && "Just after an extruder switch we haven't extruded anything yet!");
     resetExtrusionValue(); // zero the E value on the new extruder, just to be sure
 
-    const std::string start_code = application->current_slice->scene.extruders[new_extruder].settings.get<std::string>("machine_extruder_start_code");
+    /*const*/ std::string start_code = application->current_slice->scene.extruders[new_extruder].settings.get<std::string>("machine_extruder_start_code");
+    substitution(start_code, new_extruder);
 
     if (! start_code.empty())
     {
@@ -1466,7 +1471,9 @@ void GCodeExport::switchExtruder(size_t new_extruder, const RetractionConfig& re
 
     resetExtrusionValue(); // zero the E value on the old extruder, so that the current_e_value is registered on the old extruder
 
-    const std::string end_code = old_extruder_settings.get<std::string>("machine_extruder_end_code");
+    /*const*/ std::string end_code = old_extruder_settings.get<std::string>("machine_extruder_end_code");
+    substitution(end_code, current_extruder);
+
 
     if (! end_code.empty())
     {
@@ -1493,30 +1500,50 @@ void GCodeExport::writeCode(const char* str)
 
 void GCodeExport::writeComplexCode(const std::string& str)
 {
-    std::vector<std::string> lines;
-    SplitString(str, lines, "\\n");
-    for (const std::string& line : lines)
-        if(line.size() > 0)
-            *output_stream << line << new_line;
+    *output_stream << str << new_line;
+    //std::vector<std::string> lines;
+    //SplitString(str, lines, "\\n");
+    //for (const std::string& line : lines)
+    //    if(line.size() > 0)
+    //        *output_stream << line << new_line;
 }
 
 bool GCodeExport::substitution(std::string& srcStr, const size_t start_extruder_nr)
 {
     bool hasParm = false;
     std::vector<std::string> Vctdest;
-    SplitString(srcStr, Vctdest,"[");
-    for (std::string& aStr:Vctdest)
+    if (SplitString(srcStr, Vctdest, "["))
     {
-        size_t pos = aStr.find(']');
-        if (pos == std::string::npos)
-        {
-            aStr.clear();
-        }
-        else
-        {
-            aStr = aStr.substr(0,pos);
-        }
+		for (std::string& aStr : Vctdest)
+		{
+			size_t pos = aStr.find(']');
+			if (pos == std::string::npos)
+			{
+				aStr.clear();
+			}
+			else
+			{
+				aStr = aStr.substr(0, pos);
+			}
+		}
+    } 
+    else
+    {
+        SplitString(srcStr, Vctdest, "{");
+		for (std::string& aStr : Vctdest)
+		{
+			size_t pos = aStr.find('}');
+			if (pos == std::string::npos)
+			{
+				aStr.clear();
+			}
+			else
+			{
+				aStr = aStr.substr(0, pos);
+			}
+		}
     }
+    
 
     for (std::string& aStr : Vctdest)
     {
