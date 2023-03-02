@@ -1498,16 +1498,6 @@ void GCodeExport::writeCode(const char* str)
     *output_stream << str << new_line;
 }
 
-void GCodeExport::writeComplexCode(const std::string& str)
-{
-    *output_stream << str << new_line;
-    //std::vector<std::string> lines;
-    //SplitString(str, lines, "\\n");
-    //for (const std::string& line : lines)
-    //    if(line.size() > 0)
-    //        *output_stream << line << new_line;
-}
-
 bool GCodeExport::substitution(std::string& srcStr, const size_t start_extruder_nr)
 {
     bool hasParm = false;
@@ -1879,7 +1869,7 @@ void GCodeExport::writeJerk(const Velocity& jerk)
 void GCodeExport::finalize(const std::string& endCode)
 {
     writeFanCommand(0);
-    writeComplexCode(endCode);
+    writeCode(endCode.c_str());
     int64_t print_time = getSumTotalPrintTimes();
     int mat_0 = getTotalFilamentUsed(0);
     LOGI("Print time (s): {}", print_time);
