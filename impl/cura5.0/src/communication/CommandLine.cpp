@@ -44,13 +44,11 @@ namespace cura52
     }
 
     CommandLine::CommandLine()
-        :m_tracer(nullptr)
     {
     }
 
-    CommandLine::CommandLine(const std::vector<std::string>& arguments, ccglobal::Tracer* tracer)
+    CommandLine::CommandLine(const std::vector<std::string>& arguments)
         : arguments(arguments)
-        , m_tracer(tracer)
     {
     }
 
@@ -134,8 +132,7 @@ namespace cura52
 
     void CommandLine::sendProgress(const float& progress) const
     {
-        if (m_tracer)
-            m_tracer->progress(progress);
+        application->sendProgress(progress);
     }
 
     void CommandLine::sliceNext()

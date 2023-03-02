@@ -17,124 +17,142 @@
 
 namespace cura52
 {
-class Communication;
-class Slice;
-class ThreadPool;
-
-/*!
- * A singleton class that serves as the starting point for all slicing.
- *
- * The application provides a starting point for the slicing engine. It
- * maintains communication with other applications and uses that to schedule
- * slices.
- */
-class Application
-{
-public:
-    /*!
-     * \brief Constructs a new Application instance.
-     *
-     * You cannot call this because this goes via the getInstance() function.
-     */
-    Application();
+    class Communication;
+    class Slice;
+    class ThreadPool;
 
     /*!
-     * \brief Destroys the Application instance.
+     * A singleton class that serves as the starting point for all slicing.
      *
-     * This destroys the Communication instance along with it.
+     * The application provides a starting point for the slicing engine. It
+     * maintains communication with other applications and uses that to schedule
+     * slices.
      */
-    ~Application();
+    class Application : public ccglobal::Tracer
+    {
+    public:
+        /*!
+         * \brief Constructs a new Application instance.
+         *
+         * You cannot call this because this goes via the getInstance() function.
+         */
+        Application(ccglobal::Tracer* tracer = nullptr);
 
-    FffProcessor processor;
-    Progress progressor;
+        /*!
+         * \brief Destroys the Application instance.
+         *
+         * This destroys the Communication instance along with it.
+         */
+        ~Application();
 
-    /*
-     * \brief The communication currently in use.
-     *
-     * This may be set to ``nullptr`` during the initialisation of the program,
-     * while the correct communication class has not yet been chosen because the
-     * command line arguments have not yet been parsed. In general though you
-     * can assume that it is safe to access this without checking whether it is
-     * initialised.
-     */
-    Communication* communication = nullptr;
+        FffProcessor processor;
+        Progress progressor;
+        ccglobal::Tracer* tracer = nullptr;
 
-    /*
-     * \brief The slice that is currently ongoing.
-     *
-     * If no slice has started yet, this will be a nullptr.
-     */
-    Slice* current_slice = nullptr;
+        /*
+         * \brief The communication currently in use.
+         *
+         * This may be set to ``nullptr`` during the initialisation of the program,
+         * while the correct communication class has not yet been chosen because the
+         * command line arguments have not yet been parsed. In general though you
+         * can assume that it is safe to access this without checking whether it is
+         * initialised.
+         */
+        Communication* communication = nullptr;
 
-    /*!
-     * \brief ThreadPool with lifetime tied to Application
-     */
-    ThreadPool* thread_pool = nullptr;
+        /*
+         * \brief The slice that is currently ongoing.
+         *
+         * If no slice has started yet, this will be a nullptr.
+         */
+        Slice* current_slice = nullptr;
 
-    /*!
-     * \brief Print to the stderr channel what the original call to the executable was.
-     */
-    void printCall(int argc, const char** argv) const;
+        /*!
+         * \brief ThreadPool with lifetime tied to Application
+         */
+        ThreadPool* thread_pool = nullptr;
 
-    /*!
-     * \brief Print to the stderr channel how to use CuraEngine.
-     */
-    void printHelp() const;
+        /*!
+         * \brief Print to the stderr channel what the original call to the executable was.
+         */
+        void printCall(int argc, const char** argv) const;
 
-    /*!
-     * \brief Starts the application.
-     *
-     * It will start by parsing the command line arguments to see what it must
-     * be doing.
-     *
-     * This function can only be called once, because it has side-effects on
-     * static fields across the application.
-     * \param argc The number of arguments provided to the application.
-     * \param argv The arguments provided to the application.
-     */
-    void run(int argc, const char** argv, ccglobal::Tracer* tracer = nullptr);
+        /*!
+         * \brief Print to the stderr channel how to use CuraEngine.
+         */
+        void printHelp() const;
 
-    void runCommulication(Communication* communication);
-    void releaseCommulication();
-    /*!
-     * \brief Start the global thread pool.
-     *
-     * If `nworkers` <= 0 and there is no pre-existing thread pool, a thread
-     * pool with hardware_concurrency() workers is initialized.
-     * The thread pool is restarted when the number of thread differs from
-     * previous invocations.
-     *
-     * \param nworkers The number of workers (including the main thread) that are ran.
-     */
-    void startThreadPool(int nworkers = 0);
+        /*!
+         * \brief Starts the application.
+         *
+         * It will start by parsing the command line arguments to see what it must
+         * be doing.
+         *
+         * This function can only be called once, because it has side-effects on
+         * static fields across the application.
+         * \param argc The number of arguments provided to the application.
+         * \param argv The arguments provided to the application.
+         */
+        void run(int argc, const char** argv);
 
-    void setSliceCommunication(Communication* ptr);
-protected:
+        void runCommulication(Communication* communication);
+        void releaseCommulication();
+        /*!
+         * \brief Start the global thread pool.
+         *
+         * If `nworkers` <= 0 and there is no pre-existing thread pool, a thread
+         * pool with hardware_concurrency() workers is initialized.
+         * The thread pool is restarted when the number of thread differs from
+         * previous invocations.
+         *
+         * \param nworkers The number of workers (including the main thread) that are ran.
+         */
+        void startThreadPool(int nworkers = 0);
+
+        void setSliceCommunication(Communication* ptr);
+
+        void sendProgress(float r);
+        bool checkInterrupt(const std::string& message = "");
+    protected:
 #ifdef ARCUS
-    /*!
-     * \brief Connect using libArcus to a socket.
-     * \param argc The number of arguments provided to the application.
-     * \param argv The arguments provided to the application.
-     */
-    void connect();
+        /*!
+         * \brief Connect using libArcus to a socket.
+         * \param argc The number of arguments provided to the application.
+         * \param argv The arguments provided to the application.
+         */
+        void connect();
 #endif //ARCUS
 
-    /*!
-     * \brief Print the header and license to the stderr channel.
-     */
-    void printLicense() const;
+        /*!
+         * \brief Print the header and license to the stderr channel.
+         */
+        void printLicense() const;
 
-    /*!
-     * \brief Start slicing.
-     * \param argc The number of arguments provided to the application.
-     * \param argv The arguments provided to the application.
-     */
-    void slice(ccglobal::Tracer* tracer = nullptr);
+        /*!
+         * \brief Start slicing.
+         * \param argc The number of arguments provided to the application.
+         * \param argv The arguments provided to the application.
+         */
+        void slice();
 
-private:
-    std::vector<std::string> m_args;
-};
+        void progress(float r) override;
+        bool interrupt() override;
+
+        void message(const char* msg) override;
+        void failed(const char* msg) override;
+        void success() override;
+    private:
+        std::vector<std::string> m_args;
+        bool m_error;
+    };
 
 } //Cura namespace.
 
+#if 1   // USE_INTERRUPT
+#define INTERRUPT_RETURN(x) 	if (application->checkInterrupt(x)) return
+#define INTERRUPT_RETURN_FALSE(x) 	if (application->checkInterrupt(x)) return false
+#define INTERRUPT_BREAK(x) 	if (application->checkInterrupt(x)) break
+#else
+#define INTERRUPT_RETURN(x) 	(void)0
+#endif
 #endif //APPLICATION_H

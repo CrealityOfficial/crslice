@@ -38,10 +38,9 @@ namespace crslice
 
     }
 
-    CRSliceFromScene::CRSliceFromScene(CrScenePtr scene, ccglobal::Tracer* tracer)
+    CRSliceFromScene::CRSliceFromScene(CrScenePtr scene)
         : m_sliced(false)
         , m_scene(scene)
-        , m_tracer(tracer)
     {
 
     }
@@ -120,8 +119,7 @@ namespace crslice
 
     void CRSliceFromScene::sendProgress(const float& progress) const
     {
-        if (m_tracer)
-            m_tracer->progress(progress);
+        application->sendProgress(progress);
     }
 
     void CRSliceFromScene::sliceNext()
@@ -150,10 +148,6 @@ namespace crslice
 
         application->current_slice = &slice;
         slice.scene.application = application;
-
-        slice.scene.m_tracer = m_tracer;
-        if (!slice.scene.m_tracer)
-            slice.scene.m_tracer = &slice.scene;
 
         slice.scene.machine_center_is_zero = m_scene->machine_center_is_zero;
 

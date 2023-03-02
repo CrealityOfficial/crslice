@@ -21,9 +21,13 @@
 
 namespace cura52
 {
-
-    Application::Application()
+    Application::Application(ccglobal::Tracer* _tracer)
+        : tracer(_tracer)
+        , m_error(false)
     {
+        if (!tracer)
+            tracer = this;
+
         progressor.application = this;
         processor.gcode_writer.application = this;
         processor.polygon_generator.application = this;
@@ -104,9 +108,9 @@ namespace cura52
 #endif
     }
 
-    void Application::slice(ccglobal::Tracer* tracer)
+    void Application::slice()
     {
-        communication = new CommandLine(m_args, tracer);
+        communication = new CommandLine(m_args);
         communication->application = this;
     }
 
@@ -115,13 +119,32 @@ namespace cura52
         communication = ptr;
     }
 
-    void Application::run(int argc, const char** argv, ccglobal::Tracer* tracer)
+    void Application::sendProgress(float r)
+    {
+        tracer->progress(r);
+    }
+
+    bool Application::checkInterrupt(const std::string& message)
+    {
+        if (m_error)
+            return true;
+
+        bool rupt = tracer->interrupt();
+        if (rupt)
+        {
+            m_error = true;
+            std::string msg = "slice interrupt for -->" + message;
+            tracer->failed(msg.c_str());
+        }
+        return rupt;
+    }
+
+    void Application::run(int argc, const char** argv)
     {
         for (size_t argument_index = 0; argument_index < argc; argument_index++)
         {
             m_args.emplace_back(argv[argument_index]);
         }
-
 
         printLicense();
         progressor.init();
@@ -134,7 +157,7 @@ namespace cura52
 
         if (stringcasecompare(argv[1], "slice") == 0)
         {
-            slice(tracer);
+            slice();
         }
         else if (stringcasecompare(argv[1], "help") == 0)
         {
@@ -215,4 +238,24 @@ namespace cura52
         thread_pool = new ThreadPool(nthreads);
     }
 
+    void Application::progress(float r) 
+    {
+    }
+
+    bool Application::interrupt()
+    {
+        return false;
+    }
+
+    void Application::message(const char* msg) 
+    {
+    }
+
+    void Application::failed(const char* msg) 
+    {
+    }
+
+    void Application::success() 
+    {
+    }
 } // namespace cura52

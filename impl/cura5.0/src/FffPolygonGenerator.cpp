@@ -62,10 +62,7 @@ bool FffPolygonGenerator::generateAreas(SliceDataStorage& storage, MeshGroup* me
         return false;
     }
 
-	if (application->current_slice->scene.m_tracer->interrupt())
-	{
-		return false;
-	}
+    INTERRUPT_RETURN_FALSE("FffPolygonGenerator::generateAreas");
 
     slices2polygons(storage, timeKeeper);
 
@@ -201,10 +198,8 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     std::vector<Slicer*> slicerList;
     for (unsigned int mesh_idx = 0; mesh_idx < meshgroup->meshes.size(); mesh_idx++)
     {
-		if (application->current_slice->scene.m_tracer->interrupt())
-		{
-			return false;
-		}
+        INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
+
         // Check if adaptive layers is populated to prevent accessing a method on NULL
         std::vector<AdaptiveLayer>* adaptive_layer_height_values = {};
         if (adaptive_layer_heights != nullptr)
@@ -231,10 +226,9 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 
     // Clear the mesh face and vertex data, it is no longer needed after this point, and it saves a lot of memory.
     meshgroup->clear();
-	if (application->current_slice->scene.m_tracer->interrupt())
-	{
-		return false;
-	}
+
+    INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
+
     Mold::process(application, slicerList);
 
     Scene& scene = application->current_slice->scene;
@@ -255,19 +249,14 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     {
         carveMultipleVolumes(application, slicerList);
     }
-	if (application->current_slice->scene.m_tracer->interrupt())
-	{
-		return false;
-	}
+
+    INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
+
     generateMultipleVolumesOverlap(slicerList);
 
     storage.print_layer_count = 0;
     for (unsigned int meshIdx = 0; meshIdx < slicerList.size(); meshIdx++)
     {
-		if (application->current_slice->scene.m_tracer->interrupt())
-		{
-			return false;
-		}
         Mesh& mesh = scene.current_mesh_group->meshes[meshIdx];
         Slicer* slicer = slicerList[meshIdx];
         if (! mesh.settings.get<bool>("anti_overhang_mesh") && ! mesh.settings.get<bool>("infill_mesh") && ! mesh.settings.get<bool>("cutting_mesh"))
@@ -275,11 +264,16 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
             storage.print_layer_count = std::max(storage.print_layer_count, slicer->layers.size());
         }
     }
+
+    INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
+
     storage.support.supportLayers.resize(storage.print_layer_count);
 
     storage.meshes.reserve(slicerList.size()); // causes there to be no resize in meshes so that the pointers in sliceMeshStorage._config to retraction_config don't get invalidated.
     for (unsigned int meshIdx = 0; meshIdx < slicerList.size(); meshIdx++)
     {
+        INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
+
         Slicer* slicer = slicerList[meshIdx];
         Mesh& mesh = scene.current_mesh_group->meshes[meshIdx];
 
@@ -291,10 +285,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
         const bool is_support_modifier = AreaSupport::handleSupportModifierMesh(storage, mesh.settings, slicer);
         if (! is_support_modifier)
         {
-			if (application->current_slice->scene.m_tracer->interrupt())
-			{
-				return false;
-			}
             createLayerParts(application, meshStorage, slicer);
         }
 
@@ -348,10 +338,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
         }
 
         delete slicerList[meshIdx];
-		if (application->current_slice->scene.m_tracer->interrupt())
-		{
-			return false;
-		}
         application->progressor.messageProgress(Progress::Stage::PARTS, meshIdx + 1, slicerList.size());
     }
     return true;
@@ -415,21 +401,18 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     application->progressor.messageProgressStage(Progress::Stage::SUPPORT, &time_keeper);
 
     AreaSupport::generateOverhangAreas(storage);
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+    
+    INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
+
     AreaSupport::generateSupportAreas(storage);
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
+    INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
+
     TreeSupport tree_support_generator(storage);
     tree_support_generator.generateSupportAreas(storage);
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
+    INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
+
     // we need to remove empty layers after we have processed the insets
     // processInsets might throw away parts if they have no wall at all (cause it doesn't fit)
     // brim depends on the first layer not being empty
@@ -458,10 +441,8 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     LOGD("Processing draft shield");
     processDraftShield(storage);
 
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+    INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
+
     // This catches a special case in which the models are in the air, and then
     // the adhesion mustn't be calculated.
     if (! isEmptyLayer(storage, 0) || storage.primeTower.enabled)
@@ -474,12 +455,11 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     // meshes post processing
     for (SliceMeshStorage& mesh : storage.meshes)
     {
+        INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
+
         processDerivedWallsSkinInfill(mesh);
     }
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
     LOGD("Processing gradual support");
     // generate gradual support
     AreaSupport::generateSupportInfillFeatures(storage);
@@ -496,10 +476,9 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     {
         processInfillMesh(storage, mesh_order_idx, mesh_order);
     }
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
+    INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
+
     // TODO: make progress more accurate!!
     // note: estimated time for     insets : skins = 22.953 : 48.858
     std::vector<double> walls_vs_skin_timing({ 22.953, 48.858 });
@@ -543,11 +522,8 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {
-			                        if (scene.m_tracer->interrupt())
-			                        {
-				                        return;
-			                        }
-                                   //LOGD("Processing insets for layer {} of {}", layer_number, mesh.layers.size());
+                                   INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
+
                                    processWalls(mesh, layer_number);
                                    guarded_progress++;
                                });
@@ -589,16 +565,13 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
                                mesh_layer_count,
                                [&](size_t layer_number)
                                {
-			                        if (scene.m_tracer->interrupt())
-			                        {
-				                        return;
-			                        }
-                                   //LOGD("Processing skins and infill layer {} of {}", layer_number, mesh.layers.size());
-                                   if (! magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
-                                   {
-                                       processSkinsAndInfill(mesh, layer_number, process_infill);
-                                   }
-                                   guarded_progress++;
+                                    INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
+
+                                    if (! magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
+                                    {
+                                        processSkinsAndInfill(mesh, layer_number, process_infill);
+                                    }
+                                    guarded_progress++;
                                });
 }
 
@@ -873,13 +846,11 @@ void FffPolygonGenerator::processSkinsAndInfill(SliceMeshStorage& mesh, const La
     {
         return;
     }
-	if (application->current_slice->scene.m_tracer->interrupt())
-	{
-		return;
-	}
 
     SkinInfillAreaComputation skin_infill_area_computation(layer_nr, mesh, process_infill);
     skin_infill_area_computation.generateSkinsAndInfill();
+
+    INTERRUPT_RETURN("FffPolygonGenerator::processSkinsAndInfill");
 
     if (mesh.settings.get<bool>("ironing_enabled") && (! mesh.settings.get<bool>("ironing_only_highest_layer") || mesh.layer_nr_max_filled_layer == layer_nr))
     {
@@ -900,10 +871,6 @@ void FffPolygonGenerator::computePrintHeightStatistics(SliceDataStorage& storage
         // Height of the meshes themselves.
         for (SliceMeshStorage& mesh : storage.meshes)
         {
-			if (application->current_slice->scene.m_tracer->interrupt())
-			{
-				return;
-			}
             if (mesh.settings.get<bool>("anti_overhang_mesh") || mesh.settings.get<bool>("support_mesh"))
             {
                 continue; // Special type of mesh that doesn't get printed.
@@ -977,10 +944,8 @@ void FffPolygonGenerator::processOozeShield(SliceDataStorage& storage)
     {
         return;
     }
-	if (application->current_slice->scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
+    INTERRUPT_RETURN("FffPolygonGenerator::processOozeShield");
 
     const coord_t ooze_shield_dist = mesh_group_settings.get<coord_t>("ooze_shield_dist");
 
@@ -1149,10 +1114,8 @@ void FffPolygonGenerator::processFuzzyWalls(SliceMeshStorage& mesh)
 
     for (unsigned int layer_nr = start_layer_nr; layer_nr < mesh.layers.size(); layer_nr++)
     {
-		if (application->current_slice->scene.m_tracer->interrupt())
-		{
-			return;
-		}
+        INTERRUPT_RETURN("FffPolygonGenerator::processFuzzyWalls");
+
         SliceLayer& layer = mesh.layers[layer_nr];
         for (SliceLayerPart& part : layer.parts)
         {

@@ -82,10 +82,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         gcode.setInitialAndBuildVolumeTemps(start_extruder_nr);
     }
 
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+    INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
     application->communication->beginGCode();
 
@@ -104,10 +101,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         processNextMeshGroupCode(storage);
     }
 
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+    INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
     size_t total_layers = 0;
     for (SliceMeshStorage& mesh : storage.meshes)
@@ -134,10 +128,9 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         }
     }
     calculateExtruderOrderPerLayer(storage);
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
+    INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
+
     calculatePrimeLayerPerExtruder(storage);
 
     if (scene.current_mesh_group->settings.get<bool>("magic_spiralize"))
@@ -145,10 +138,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         findLayerSeamsForSpiralize(storage, total_layers);
     }
 
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+    INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
     int process_layer_starting_layer_nr = 0;
     const bool has_raft = scene.current_mesh_group->settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT;
@@ -166,10 +156,9 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
             }
         }
     }
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
+    INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
+    
     run_multiple_producers_ordered_consumer(application,
         process_layer_starting_layer_nr,
         total_layers,
@@ -181,10 +170,8 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
         });
 
     layer_plan_buffer.flush();
-	if (scene.m_tracer->interrupt())
-	{
-		return;
-	}
+
+    INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
     application->progressor.messageProgressStage(Progress::Stage::FINISH, &time_keeper);
 
@@ -269,10 +256,8 @@ void FffGcodeWriter::findLayerSeamsForSpiralize(SliceDataStorage& storage, size_
 
     for (unsigned layer_nr = 0; layer_nr < total_layers; ++layer_nr)
     {
-		if (application->current_slice->scene.m_tracer->interrupt())
-		{
-			return;
-		}
+        INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
+
         bool done_this_layer = false;
 
         // iterate through extruders until we find a mesh that has a part with insets
@@ -796,10 +781,8 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
 
         for (const Polygons& raft_outline_path : raft_outline_paths)
         {
-			if (application->current_slice->scene.m_tracer->interrupt())
-			{
-				return;
-			}
+            INTERRUPT_RETURN("FffGcodeWriter::processRaft");
+
             Infill infill_comp(EFillMethod::LINES,
                                zig_zaggify_infill,
                                connect_polygons,
@@ -941,10 +924,8 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
         last_planned_position = gcode_layer.getLastPlannedPositionOrStartingPosition();
     }
 
-	if (application->current_slice->scene.m_tracer->interrupt())
-	{
-		return;
-	}
+    INTERRUPT_RETURN("FffGcodeWriter::processRaft");
+
     const coord_t surface_layer_height = surface_settings.get<coord_t>("raft_surface_thickness");
     const coord_t surface_line_spacing = surface_settings.get<coord_t>("raft_surface_line_spacing");
     const coord_t surface_max_resolution = surface_settings.get<coord_t>("meshfix_maximum_resolution");

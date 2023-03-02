@@ -27,7 +27,7 @@ namespace cura52
          * start a slice.
          * \param arguments The command line arguments passed to the application.
          */
-        CommandLine(const std::vector<std::string>& arguments, ccglobal::Tracer* tracer = nullptr);
+        CommandLine(const std::vector<std::string>& arguments);
 
         /*
          * \brief Indicate that we're beginning to send g-code.
@@ -155,8 +155,6 @@ namespace cura52
          */
         std::vector<std::string> arguments;
         Slice* current_slice = nullptr;
-    public:
-        ccglobal::Tracer* m_tracer;
     };
 
 } //namespace cura52

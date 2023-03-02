@@ -15,116 +15,105 @@
 namespace cura52
 {
 
-Scene::Scene(const size_t num_mesh_groups) : mesh_groups(num_mesh_groups), current_mesh_group(mesh_groups.begin())
-{
-    for (MeshGroup& mesh_group : mesh_groups)
+    Scene::Scene(const size_t num_mesh_groups) : mesh_groups(num_mesh_groups), current_mesh_group(mesh_groups.begin())
     {
-        mesh_group.settings.setParent(&settings);
-    }
-}
-
-const std::string Scene::getAllSettingsString() const
-{
-    std::stringstream output;
-    output << settings.getAllSettingsString(); // Global settings.
-
-    // Per-extruder settings.
-    for (size_t extruder_nr = 0; extruder_nr < extruders.size(); extruder_nr++)
-    {
-        output << " -e" << extruder_nr << extruders[extruder_nr].settings.getAllSettingsString();
-    }
-
-    for (size_t mesh_group_index = 0; mesh_group_index < mesh_groups.size(); mesh_group_index++)
-    {
-        if (mesh_group_index == 0)
+        for (MeshGroup& mesh_group : mesh_groups)
         {
-            output << " -g";
-        }
-        else
-        {
-            output << " --next";
-        }
-
-        // Per-mesh-group settings.
-        const MeshGroup& mesh_group = mesh_groups[mesh_group_index];
-        output << mesh_group.settings.getAllSettingsString();
-
-        // Per-object settings.
-        for (size_t mesh_index = 0; mesh_index < mesh_group.meshes.size(); mesh_index++)
-        {
-            const Mesh& mesh = mesh_group.meshes[mesh_index];
-            output << " -e" << mesh.settings.get<size_t>("extruder_nr") << " -l \"" << mesh_index << "\"" << mesh.settings.getAllSettingsString();
+            mesh_group.settings.setParent(&settings);
         }
     }
-    output << "\n";
 
-    return output.str();
-}
-
-void Scene::processMeshGroup(MeshGroup& mesh_group)
-{
-    FffProcessor& fff_processor = application->processor;
-    fff_processor.time_keeper.restart();
-
-    TimeKeeper time_keeper_total;
-
-    bool empty = true;
-    for (Mesh& mesh : mesh_group.meshes)
+    const std::string Scene::getAllSettingsString() const
     {
-        if (! mesh.settings.get<bool>("infill_mesh") && ! mesh.settings.get<bool>("anti_overhang_mesh"))
+        std::stringstream output;
+        output << settings.getAllSettingsString(); // Global settings.
+
+        // Per-extruder settings.
+        for (size_t extruder_nr = 0; extruder_nr < extruders.size(); extruder_nr++)
         {
-            empty = false;
-            break;
+            output << " -e" << extruder_nr << extruders[extruder_nr].settings.getAllSettingsString();
         }
-    }
-    if (empty)
-    {
-        application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
-        LOGI("Total time elapsed {:3}s.", time_keeper_total.restart());
-        return;
-    }
 
-    if (mesh_group.settings.get<bool>("wireframe_enabled"))
-    {
-        LOGI("Starting Neith Weaver...");
-
-        Weaver weaver;
-        weaver.application = application;
-
-        weaver.weave(&mesh_group);
-
-        LOGI("Starting Neith Gcode generation...");
-        Wireframe2gcode gcoder(weaver, fff_processor.gcode_writer.gcode);
-        gcoder.writeGCode();
-        LOGI("Finished Neith Gcode generation...");
-    }
-    else // Normal operation (not wireframe).
-    {
-        SliceDataStorage storage(application);
-
-        if (! fff_processor.polygon_generator.generateAreas(storage, &mesh_group, fff_processor.time_keeper))
+        for (size_t mesh_group_index = 0; mesh_group_index < mesh_groups.size(); mesh_group_index++)
         {
+            if (mesh_group_index == 0)
+            {
+                output << " -g";
+            }
+            else
+            {
+                output << " --next";
+            }
+
+            // Per-mesh-group settings.
+            const MeshGroup& mesh_group = mesh_groups[mesh_group_index];
+            output << mesh_group.settings.getAllSettingsString();
+
+            // Per-object settings.
+            for (size_t mesh_index = 0; mesh_index < mesh_group.meshes.size(); mesh_index++)
+            {
+                const Mesh& mesh = mesh_group.meshes[mesh_index];
+                output << " -e" << mesh.settings.get<size_t>("extruder_nr") << " -l \"" << mesh_index << "\"" << mesh.settings.getAllSettingsString();
+            }
+        }
+        output << "\n";
+
+        return output.str();
+    }
+
+    void Scene::processMeshGroup(MeshGroup& mesh_group)
+    {
+        FffProcessor& fff_processor = application->processor;
+        fff_processor.time_keeper.restart();
+
+        TimeKeeper time_keeper_total;
+
+        bool empty = true;
+        for (Mesh& mesh : mesh_group.meshes)
+        {
+            if (!mesh.settings.get<bool>("infill_mesh") && !mesh.settings.get<bool>("anti_overhang_mesh"))
+            {
+                empty = false;
+                break;
+            }
+        }
+        if (empty)
+        {
+            application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+            LOGI("Total time elapsed {:3}s.", time_keeper_total.restart());
             return;
         }
 
-        application->progressor.messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
-        fff_processor.gcode_writer.writeGCode(storage, fff_processor.time_keeper);
+        if (mesh_group.settings.get<bool>("wireframe_enabled"))
+        {
+            LOGI("Starting Neith Weaver...");
+
+            Weaver weaver;
+            weaver.application = application;
+
+            weaver.weave(&mesh_group);
+
+            LOGI("Starting Neith Gcode generation...");
+            Wireframe2gcode gcoder(weaver, fff_processor.gcode_writer.gcode);
+            gcoder.writeGCode();
+            LOGI("Finished Neith Gcode generation...");
+        }
+        else // Normal operation (not wireframe).
+        {
+            SliceDataStorage storage(application);
+
+            if (!fff_processor.polygon_generator.generateAreas(storage, &mesh_group, fff_processor.time_keeper))
+            {
+                return;
+            }
+
+            application->progressor.messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
+            fff_processor.gcode_writer.writeGCode(storage, fff_processor.time_keeper);
+        }
+
+        application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+        application->communication->flushGCode();
+        application->communication->sendOptimizedLayerData();
+        LOGI("Total time elapsed {%f}s.\n", time_keeper_total.restart());
     }
-
-    application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
-    application->communication->flushGCode();
-    application->communication->sendOptimizedLayerData();
-    LOGI("Total time elapsed {:3}s.\n", time_keeper_total.restart());
-}
-
-void Scene::progress(float r){}
-bool Scene::interrupt() 
-{ 
-    return false; 
-}
-
-void Scene::message(const char* msg) {}
-void Scene::failed(const char* msg) {}
-void Scene::success() {}
-
 } // namespace cura52

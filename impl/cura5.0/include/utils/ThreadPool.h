@@ -166,11 +166,12 @@ void parallel_for(Application* application, T first, T last, F&& loop_body, size
             chunk_last = last;
         }
 
-        thread_pool->push(lock, [&shared_state, chunk_first, chunk_last](lock_t& th_lock)
+        thread_pool->push(lock, [&application, &shared_state, chunk_first, chunk_last](lock_t& th_lock)
             {
                 th_lock.unlock(); // Enter unsynchronized region
                 for (T i = chunk_first ; i < chunk_last ; ++i)
                 {
+                    INTERRUPT_BREAK("parallel_for ");
                     shared_state.loop_body(i);
                 }
                 th_lock.lock();
