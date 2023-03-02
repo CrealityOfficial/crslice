@@ -21,7 +21,7 @@
 #include "utils/Simplify.h"
 #include "utils/linearAlg2D.h"
 #include "utils/polygonUtils.h"
-#include "slice3rBase/ArcFitter.hpp"
+#include "Slice3rBase/ArcFitter.hpp"
 namespace cura52
 {
 
