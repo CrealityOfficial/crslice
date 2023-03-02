@@ -480,7 +480,6 @@ public:
     void switchExtruder(size_t new_extruder, const RetractionConfig& retraction_config_old_extruder, coord_t perform_z_hop = 0);
 
     void writeCode(const char* str);
-    void writeComplexCode(const std::string& str);
 
     bool substitution(std::string& str,const size_t start_extruder_nr);
 
