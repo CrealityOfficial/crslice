@@ -21,7 +21,7 @@
 #include "utils/Simplify.h"
 #include "utils/linearAlg2D.h"
 #include "utils/polygonUtils.h"
-#include "slice3rBase/ArcFitter.hpp"
+#include "Slice3rBase/ArcFitter.hpp"
 namespace cura52
 {
 
@@ -2185,7 +2185,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 std::vector<Slic3r::PathFittingData> fitting_result;
                                 for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                                 {
-                                    points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
+                                     points.emplace_back(Slic3r::Point((int64_t)path.points[point_idx].X, (int64_t)path.points[point_idx].Y));
+				     //points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
                                 }
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
                                 bool arcFittingValiable = Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);

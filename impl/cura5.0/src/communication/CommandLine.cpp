@@ -3,7 +3,7 @@
 
 #include <cstring> //For strtok and strcopy.
 #include <errno.h> // error number when trying to read file
-#include <filesystem>
+//#include <filesystem>
 #include <fstream> //To check if files exist.
 #include <numeric> //For std::accumulate.
 #include <unordered_set>
