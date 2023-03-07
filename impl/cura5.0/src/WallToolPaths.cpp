@@ -51,12 +51,10 @@ WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0
 const std::vector<VariableWidthLines>& WallToolPaths::generate()
 {
     const coord_t allowed_distance = settings.get<coord_t>("meshfix_maximum_deviation");
-    const coord_t epsilon_offset = (allowed_distance / 2) - 1;
+    const coord_t epsilon_offset = allowed_distance;// (allowed_distance / 2) - 1;
     const AngleRadians transitioning_angle = settings.get<AngleRadians>("wall_transition_angle");
     constexpr coord_t discretization_step_size = MM2INT(0.8);
 
-    // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
-    // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
     coord_t offset_insert = 0;
     double scaled_spacing_wall_0 = bead_width_0;
     double scaled_spacing_wall_X = bead_width_x;
@@ -75,6 +73,8 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         scaled_spacing_wall_X = getScaledSpacing(bead_width_x);        
     }
 
+    // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
+    // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
     Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);
     prepared_outline = Simplify(settings).polygon(prepared_outline);
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
