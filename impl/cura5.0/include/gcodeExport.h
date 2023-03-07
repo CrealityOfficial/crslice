@@ -27,6 +27,7 @@ struct LayerIndex;
 class RetractionConfig;
 struct WipeScriptConfig;
 class Application;
+struct SliceResult;
 //The GCodeExport class writes the actual GCode. This is the only class that knows how GCode looks and feels.
 //  Any customizations on GCodes flavors are done in this class.
 class GCodeExport
@@ -230,6 +231,13 @@ public:
                               const Duration* print_time = nullptr,
                               const std::vector<double>& filament_used = std::vector<double>(),
                               const std::vector<std::string>& mat_ids = std::vector<std::string>());
+
+    //for cloud result
+    void getFileHeaderC(const std::vector<bool>& extruder_is_used,
+        SliceResult& sliceResult,
+        const Duration* print_time = nullptr,
+        const std::vector<double>& filament_used = std::vector<double>(),
+        const std::vector<std::string>& mat_ids = std::vector<std::string>());
 
     void setSliceUUID(const std::string& slice_uuid);
 

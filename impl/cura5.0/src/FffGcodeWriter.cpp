@@ -3413,7 +3413,12 @@ void FffGcodeWriter::finalize()
         material_ids.emplace_back(scene.extruders[extruder_nr].settings.get<std::string>("material_guid"));
         extruder_is_used.push_back(gcode.getExtruderIsUsed(extruder_nr));
     }
+
     std::string prefix = gcode.getFileHeader(extruder_is_used, &print_time, filament_used, material_ids);
+    
+    //get cloud result
+    gcode.getFileHeaderC(extruder_is_used, application->sliceResult, &print_time, filament_used, material_ids);
+
     if (! application->communication->isSequential())
     {
         application->communication->sendGCodePrefix(prefix);

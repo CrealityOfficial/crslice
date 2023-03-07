@@ -509,6 +509,69 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
     return prefix.str();
 }
 
+void GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
+    SliceResult& sliceResult,
+    const Duration* print_time,
+    const std::vector<double>& filament_used,
+    const std::vector<std::string>& mat_ids)
+{
+    sliceResult.layer_count = layer_nr;
+
+    const size_t extruder_count = application->current_slice->scene.extruders.size();
+    switch (flavor)
+    {
+    case EGCodeFlavor::GRIFFIN:
+        if (print_time)
+        {
+            sliceResult.print_time += static_cast<int>(*print_time);
+        }
+
+        if (total_bounding_box.min.x > total_bounding_box.max.x) // We haven't encountered any movement (yet). This probably means we're command-line slicing.
+        {
+            // Put some small default in there.
+            total_bounding_box.min = Point3(0, 0, 0);
+            total_bounding_box.max = Point3(10, 10, 10);
+        }
+
+        sliceResult.x = INT2MM(total_bounding_box.max.x) - INT2MM(total_bounding_box.min.x);
+        sliceResult.y = INT2MM(total_bounding_box.max.y) - INT2MM(total_bounding_box.min.y);
+        sliceResult.z = INT2MM(total_bounding_box.max.z) - INT2MM(total_bounding_box.min.z);
+        break;
+    default:
+        sliceResult.print_time += ((print_time) ? static_cast<double>(*print_time) : 100000.00);
+        if (flavor == EGCodeFlavor::ULTIGCODE)
+        {
+            sliceResult.filament_len += ((filament_used.size() >= 1) ? static_cast<int>(filament_used[0]) : 6666);
+            sliceResult.filament_len += ((filament_used.size() >= 2) ? static_cast<int>(filament_used[1]) : 0);
+        }
+        else if (flavor == EGCodeFlavor::REPRAP || flavor == EGCodeFlavor::MARLIN || flavor == EGCodeFlavor::MARLIN_VOLUMATRIC)
+        {
+            if (filament_used.size() > 0)
+            {
+                for (unsigned i = 0; i < filament_used.size(); ++i)
+                {
+                    if (flavor != EGCodeFlavor::MARLIN_VOLUMATRIC)
+                    {
+                        sliceResult.filament_len += filament_used[i] / (1000 * extruder_attr[i].filament_area);
+                    }
+                    else // Use volumetric filament used.
+                    {
+                        sliceResult.filament_len += filament_used[i];
+                    }
+                }
+            }
+        }
+        sliceResult.x = INT2MM(total_bounding_box.max.x) - INT2MM(total_bounding_box.min.x);
+        sliceResult.y = INT2MM(total_bounding_box.max.y) - INT2MM(total_bounding_box.min.y);
+        sliceResult.z = INT2MM(total_bounding_box.max.z) - INT2MM(total_bounding_box.min.z);
+    }
+
+    //PLA  Density:1.24g/cm3    DIameter:1.75mm  ¦°:3.14159
+    const double PI = 3.14159;
+    float radius = 1.75 / 2.0;
+    float density = 1.24;
+    sliceResult.filament_volume = PI * radius * radius * density * sliceResult.filament_len;
+}
 
 void GCodeExport::setLayerNr(unsigned int layer_nr_)
 {
