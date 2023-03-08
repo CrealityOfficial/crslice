@@ -104,19 +104,6 @@ namespace cura52
          */
         void printHelp() const;
 
-        /*!
-         * \brief Starts the application.
-         *
-         * It will start by parsing the command line arguments to see what it must
-         * be doing.
-         *
-         * This function can only be called once, because it has side-effects on
-         * static fields across the application.
-         * \param argc The number of arguments provided to the application.
-         * \param argv The arguments provided to the application.
-         */
-        void run(int argc, const char** argv);
-
         void runCommulication(Communication* communication);
         void releaseCommulication();
         /*!
@@ -138,26 +125,10 @@ namespace cura52
 
         SliceResult sliceResult;
     protected:
-#ifdef ARCUS
-        /*!
-         * \brief Connect using libArcus to a socket.
-         * \param argc The number of arguments provided to the application.
-         * \param argv The arguments provided to the application.
-         */
-        void connect();
-#endif //ARCUS
-
         /*!
          * \brief Print the header and license to the stderr channel.
          */
         void printLicense() const;
-
-        /*!
-         * \brief Start slicing.
-         * \param argc The number of arguments provided to the application.
-         * \param argv The arguments provided to the application.
-         */
-        void slice();
 
         void progress(float r) override;
         bool interrupt() override;
@@ -179,4 +150,5 @@ namespace cura52
 #else
 #define INTERRUPT_RETURN(x) 	(void)0
 #endif
+
 #endif //APPLICATION_H

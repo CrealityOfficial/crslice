@@ -109,7 +109,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     coord_t initial_layer_thickness = mesh_group_settings.get<coord_t>("layer_height_0");
     if (initial_layer_thickness <= 0)
     {
-        LOGE("Initial layer height {} is disallowed.", initial_layer_thickness);
+        LOGE("Initial layer height { %f } is disallowed.", initial_layer_thickness);
         return false;
     }
 
@@ -117,7 +117,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     const coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
     if (layer_thickness <= 0)
     {
-        LOGE("Layer height {} is disallowed.\n", layer_thickness);
+        LOGE("Layer height { %f } is disallowed.\n", layer_thickness);
         return false;
     }
 
@@ -394,7 +394,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
         removeEmptyFirstLayers(storage, storage.print_layer_count); // changes storage.print_layer_count!
     }
 
-    LOGI("Layer count: {}", storage.print_layer_count);
+    LOGI("Layer count: { %d }", storage.print_layer_count);
 
     // layerparts2HTML(storage, "output/output.html");
 
@@ -467,7 +467,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
 
 void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage, const size_t mesh_order_idx, const std::vector<size_t>& mesh_order, ProgressStageEstimator& inset_skin_progress_estimate)
 {
-    Scene& scene=application->current_slice->scene;
+    Scene& scene = application->current_slice->scene;
 
     size_t mesh_idx = mesh_order[mesh_order_idx];
     SliceMeshStorage& mesh = storage.meshes[mesh_idx];

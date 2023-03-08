@@ -9,12 +9,11 @@
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
+#include "communication/Communication.h"
 
 #include "ccglobal/log.h"
 
 #include "FffProcessor.h"
-#include "communication/ArcusCommunication.h" //To connect via Arcus to the front-end.
-#include "communication/CommandLine.h" //To use the command line to slice stuff.
 #include "progress/Progress.h"
 #include "utils/ThreadPool.h"
 #include "utils/string.h" //For stringcasecompare.
@@ -108,12 +107,6 @@ namespace cura52
 #endif
     }
 
-    void Application::slice()
-    {
-        communication = new CommandLine(m_args);
-        communication->application = this;
-    }
-
     void Application::setSliceCommunication(Communication* ptr)
     {
         communication = ptr;
@@ -137,55 +130,6 @@ namespace cura52
             tracer->failed(msg.c_str());
         }
         return rupt;
-    }
-
-    void Application::run(int argc, const char** argv)
-    {
-        for (size_t argument_index = 0; argument_index < argc; argument_index++)
-        {
-            m_args.emplace_back(argv[argument_index]);
-        }
-
-        printLicense();
-        progressor.init();
-
-        if (argc < 2)
-        {
-            printHelp();
-            exit(1);
-        }
-
-        if (stringcasecompare(argv[1], "slice") == 0)
-        {
-            slice();
-        }
-        else if (stringcasecompare(argv[1], "help") == 0)
-        {
-            printHelp();
-        }
-        else
-        {
-            LOGE("Unknown command: {}", argv[1]);
-            printCall(argc, argv);
-            printHelp();
-            exit(1);
-        }
-
-        if (!communication)
-        {
-            // No communication channel is open any more, so either:
-            //- communication failed to connect, or
-            //- the engine was called with an unknown command or a command that doesn't connect (like "help").
-            // In either case, we don't want to slice.
-            exit(0);
-        }
-        communication->application = this;
-
-        startThreadPool(); // Start the thread pool
-        while (communication->hasSlice())
-        {
-            communication->sliceNext();
-        }
     }
 
     void Application::runCommulication(Communication* _communication)
