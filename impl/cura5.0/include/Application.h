@@ -21,6 +21,28 @@ namespace cura52
     class Slice;
     class ThreadPool;
 
+    struct SliceResult
+    {
+        unsigned long int print_time; // 预估打印耗时，单位：秒
+        double filament_len; // 预估材料消耗，单位：米
+        double filament_volume; // 预估材料重量，单位：g
+        unsigned long int layer_count;  // 切片层数
+        double x;   // 切片x尺寸
+        double y;   // 切片y尺寸
+        double z;   // 切片z尺寸
+
+        SliceResult()
+        {
+            print_time = 0;
+            filament_len = 0.0f;
+            filament_volume = 0.0f;
+            layer_count = 0;
+            x = 0.0f;
+            y = 0.0f;
+            z = 0.0f;
+        }
+    };
+
     /*!
      * A singleton class that serves as the starting point for all slicing.
      *
@@ -113,6 +135,8 @@ namespace cura52
 
         void sendProgress(float r);
         bool checkInterrupt(const std::string& message = "");
+
+        SliceResult sliceResult;
     protected:
 #ifdef ARCUS
         /*!
