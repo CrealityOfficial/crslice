@@ -9,8 +9,6 @@
 namespace cura52
 {
     class Application;
-    class TimeKeeper;
-
 #define N_PROGRESS_STAGES 7
 
     /*!
@@ -69,7 +67,7 @@ namespace cura52
          * \param stage The current stage
          * \param timeKeeper The stapwatch keeping track of the timings for each stage (optional)
          */
-        void messageProgressStage(Stage stage, TimeKeeper* timeKeeper);
+        void messageProgressStage(Stage stage);
     };
 
 

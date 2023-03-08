@@ -5,17 +5,22 @@
 
 namespace cura52
 {
-    
-TimeKeeper::TimeKeeper()
-{
-    restart();
-}
 
-double TimeKeeper::restart()
-{
-    double ret = getTime() - startTime;
-    startTime = getTime();
-    return ret;
-}
+    TimeKeeper::TimeKeeper()
+    {
+        restart();
+    }
+
+    TimeKeeper::~TimeKeeper()
+    {
+
+    }
+
+    double TimeKeeper::restart()
+    {
+        double ret = getTime() - startTime;
+        startTime = getTime();
+        return ret;
+    }
 
 }//namespace cura52

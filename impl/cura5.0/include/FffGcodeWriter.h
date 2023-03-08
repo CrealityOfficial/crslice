@@ -24,7 +24,6 @@ class SliceDataStorage;
 class SliceMeshStorage;
 class SliceLayer;
 class SliceLayerPart;
-class TimeKeeper;
 class Application;
 /*!
  * Secondary stage in Fused Filament Fabrication processing: The generated polygons are used in the gcode generation.
@@ -138,7 +137,7 @@ private:
      * \param[in] storage The data storage from which to get the polygons to print and the areas to fill.
      * \param timeKeeper The stop watch to see how long it takes for each of the stages in the slicing process.
      */
-    void writeGCode(SliceDataStorage& storage, TimeKeeper& timeKeeper);
+    void writeGCode(SliceDataStorage& storage);
 
 private:
     /*!

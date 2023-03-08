@@ -102,13 +102,13 @@ namespace cura52
         {
             SliceDataStorage storage(application);
 
-            if (!fff_processor.polygon_generator.generateAreas(storage, &mesh_group, fff_processor.time_keeper))
+            if (!fff_processor.polygon_generator.generateAreas(storage, &mesh_group))
             {
                 return;
             }
 
-            application->progressor.messageProgressStage(Progress::Stage::EXPORT, &fff_processor.time_keeper);
-            fff_processor.gcode_writer.writeGCode(storage, fff_processor.time_keeper);
+            application->progressor.messageProgressStage(Progress::Stage::EXPORT);
+            fff_processor.gcode_writer.writeGCode(storage);
         }
 
         application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup

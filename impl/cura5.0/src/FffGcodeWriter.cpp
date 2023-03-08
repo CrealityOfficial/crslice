@@ -69,7 +69,7 @@ bool FffGcodeWriter::setTargetFile(const char* filename)
     return false;
 }
 
-void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keeper)
+void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 {
     const size_t start_extruder_nr = getStartExtruder(storage);
     gcode.preSetup(start_extruder_nr);
@@ -173,7 +173,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage, TimeKeeper& time_keep
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
-    application->progressor.messageProgressStage(Progress::Stage::FINISH, &time_keeper);
+    application->progressor.messageProgressStage(Progress::Stage::FINISH);
 
     // Store the object height for when we are printing multiple objects, as we need to clear every one of them when moving to the next position.
     max_object_height = std::max(max_object_height, storage.model_max.z);

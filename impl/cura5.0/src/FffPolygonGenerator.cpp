@@ -55,16 +55,16 @@ namespace cura52
 {
 
 
-bool FffPolygonGenerator::generateAreas(SliceDataStorage& storage, MeshGroup* meshgroup, TimeKeeper& timeKeeper)
+bool FffPolygonGenerator::generateAreas(SliceDataStorage& storage, MeshGroup* meshgroup)
 {
-    if (! sliceModel(meshgroup, timeKeeper, storage))
+    if (! sliceModel(meshgroup, storage))
     {
         return false;
     }
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::generateAreas");
 
-    slices2polygons(storage, timeKeeper);
+    slices2polygons(storage);
 
     return true;
 }
@@ -88,11 +88,9 @@ size_t FffPolygonGenerator::getDraftShieldLayerCount(const size_t total_layers) 
     }
 }
 
-bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeeper, SliceDataStorage& storage) /// slices the model
+bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& storage) /// slices the model
 {
-    application->progressor.init();
-
-    application->progressor.messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
+    application->progressor.messageProgressStage(Progress::Stage::SLICING);
 
     storage.model_min = meshgroup->min();
     storage.model_max = meshgroup->max();
@@ -243,7 +241,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 
     MultiVolumes::carveCuttingMeshes(application, slicerList, scene.current_mesh_group->meshes);
 
-    application->progressor.messageProgressStage(Progress::Stage::PARTS, &timeKeeper);
+    application->progressor.messageProgressStage(Progress::Stage::PARTS);
 
     if (scene.current_mesh_group->settings.get<bool>("carve_multiple_volumes"))
     {
@@ -343,7 +341,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     return true;
 }
 
-void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper& time_keeper)
+void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 {
     Scene& scene = application->current_slice->scene;
 
@@ -366,7 +364,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     }
     ProgressStageEstimator inset_skin_progress_estimate(mesh_timings);
 
-    application->progressor.messageProgressStage(Progress::Stage::INSET_SKIN, &time_keeper);
+    application->progressor.messageProgressStage(Progress::Stage::INSET_SKIN);
     std::vector<size_t> mesh_order;
     { // compute mesh order
         std::multimap<int, size_t> order_to_mesh_indices;
@@ -398,7 +396,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
 
     // layerparts2HTML(storage, "output/output.html");
 
-    application->progressor.messageProgressStage(Progress::Stage::SUPPORT, &time_keeper);
+    application->progressor.messageProgressStage(Progress::Stage::SUPPORT);
 
     AreaSupport::generateOverhangAreas(storage);
     
