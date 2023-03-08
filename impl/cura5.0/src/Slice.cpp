@@ -16,16 +16,6 @@ namespace cura52
 
     void Slice::compute()
     {
-#if 0
-        LOGD("All settings: {}", scene.getAllSettingsString());
-        std::ofstream debugsetfile;
-        debugsetfile.open(("ALL_Setting.txt"), std::ofstream::out);
-        if (debugsetfile.is_open())
-        {
-            debugsetfile << scene.getAllSettingsString() << std::endl;
-            debugsetfile.close();
-        }
-#endif
         for (std::vector<MeshGroup>::iterator mesh_group = scene.mesh_groups.begin(); mesh_group != scene.mesh_groups.end(); mesh_group++)
         {
             scene.current_mesh_group = mesh_group;

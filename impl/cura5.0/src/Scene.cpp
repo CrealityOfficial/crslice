@@ -80,7 +80,7 @@ namespace cura52
         if (empty)
         {
             application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
-            LOGI("Total time elapsed {:3}s.", time_keeper_total.restart());
+            LOGI("Total time elapsed { %f }s.", time_keeper_total.restart());
             return;
         }
 
@@ -114,6 +114,6 @@ namespace cura52
         application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
         application->communication->flushGCode();
         application->communication->sendOptimizedLayerData();
-        LOGI("Total time elapsed {%f}s.\n", time_keeper_total.restart());
+        LOGI("Total time elapsed { %f }s.\n", time_keeper_total.restart());
     }
 } // namespace cura52
