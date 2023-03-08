@@ -41,13 +41,14 @@ namespace cura52
         int polygonIdx = -1;
         size_t pointIdx = (size_t)(-1);
     };
+
     class GapCloserResult
     {
     public:
         coord_t len = -1;
         int polygonIdx = -1;
-        size_t pointIdxA = -1;
-        size_t pointIdxB = -1;
+        size_t pointIdxA = (size_t)(-1);
+        size_t pointIdxB = (size_t)(-1);
         bool AtoB = false;
     };
 

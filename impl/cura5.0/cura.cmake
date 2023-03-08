@@ -99,6 +99,11 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/utils/ThreadPool.cpp
         ${PREFIX5.2}src/utils/ToolpathVisualizer.cpp
         ${PREFIX5.2}src/utils/VoronoiUtils.cpp
+		
+		${PREFIX5.2}include/progress/Progress.h
+		${PREFIX5.2}include/progress/ProgressEstimator.h
+		${PREFIX5.2}include/progress/ProgressEstimatorLinear.h
+		${PREFIX5.2}include/progress/ProgressStageEstimator.h
         )
 
 __cc_find(RapidJSON)
