@@ -76,7 +76,7 @@ void Progress::messageProgressStage(Progress::Stage stage, TimeKeeper* time_keep
     {
         if ((int)stage > 0)
         {
-            LOGI("Progress: {} accomplished in {:3}s", names[(int)stage - 1].c_str(), time_keeper->restart());
+            LOGI("Progress: { %s } accomplished in { %f }s", names[(int)stage - 1].c_str(), time_keeper->restart());
         }
         else
         {
@@ -85,7 +85,7 @@ void Progress::messageProgressStage(Progress::Stage stage, TimeKeeper* time_keep
         
         if ((int)stage < (int)Stage::FINISH)
         {
-            LOGI("Starting {}...", names[(int)stage].c_str());
+            LOGI("Starting { %s }...", names[(int)stage].c_str());
         }
     }
 }

@@ -94,16 +94,6 @@ namespace cura52
          */
         ThreadPool* thread_pool = nullptr;
 
-        /*!
-         * \brief Print to the stderr channel what the original call to the executable was.
-         */
-        void printCall(int argc, const char** argv) const;
-
-        /*!
-         * \brief Print to the stderr channel how to use CuraEngine.
-         */
-        void printHelp() const;
-
         void runCommulication(Communication* communication);
         void releaseCommulication();
         /*!
@@ -118,18 +108,11 @@ namespace cura52
          */
         void startThreadPool(int nworkers = 0);
 
-        void setSliceCommunication(Communication* ptr);
-
         void sendProgress(float r);
         bool checkInterrupt(const std::string& message = "");
 
         SliceResult sliceResult;
     protected:
-        /*!
-         * \brief Print the header and license to the stderr channel.
-         */
-        void printLicense() const;
-
         void progress(float r) override;
         bool interrupt() override;
 
