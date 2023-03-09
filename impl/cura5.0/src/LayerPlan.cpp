@@ -1806,6 +1806,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
     gcode.writeLayerComment(layer_nr);
 
+    bool btest = false;
+    if (layer_nr == 13)
+        btest = true;
+
     // flow-rate compensation
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
@@ -1916,6 +1920,23 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             {
                 // ignore travel moves to the current location to avoid needless change of acceleration/jerk
                 continue;
+            }
+
+            if (btest)
+            {
+                FILE* fpWrite = fopen("f:/data.txt", "w");
+                if (fpWrite != NULL)
+                {
+                    for (auto point : path.points)
+                    {
+                        fprintf(fpWrite, "%d", point.X);
+                        fprintf(fpWrite, " ");
+                        fprintf(fpWrite, "%d", point.Y);
+                        fprintf(fpWrite, "\n");
+                    }
+                    fclose(fpWrite);
+                }
+                //btest = false;
             }
 
             // In some cases we want to find the next non-travel move.
@@ -2171,6 +2192,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 				     //points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
                                 }
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
+                                
+                                if (btest)
+                                {
+                                    int test = 0;
+                                    btest = false;
+                                }
                                 bool arcFittingValiable = Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
 
                                 // BBS: start to generate gcode from arc fitting data which includes line and arc
