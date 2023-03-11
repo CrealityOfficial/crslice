@@ -10,8 +10,8 @@
 namespace Slic3r {
 
 //BBS: threshold used to judge collineation
-//static const double Parallel_area_threshold = 0.0001;
-static const double Parallel_area_threshold = 0.005;
+static const double Parallel_area_threshold = 0.0001;
+//static const double Parallel_area_threshold = 0.005;
 
 bool Circle::try_create_circle(const Point& p1, const Point& p2, const Point& p3, const double max_radius, Circle& new_circle)
 {
@@ -25,17 +25,13 @@ bool Circle::try_create_circle(const Point& p1, const Point& p2, const Point& p3
     //BBS: use area of triangle to judge whether three points are almostly on one line
     //Because the point is scale_ once, so area should scale_ twice.
 
-    //float len = fabs((y1 - y2) * (x1 - x3) - (y1 - y3) * (x1 - x2));
-    //float scale1 = scale_(Parallel_area_threshold);
-    //float scale2 = scale_(scale_(Parallel_area_threshold));
     if (fabs((y1 - y2) * (x1 - x3) - (y1 - y3) * (x1 - x2)) <= scale_(scale_(Parallel_area_threshold)))
         return false;
 
     double a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2;
     //BBS: take out to figure out how we handle very small values
 
-    //if (fabs(a) < SCALED_EPSILON)
-    if (fabs(a) < scale_(SCALED_EPSILON)*50)
+    if (fabs(a) < SCALED_EPSILON)
         return false;
 
     double b = (x1 * x1 + y1 * y1) * (y3 - y2)

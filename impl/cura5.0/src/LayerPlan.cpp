@@ -1816,7 +1816,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         constexpr bool wait = false;
         gcode.writeBedTemperatureCommand(mesh_group_settings.get<Temperature>("material_bed_temperature"), wait);
     }
-
     gcode.setZ(z);
 
     const GCodePathConfig* last_extrusion_config = nullptr; // used to check whether we need to insert a TYPE comment in the gcode.
@@ -2166,9 +2165,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 std::vector<Slic3r::PathFittingData> fitting_result;
                                 for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                                 {
-                                     points.emplace_back(Slic3r::Point((int64_t)path.points[point_idx].X, (int64_t)path.points[point_idx].Y));
-				     //points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
+                                    points.emplace_back(Slic3r::Point((int64_t)path.points[point_idx].X, (int64_t)path.points[point_idx].Y));
+                                    //points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
                                 }
+
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
                                 bool arcFittingValiable = Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
 
@@ -2205,9 +2205,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
                                         const double extrude_speed = speed * path.speed_back_pressure_factor;
                                         {
-                                            std::stringstream ss;
-                                            ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
-                                            gcode.writeComment(ss.str());
+                                            //std::stringstream ss;
+                                            //ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
+                                            //gcode.writeComment(ss.str());
+                                            //确保每次都在圆弧拟合的起点
+                                            gcode.writeArcSatrt(start_point);
                                         }
 
                                         gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == Slic3r::ArcDirection::Arc_Dir_CCW);

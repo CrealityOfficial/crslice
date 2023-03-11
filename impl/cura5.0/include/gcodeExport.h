@@ -348,6 +348,8 @@ public:
      */
     void writeTravel(const Point& p, const Velocity& speed);
 
+    void writeArcSatrt(const Point& p);
+
     /*!
      * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.
      * 

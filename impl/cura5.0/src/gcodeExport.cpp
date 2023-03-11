@@ -938,6 +938,11 @@ void GCodeExport::writeExtrusionG2G3(const Point& pointend, const Point& center_
     writeExtrusionG2G3(Point3(pointend.X, pointend.Y, current_layer_z), center_offset, arc_length, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset, is_ccw);
 }
 
+void GCodeExport::writeArcSatrt(const Point& p)
+{
+    *output_stream << "G0 X" << MMtoStream{ p.X } << " Y" << MMtoStream{ p.Y } << "\n";
+}
+
 void GCodeExport::writeTravel(const Point3& p, const Velocity& speed)
 {
     if (flavor == EGCodeFlavor::BFB)
