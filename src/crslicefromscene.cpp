@@ -194,6 +194,8 @@ namespace crslice
                     {
                         //CR30 
                         std::vector<trimesh::TriMesh*> outmeshs = machine_is_belt == true ? mmesh::sliceBelt(object.m_mesh.get(), cr30Param, nullptr): std::vector<trimesh::TriMesh*>(0);
+                        if (machine_is_belt)
+                            slice.scene.settings.add("support_enable","false");
                         //CR30 end
 
                         slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
@@ -208,15 +210,25 @@ namespace crslice
                             for (auto outmesh : outmeshs)
                             {
                                 slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
-                                cura52::Mesh& mesh = slice.scene.mesh_groups[i].meshes.back();
-                                trimesh2CuraMesh(outmesh, mesh);
+                                cura52::Mesh& meshsupport = slice.scene.mesh_groups[i].meshes.back();
+                                trimesh2CuraMesh(outmesh, meshsupport);
                                 SettingsPtr settings(new crcommon::Settings());
                                 *settings = *(object.m_settings);
                                 settings->add("support_enable", "false");
                                 settings->add("support_mesh", "true");
                                 settings->add("support_mesh_drop_down", "false");
-                                crSetting2CuraSettings(*settings, &(mesh.settings));
+                                crSetting2CuraSettings(*settings, &(meshsupport.settings));
                             }
+
+                            for (auto iter = outmeshs.begin(); iter != outmeshs.end(); ++iter)
+                            {
+                                if (*iter != nullptr)
+                                {
+                                    delete (*iter);
+                                    (*iter) = nullptr;
+                                }
+                            }
+                            outmeshs.clear();
                         }
                         //CR30 end
                     }
