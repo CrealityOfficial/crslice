@@ -10,7 +10,7 @@ endif ()
 #add_definitions(-DG2G3_CONFIGURE_ENABLE)
 add_subdirectory(slice3rBase)
 
-set(ILIBS crcommon polyclipping slice3rBase)
+set(ILIBS crcommon polyclipping slice3rBase mmesh)
 
 set(SRCS crslice/interface.h
 		 crslice/header.h

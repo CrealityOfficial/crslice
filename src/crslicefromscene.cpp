@@ -7,9 +7,10 @@
 #include "Slice.h"
 #include "utils/Coord_t.h"
 #include "crcommon/jsonloader.h"
+#include "mmesh/util/trimecr30.h"
 namespace crslice
 {
-    static void trimesh2CuraMesh(TriMeshPtr mesh, cura52::Mesh& curaMesh)
+    static void trimesh2CuraMesh(trimesh::TriMesh* mesh, cura52::Mesh& curaMesh)
     {
         curaMesh.faces.reserve(mesh->faces.size());
         curaMesh.vertices.reserve(mesh->vertices.size());
@@ -167,6 +168,19 @@ namespace crslice
             slice.scene.extruders.emplace_back(0, &slice.scene.settings); // Always have one extruder.
 
         crSetting2CuraSettings(*(m_scene->m_settings), &(slice.scene.settings));
+
+        //CR30 
+        bool machine_is_belt = slice.scene.settings.get<bool>("machine_is_belt");
+        mmesh::Cr30Param cr30Param;
+        if (machine_is_belt)
+        {
+            cr30Param.belt_support_enable = slice.scene.settings.get<bool>("belt_support_enable");
+            cr30Param.machine_depth = slice.scene.settings.get<double>("machine_depth");
+            cr30Param.machine_width = slice.scene.settings.get<double>("machine_width");
+            cr30Param.support_angle = slice.scene.settings.get<double>("support_angle");
+        }
+        //CR30 end
+
         for (size_t i = 0; i < numGroup; i++)
         {
             CrGroup* crGroup = m_scene->getGroupsIndex(i);
@@ -177,11 +191,33 @@ namespace crslice
                 {
                     if (object.m_mesh.get() != nullptr)
                     {
+                        //CR30 
+                        std::vector<trimesh::TriMesh*> outmeshs = machine_is_belt == true ? mmesh::sliceBelt(object.m_mesh.get(), cr30Param, nullptr): std::vector<trimesh::TriMesh*>(0);
+                        //CR30 end
+
                         slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
                         cura52::Mesh& mesh = slice.scene.mesh_groups[i].meshes.back();
-                        trimesh2CuraMesh(object.m_mesh, mesh);
+                        trimesh2CuraMesh(object.m_mesh.get(), mesh);
                         crSetting2CuraSettings(*(object.m_settings), &(mesh.settings));
                         sliceValible = true;
+
+                        //CR30  support
+                        if (machine_is_belt && !outmeshs.empty())
+                        {
+                            for (auto outmesh : outmeshs)
+                            {
+                                slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
+                                cura52::Mesh& mesh = slice.scene.mesh_groups[i].meshes.back();
+                                trimesh2CuraMesh(outmesh, mesh);
+                                SettingsPtr settings(new crcommon::Settings());
+                                *settings = *(object.m_settings);
+                                settings->add("support_enable", "false");
+                                settings->add("support_mesh", "true");
+                                settings->add("support_mesh_drop_down", "false");
+                                crSetting2CuraSettings(*settings, &(mesh.settings));
+                            }
+                        }
+                        //CR30 end
                     }
                 }
             }
