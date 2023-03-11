@@ -50,10 +50,6 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/BeadingStrategy/RedistributeBeadingStrategy.cpp
         ${PREFIX5.2}src/BeadingStrategy/WideningBeadingStrategy.cpp
         ${PREFIX5.2}src/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
-        ${PREFIX5.2}src/communication/ArcusCommunication.cpp
-        ${PREFIX5.2}src/communication/ArcusCommunicationPrivate.cpp
-        ${PREFIX5.2}src/communication/CommandLine.cpp
-        ${PREFIX5.2}src/communication/Listener.cpp
         ${PREFIX5.2}src/infill/ImageBasedDensityProvider.cpp
         ${PREFIX5.2}src/infill/NoZigZagConnectorProcessor.cpp
         ${PREFIX5.2}src/infill/ZigzagConnectorProcessor.cpp
@@ -103,6 +99,11 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/utils/ThreadPool.cpp
         ${PREFIX5.2}src/utils/ToolpathVisualizer.cpp
         ${PREFIX5.2}src/utils/VoronoiUtils.cpp
+		
+		${PREFIX5.2}include/progress/Progress.h
+		${PREFIX5.2}include/progress/ProgressEstimator.h
+		${PREFIX5.2}include/progress/ProgressEstimatorLinear.h
+		${PREFIX5.2}include/progress/ProgressStageEstimator.h
         )
 
 __cc_find(RapidJSON)

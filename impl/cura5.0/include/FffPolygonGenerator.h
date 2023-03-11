@@ -14,7 +14,6 @@ class MeshGroup;
 class ProgressStageEstimator;
 class SliceDataStorage;
 class SliceMeshStorage;
-class TimeKeeper;
 class Application;
 /*!
  * Primary stage in Fused Filament Fabrication processing: Polygons are generated.
@@ -32,10 +31,9 @@ public:
      * Slice the \p object, process the outline information into inset perimeter polygons, support area polygons, etc. 
      * 
      * \param object The object to slice.
-     * \param timeKeeper Object which keeps track of timings of each stage.
      * \param storage Output parameter: where the outlines are stored. See SliceLayerPart::outline.
      */
-    bool generateAreas(SliceDataStorage& storage, MeshGroup* object, TimeKeeper& timeKeeper);
+    bool generateAreas(SliceDataStorage& storage, MeshGroup* object);
   
     Application* application = nullptr;
 private:
@@ -61,7 +59,7 @@ private:
      * 
      * \return Whether the process succeeded (always true).
      */
-    bool sliceModel(MeshGroup* object, TimeKeeper& timeKeeper, SliceDataStorage& storage); /// slices the model
+    bool sliceModel(MeshGroup* object, SliceDataStorage& storage); /// slices the model
 
     /*!
      * Processes the outline information as stored in the \p storage: generates inset perimeter polygons, support area polygons, etc. 
@@ -69,7 +67,7 @@ private:
      * \param storage Input and Output parameter: fetches the outline information (see SliceLayerPart::outline) and generates the other reachable field of the \p storage
      * \param timeKeeper Object which keeps track of timings of each stage.
      */
-    void slices2polygons(SliceDataStorage& storage, TimeKeeper& timeKeeper);
+    void slices2polygons(SliceDataStorage& storage);
     
     /*!
      * Processes the outline information as stored in the \p storage: generates inset perimeter polygons, skin and infill

@@ -55,16 +55,16 @@ namespace cura52
 {
 
 
-bool FffPolygonGenerator::generateAreas(SliceDataStorage& storage, MeshGroup* meshgroup, TimeKeeper& timeKeeper)
+bool FffPolygonGenerator::generateAreas(SliceDataStorage& storage, MeshGroup* meshgroup)
 {
-    if (! sliceModel(meshgroup, timeKeeper, storage))
+    if (! sliceModel(meshgroup, storage))
     {
         return false;
     }
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::generateAreas");
 
-    slices2polygons(storage, timeKeeper);
+    slices2polygons(storage);
 
     return true;
 }
@@ -88,11 +88,9 @@ size_t FffPolygonGenerator::getDraftShieldLayerCount(const size_t total_layers) 
     }
 }
 
-bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeeper, SliceDataStorage& storage) /// slices the model
+bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& storage) /// slices the model
 {
-    application->progressor.init();
-
-    application->progressor.messageProgressStage(Progress::Stage::SLICING, &timeKeeper);
+    application->progressor.messageProgressStage(Progress::Stage::SLICING);
 
     storage.model_min = meshgroup->min();
     storage.model_max = meshgroup->max();
@@ -109,7 +107,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     coord_t initial_layer_thickness = mesh_group_settings.get<coord_t>("layer_height_0");
     if (initial_layer_thickness <= 0)
     {
-        LOGE("Initial layer height {} is disallowed.", initial_layer_thickness);
+        LOGE("Initial layer height { %f } is disallowed.", initial_layer_thickness);
         return false;
     }
 
@@ -117,7 +115,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     const coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
     if (layer_thickness <= 0)
     {
-        LOGE("Layer height {} is disallowed.\n", layer_thickness);
+        LOGE("Layer height { %f } is disallowed.\n", layer_thickness);
         return false;
     }
 
@@ -243,7 +241,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
 
     MultiVolumes::carveCuttingMeshes(application, slicerList, scene.current_mesh_group->meshes);
 
-    application->progressor.messageProgressStage(Progress::Stage::PARTS, &timeKeeper);
+    application->progressor.messageProgressStage(Progress::Stage::PARTS);
 
     if (scene.current_mesh_group->settings.get<bool>("carve_multiple_volumes"))
     {
@@ -343,7 +341,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, TimeKeeper& timeKeepe
     return true;
 }
 
-void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper& time_keeper)
+void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 {
     Scene& scene = application->current_slice->scene;
 
@@ -366,7 +364,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
     }
     ProgressStageEstimator inset_skin_progress_estimate(mesh_timings);
 
-    application->progressor.messageProgressStage(Progress::Stage::INSET_SKIN, &time_keeper);
+    application->progressor.messageProgressStage(Progress::Stage::INSET_SKIN);
     std::vector<size_t> mesh_order;
     { // compute mesh order
         std::multimap<int, size_t> order_to_mesh_indices;
@@ -394,11 +392,11 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
         removeEmptyFirstLayers(storage, storage.print_layer_count); // changes storage.print_layer_count!
     }
 
-    LOGI("Layer count: {}", storage.print_layer_count);
+    LOGI("Layer count: { %d }", storage.print_layer_count);
 
     // layerparts2HTML(storage, "output/output.html");
 
-    application->progressor.messageProgressStage(Progress::Stage::SUPPORT, &time_keeper);
+    application->progressor.messageProgressStage(Progress::Stage::SUPPORT);
 
     AreaSupport::generateOverhangAreas(storage);
     
@@ -467,7 +465,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage, TimeKeeper&
 
 void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage, const size_t mesh_order_idx, const std::vector<size_t>& mesh_order, ProgressStageEstimator& inset_skin_progress_estimate)
 {
-    Scene& scene=application->current_slice->scene;
+    Scene& scene = application->current_slice->scene;
 
     size_t mesh_idx = mesh_order[mesh_order_idx];
     SliceMeshStorage& mesh = storage.meshes[mesh_idx];

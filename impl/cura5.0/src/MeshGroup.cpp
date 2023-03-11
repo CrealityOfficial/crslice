@@ -277,7 +277,7 @@ bool loadMeshIntoMeshGroup(MeshGroup* meshgroup, const char* filename, const FMa
         if (loadMeshSTL(&mesh, filename, transformation)) // Load it! If successful...
         {
             meshgroup->meshes.push_back(mesh);
-            LOGI("loading '{}' took {:3} seconds", filename, load_timer.restart());
+            LOGI("loading '{ %s }' took { %f } seconds", filename, load_timer.restart());
             return true;
         }
     }

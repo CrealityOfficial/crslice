@@ -70,23 +70,22 @@ void Progress::messageProgress(Progress::Stage stage, int progress_in_stage, int
     // logProgress(names[(int)stage].c_str(), progress_in_stage, progress_in_stage_max, percentage); FIXME: use different sink
 }
 
-void Progress::messageProgressStage(Progress::Stage stage, TimeKeeper* time_keeper)
+void Progress::messageProgressStage(Progress::Stage stage)
 {
-    if (time_keeper)
+    TimeKeeper& time_keeper = application->processor.time_keeper;
+
+    if ((int)stage > 0)
     {
-        if ((int)stage > 0)
-        {
-            LOGI("Progress: {} accomplished in {:3}s", names[(int)stage - 1].c_str(), time_keeper->restart());
-        }
-        else
-        {
-            time_keeper->restart();
-        }
-        
-        if ((int)stage < (int)Stage::FINISH)
-        {
-            LOGI("Starting {}...", names[(int)stage].c_str());
-        }
+        LOGI("Progress: { %s } accomplished in { %f }s", names[(int)stage - 1].c_str(), time_keeper.restart());
+    }
+    else
+    {
+        time_keeper.restart();
+    }
+    
+    if ((int)stage < (int)Stage::FINISH)
+    {
+        LOGI("Starting { %s }...", names[(int)stage].c_str());
     }
 }
 

@@ -1917,7 +1917,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 // ignore travel moves to the current location to avoid needless change of acceleration/jerk
                 continue;
             }
-
             // In some cases we want to find the next non-travel move.
             size_t next_extrusion_idx = path_idx + 1;
             if ((acceleration_enabled && ! acceleration_travel_enabled) || (jerk_enabled && ! jerk_travel_enabled))
