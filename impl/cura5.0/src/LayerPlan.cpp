@@ -1899,6 +1899,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         bool update_extrusion_offset = true;
 
+        bool isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
         for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
         {
             extruder_plan.handleInserts(path_idx, gcode);
@@ -1914,7 +1915,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             if (! path.retract && path.config->isTravelPath() && path.points.size() == 1 && path.points[0] == gcode.getPositionXY() && z == gcode.getPositionZ())
             {
                 // ignore travel moves to the current location to avoid needless change of acceleration/jerk
+                isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
                 continue;
+            }
+            else
+            {
+                isAvoidPoint = true;//统计被过滤的点 用于G2G3的判断
             }
             // In some cases we want to find the next non-travel move.
             size_t next_extrusion_idx = path_idx + 1;
@@ -2155,14 +2161,22 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             case PrintFeatureType::InnerWall:
                             {
                                 {
-                                    std::stringstream ss;
-                                    ss << "arc_fitting start layer_nr=" << layer_nr;
-                                    gcode.writeComment(ss.str());
+                                    //std::stringstream ss;
+                                    //ss << "arc_fitting start layer_nr=" << layer_nr;
+                                    //gcode.writeComment(ss.str());
                                 }
                                 double tolerance = application->current_slice->scene.settings.get<double>("arc_tolerance");
                                 //double tolerance = 100;// 200;
                                 Slic3r::Points points;
                                 std::vector<Slic3r::PathFittingData> fitting_result;
+
+                                if(isAvoidPoint && !path.points.empty())//统计被过滤的点 用于G2G3的判断
+                                {
+                                    if (path.points[0] != gcode.getPositionXY())
+                                    {
+                                        points.emplace_back(Slic3r::Point((int64_t)gcode.getPositionXY().X, (int64_t)gcode.getPositionXY().Y));
+                                    }
+                                }
                                 for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                                 {
                                     points.emplace_back(Slic3r::Point((int64_t)path.points[point_idx].X, (int64_t)path.points[point_idx].Y));
@@ -2205,11 +2219,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
                                         const double extrude_speed = speed * path.speed_back_pressure_factor;
                                         {
-                                            //std::stringstream ss;
-                                            //ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
-                                            //gcode.writeComment(ss.str());
+                                            std::stringstream ss;
+                                            ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
+                                            gcode.writeComment(ss.str());
                                             //确保每次都在圆弧拟合的起点
-                                            gcode.writeArcSatrt(start_point);
+                                            //gcode.writeArcSatrt(start_point);
                                         }
 
                                         gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == Slic3r::ArcDirection::Arc_Dir_CCW);
@@ -2222,9 +2236,9 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                     }
                                 }
                                 {
-                                    std::stringstream ss;
-                                    ss << "arc_fitting end layer_nr=" << layer_nr;
-                                    gcode.writeComment(ss.str());
+                                    //std::stringstream ss;
+                                    //ss << "arc_fitting end layer_nr=" << layer_nr;
+                                    //gcode.writeComment(ss.str());
                                 }
 
                             }
