@@ -184,6 +184,41 @@ int bridgeAngle(const Settings& settings, const Polygons& skin_outline, const Sl
         }
     }
     
+    if (islands.size() == 2 && (idx1 > -1 && idx2 == -1))
+    {
+        area2 = std::abs(islands[1].area());
+        if (area2 > 0.5 * area1)
+        {
+            Point center = islands[1].centerOfMass();
+            size_t min_dis2 = ULLONG_MAX;
+            Point min_dis_point = Point();
+            for (int i = 0; i < islands[1].size(); i++)
+            {            
+                int last_point_idx = i == 0 ? islands[1].size() - 1 : i - 1;
+                Point edge_point = islands[1][i];
+                Point last_point = islands[1][last_point_idx];
+                size_t dis2 = 0;
+                if (vSize2(edge_point - last_point) > 0.1 * area2)
+                {
+                    Point mid_point = (edge_point + last_point) / 2;
+                    dis2 = vSize2(mid_point - center);
+                    if (dis2 < min_dis2)
+                    {
+                        min_dis2 = dis2;
+                        min_dis_point = mid_point;
+                    }
+                }
+                dis2 = vSize2(edge_point - center);
+                if (dis2 < min_dis2)
+                {
+                    min_dis2 = dis2;
+                    min_dis_point = edge_point;
+                }
+            }
+            if(min_dis_point != Point()) return angle(min_dis_point - center) % 180;
+        }
+    }
+
     if (idx1 < 0 || idx2 < 0)
         return -1;
     
