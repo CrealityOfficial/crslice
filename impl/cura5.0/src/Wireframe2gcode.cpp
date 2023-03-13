@@ -579,7 +579,8 @@ void Wireframe2gcode::processStartingCode()
         gcode.writeCode(prefix.c_str());
     }
 
-    gcode.writeComment("Generated with Cura_SteamEngine " CURA_ENGINE_VERSION);
+    //gcode.writeComment("Generated with Cura_SteamEngine " CURA_ENGINE_VERSION);
+    gcode.writeGcodeHead();
 
     if (gcode.getFlavor() != EGCodeFlavor::ULTIGCODE && gcode.getFlavor() != EGCodeFlavor::GRIFFIN)
     {
