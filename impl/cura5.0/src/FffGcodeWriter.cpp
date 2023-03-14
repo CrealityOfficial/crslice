@@ -159,15 +159,24 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
-    run_multiple_producers_ordered_consumer(application,
-        process_layer_starting_layer_nr,
-        total_layers,
-        [&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
-        [this, total_layers](LayerPlan* gcode_layer)
-        {
-            application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
-            layer_plan_buffer.handle(*gcode_layer, gcode);
-        });
+#ifdef DEBUG
+    std::optional<Point> last_planned_position;
+    for (int n = process_layer_starting_layer_nr;n< total_layers;n++)
+    {
+        LayerPlan& gcode_layer = processLayer(storage, n, total_layers, last_planned_position);
+        last_planned_position = gcode_layer.getLastPosition();
+		layer_plan_buffer.handle(gcode_layer, gcode);
+    }
+#else
+	run_multiple_producers_ordered_consumer(application,process_layer_starting_layer_nr,total_layers,[&storage, total_layers, this](int layer_nr)
+        { 
+            return &processLayer(storage, layer_nr, total_layers); 
+        },[this, total_layers](LayerPlan* gcode_layer)
+		{
+			application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
+			layer_plan_buffer.handle(*gcode_layer, gcode);
+		});
+#endif
 
     layer_plan_buffer.flush();
 
@@ -1017,7 +1026,7 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
     }
 }
 
-LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIndex layer_nr, const size_t total_layers) const
+LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIndex layer_nr, const size_t total_layers, std::optional<Point> last_position) const
 {
     //LOGD("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
 
@@ -1095,6 +1104,9 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
     const coord_t first_outer_wall_line_width = scene.extruders[extruder_order.front()].settings.get<coord_t>("wall_line_width_0");
     LayerPlan& gcode_layer = *new LayerPlan(storage, layer_nr, z, layer_thickness, extruder_order.front(), fan_speed_layer_time_settings_per_extruder, comb_offset_from_outlines, first_outer_wall_line_width, avoid_distance);
     
+    //keliji 
+    gcode_layer.setLastPosition(last_position);
+
     if (scene.extruders[extruder_order.front()].settings.get<bool>("special_exact_flow_enable"))
     {
         gcode_layer.setFillLineWidthDiff(layer_thickness * float(1. - 0.25 * M_PI) + 0.5);

@@ -302,6 +302,15 @@ public:
      */
     void forceNewPathStart();
 
+
+    std::optional<Point> getLastPosition()
+    {
+        return last_planned_position;
+    };
+	void setLastPosition(std::optional<Point> aPoint)
+	{
+		last_planned_position = aPoint;
+	};
     /*!
      * \brief Creates a new plan for printing a layer.
      * \param storage The data storage this plan is stored in.
