@@ -159,7 +159,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
-#ifdef DEBUG
+//#ifdef DEBUG
     std::optional<Point> last_planned_position;
     for (int n = process_layer_starting_layer_nr;n< total_layers;n++)
     {
@@ -167,16 +167,16 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         last_planned_position = gcode_layer.getLastPosition();
 		layer_plan_buffer.handle(gcode_layer, gcode);
     }
-#else
-	run_multiple_producers_ordered_consumer(application,process_layer_starting_layer_nr,total_layers,[&storage, total_layers, this](int layer_nr)
-        { 
-            return &processLayer(storage, layer_nr, total_layers); 
-        },[this, total_layers](LayerPlan* gcode_layer)
-		{
-			application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
-			layer_plan_buffer.handle(*gcode_layer, gcode);
-		});
-#endif
+//#else
+//	run_multiple_producers_ordered_consumer(application,process_layer_starting_layer_nr,total_layers,[&storage, total_layers, this](int layer_nr)
+//        { 
+//            return &processLayer(storage, layer_nr, total_layers); 
+//        },[this, total_layers](LayerPlan* gcode_layer)
+//		{
+//			application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
+//			layer_plan_buffer.handle(*gcode_layer, gcode);
+//		});
+//#endif
 
     layer_plan_buffer.flush();
 
