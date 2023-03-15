@@ -1083,11 +1083,18 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
         break;
     }
 
+    Polygon machine_rect; 
+    machine_rect.add(Point(storage.machine_size.min.x, storage.machine_size.min.y));
+    machine_rect.add(Point(storage.machine_size.min.x, storage.machine_size.max.y));
+    machine_rect.add(Point(storage.machine_size.max.x, storage.machine_size.max.y));
+    machine_rect.add(Point(storage.machine_size.max.x, storage.machine_size.min.y));
+    Polygons machine_rects;
+    machine_rects.add(machine_rect);
     // Also apply maximum_[deviation|resolution] to skirt/brim.
     Simplify simplifier(train.settings);
     for (Polygons& polygons : storage.skirt_brim)
     {
-        polygons = simplifier.polygon(polygons);
+        polygons = simplifier.polygon(polygons.intersection(machine_rects));
     }
 }
 

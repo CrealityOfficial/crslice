@@ -1333,18 +1333,27 @@ coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t 
     is_z_hopped = z_hop_height;
     const Settings& extruder_settings = application->current_slice->scene.extruders[current_extruder].settings;
     coord_t retraction_min_travel = extruder_settings.get<coord_t>("retraction_min_travel");
+    coord_t machine_depth = extruder_settings.get<coord_t>("machine_depth");
+    coord_t machine_width = extruder_settings.get<coord_t>("machine_width");
     Point source = Point(currentPosition.x, currentPosition.y);
     Point delta_no_z = endPoint - source;
     float len = (float)vSize(delta_no_z);
     if (len < retraction_min_travel) return 0;
     double radius = is_z_hopped / (2 * M_PI * atan(3 * M_PI / 180));
     Point ij_offset = Point(radius * (delta_no_z.Y / len), -radius * (delta_no_z.X / len));
+    Point O = Point(source.X + ij_offset.X, source.Y + ij_offset.Y);
+    //螺旋抬升路径不可超出平台范围
+    if (O.X > radius && O.X < machine_width - radius - 1 && O.Y > radius && O.Y < machine_depth - radius - 1)
+    {
+        *output_stream << "G17\n";
+        *output_stream << "G2" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
+            << " I" << PrecisionedDouble{ 5, ij_offset.X / 1000. } << " J" << PrecisionedDouble{ 5, ij_offset.Y / 1000. }
+        << " P1 F" << PrecisionedDouble{ 1, speed * 60 } << "\n";
+    }
+    else {
+        *output_stream << "G1" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. } << "\n";
+    }
 
-    //current_layer_z + z_hop_height;
-    *output_stream << "G17\n";
-    *output_stream << "G2" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
-        << " I" << PrecisionedDouble{ 5, ij_offset.X / 1000. } << " J" << PrecisionedDouble{ 5, ij_offset.Y / 1000. }
-    << " P1 F" << PrecisionedDouble{ 1, speed * 60 } << "\n";
     return is_z_hopped;
 }
 
