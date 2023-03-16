@@ -178,7 +178,7 @@ namespace crslice
             cr30Param.belt_support_enable = slice.scene.settings.get<bool>("support_enable");
             cr30Param.machine_depth = slice.scene.settings.get<double>("machine_depth");
             cr30Param.machine_width = slice.scene.settings.get<double>("machine_width");
-            cr30Param.support_angle = slice.scene.settings.get<double>("support_angle");
+            //cr30Param.support_angle = slice.scene.settings.get<double>("support_angle");//default 45
         }
         //CR30 end
 
