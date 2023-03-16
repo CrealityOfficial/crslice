@@ -83,8 +83,7 @@ void PrimeTower::generateGroundpoly()
 
     const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x") - offset;
     const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y") - offset;
-    const coord_t tower_radius = tower_size / 2;
-    Polygon aPolygon = PolygonUtils::makeCircle(Point(x - tower_radius, y + tower_radius), tower_radius, TAU / CIRCLE_RESOLUTION);
+    Polygon aPolygon = PolygonUtils::makeCircle(Point(x, y), tower_size / 2, TAU / CIRCLE_RESOLUTION);
 	
     coord_t machine_depth = mesh_group_settings.get<coord_t>("machine_depth");
     coord_t machine_width = mesh_group_settings.get<coord_t>("machine_width");
