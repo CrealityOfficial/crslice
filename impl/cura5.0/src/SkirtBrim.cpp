@@ -15,7 +15,7 @@
 namespace cura52
 {
 
-void SkirtBrim::getFirstLayerOutline(SliceDataStorage& storage, const size_t primary_line_count, const bool is_skirt, Polygons& first_layer_outline)
+void SkirtBrim::getFirstLayerOutline(SliceDataStorage& storage, const size_t primary_line_count, const bool is_skirt, Polygons& first_layer_outline, bool is_autoBrim)
 {
     const ExtruderTrain& train = storage.application->current_slice->scene.current_mesh_group->settings.get<ExtruderTrain&>("skirt_brim_extruder_nr");
     const ExtruderTrain& support_infill_extruder = storage.application->current_slice->scene.current_mesh_group->settings.get<ExtruderTrain&>("support_infill_extruder_nr");
@@ -34,7 +34,16 @@ void SkirtBrim::getFirstLayerOutline(SliceDataStorage& storage, const size_t pri
         constexpr bool include_prime_tower = false; // Include manually below.
         constexpr bool external_outlines_only = false; // Remove manually below.
         constexpr bool for_brim = true;
-        first_layer_outline = storage.getLayerOutlines(layer_nr, include_support, include_prime_tower, external_outlines_only, for_brim);
+		if (is_autoBrim)
+		{
+			first_layer_outline = storage.getLayerOutlines(layer_nr, include_support, include_prime_tower, true, false);
+			return;
+		}
+		else
+		{
+			first_layer_outline = storage.getLayerOutlines(layer_nr, include_support, include_prime_tower, external_outlines_only, for_brim);
+		}
+        
         first_layer_outline = first_layer_outline.unionPolygons(); // To guard against overlapping outlines, which would produce holes according to the even-odd rule.
         Polygons first_layer_empty_holes;
         if (external_only)
@@ -307,10 +316,10 @@ size_t SkirtBrim::generateBrimCount(SliceDataStorage& storage, std::vector<size_
 					double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
 					double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
 					// small brims are omitted
-					if (brim_width < 5 && brim_width < 1.5 * thermalLength)
+					if (brim_width < 3 && brim_width < 1.5 * thermalLength)
 						brim_width = 0;
 					// large brims are omitted
-					if (brim_width > 18) brim_width = 18.;
+					if (brim_width > 10) brim_width = 10.;
 					if (max_line_count < brim_width)
 					{
 						max_line_count = brim_width;

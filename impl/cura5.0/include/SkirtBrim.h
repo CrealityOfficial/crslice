@@ -60,7 +60,7 @@ public:
      * \param is_skirt Whether a skirt is being generated vs a brim
      * \param[out] first_layer_outline The resulting reference polygons
      */
-    static void getFirstLayerOutline(SliceDataStorage& storage, const size_t primary_line_count, const bool is_skirt, Polygons& first_layer_outline);
+    static void getFirstLayerOutline(SliceDataStorage& storage, const size_t primary_line_count, const bool is_skirt, Polygons& first_layer_outline,bool is_autoBrim=false);
 
     //auto brim line count
     static size_t generateBrimCount(SliceDataStorage& storage, std::vector<size_t>& vct_primary_line_count);
