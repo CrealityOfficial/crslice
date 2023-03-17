@@ -170,17 +170,70 @@ namespace crslice
         crSetting2CuraSettings(*(m_scene->m_settings), &(slice.scene.settings));
 
         //CR30 
-        bool machine_is_belt = slice.scene.settings.get<bool>("machine_is_belt");
-        mmesh::Cr30Param cr30Param;
-        if (machine_is_belt)
         {
-            //cr30Param.belt_support_enable = slice.scene.settings.get<bool>("belt_support_enable");
-            cr30Param.belt_support_enable = slice.scene.settings.get<bool>("support_enable");
-            cr30Param.machine_depth = slice.scene.settings.get<double>("machine_depth");
-            cr30Param.machine_width = slice.scene.settings.get<double>("machine_width");
-            //cr30Param.support_angle = slice.scene.settings.get<double>("support_angle");//default 45
+            bool machine_is_belt = slice.scene.settings.get<bool>("machine_is_belt");
+            mmesh::Cr30Param cr30Param;
+            if (machine_is_belt)
+            {
+                //cr30Param.belt_support_enable = slice.scene.settings.get<bool>("belt_support_enable");
+                cr30Param.belt_support_enable = slice.scene.settings.get<bool>("support_enable");
+                cr30Param.machine_depth = slice.scene.settings.get<double>("machine_depth");
+                cr30Param.machine_width = slice.scene.settings.get<double>("machine_width");
+                //cr30Param.support_angle = slice.scene.settings.get<double>("support_angle");//default 45
+
+                //CR30  support
+                std::vector<trimesh::TriMesh*> meshs;
+                for (size_t i = 0; i < numGroup; i++)
+                {
+                    CrGroup* crGroup = m_scene->getGroupsIndex(i);
+                    if (crGroup)
+                    {
+                        for (const CrObject& object : crGroup->m_objects)
+                        {
+                            meshs.push_back(object.m_mesh.get());
+                        }
+                    }
+                }
+
+                if (!meshs.empty())
+                {
+                    std::vector<trimesh::TriMesh*> outmeshs = machine_is_belt == true ? mmesh::sliceBelt(meshs, cr30Param, nullptr) : std::vector<trimesh::TriMesh*>(0);
+                    slice.scene.settings.add("support_enable", "false");
+                    slice.scene.settings.add("machine_belt_offset", std::to_string(cr30Param.beltOffsetX));
+                    slice.scene.settings.add("machine_belt_offset_Y", std::to_string(cr30Param.beltOffsetY));
+                    if (!outmeshs.empty())
+                    {
+                        CrGroup* crGroup = numGroup > 0 ? m_scene->getGroupsIndex(0) : nullptr;
+                        if (crGroup)
+                        {
+                            CrObject& object = crGroup->m_objects[0];
+                            for (auto outmesh : outmeshs)
+                            {
+                                slice.scene.mesh_groups[0].meshes.emplace_back(cura52::Mesh());
+                                cura52::Mesh& meshsupport = slice.scene.mesh_groups[0].meshes.back();
+                                trimesh2CuraMesh(outmesh, meshsupport);
+                                SettingsPtr settings(new crcommon::Settings());
+                                *settings = *(object.m_settings);
+                                settings->add("support_enable", "false");
+                                settings->add("support_mesh", "true");
+                                settings->add("support_mesh_drop_down", "false");
+                                crSetting2CuraSettings(*settings, &(meshsupport.settings));
+                            }
+                        }
+                        for (auto iter = outmeshs.begin(); iter != outmeshs.end(); ++iter)
+                        {
+                            if (*iter != nullptr)
+                            {
+                                delete (*iter);
+                                (*iter) = nullptr;
+                            }
+                        }
+                        outmeshs.clear();
+                    }
+                }
+            }
+            //CR30 end
         }
-        //CR30 end
 
         for (size_t i = 0; i < numGroup; i++)
         {
@@ -192,45 +245,11 @@ namespace crslice
                 {
                     if (object.m_mesh.get() != nullptr)
                     {
-                        //CR30 
-                        std::vector<trimesh::TriMesh*> outmeshs = machine_is_belt == true ? mmesh::sliceBelt(object.m_mesh.get(), cr30Param, nullptr): std::vector<trimesh::TriMesh*>(0);
-                        if (machine_is_belt)
-                            slice.scene.settings.add("support_enable","false");
-                        //CR30 end
-
                         slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
                         cura52::Mesh& mesh = slice.scene.mesh_groups[i].meshes.back();
                         trimesh2CuraMesh(object.m_mesh.get(), mesh);
                         crSetting2CuraSettings(*(object.m_settings), &(mesh.settings));
                         sliceValible = true;
-
-                        //CR30  support
-                        if (machine_is_belt && !outmeshs.empty())
-                        {
-                            for (auto outmesh : outmeshs)
-                            {
-                                slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
-                                cura52::Mesh& meshsupport = slice.scene.mesh_groups[i].meshes.back();
-                                trimesh2CuraMesh(outmesh, meshsupport);
-                                SettingsPtr settings(new crcommon::Settings());
-                                *settings = *(object.m_settings);
-                                settings->add("support_enable", "false");
-                                settings->add("support_mesh", "true");
-                                settings->add("support_mesh_drop_down", "false");
-                                crSetting2CuraSettings(*settings, &(meshsupport.settings));
-                            }
-
-                            for (auto iter = outmeshs.begin(); iter != outmeshs.end(); ++iter)
-                            {
-                                if (*iter != nullptr)
-                                {
-                                    delete (*iter);
-                                    (*iter) = nullptr;
-                                }
-                            }
-                            outmeshs.clear();
-                        }
-                        //CR30 end
                     }
                 }
             }
