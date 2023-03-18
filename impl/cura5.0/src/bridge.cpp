@@ -6,7 +6,7 @@
 #include "settings/types/Ratio.h"
 #include "utils/AABB.h"
 #include "utils/polygon.h"
-
+#include <climits>
 namespace cura52
 {
 

@@ -126,8 +126,8 @@ set(CVERSION "CURA_ENGINE_VERSION=\"5.2.0\"")
 list(APPEND DEFS ${CVERSION} NOMINMAX ASSERT_INSANE_OUTPUT USE_CPU_TIME)
 
 if (ENABLE_OPENMP)
-    find_package(OpenMP REQUIRED)
-    list(APPEND LIBS OpenMP::OpenMP_CXX)
+	#find_package(OpenMP REQUIRED)
+	#list(APPEND LIBS OpenMP::OpenMP_CXX)
 endif ()
 								  
 
