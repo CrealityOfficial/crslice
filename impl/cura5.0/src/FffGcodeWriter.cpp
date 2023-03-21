@@ -2266,13 +2266,14 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
             // considered to be
             if (mesh.settings.get<bool>("set_wall_overhang_grading"))
             {
-                Polygons overhang_region_last;
+                Polygons overhang_region_last, _overhang_region, outlines_below_offset;
                 AngleDegrees overhang_angle_level[5] = { 0, 20, 45, 60, 75 };
-                const coord_t offset_rectify = 0.5 * layer_height * float(1. - 0.25 * M_PI) + 0.5;
+                const coord_t offset_rectify = mesh.settings.get<bool>("special_exact_flow_enable") ? 0.5 * layer_height * float(1. - 0.25 * M_PI) + 0.5 : 0;
                 for (int i = 1; i < 5; i++)
                 {
                     const coord_t _overhang_width = layer_height * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
-                    Polygons _overhang_region = part.outline.offset(-half_outer_wall_width + offset_rectify).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width + offset_rectify)).offset(10);
+                    outlines_below_offset = outlines_below.offset(10 + _overhang_width - half_outer_wall_width + offset_rectify);
+                    _overhang_region = part.outline.offset(-half_outer_wall_width + offset_rectify).difference(outlines_below_offset).offset(10);
                     if (overhang_region_last.empty())
                     {
                         overhang_region_last = _overhang_region;
@@ -2281,11 +2282,16 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                     overhang_region_last = overhang_region_last.difference(_overhang_region);
                     gcode_layer.setOverhangMask(overhang_region_last, i - 2);
                     overhang_region_last = _overhang_region;
-                    if (i == 4)
-                    {
-                        gcode_layer.setOverhangMask(overhang_region_last, 3);
-                    }
                 }
+                Polygon aabb;
+                aabb.add(Point(boundaryBox.min.X, boundaryBox.min.Y));
+                aabb.add(Point(boundaryBox.min.X, boundaryBox.max.Y));
+                aabb.add(Point(boundaryBox.max.X, boundaryBox.max.Y));
+                aabb.add(Point(boundaryBox.max.X, boundaryBox.min.Y));
+                Polygons aabbs;
+                aabbs.add(aabb);
+                overhang_region_last = overhang_region_last.unionPolygons((aabbs.offset(2*half_outer_wall_width).difference(outlines_below_offset)));
+                gcode_layer.setOverhangMask(overhang_region_last, 3);
             }
             else
             {
