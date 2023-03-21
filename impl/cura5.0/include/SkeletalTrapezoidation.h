@@ -45,8 +45,10 @@ deposition modeling" by Kuipers et al.
  */
 class SkeletalTrapezoidation
 {
+public:
     using pos_t = double;
     using vd_t = boost::polygon::voronoi_diagram<pos_t>;
+private:
     using graph_t = SkeletalTrapezoidationGraph;
     using edge_t = STHalfEdge;
     using node_t = STHalfEdgeNode;
@@ -102,7 +104,8 @@ public:
     , coord_t discretization_step_size
     , coord_t transition_filter_dist
     , coord_t allowed_filter_deviation
-    , coord_t beading_propagation_transition_dist);
+    , coord_t beading_propagation_transition_dist
+    , bool& restart);
 
     /*!
      * A skeletal graph through the polygons that we need to fill with beads.
@@ -151,7 +154,7 @@ protected:
      * Another complication arises because the VD uses floating logic, which can result in zero-length segments after rounding to integers.
      * We therefore collapse edges and their whole cells afterwards.
      */
-    void constructFromPolygons(const Polygons& polys);
+    void constructFromPolygons(const Polygons& polys, bool& restart);
 
     /*!
      * mapping each voronoi VD edge to the corresponding halfedge HE edge

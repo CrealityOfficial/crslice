@@ -51,7 +51,6 @@ WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0
 const std::vector<VariableWidthLines>& WallToolPaths::generate()
 {
     const coord_t allowed_distance = settings.get<coord_t>("meshfix_maximum_deviation");
-    const coord_t epsilon_offset = allowed_distance;// (allowed_distance / 2) - 1;
     const AngleRadians transitioning_angle = settings.get<AngleRadians>("wall_transition_angle");
     constexpr coord_t discretization_step_size = MM2INT(0.8);
 
@@ -75,6 +74,9 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
+    coord_t epsilon_offset = 0;
+add_epsilon_offset:
+    epsilon_offset += ((allowed_distance / 2) - 1);
     Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);
     prepared_outline = Simplify(settings).polygon(prepared_outline);
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
@@ -123,6 +125,8 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         );
     const coord_t transition_filter_dist = settings.get<coord_t>("wall_transition_filter_distance");
     const coord_t allowed_filter_deviation = settings.get<coord_t>("wall_transition_filter_deviation");
+
+    bool restart = false;
     SkeletalTrapezoidation wall_maker
     (
         prepared_outline,
@@ -131,8 +135,12 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         discretization_step_size,
         transition_filter_dist,
         allowed_filter_deviation,
-        wall_transition_length
+        wall_transition_length,
+        restart
     );
+    if (restart && epsilon_offset < 75)
+        goto add_epsilon_offset;
+
     wall_maker.generateToolpaths(toolpaths);
 
     stitchToolPaths(toolpaths, settings);
@@ -172,6 +180,12 @@ void WallToolPaths::stitchToolPaths(std::vector<VariableWidthLines>& toolpaths, 
             if (wall_polygon.junctions.empty())
             {
                 continue;
+            }
+            // PolylineStitcher, in some cases, produced closed extrusion (polygons),
+            // but the endpoints differ by a small distance. So we reconnect them.
+            if (wall_polygon.junctions.front().p != wall_polygon.junctions.back().p &&
+                vSize(wall_polygon.junctions.back().p - wall_polygon.junctions.front().p) < stitch_distance) {
+                wall_polygon.junctions.emplace_back(wall_polygon.junctions.front());
             }
             wall_polygon.is_closed = true;
             wall_lines.emplace_back(std::move(wall_polygon)); // add stitched polygons to result
