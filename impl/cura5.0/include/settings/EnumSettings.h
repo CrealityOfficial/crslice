@@ -61,7 +61,8 @@ enum class ESupportType
 enum class ESupportStructure
 {
     NORMAL,
-    TREE
+    TREE,
+	THOMASTREE
 };
 
 enum class EZSeamType
@@ -134,6 +135,28 @@ enum class SlicingTolerance
     MIDDLE,
     INCLUSIVE,
     EXCLUSIVE
+};
+/*!
+ * enum for ThomasTreeSupport
+ */
+enum class InterfacePreference
+{
+    INTERFACE_AREA_OVERWRITES_SUPPORT,
+    SUPPORT_AREA_OVERWRITES_INTERFACE,
+    INTERFACE_LINES_OVERWRITE_SUPPORT,
+    SUPPORT_LINES_OVERWRITE_INTERFACE,
+    NOTHING
+};
+
+enum class RestPreference{
+    BUILDPLATE,GRACEFUL
+};
+
+enum class AvoidanceType
+{
+    SLOW,
+    FAST_SAFE,
+    FAST
 };
 /*!
  * Different flavors of GCode. Some machines require different types of GCode.

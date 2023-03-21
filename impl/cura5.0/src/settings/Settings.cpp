@@ -460,6 +460,10 @@ ESupportStructure Settings::get<ESupportStructure>(const std::string& key) const
     {
         return ESupportStructure::TREE;
     }
+	else if (value == "thomastree")
+	{
+		return ESupportStructure::THOMASTREE;
+	}
     else // Default.
     {
         return ESupportStructure::NORMAL;

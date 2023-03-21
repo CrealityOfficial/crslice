@@ -30,6 +30,7 @@
 #include "support.h"
 #include "TopSurface.h"
 #include "TreeSupport.h"
+#include "ThomasTreeSupport.h"
 #include "WallsComputation.h"
 #include "infill/DensityProvider.h"
 #include "infill/ImageBasedDensityProvider.h"
@@ -406,11 +407,18 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
 
-    TreeSupport tree_support_generator(storage);
-    tree_support_generator.generateSupportAreas(storage);
+	if (scene.settings.get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
+	{
+		ThomasTreeSupport thomas_tree_support_generator(storage);
+		thomas_tree_support_generator.generateSupportAreas(storage);
+	}
+	else
+	{
+		TreeSupport tree_support_generator(storage);
+		tree_support_generator.generateSupportAreas(storage);
+	}
 
-    INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
-
+	INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
     // we need to remove empty layers after we have processed the insets
     // processInsets might throw away parts if they have no wall at all (cause it doesn't fit)
     // brim depends on the first layer not being empty

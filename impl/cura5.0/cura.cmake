@@ -37,8 +37,10 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/support.cpp
         ${PREFIX5.2}src/timeEstimate.cpp
         ${PREFIX5.2}src/TopSurface.cpp
-        ${PREFIX5.2}src/TreeModelVolumes.cpp
+		${PREFIX5.2}src/TreeModelVolumes.cpp
         ${PREFIX5.2}src/TreeSupport.cpp
+		${PREFIX5.2}src/ThomasTreeModelVolumes.cpp
+        ${PREFIX5.2}src/ThomasTreeSupport.cpp
         ${PREFIX5.2}src/WallsComputation.cpp
         ${PREFIX5.2}src/Weaver.cpp
         ${PREFIX5.2}src/Wireframe2gcode.cpp
@@ -106,6 +108,8 @@ set(engine_SRCS # Except main.cpp.
 		${PREFIX5.2}include/progress/ProgressEstimatorLinear.h
 		${PREFIX5.2}include/progress/ProgressStageEstimator.h
 		${PREFIX5.2}include/utils/VoronoiUtilsCgal.h
+		${PREFIX5.2}include/TreeSupportElement.h
+		${PREFIX5.2}include/TreeSupportSettings.h
         )
 
 __cc_find(RapidJSON)
