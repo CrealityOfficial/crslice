@@ -87,12 +87,24 @@ void PrimeTower::generateGroundpoly()
 	
     coord_t machine_depth = mesh_group_settings.get<coord_t>("machine_depth");
     coord_t machine_width = mesh_group_settings.get<coord_t>("machine_width");
-    for (int n=0;n<aPolygon.size();n++)//换色柱超出平台范围的点，过滤掉
+    for (int n=0;n<aPolygon.size();n++)//换色柱超出平台范围的点，取平台的极限值
     {
-		if (aPolygon[n].X > machine_width || aPolygon[n].Y > machine_depth || aPolygon[n].X < 0.0 || aPolygon[n].Y < 0.0)
+		if (aPolygon[n].X > machine_width)
 		{
-			aPolygon.remove(n);
-			n--;
+            aPolygon[n].X = machine_width;
+		}
+        else if (aPolygon[n].X < 0.0)
+        {
+            aPolygon[n].X = 0.0;
+        }
+
+        if (aPolygon[n].Y > machine_depth )
+        {
+            aPolygon[n].Y = machine_depth;
+        }
+		else if (aPolygon[n].Y < 0.0)
+		{
+            aPolygon[n].Y = 0.0;
 		}
     }
     outer_poly.add(aPolygon);
