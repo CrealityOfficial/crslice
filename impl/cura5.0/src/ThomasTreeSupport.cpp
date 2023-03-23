@@ -20,7 +20,9 @@
 #include <thread>
 #include <utils/ThreadPool.h>
 #include <utils/algorithm.h>
+#ifdef WIN32
 #include <windows.h> //todo Remove!  ONLY FOR PUBLIC BETA!!
+#endif
 namespace cura52
 {
 
@@ -118,7 +120,9 @@ void ThomasTreeSupport::showError(std::string message, bool critical)
 
     if (show)
     {
-        MessageBox(nullptr, std::string("ThomasTreeSupport_2 MOD detected an error while generating the tree support.\nPlease report this back to me with profile and model.\nRevision 6.0\n" + message + "\n" + bugtype).c_str(), "Bug detected!", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONWARNING);
+        #ifdef WIN32
+        //MessageBox(nullptr, std::string("ThomasTreeSupport_2 MOD detected an error while generating the tree support.\nPlease report this back to me with profile and model.\nRevision 6.0\n" + message + "\n" + bugtype).c_str(), "Bug detected!", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONWARNING);
+        #endif
     }
 }
 
@@ -1753,7 +1757,7 @@ void ThomasTreeSupport::increaseAreas(std::unordered_map<TreeSupportElement, Pol
 
             if (result)
             {
-                elem = result.value();
+                elem = *result;
                 radius = config.getCollisionRadius(elem);
                 elem.last_area_increase = settings;
                 add = true;

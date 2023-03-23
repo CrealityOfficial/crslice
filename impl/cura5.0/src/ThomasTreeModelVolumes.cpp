@@ -8,7 +8,7 @@
 #include "sliceDataStorage.h"
 #include "utils/ThreadPool.h"
 #include "utils/algorithm.h"
-#include <spdlog/spdlog.h>
+#include "ccglobal/log.h"
 namespace cura52
 {
 
@@ -193,7 +193,7 @@ void ThomasTreeModelVolumes::precalculate(coord_t max_layer)
     std::deque<RadiusLayerPair> relevant_hole_collision_radiis;
     for (RadiusLayerPair key : relevant_avoidance_radiis)
     {
-        spdlog::debug("Calculating avoidance of radius {} up to layer {}",key.first,key.second);
+        LOGD("Calculating avoidance of radius {} up to layer {}",key.first,key.second);
         if (key.first < increase_until_radius + current_min_xy_dist_delta)
         {
             relevant_hole_collision_radiis.emplace_back(key);
@@ -236,7 +236,7 @@ void ThomasTreeModelVolumes::precalculate(coord_t max_layer)
     auto dur_col = 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_coll - t_start).count();
     auto dur_avo = 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_coll).count();
 
-    spdlog::info("Precalculating collision took {} ms. Precalculating avoidance took {} ms.", dur_col, dur_avo);
+    LOGI("Precalculating collision took {} ms. Precalculating avoidance took {} ms.", dur_col, dur_avo);
 }
 
 const Polygons& ThomasTreeModelVolumes::getCollision(coord_t radius, LayerIndex layer_idx, bool min_xy_dist)
@@ -261,11 +261,11 @@ const Polygons& ThomasTreeModelVolumes::getCollision(coord_t radius, LayerIndex 
     }
     if (result)
     {
-        return result.value().get();
+        return result->get();
     }
     if (precalculated)
     {
-        spdlog::warn("Had to calculate collision at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
+        LOGW("Had to calculate collision at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
         ThomasTreeSupport::showError("Not precalculated Collision requested.", false);
     }
     calculateCollision(key);
@@ -292,11 +292,11 @@ const Polygons& ThomasTreeModelVolumes::getCollisionHolefree(coord_t radius, Lay
     }
     if (result)
     {
-        return result.value().get();
+        return result->get();
     }
     if (precalculated)
     {
-        spdlog::warn("Had to calculate collision holefree at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
+        LOGW("Had to calculate collision holefree at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
         ThomasTreeSupport::showError("Not precalculated Holefree Collision requested.", false);
     }
     calculateCollisionHolefree(key);
@@ -362,7 +362,7 @@ const Polygons& ThomasTreeModelVolumes::getAvoidance(coord_t radius, LayerIndex 
     }
     else
     {
-        spdlog::error("Invalid Avoidance Request");
+        LOGE("Invalid Avoidance Request");
         ThomasTreeSupport::showError("Invalid Avoidance Request.\n", true);
     }
 
@@ -375,11 +375,11 @@ const Polygons& ThomasTreeModelVolumes::getAvoidance(coord_t radius, LayerIndex 
         }
         if (result)
         {
-            return result.value().get();
+            return result->get();
         }
         if (precalculated)
         {
-            spdlog::warn("Had to calculate Avoidance to model at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
+            LOGW("Had to calculate Avoidance to model at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
             ThomasTreeSupport::showError("Not precalculated Avoidance(to model) requested.", false);
         }
         calculateAvoidanceToModel(key);
@@ -392,11 +392,11 @@ const Polygons& ThomasTreeModelVolumes::getAvoidance(coord_t radius, LayerIndex 
         }
         if (result)
         {
-            return result.value().get();
+            return result->get();
         }
         if (precalculated)
         {
-            spdlog::warn("Had to calculate Avoidance at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
+            LOGW("Had to calculate Avoidance at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
             ThomasTreeSupport::showError("Not precalculated Avoidance(to buildplate) requested.", false);
         }
         calculateAvoidance(key);
@@ -417,11 +417,11 @@ const Polygons& ThomasTreeModelVolumes::getPlaceableAreas(coord_t radius, LayerI
     }
     if (result)
     {
-        return result.value().get();
+        return result->get();
     }
     if (precalculated)
     {
-        spdlog::warn("Had to calculate Placeable Areas at radius {} and layer {}, but precalculate was called. Performance may suffer!", radius, layer_idx);
+        LOGW("Had to calculate Placeable Areas at radius {} and layer {}, but precalculate was called. Performance may suffer!", radius, layer_idx);
         ThomasTreeSupport::showError("Not precalculated Placeable areas requested.", false);
     }
     if (radius != 0)
@@ -470,11 +470,11 @@ const Polygons& ThomasTreeModelVolumes::getWallRestriction(coord_t radius, Layer
         }
         if (result)
         {
-            return result.value().get();
+            return result->get();
         }
         if (precalculated)
         {
-            spdlog::warn("Had to calculate Wall restricions at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
+            LOGW("Had to calculate Wall restricions at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
             ThomasTreeSupport::showError("Not precalculated Wall restriction of minimum xy distance requested ).", false);
         }
     }
@@ -486,11 +486,11 @@ const Polygons& ThomasTreeModelVolumes::getWallRestriction(coord_t radius, Layer
         }
         if (result)
         {
-            return result.value().get();
+            return result->get();
         }
         if (precalculated)
         {
-            spdlog::warn("Had to calculate Wall restricions at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
+            LOGW("Had to calculate Wall restricions at radius {} and layer {}, but precalculate was called. Performance may suffer!", key.first, key.second);
             ThomasTreeSupport::showError("Not precalculated Wall restriction requested ).", false);
         }
     }
@@ -780,7 +780,7 @@ void ThomasTreeModelVolumes::calculateAvoidance(std::deque<RadiusLayerPair> keys
             }
             if (start_layer > max_required_layer)
             {
-                spdlog::debug("Requested calculation for value already calculated ?");
+                LOGW("Requested calculation for value already calculated ?");
                 return;
             }
             start_layer = std::max(start_layer, LayerIndex(1)); // Ensure StartLayer is at least 1 as if no avoidance was calculated getMaxCalculatedLayer returns -1
@@ -842,7 +842,7 @@ void ThomasTreeModelVolumes::calculatePlaceables(std::deque<RadiusLayerPair> key
         }
         if (start_layer > max_required_layer)
         {
-            spdlog::debug("Requested calculation for value already calculated ?");
+            LOGW("Requested calculation for value already calculated ?");
             return;
         }
 
@@ -914,7 +914,7 @@ void ThomasTreeModelVolumes::calculateAvoidanceToModel(std::deque<RadiusLayerPai
         }
         if (start_layer > max_required_layer)
         {
-            spdlog::debug("Requested calculation for value already calculated ?");
+            LOGW("Requested calculation for value already calculated ?");
             return;
         }
         start_layer = std::max(start_layer, LayerIndex(1));
