@@ -373,8 +373,7 @@ SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys,
                                                coord_t discretization_step_size,
                                                coord_t transition_filter_dist,
                                                coord_t allowed_filter_deviation,
-                                               coord_t beading_propagation_transition_dist,
-                                               bool& restart)
+                                               coord_t beading_propagation_transition_dist)
     : transitioning_angle(transitioning_angle)
     , discretization_step_size(discretization_step_size)
     , transition_filter_dist(transition_filter_dist)
@@ -382,7 +381,7 @@ SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys,
     , beading_propagation_transition_dist(beading_propagation_transition_dist)
     , beading_strategy(beading_strategy)
 {
-    constructFromPolygons(polys, restart);
+    constructFromPolygons(polys);
 }
 
 static bool has_finite_edge_with_non_finite_vertex(const SkeletalTrapezoidation::vd_t &voronoi_diagram)
@@ -512,7 +511,7 @@ inline static void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalT
     }
 }
 
-void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys, bool& restart)
+void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
 {
     vd_edge_to_he_edge.clear();
     vd_node_to_he_node.clear();
@@ -624,12 +623,6 @@ process_voronoi_diagram:
         this->vd_node_to_he_node.clear();
 
         goto process_voronoi_diagram;
-    }
-
-    if (has_missing_twin_edge(this->graph) || !VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(vonoroi_diagram))
-    {
-        restart = true;
-        return;
     }
 
     if (degenerated_voronoi_diagram)

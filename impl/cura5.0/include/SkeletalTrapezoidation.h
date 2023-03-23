@@ -104,8 +104,7 @@ public:
     , coord_t discretization_step_size
     , coord_t transition_filter_dist
     , coord_t allowed_filter_deviation
-    , coord_t beading_propagation_transition_dist
-    , bool& restart);
+    , coord_t beading_propagation_transition_dist);
 
     /*!
      * A skeletal graph through the polygons that we need to fill with beads.
@@ -154,7 +153,7 @@ protected:
      * Another complication arises because the VD uses floating logic, which can result in zero-length segments after rounding to integers.
      * We therefore collapse edges and their whole cells afterwards.
      */
-    void constructFromPolygons(const Polygons& polys, bool& restart);
+    void constructFromPolygons(const Polygons& polys);
 
     /*!
      * mapping each voronoi VD edge to the corresponding halfedge HE edge

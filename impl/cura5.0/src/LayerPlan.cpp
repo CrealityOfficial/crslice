@@ -745,8 +745,6 @@ void LayerPlan::addWallLine(const Point& p0,
         return speed_factor;
     };
 
-    Ratio sub_speed_factor = std::min(getSpeedFactor(p0, p1), speed_factor);
-
     auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true)
     {
         coord_t distance_to_line_end = vSize(cur_point - line_end);
@@ -825,10 +823,10 @@ void LayerPlan::addWallLine(const Point& p0,
         }
     };
 
-    if (bridge_wall_mask.empty() || p0Added)
+    if (bridge_wall_mask.empty())
     {
         // no bridges required
-        addExtrusionMove(p1, non_bridge_config, SpaceFillType::Polygons, flow, width_factor, spiralize, sub_speed_factor);
+        addExtrusionMove(p1, non_bridge_config, SpaceFillType::Polygons, flow, width_factor, spiralize, std::min(getSpeedFactor(p0, p1), speed_factor));
     }
     else
     {
@@ -889,7 +887,7 @@ void LayerPlan::addWallLine(const Point& p0,
                         non_bridge_line_volume = 0;
                         cur_point = b1;
                         // after a bridge segment, start slow and accelerate to avoid under-extrusion due to extruder lag
-                        speed_factor = std::max(std::min(Ratio(bridge_config.getSpeed() / non_bridge_config.getSpeed()), 1.0_r), 0.5_r);
+                        speed_factor = std::max(std::min(Ratio(bridge_config.getSpeed() / non_bridge_config.getSpeed()), 1.0_r), 0.8_r);
                     }
                 }
                 else
@@ -906,7 +904,7 @@ void LayerPlan::addWallLine(const Point& p0,
             // if we haven't yet reached p1, fill the gap with non_bridge_config line
             addNonBridgeLine(p1);
         }
-        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * sub_speed_factor)
+        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * std::min(getSpeedFactor(p0, p1), speed_factor))
         {
             // both p0 and p1 must be above air (the result will be ugly!)
             addExtrusionMove(p1, bridge_config, SpaceFillType::Polygons, flow, width_factor);

@@ -52,10 +52,10 @@ WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0
 const std::vector<VariableWidthLines>& WallToolPaths::generate()
 {
     const coord_t allowed_distance = settings.get<coord_t>("meshfix_maximum_deviation");
+    const coord_t epsilon_offset = (allowed_distance / 2) - 1;
     const AngleRadians transitioning_angle = settings.get<AngleRadians>("wall_transition_angle");
     constexpr coord_t discretization_step_size = MM2INT(0.8);
 
-    coord_t offset_insert = 0;
     double scaled_spacing_wall_0 = bead_width_0;
     double scaled_spacing_wall_X = bead_width_x;
     const coord_t layer_thickness = settings.get<coord_t>("layer_height");
@@ -75,9 +75,6 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
-    coord_t epsilon_offset = 0;
-add_epsilon_offset:
-    epsilon_offset += ((allowed_distance / 2) - 1);
     Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);
     prepared_outline = Simplify(settings).polygon(prepared_outline);
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
@@ -127,7 +124,6 @@ add_epsilon_offset:
     const coord_t transition_filter_dist = settings.get<coord_t>("wall_transition_filter_distance");
     const coord_t allowed_filter_deviation = settings.get<coord_t>("wall_transition_filter_deviation");
 
-    bool restart = false;
     SkeletalTrapezoidation wall_maker
     (
         prepared_outline,
@@ -136,8 +132,7 @@ add_epsilon_offset:
         discretization_step_size,
         transition_filter_dist,
         allowed_filter_deviation,
-        wall_transition_length,
-        restart
+        wall_transition_length
     );
 
 #if CURA_SERIAL_DATA
@@ -173,9 +168,6 @@ add_epsilon_offset:
         tester.save(name);
     }
 #endif
-
-    if (restart && epsilon_offset < 75)
-        goto add_epsilon_offset;
 
     wall_maker.generateToolpaths(toolpaths);
 

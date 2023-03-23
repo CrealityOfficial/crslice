@@ -1729,7 +1729,8 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
 
         if (cds_speed>0.0)
         {
-            *output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed : cds_speed * 255) / 100 } << new_line;
+            double cds_speed_fix = speed / 100 * cds_speed;
+            *output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed_fix : cds_speed_fix * 255) / 100 } << new_line;
         }
     }
     else

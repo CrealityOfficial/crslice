@@ -288,6 +288,13 @@ protected:
             return;
         }
 
+        const coord_t v_ab_dis = LinearAlg2D::getDistFromLine(vertex_position, before_position, after_position);
+        if (v_ab_dis < max_deviation)
+        {
+            to_delete[vertex] = true;
+            return;
+        }
+
         //Otherwise, one edge next to this vertex is longer than max_resolution. The other is shorter.
         //In this case we want to remove the short edge by replacing it with a vertex where the two surrounding edges intersect.
         //Find the two line segments surrounding the short edge here ("before" and "after" edges).
