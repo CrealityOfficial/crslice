@@ -25,6 +25,8 @@ namespace crslice
 		}
 
 		cura52::Application app(tracer);
+		app.tempDirectory = scene->m_tempDirectory;
+
 		app.runCommulication(new CRSliceFromScene(scene));
         sliceResult = { app.sliceResult.print_time,app.sliceResult.filament_len ,app.sliceResult.filament_volume,app.sliceResult.layer_count,
             app.sliceResult.x,app.sliceResult.y,app.sliceResult.z };

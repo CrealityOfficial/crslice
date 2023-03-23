@@ -69,6 +69,7 @@ namespace cura52
 
         FffProcessor processor;
         Progress progressor;
+        std::string tempDirectory;
         ccglobal::Tracer* tracer = nullptr;
 
         /*

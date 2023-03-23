@@ -24,6 +24,7 @@ namespace crslice
 		void setGroupSettings(int groupID, SettingsPtr settings);
 		void setSceneSettings(SettingsPtr settings);
 		void setSceneJsonFile(const std::string& fileName);
+		void setTempDirectory(const std::string& directory);
 
 		void release();
 		CrGroup* getGroupsIndex(int groupID);
@@ -40,6 +41,7 @@ namespace crslice
 		bool machine_center_is_zero;
 
 		std::string m_gcodeFileName;
+		std::string m_tempDirectory;
 	};
 }
 

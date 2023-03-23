@@ -746,7 +746,7 @@ class Polygons
     friend class PolygonRef;
     friend class ConstPolygonRef;
     friend class PolygonUtils;
-protected:
+public:
     ClipperLib::Paths paths;
 public:
     unsigned int size() const

@@ -102,6 +102,7 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/utils/ToolpathVisualizer.cpp
         ${PREFIX5.2}src/utils/VoronoiUtils.cpp
 		${PREFIX5.2}src/utils/VoronoiUtilsCgal.cpp
+		${PREFIX5.2}src/utils/inputserial.cpp
 		
 		${PREFIX5.2}include/progress/Progress.h
 		${PREFIX5.2}include/progress/ProgressEstimator.h
@@ -110,6 +111,7 @@ set(engine_SRCS # Except main.cpp.
 		${PREFIX5.2}include/utils/VoronoiUtilsCgal.h
 		${PREFIX5.2}include/TreeSupportElement.h
 		${PREFIX5.2}include/TreeSupportSettings.h
+		${PREFIX5.2}include/utils/inputserial.h
         )
 
 __cc_find(RapidJSON)

@@ -12,6 +12,7 @@
 #include "ExtruderTrain.h"
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h"
+#include "utils/inputserial.h"
 
 namespace cura52
 {
@@ -138,6 +139,41 @@ add_epsilon_offset:
         wall_transition_length,
         restart
     );
+
+#if CURA_SERIAL_DATA
+    if (restart)
+    {
+        SkeletalTrapezoidationTester tester;
+        
+        tester.allowed_distance = allowed_distance;
+        tester.transitioning_angle = transitioning_angle;
+        tester.discretization_step_size = discretization_step_size;
+        tester.offset_insert = offset_insert;
+        tester.scaled_spacing_wall_0 = scaled_spacing_wall_0;
+        tester.scaled_spacing_wall_X = scaled_spacing_wall_X;
+        tester.wall_transition_length = wall_transition_length;
+        tester.min_even_wall_line_width = min_even_wall_line_width;
+        tester.wall_line_width_0 = wall_line_width_0;
+        tester.wall_split_middle_threshold = wall_split_middle_threshold;
+        tester.min_odd_wall_line_width = min_odd_wall_line_width;
+        tester.wall_line_width_x = wall_line_width_x;
+        tester.wall_add_middle_threshold = wall_add_middle_threshold;
+        tester.wall_distribution_count = wall_distribution_count;
+        tester.max_bead_count = max_bead_count;
+        tester.transition_filter_dist = transition_filter_dist;
+        tester.allowed_filter_deviation = allowed_filter_deviation;
+        tester.print_thin_walls = print_thin_walls;
+        tester.min_feature_size = min_feature_size;
+        tester.min_bead_width = min_bead_width;
+        tester.wall_0_inset = wall_0_inset;
+        tester.prepared_outline = prepared_outline;
+
+        char name[256] = { 0 };
+        sprintf(name, "SkeletalTrapezoidation-%d", (int)this);
+        tester.save(name);
+    }
+#endif
+
     if (restart && epsilon_offset < 75)
         goto add_epsilon_offset;
 

@@ -95,6 +95,11 @@ namespace crslice
 		}
 	}
 
+	void CrScene::setTempDirectory(const std::string& directory)
+	{
+		m_tempDirectory = directory;
+	}
+
 	void CrScene::release()
 	{
 		for (CrGroup* group : m_groups)
