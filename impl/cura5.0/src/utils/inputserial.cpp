@@ -146,7 +146,6 @@ namespace cura52
             wall_distribution_count
         );
 
-        bool restart = false;
         SkeletalTrapezoidation wall_maker
         (
             prepared_outline,
@@ -155,8 +154,7 @@ namespace cura52
             discretization_step_size,
             transition_filter_dist,
             allowed_filter_deviation,
-            wall_transition_length,
-            restart
+            wall_transition_length
         );
 
         std::vector<VariableWidthLines> toolpaths;

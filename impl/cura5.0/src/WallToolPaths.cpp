@@ -136,8 +136,6 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     );
 
 #if CURA_SERIAL_DATA
-    if (restart)
-    {
         SkeletalTrapezoidationTester tester;
         
         tester.allowed_distance = allowed_distance;
@@ -166,7 +164,6 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         char name[256] = { 0 };
         sprintf(name, "SkeletalTrapezoidation-%d", (int)this);
         tester.save(name);
-    }
 #endif
 
     wall_maker.generateToolpaths(toolpaths);
