@@ -141,7 +141,6 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         tester.allowed_distance = allowed_distance;
         tester.transitioning_angle = transitioning_angle;
         tester.discretization_step_size = discretization_step_size;
-        tester.offset_insert = offset_insert;
         tester.scaled_spacing_wall_0 = scaled_spacing_wall_0;
         tester.scaled_spacing_wall_X = scaled_spacing_wall_X;
         tester.wall_transition_length = wall_transition_length;
