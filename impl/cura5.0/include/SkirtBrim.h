@@ -63,7 +63,7 @@ public:
     static void getFirstLayerOutline(SliceDataStorage& storage, const size_t primary_line_count, const bool is_skirt, Polygons& first_layer_outline,bool is_autoBrim=false);
 
     //auto brim line count
-    static size_t generateBrimCount(SliceDataStorage& storage, std::vector<size_t>& vct_primary_line_count);
+    static void generateAutoBrim(SliceDataStorage& storage, Polygons& first_layer_outline, std::vector<size_t>& vct_primary_line_count);
 
     //generate race
     static ClipperLib::Paths skirt2Lace(ClipperLib::Paths& outlinePaths);

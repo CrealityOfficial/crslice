@@ -245,91 +245,73 @@ double getMaxSpeed(SliceDataStorage& storage)
 	return objMaxSpeed;
 }
 
-size_t SkirtBrim::generateBrimCount(SliceDataStorage& storage, std::vector<size_t>& vct_primary_line_count)
+void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer_outline, std::vector<size_t>& vct_primary_line_count)
 {
-	size_t max_line_count = 0;
 	double maxSpeed = getMaxSpeed(storage);
-
 	for (SliceMeshStorage& amesh : storage.meshes)
 	{
 		if (amesh.layers.size() > 0)
 		{
-			for (SliceLayerPart& apart : amesh.layers[0].parts)
-			{
 				Polygons aExpolysHole;
-				Polygons aExpolys = apart.print_outline;
-				ClipperLib::IntPoint center((apart.boundaryBox.max.X + apart.boundaryBox.min.X) * 0.5, (apart.boundaryBox.max.Y + apart.boundaryBox.min.Y) * 0.5);
-				aExpolysHole = aExpolys.getEmptyHoles();
-				aExpolys = aExpolys.removeEmptyHoles();
+				Polygons allExpolys = amesh.layers[0].getOutlines(true);
 
+				aExpolysHole = allExpolys.getEmptyHoles();
+				allExpolys = allExpolys.removeEmptyHoles();
+				first_layer_outline.add(allExpolys);
 
-				for (ClipperLib::IntPoint& aPoint : *(aExpolys.begin()))
+				for (ClipperLib::Paths::iterator it=allExpolys.begin();it!=allExpolys.end();it++)
 				{
-					aPoint -= center;
-					aPoint.X *= 1000.0;
-					aPoint.Y *= 1000.0;
-				}
-				for (ClipperLib::Paths::iterator it = aExpolysHole.begin();it != aExpolysHole.end();it++)
-				{
+					Polygons aExpolys;
+					AABB box(*it);
+					ClipperLib::IntPoint center= box.getMiddle();
+
 					for (ClipperLib::IntPoint& aPoint : *it)
 					{
 						aPoint -= center;
 						aPoint.X *= 1000.0;
 						aPoint.Y *= 1000.0;
 					}
-				}
+					aExpolys.add(*it);
 
-
-
-				ClipperLib::Paths aPolysPaths;
-				for (ClipperLib::Paths::iterator it = aExpolys.begin(); it != aExpolys.end(); it++)
-				{
-					aPolysPaths.push_back(*it);
-				}
-				ClipperLib::Paths aPolysHolePaths;
-				for (ClipperLib::Paths::iterator it = aExpolysHole.begin(); it != aExpolysHole.end(); it++)
-				{
-					aPolysHolePaths.push_back(*it);
-				}
-
-				auto bbox_size = amesh.bounding_box;
-				double height = INT2MM(bbox_size.max.z - bbox_size.min.z);
-				double Ixx = -1.e30, Iyy = -1.e30;
-				if (!aExpolys.empty())
-				{
-					if (!compSecondMoment(aPolysPaths, Ixx, Iyy, aPolysHolePaths))
-						Ixx = Iyy = -1.e30;
-
-					static constexpr double SCALING_FACTOR = 0.000001;
-					Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
-					Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
-
-					// bounding box of the expolygons of the first layer of the volume
-					//BoundingBox bbox2;
-					//for (const auto& expoly : expolys)
-					//	bbox2.merge(get_extents(expoly.contour));
-					const double& bboxX = MM2INT(amesh.bounding_box.max.x - amesh.bounding_box.min.x);
-					const double& bboxY = MM2INT(amesh.bounding_box.max.y - amesh.bounding_box.min.y);
-					double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
-					double thermalLengthRef = 200;//Ä¬ÈÏPla;
-
-					double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
-					double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
-					// small brims are omitted
-					if (brim_width < 3 && brim_width < 1.5 * thermalLength)
-						brim_width = 0;
-					// large brims are omitted
-					if (brim_width > 10) brim_width = 10.;
-					if (max_line_count < brim_width)
+					ClipperLib::Paths aPolysPaths;
+					for (ClipperLib::Paths::iterator it = aExpolys.begin(); it != aExpolys.end(); it++)
 					{
-						max_line_count = brim_width;
+						aPolysPaths.push_back(*it);
 					}
-					vct_primary_line_count.push_back(brim_width);
-				}
+
+					auto bbox_size = amesh.bounding_box;
+					double height = INT2MM(bbox_size.max.z - bbox_size.min.z);
+					double Ixx = -1.e30, Iyy = -1.e30;
+					if (!aExpolys.empty())
+					{
+						if (!compSecondMoment(aPolysPaths, Ixx, Iyy, ClipperLib::Paths()))
+							Ixx = Iyy = -1.e30;
+
+						static constexpr double SCALING_FACTOR = 0.000001;
+						Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+						Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+
+						// bounding box of the expolygons of the first layer of the volume
+						//BoundingBox bbox2;
+						//for (const auto& expoly : expolys)
+						//	bbox2.merge(get_extents(expoly.contour));
+						const double& bboxX = MM2INT(amesh.bounding_box.max.x - amesh.bounding_box.min.x);
+						const double& bboxY = MM2INT(amesh.bounding_box.max.y - amesh.bounding_box.min.y);
+						double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
+						double thermalLengthRef = 200;//Ä¬ÈÏPla;
+
+						double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
+						double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
+						// small brims are omitted
+						if (brim_width < 5 && brim_width < 1.5 * thermalLength)
+							brim_width = 0;
+						// large brims are omitted
+						if (brim_width > 10) brim_width = 10.;
+						vct_primary_line_count.push_back(brim_width);
+					}
 			}
 		}
 	}
-	return max_line_count;
 }
 
 

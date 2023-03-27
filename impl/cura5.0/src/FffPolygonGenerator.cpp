@@ -1076,8 +1076,7 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
         SkirtBrim::generate(storage, first_layer_outline, 0, primary_line_count);
         break;
 	case EPlatformAdhesion::AUTOBRIM:
-		max_line_count = SkirtBrim::generateBrimCount(storage, vct_primary_line_count);
-		SkirtBrim::getFirstLayerOutline(storage, max_line_count, false, first_layer_outline, true);
+        SkirtBrim::generateAutoBrim(storage, first_layer_outline,vct_primary_line_count);
 		SkirtBrim::generateEX(storage, first_layer_outline, 0, vct_primary_line_count);
 		break;
     case EPlatformAdhesion::RAFT:
