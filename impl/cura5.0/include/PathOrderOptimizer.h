@@ -73,6 +73,10 @@ public:
      */
     ZSeamConfig seam_config;
 
+    std::vector<int> last_layer_start_idx;
+    AngleDegrees z_seam_min_angle_diff;
+    AngleDegrees z_seam_max_angle;
+
     /*!
      * Construct a new optimizer.
      *
@@ -95,6 +99,8 @@ public:
     , reverse_direction(reverse_direction)
     , order_requirements(&order_requirements)
     {
+        z_seam_min_angle_diff = 0.;
+        z_seam_max_angle = 0.;
     }
 
     /*!
@@ -188,7 +194,12 @@ public:
                 {
                     continue;
                 }
-                path.start_vertex = findStartLocation(path, seam_config.pos);
+
+                int startIdx = path.startIdx();
+                if (startIdx > -1)
+                    path.start_vertex = startIdx;
+                else
+                    path.start_vertex = findStartLocation(path, seam_config.pos);
             }
         }
         
@@ -324,6 +335,42 @@ public:
         
         combing_grid.reset();
     }
+
+    void findZSeam(std::vector<int>& start_idx)
+    {
+        if (paths.empty())
+        {
+            return;
+        }
+
+        //Get the vertex data and store it in the paths.
+        for (PathOrderPath<PathType>& path : paths)
+        {
+            path.converted = path.getVertexData();
+        }
+
+        //For some Z seam types the start position can be pre-computed.
+        //This is faster since we don't need to re-compute the start position at each step then.
+        const bool precompute_start = seam_config.type == EZSeamType::RANDOM || seam_config.type == EZSeamType::USER_SPECIFIED || seam_config.type == EZSeamType::SHARPEST_CORNER;
+        if (precompute_start)
+        {
+            int path_idx = 0;
+            for (PathOrderPath<PathType>& path : paths)
+            {
+                if (!path.is_closed)
+                {
+                    continue; //Can't pre-compute the seam for open polylines since they're at the endpoint nearest to the current position.
+                }
+                if (path.converted->empty())
+                {
+                    continue;
+                }
+                path.start_vertex = findStartLocation(path, seam_config.pos, path_idx);
+                start_idx.push_back(path.start_vertex);
+                path_idx++;
+            }
+        }
+    }
 protected:
     /*!
      * If \ref detect_loops is enabled, endpoints of polylines that are closer
@@ -389,7 +436,7 @@ protected:
      * endpoints rather than 
      * \return An index to a vertex in that path where printing must start.
      */
-    size_t findStartLocation(const PathOrderPath<PathType>& path, const Point& target_pos)
+    size_t findStartLocation(const PathOrderPath<PathType>& path, const Point& target_pos, const int& path_idx = -1)
     {
         if(!path.is_closed)
         {
@@ -429,6 +476,25 @@ protected:
             simple_poly = Polygon(*path.converted); //Restore the original. We have to output a vertex as the seam position, so there needs to be a vertex.
         }
 
+        bool is_check_best_pt = path_idx != -1 && last_layer_start_idx[path_idx] != -1;
+        Point closest_pt;
+        size_t closest_pt_index = 0;
+        if (is_check_best_pt)
+        {   
+            closest_pt = (*path.converted)[last_layer_start_idx[path_idx]];
+            coord_t closest_dist2 = std::numeric_limits<coord_t>::max();
+            for (size_t i = 0; i < simple_poly.size(); ++i)
+            {
+                const Point& here = simple_poly[i];
+                const coord_t dist2 = vSize2(closest_pt - here);
+                if (dist2 < closest_dist2)
+                {
+                    closest_dist2 = dist2;
+                    closest_pt_index = i;
+                }
+            }
+        }
+
         const Point focus_fixed_point = (seam_config.type == EZSeamType::USER_SPECIFIED)
             ? seam_config.pos
             : Point(0, std::sqrt(std::numeric_limits<coord_t>::max())); //Use sqrt, so the squared size can be used when comparing distances.
@@ -438,6 +504,8 @@ protected:
         const size_t end_before_pos = simple_poly.size() + start_from_pos;
 
         // Find a seam position in the simple polygon:
+        float best_score_corner_angle = 0;
+        float closest_pt_corner_angle = 0;
         Point best_point;
         float best_score = std::numeric_limits<float>::infinity();
         Point previous = simple_poly[(start_from_pos - 1 + simple_poly.size()) % simple_poly.size()];
@@ -451,8 +519,9 @@ protected:
             const coord_t distance = (combing_boundary == nullptr)
                 ? getDirectDistance(here, target_pos)
                 : getCombingDistance(here, target_pos);
-            const float score_distance = (seam_config.type == EZSeamType::SHARPEST_CORNER && seam_config.corner_pref != EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_NONE) ? 0 : static_cast<float>(distance) / 1000000;
-            const float corner_angle = LinearAlg2D::getAngleLeft(previous, here, next) / M_PI - 1; //Between -1 and 1.
+            float score_distance = (seam_config.type == EZSeamType::SHARPEST_CORNER && seam_config.corner_pref != EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_NONE) ? 0 : static_cast<float>(distance) / 1000000;          
+            float corner_angle_2pi = LinearAlg2D::getAngleLeft(previous, here, next);
+            const float corner_angle = corner_angle_2pi / M_PI - 1; //Between -1 and 1.
             // angles < 0 are concave (left turning)
             // angles > 0 are convex (right turning)
 
@@ -466,6 +535,8 @@ protected:
                 if(corner_angle < 0) //Indeed a concave corner? Give it some advantage over other corners. More advantage for sharper corners.
                 {
                     score -= (-corner_angle + 1.0) * corner_shift;
+                    //if (is_check_best_pt)
+                    //    score += static_cast<float>(vSize2(here - closest_pt)) / 300000;
                 }
                 break;
             case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_OUTER:
@@ -486,7 +557,7 @@ protected:
                     float score_corner = std::abs(corner_angle) * corner_shift;
                     if(corner_angle < 0) //Concave corner.
                     {
-                        score_corner *= 2;
+                        score_corner *= 4;
                     }
                     score = score_distance - score_corner;
                     break;
@@ -520,9 +591,39 @@ protected:
             {
                 best_point = here;
                 best_score = score;
+                best_score_corner_angle = corner_angle_2pi;
             }
+            if (is_check_best_pt && i % simple_poly.size() == closest_pt_index)
+                closest_pt_corner_angle = corner_angle_2pi;
+
             previous = here;
         }
+
+        auto nonSharpCorner = [&](float check_corner)
+        {
+            float rectify_corner = 0;
+            switch (seam_config.corner_pref)
+            {
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_INNER:
+                break;
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_OUTER:
+                rectify_corner = 2 * M_PI - check_corner;
+                break;
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_ANY:
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_NONE:
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_WEIGHTED: 
+                rectify_corner = check_corner < M_PI ? check_corner : 2 * M_PI - check_corner;
+                break;
+            default:;
+            }
+            return rectify_corner > z_seam_max_angle;
+        };
+
+        if (is_check_best_pt &&(
+            nonSharpCorner(best_score_corner_angle)
+            || std::fabs(best_score_corner_angle - closest_pt_corner_angle) < z_seam_min_angle_diff
+            ))
+            return last_layer_start_idx[path_idx];
 
         // Which point in the real deal is closest to the simple polygon version?
         size_t best_index = 0;

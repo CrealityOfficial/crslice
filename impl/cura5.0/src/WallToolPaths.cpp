@@ -176,6 +176,14 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     simplifyToolPaths(toolpaths, settings);
 
     removeEmptyToolPaths(toolpaths);
+
+    for (VariableWidthLines& path : toolpaths)
+    {
+        for (ExtrusionLine& line : path)
+        {
+            line.start_idx = -1;
+        }
+    }
     assert(std::is_sorted(toolpaths.cbegin(), toolpaths.cend(),
                           [](const VariableWidthLines& l, const VariableWidthLines& r)
                           {

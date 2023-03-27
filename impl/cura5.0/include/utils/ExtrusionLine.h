@@ -28,6 +28,11 @@ namespace cura52
         size_t inset_idx;
 
         /*!
+         * Z seam
+         */
+        int start_idx;
+
+        /*!
          * If a thin piece needs to be printed with an odd number of walls (e.g. 5
          * walls) then there will be one wall in the middle that is not a loop. This
          * field indicates whether this path is such a line through the middle, that
@@ -69,6 +74,7 @@ namespace cura52
 
         ExtrusionLine()
             : inset_idx((size_t)(-1))
+            , start_idx(-1)
             , is_odd(true)
             , is_closed(false)
         {
@@ -76,6 +82,7 @@ namespace cura52
 
         ExtrusionLine(const ExtrusionLine& other)
             : inset_idx(other.inset_idx)
+            , start_idx(other.start_idx)
             , is_odd(other.is_odd)
             , is_closed(other.is_closed)
             , junctions(other.junctions)
@@ -86,6 +93,7 @@ namespace cura52
         {
             junctions = std::move(other.junctions);
             inset_idx = other.inset_idx;
+            start_idx = other.start_idx;
             is_odd = other.is_odd;
             is_closed = other.is_closed;
             return *this;
@@ -95,6 +103,7 @@ namespace cura52
         {
             junctions = other.junctions;
             inset_idx = other.inset_idx;
+            start_idx = other.start_idx;
             is_odd = other.is_odd;
             is_closed = other.is_closed;
             return *this;

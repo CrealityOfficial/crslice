@@ -47,4 +47,38 @@ namespace cura52
         return ConstPolygonRef(*cached_vertices);
     }
 
+    template<>
+    int PathOrderPath<ConstPolygonPointer>::startIdx()
+    {
+        return 0;
+    }
+
+    template<>
+    int PathOrderPath<PolygonPointer>::startIdx()
+    {
+        return -1;
+    }
+
+    template<>
+    int PathOrderPath<const SkinPart*>::startIdx()
+    {
+        return -1;
+    }
+
+    template<>
+    int PathOrderPath<const SliceLayerPart*>::startIdx()
+    {
+        return -1;
+    }
+
+    template<>
+    int PathOrderPath<const SupportInfillPart*>::startIdx()
+    {
+        return -1;
+    }
+    template<>
+    int PathOrderPath<const ExtrusionLine*>::startIdx()
+    {
+        return vertices->start_idx;
+    }
 }

@@ -157,6 +157,84 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         }
     }
 
+    if (scene.current_mesh_group->settings.get<EZSeamType>("z_seam_type") == EZSeamType::SHARPEST_CORNER)
+    {
+        auto closestPointToIdx = [](Polygon path, Point p, float& bestDist)
+        {
+            int ret = -1;
+            bestDist = FLT_MAX;
+            for (unsigned int n = 0; n < path.size(); n++)
+            {
+                float dist = vSize2f(p - (*path)[n]);
+                if (dist < bestDist)
+                {
+                    ret = n;
+                    bestDist = dist;
+                }
+            }
+            return ret;
+        };
+
+        AngleDegrees z_seam_min_angle_diff = scene.current_mesh_group->settings.get<AngleDegrees>("z_seam_min_angle_diff");
+        AngleDegrees z_seam_max_angle = scene.current_mesh_group->settings.get<AngleDegrees>("z_seam_max_angle");
+        std::vector<Point> last_layer_start_pt;
+        for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
+        {
+            std::vector<Point> current_layer_start_pt;
+            for (SliceMeshStorage& mesh : storage.meshes)
+            {
+                ZSeamConfig z_seam_config;
+                if (mesh.isPrinted()) //"normal" meshes with walls, skin, infill, etc. get the traditional part ordering based on the z-seam settings.
+                {
+                    z_seam_config = ZSeamConfig(mesh.settings.get<EZSeamType>("z_seam_type"), mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), mesh.settings.get<coord_t>("wall_line_width_0") * 2);
+                }
+                for (SliceLayerPart& part : mesh.layers[layer_nr].parts)
+                {
+                    for (VariableWidthLines& path : part.wall_toolpaths)
+                    {
+                        PathOrderOptimizer<const ExtrusionLine*> part_order_optimizer(Point(), z_seam_config);
+                        for (const ExtrusionLine& line : path)
+                        {
+                            //if (line.is_closed && line.inset_idx == 0)
+                            {
+                                part_order_optimizer.addPolygon(&line);
+                                float dis_max = FLT_MAX;
+                                int closestPtIdx = -1;
+                                for (const Point& pt : last_layer_start_pt)
+                                {
+                                    float dis = FLT_MAX;
+                                    int idx = closestPointToIdx(line.toPolygon(), pt, dis);
+                                    if (dis < dis_max)
+                                    {
+                                        dis_max = dis;
+                                        closestPtIdx = idx;
+                                    }
+                                }
+                                part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx);
+                            }
+                        }
+                        part_order_optimizer.z_seam_max_angle = z_seam_max_angle * M_PI / 180;
+                        part_order_optimizer.z_seam_min_angle_diff = z_seam_min_angle_diff * M_PI / 180;
+
+                        std::vector<int> start_idx;
+                        part_order_optimizer.findZSeam(start_idx);
+                        int idx = 0;
+                        for (ExtrusionLine& line : path)
+                        {
+                            //if (line.is_closed && line.inset_idx == 0)
+                            {
+                                line.start_idx = start_idx[idx];
+                                current_layer_start_pt.push_back(line.junctions[line.start_idx].p);
+                                idx++;
+                            }
+                        }
+                    }
+                }
+            }
+            last_layer_start_pt.swap(current_layer_start_pt);
+        }
+    }
+
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
     run_multiple_producers_ordered_consumer(application,

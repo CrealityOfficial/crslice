@@ -90,6 +90,8 @@ struct PathOrderPath
      */
     ConstPolygonRef getVertexData();
 
+    int startIdx();
+
 protected:
     /*!
      * Some input data structures need to be converted to polygons before use.

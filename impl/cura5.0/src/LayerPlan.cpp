@@ -2093,6 +2093,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if (path.config->isBridgePath())
                 {
                     gcode.writeComment("BRIDGE");
+                    //gcode.writeCdsFanCommand(0);
                 }
                 last_extrusion_config = path.config;
                 update_extrusion_offset = true;
@@ -2335,6 +2336,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if(paths[path_idx].spiralize)
                    extruder_plan.handleInserts(path_idx, gcode);
             }
+
+            //if (path.config->isBridgePath())
+            //{
+            //    gcode.writeCdsFanCommand(extruder_plan.cds_fan_speed);
+            //}
         } // paths for this extruder /\  .
 
         if (extruder.settings.get<bool>("cool_lift_head") && extruder_plan.extraTime > 0.0)

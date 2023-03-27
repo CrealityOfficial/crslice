@@ -65,6 +65,7 @@ GCodeExport::GCodeExport() : output_stream(&std::cout), currentPosition(0, 0, MM
 
     current_e_value = 0;
     current_extruder = 0;
+    current_cds_fan_speed = -1;
     current_fan_speed = -1;
     current_e_offset = 0;
 
@@ -1700,6 +1701,26 @@ void GCodeExport::setExtruderFanNumber(int extruder)
     }
 }
 
+void GCodeExport::writeCdsFanCommand(double cds_speed)
+{
+    if (std::abs(current_cds_fan_speed - cds_speed) < 0.1)
+    {
+        return;
+    }
+
+    if (cds_speed > 0)
+    {
+        const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
+        *output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed : cds_speed * 255) / 100 } << new_line;
+    }
+    else
+    {
+        *output_stream << "M106 P2 S0" << new_line;
+    }
+
+    current_cds_fan_speed = cds_speed;
+}
+
 void GCodeExport::writeFanCommand(double speed, double cds_speed)
 {
     if (std::abs(current_fan_speed - speed) < 0.1)
@@ -1730,7 +1751,7 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
         if (cds_speed>0.0)
         {
             double cds_speed_fix = speed / 100 * cds_speed;
-            *output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed_fix : cds_speed_fix * 255) / 100 } << new_line;
+            writeCdsFanCommand(cds_speed_fix);
         }
     }
     else
