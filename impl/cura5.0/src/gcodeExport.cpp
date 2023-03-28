@@ -1708,15 +1708,8 @@ void GCodeExport::writeCdsFanCommand(double cds_speed)
         return;
     }
 
-    if (cds_speed > 0)
-    {
-        const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
-        *output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed : cds_speed * 255) / 100 } << new_line;
-    }
-    else
-    {
-        *output_stream << "M106 P2 S0" << new_line;
-    }
+    const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
+    *output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed : cds_speed * 255) / 100 } << new_line;
 
     current_cds_fan_speed = cds_speed;
 }
@@ -1762,6 +1755,7 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
             *output_stream << " P" << fan_number;
         }
         *output_stream << new_line;
+        current_cds_fan_speed = speed;
     }
 
     current_fan_speed = speed;
