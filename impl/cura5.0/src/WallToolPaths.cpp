@@ -161,7 +161,7 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         tester.prepared_outline = prepared_outline;
 
         char name[256] = { 0 };
-        sprintf(name, "SkeletalTrapezoidation-%d", (int)this);
+        sprintf(name, "SkeletalTrapezoidation-%d", reinterpret_cast<uint64_t>(this));
         tester.save(name);
 #endif
 

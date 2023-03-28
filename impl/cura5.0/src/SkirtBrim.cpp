@@ -108,7 +108,7 @@ struct ExPolyProp
 
 };
 
-// center of mass ÖÊÐÄ
+// center of mass ï¿½ï¿½ï¿½ï¿½
 // source: https://en.wikipedia.org/wiki/Centroid
 ClipperLib::IntPoint centroid(ClipperLib::Path aPath)
 {
@@ -284,7 +284,8 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 					double Ixx = -1.e30, Iyy = -1.e30;
 					if (!aExpolys.empty())
 					{
-						if (!compSecondMoment(aPolysPaths, Ixx, Iyy, ClipperLib::Paths()))
+						ClipperLib::Paths path;
+						if (!compSecondMoment(aPolysPaths, Ixx, Iyy, path))
 							Ixx = Iyy = -1.e30;
 
 						static constexpr double SCALING_FACTOR = 0.000001;
@@ -298,7 +299,7 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 						const double& bboxX = MM2INT(amesh.bounding_box.max.x - amesh.bounding_box.min.x);
 						const double& bboxY = MM2INT(amesh.bounding_box.max.y - amesh.bounding_box.min.y);
 						double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
-						double thermalLengthRef = 200;//Ä¬ÈÏPla;
+						double thermalLengthRef = 200;//Ä¬ï¿½ï¿½Pla;
 
 						double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
 						double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
@@ -392,7 +393,7 @@ void generateLace(FloatPaths& originPaths, FloatPaths& newPaths)
 					double C = pow(pointStart.x, 2) + pow(pointStart.y, 2) + pow(originFPath[nn].x, 2) + pow(originFPath[nn].y, 2) - 2 * (pointStart.x * originFPath[nn].x + pointStart.y * originFPath[nn].y) - pow(radius, 2);
 					double u_1 = (-B + sqrt(pow(B, 2) - 4 * A * C)) / (2 * A);
 					double u_2 = (-B - sqrt(pow(B, 2) - 4 * A * C)) / (2 * A);
-					if (u_1 > 0 && u_1 < 1 && u_2>0 && u_2 < 1)//Èç¹ûÏß¶ÎºÍÔ²ÓÐÁ½¸ö½»µã£¬ÔòuÖµµÃÁ½¸ö½â¶¼ÔÚ0ºÍ1Ö®¼ä
+					if (u_1 > 0 && u_1 < 1 && u_2>0 && u_2 < 1)//ï¿½ï¿½ï¿½ï¿½ß¶Îºï¿½Ô²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½uÖµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â¶¼ï¿½ï¿½0ï¿½ï¿½1Ö®ï¿½ï¿½
 					{
 
 						FloatPoint pointOne;
@@ -402,7 +403,7 @@ void generateLace(FloatPaths& originPaths, FloatPaths& newPaths)
 						pointSecond.x = originFPath[nn].x + u_2 * (originFPath[nn + 1].x - originFPath[nn].x);
 						pointSecond.y = originFPath[nn].y + u_2 * (originFPath[nn + 1].y - originFPath[nn].y);
 
-						//2¸ö½»µãÀë×îºóÒ»¸öµãµÄ¾àÀë£¬Ñ¡Ôñ×î½üµÄµã
+						//2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½ë£¬Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½
 						double OneDis = sqrt(pow(originFPath[nn + 1].x - pointOne.x, 2) + pow(originFPath[nn + 1].y - pointOne.y, 2));
 						double SecondDis = sqrt(pow(originFPath[nn + 1].x - pointSecond.x, 2) + pow(originFPath[nn + 1].y - pointSecond.y, 2));
 						if (OneDis < SecondDis)
@@ -417,7 +418,7 @@ void generateLace(FloatPaths& originPaths, FloatPaths& newPaths)
 						}
 
 					}
-					else if ((u_1 > 0 && u_1 < 1) || (u_2 > 0 && u_2 < 1)) //Èç¹ûÏß¶ÎºÍÔ²Ö»ÓÐÒ»¸ö½»µã£¬ÔòuÖµÖÐÓÐÒ»¸öÊÇÔÚ0ºÍ1Ö®¼ä£¬ÁíÒ»¸ö²»ÊÇ
+					else if ((u_1 > 0 && u_1 < 1) || (u_2 > 0 && u_2 < 1)) //ï¿½ï¿½ï¿½ï¿½ß¶Îºï¿½Ô²Ö»ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½uÖµï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½1Ö®ï¿½ä£¬ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 					{
 						double ture_u;
 						if (u_1 > 0 && u_1 < 1)
@@ -451,7 +452,7 @@ ClipperLib::Paths SkirtBrim::skirt2Lace(ClipperLib::Paths& outlinePaths)
 	//if (size == 0)
 	//	return polyTree;
 
-	//INT2MM ËõÐ¡1000
+	//INT2MM ï¿½ï¿½Ð¡1000
 	std::vector<FloatPath> fpathes(size);
 	for (size_t i = 0; i < size; ++i)
 	{
@@ -470,7 +471,7 @@ ClipperLib::Paths SkirtBrim::skirt2Lace(ClipperLib::Paths& outlinePaths)
 	FloatPaths newPathes;
 
 	generateLace(fpathes, newPathes);
-	//»­Ô²
+	//ï¿½ï¿½Ô²
 	FloatPaths circleFPathes;
 	for (FloatPath fPathTemp : newPathes)
 	{
@@ -479,7 +480,7 @@ ClipperLib::Paths SkirtBrim::skirt2Lace(ClipperLib::Paths& outlinePaths)
 		{
 			float Rx = 3.0;
 			FloatPath newPath;
-			for (unsigned int i = 0; i < 100; i++)//Ë³Ê±ÕëÈ¡µã
+			for (unsigned int i = 0; i < 100; i++)//Ë³Ê±ï¿½ï¿½È¡ï¿½ï¿½
 			{
 				float Angle = 2 * M_PIf * (i / 100.0);
 				size_t nSize = newPath.size();

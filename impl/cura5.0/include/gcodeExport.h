@@ -511,7 +511,7 @@ public:
     void setExtruderFanNumber(int extruder);
     
     void writeFanCommand(double speed, double cds_speed =0.0);
-    void GCodeExport::writeCdsFanCommand(double cds_speed);
+    void writeCdsFanCommand(double cds_speed);
     
     void writeTemperatureCommand(const size_t extruder, const Temperature& temperature, const bool wait = false);
     void writeBedTemperatureCommand(const Temperature& temperature, const bool wait = false);
