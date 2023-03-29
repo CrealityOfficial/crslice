@@ -479,7 +479,7 @@ EZSeamType Settings::get<EZSeamType>(const std::string& key) const
     {
         return EZSeamType::RANDOM;
     }
-    else if (value == "back") // It's called 'back' internally because originally this was intended to allow the user to put the seam in the back of the object where it's less visible.
+    else if (value == "back" || value == "user_specified") // It's called 'back' internally because originally this was intended to allow the user to put the seam in the back of the object where it's less visible.
     {
         return EZSeamType::USER_SPECIFIED;
     }

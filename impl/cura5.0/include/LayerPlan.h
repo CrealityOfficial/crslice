@@ -164,6 +164,8 @@ public:
      */
     void applyBackPressureCompensation(const Ratio back_pressure_compensation);
 
+    double getTotalPrintTime();
+
 protected:
     LayerIndex layer_nr; //!< The layer number at which we are currently printing.
     bool is_initial_layer; //!< Whether this extruder plan is printed on the very first layer (which might be raft)

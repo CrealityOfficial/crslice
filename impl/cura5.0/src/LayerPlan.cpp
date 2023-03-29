@@ -90,6 +90,11 @@ double ExtruderPlan::getFanSpeed()
     return fan_speed;
 }
 
+double ExtruderPlan::getTotalPrintTime()
+{
+    return totalPrintTime;
+}
+
 void ExtruderPlan::applyBackPressureCompensation(const Ratio back_pressure_compensation)
 {
     constexpr double epsilon_speed_factor = 0.001; // Don't put on actual 'limit double minimum', because we don't want printers to stall.
@@ -1168,7 +1173,8 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
             if (is_small_feature)
             {
                 constexpr bool spiralize = false;
-                addExtrusionMove(destination, non_bridge_config, SpaceFillType::Polygons, flow_ratio, line_width * nominal_line_width_multiplier, spiralize, small_feature_speed_factor, small_feature_fan_speed);
+                double fan_speed_s = getLayerNr() < settings.get<LayerIndex>("cool_fan_full_layer") ? non_bridge_config.getFanSpeed() : small_feature_fan_speed;
+                addExtrusionMove(destination, non_bridge_config, SpaceFillType::Polygons, flow_ratio, line_width* nominal_line_width_multiplier, spiralize, small_feature_speed_factor, fan_speed_s);
             }
             else
             {
@@ -1815,6 +1821,25 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
     gcode.writeLayerComment(layer_nr);
 
+    bool close_cds = false;
+
+#if 0
+    double print_time = 0;
+    double low_speed_print_time = 0;
+    for (ExtruderPlan& extruder_plan : extruder_plans)
+    {
+        print_time += extruder_plan.getTotalPrintTime();
+        for (GCodePath& path : extruder_plan.paths)
+        {
+            if (path.speed_factor < 1.0 || path.config->isBridgePath())
+            {
+                low_speed_print_time += path.estimates.getTotalTime();
+            }
+        }
+    }
+    close_cds = print_time > 6 || low_speed_print_time < 1;
+#endif 
+    
     // flow-rate compensation
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
@@ -1899,7 +1924,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 }
             }
         }
-        gcode.writeFanCommand(extruder_plan.getFanSpeed(),extruder_plan.cds_fan_speed);
+
+        double cds_speed_fix = close_cds ? 0 : extruder_plan.getFanSpeed() / 100 * extruder_plan.cds_fan_speed;
+        gcode.writeFanCommand(extruder_plan.getFanSpeed(), cds_speed_fix);
+   
         std::vector<GCodePath>& paths = extruder_plan.paths;
 
         extruder_plan.inserts.sort([](const NozzleTempInsert& a, const NozzleTempInsert& b) -> bool { return a.path_idx < b.path_idx; });
@@ -2151,7 +2179,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             {
                 // if path provides a valid (in range 0-100) fan speed, use it
                 const double path_fan_speed = path.getFanSpeed();
-                gcode.writeFanCommand(path_fan_speed != GCodePathConfig::FAN_SPEED_DEFAULT ? path_fan_speed : extruder_plan.getFanSpeed(), extruder_plan.cds_fan_speed);
+                gcode.writeFanCommand(path_fan_speed != GCodePathConfig::FAN_SPEED_DEFAULT ? path_fan_speed : extruder_plan.getFanSpeed(), cds_speed_fix);
 
                 bool coasting = extruder.settings.get<bool>("coasting_enable");
                 if (coasting)

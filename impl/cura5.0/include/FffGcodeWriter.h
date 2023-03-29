@@ -232,6 +232,8 @@ private:
      */
     void processRaft(const SliceDataStorage& storage);
 
+    void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_layers);
+
     /*!
      * Convert the polygon data of a layer into a layer plan on the FffGcodeWriter::layer_plan_buffer
      * 
