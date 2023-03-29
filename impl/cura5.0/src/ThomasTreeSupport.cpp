@@ -482,7 +482,7 @@ Polygons ThomasTreeSupport::ensureMaximumDistancePolyline(const Polygons& input,
                 }
                 std::rotate(part.begin(), part.begin() + optimal_start_index, part.end() - 1);
                 part[part.size() - 1] = part[0]; // restore that property that this polyline ends where it started.
-                optimal_end_index = (optimal_end_index - optimal_start_index + part.size() - 1) % (part.size() - 1);
+                optimal_end_index = (optimal_end_index - optimal_start_index + part.size() - 1) % (part.size() - 1);// similar to circular queues[zjz].
             }
 
 
@@ -581,7 +581,7 @@ Polygons ThomasTreeSupport::toPolylines(const std::vector<VariableWidthLines> to
     return result;
 }
 
-
+// "tip roof" infill are generate in this function[zjz].
 Polygons ThomasTreeSupport::generateSupportInfillLines(const Polygons& area, bool roof, LayerIndex layer_idx, coord_t support_infill_distance, SierpinskiFillProvider* cross_fill_provider, bool include_walls)
 {
     Polygons gaps;
@@ -593,11 +593,11 @@ Polygons ThomasTreeSupport::generateSupportInfillLines(const Polygons& area, boo
     const bool connect_polygons = false;
     constexpr coord_t support_roof_overlap = 0;
     constexpr size_t infill_multiplier = 1;
-    constexpr coord_t outline_offset = 0;
     const int support_shift = roof ? 0 : support_infill_distance / 2;
     const size_t wall_line_count = include_walls && !roof ? config.support_wall_count : 0;
     const Point infill_origin;
-    constexpr Polygons* perimeter_gaps = nullptr;
+    constexpr bool skip_stitching = false;
+    constexpr bool fill_gaps = true;
     constexpr bool use_endpieces = true;
     const bool connected_zigzags = roof ? false : config.connect_zigzags;
     const bool skip_some_zags = roof ? false : config.skip_some_zags;
@@ -610,7 +610,30 @@ Polygons ThomasTreeSupport::generateSupportInfillLines(const Polygons& area, boo
     int divisor = static_cast<int>(angles.size());
     int index = ((layer_idx % divisor) + divisor) % divisor;
     const AngleDegrees fill_angle = angles[index];
-    Infill roof_computation(pattern, zig_zaggify_infill, connect_polygons, area, roof ? config.support_roof_line_width : config.support_line_width, support_infill_distance, support_roof_overlap, infill_multiplier, fill_angle, z, support_shift, config.maximum_resolution, config.maximum_deviation, wall_line_count, infill_origin, perimeter_gaps, connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count, pocket_size);
+    Infill roof_computation
+        (
+            pattern, 
+            zig_zaggify_infill,
+            connect_polygons,
+            area, 
+            roof ? config.support_roof_line_width : config.support_line_width, 
+            support_infill_distance,
+            support_roof_overlap, 
+            infill_multiplier,
+            fill_angle,
+            z,
+            support_shift, 
+            config.maximum_resolution, 
+            config.maximum_deviation, 
+            wall_line_count, 
+            infill_origin, skip_stitching,
+            fill_gaps, 
+            connected_zigzags,
+            use_endpieces,
+            skip_some_zags,
+            zag_skip_count,
+            pocket_size
+        );
     Polygons areas;
     Polygons lines;
     roof_computation.generate(toolpaths, areas, lines, config.settings, cross_fill_provider);
@@ -676,8 +699,7 @@ SierpinskiFillProvider* ThomasTreeSupport::generateCrossFillProvider(const Slice
         aabb_here.include(aabb_here.max + Point3(-aabb_expansion, -aabb_expansion, 0));
         aabb.include(aabb_here);
 
-        //std::string cross_subdisivion_spec_image_file = mesh.settings.get<std::string>("cross_support_density_image");
-		std::string cross_subdisivion_spec_image_file = "";
+        std::string cross_subdisivion_spec_image_file = mesh.settings.get<std::string>("cross_support_density_image");
         std::ifstream cross_fs(cross_subdisivion_spec_image_file.c_str());
         if (cross_subdisivion_spec_image_file != "" && cross_fs.good())
         {
@@ -711,8 +733,8 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
     const coord_t support_outset = mesh.settings.get<coord_t>("support_offset");
     const coord_t roof_outset = mesh.settings.get<coord_t>("support_roof_offset");
     const coord_t extra_outset = std::max(coord_t(0), mesh_config.min_radius - mesh_config.support_line_width) + (xy_overrides ? 0 : mesh_config.support_line_width / 2); // extra support offset to compensate for larger tip radiis. Also outset a bit more when z overwrites xy, because supporting something with a part of a support line is better than not supporting it at all.
-    const bool force_tip_to_roof = (mesh_config.min_radius * mesh_config.min_radius * M_PI > minimum_roof_area * (1000 * 1000)) && roof_enabled;
-    const double tip_roof_size=force_tip_to_roof?mesh_config.min_radius * mesh_config.min_radius * M_PI:0;
+    const bool force_tip_to_roof = (mesh_config.min_radius * mesh_config.min_radius * M_PI > minimum_roof_area * (1000 * 1000)) && roof_enabled; // tip will be changed to foof if tip_area is bigger than roof_area.
+    const double tip_roof_size = force_tip_to_roof ? mesh_config.min_radius * mesh_config.min_radius * M_PI : 0;
     const double support_overhang_angle = mesh.settings.get<AngleRadians>("support_angle");
     const coord_t max_overhang_speed = (support_overhang_angle < TAU / 4) ? (coord_t)(tan(support_overhang_angle) * mesh_config.layer_height) : std::numeric_limits<coord_t>::max();
     const size_t max_overhang_insert_lag = std::max((size_t)round_up_divide(mesh_config.xy_distance, max_overhang_speed / 2), 2 * mesh_config.z_distance_top_layers); // cap for how much layer below the overhang a new support point may be added, as other than with regular support every new inserted point may cause extra material and time cost.  Could also be an user setting or differently calculated. Idea is that if an overhang does not turn valid in double the amount of layers a slope of support angle would take to travel xy_distance, nothing reasonable will come from it. The 2*z_distance_delta is only a catch for when the support angle is very high.
@@ -727,6 +749,8 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
     std::vector<std::unordered_set<Point>> already_inserted(mesh.overhang_areas.size() - z_distance_delta);
 
     std::mutex critical_sections;
+    // It is working from bottom to up, When encountering a overhang_area, calculate the roof.
+    // The most important thing is to determine whether to use tip instead of roof based on the minimum_roof_area and tip_iameter(support_tree_tip_diameter)[zjz].
     cura52::parallel_for<coord_t>(application, 1, mesh.overhang_areas.size() - z_distance_delta,
         [&](const LayerIndex layer_idx)
         {
@@ -743,6 +767,8 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
             return generateSupportInfillLines(area, roof, layer_idx, support_infill_distance, cross_fill_provider);
         };
 
+        // Function <addPointAsInfluenceArea> and <addLinesAsInfluenceAreas> are ued to generate "tip roof"[zjz].
+        // Caculate one point influenced area, briefly speaking, to genarate a circle around the given point by some rules[zjz].
         std::function<void(std::pair<Point, LineStatus>, size_t, LayerIndex, size_t, bool, bool)> addPointAsInfluenceArea = [&](std::pair<Point, LineStatus> p, size_t dtt, LayerIndex insert_layer, size_t dont_move_until, bool roof, bool skip_ovalisation)
         {
             bool to_bp = p.second == LineStatus::TO_BP || p.second == LineStatus::TO_BP_SAFE;
@@ -775,10 +801,11 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
 
         std::function<void(std::vector<ThomasTreeSupport::LineInformation>, size_t, LayerIndex, bool, size_t)> addLinesAsInfluenceAreas = [&](std::vector<ThomasTreeSupport::LineInformation> lines, size_t roof_tip_layers, LayerIndex insert_layer_idx, bool supports_roof, size_t dont_move_until)
         {
-            // Add tip area as roof (happens when minimum roof area > minimum tip area) if possible
+            // Add tip area as roof (happens when minimum roof area > minimum tip area) if possible (from top to bottom[zjz])
             size_t dtt_roof_tip;
             for (dtt_roof_tip = 0; dtt_roof_tip < roof_tip_layers && insert_layer_idx - dtt_roof_tip >= 1; dtt_roof_tip++)
             {
+                // if "point influenced area" cannot generate infill lines, it will return true[zjz].
                 std::function<bool(std::pair<Point, LineStatus>)> evaluateRoofWillGenerate = [&](std::pair<Point, LineStatus> p)
                 {
                     Polygon roof_circle;
@@ -861,7 +888,7 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
         }
 
         // If the xy distance overrides the z distance, some support needs to be inserted further down.
-        //=> Analyze which support points do not fit on this layer and check if they will fit a few layers down (while adding them an infinite amount of layers down would technically be closer the the setting description, it would not produce reasonable results. )
+        //=> Analyze which support points do not fit on this layer and check if they will fit a few layers down (while adding them an infinite amount of layers down would technically be closer the the setting description, it would not produce reasonable results.)
         if (xy_overrides)
         {
             std::vector<LineInformation> overhang_lines;
@@ -919,7 +946,7 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
         {
             const bool roof_allowed_for_this_part = overhang_pair.second;
             Polygons overhang_outset = overhang_pair.first;
-            const bool roof_area_to_small_use_tip_roof_instead=roof_allowed_for_this_part&&tip_roof_size>=overhang_outset.area();
+            const bool roof_area_to_small_use_tip_roof_instead = roof_allowed_for_this_part && tip_roof_size >= overhang_outset.area();
             const size_t min_support_points = std::max(coord_t(1), std::min(coord_t(3), overhang_outset.polygonLength() / connect_length));
             std::vector<LineInformation> overhang_lines;
             Polygons last_overhang = overhang_outset;
@@ -931,7 +958,7 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
             // Main problem is that some patterns change each layer, so just calculating points and checking if they are still valid an layer below is not useful, as the pattern may be different one layer below.
             // Same with calculating which points are now no longer being generated as result from a decreasing roof, as there is no guarantee that a line will be above these points.
             // Implementing a separate roof support behavior for each pattern harms maintainability as it very well could be >100 LOC
-            if (roof_allowed_for_this_part&&!roof_area_to_small_use_tip_roof_instead)
+            if (roof_allowed_for_this_part && !roof_area_to_small_use_tip_roof_instead)
             {
                 for (dtt_roof = 0; dtt_roof < support_roof_layers && layer_idx - dtt_roof >= 1; dtt_roof++)
                 {
@@ -956,7 +983,7 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
                 }
             }
 
-            size_t layer_generation_dtt = std::max(dtt_roof, size_t(1)) - 1; // 1 inside max and -1 outside to avoid underflow. layer_generation_dtt=dtt_roof-1 if dtt_roof!=0;
+            size_t layer_generation_dtt = std::max(dtt_roof, size_t(1)) - 1; // 1 inside max and -1 outside to avoid underflow. layer_generation_dtt = dtt_roof - 1 if dtt_roof != 0;
             if (overhang_lines.empty() && dtt_roof != 0 && generateLines(overhang_outset, true, layer_idx - layer_generation_dtt).empty()) // if the roof should be valid, check that the area does generate lines. This is NOT guaranteed.
             {
                 for (size_t idx = 0; idx < dtt_roof; idx++)
@@ -1011,7 +1038,7 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
             }
             else // normal trees have to be generated
             {
-                addLinesAsInfluenceAreas(overhang_lines, force_tip_to_roof ? support_roof_layers - dtt_roof : 0, layer_idx - dtt_roof, dtt_roof > 0, roof_enabled ? support_roof_layers - dtt_roof : 0);
+                addLinesAsInfluenceAreas(overhang_lines, force_tip_to_roof ? support_roof_layers - dtt_roof : 0, layer_idx - dtt_roof, dtt_roof > 0, roof_enabled ? support_roof_layers - dtt_roof : 0);// The first "influenced area" is added here. use support roof infill line information[zjz].
             }
         }
     });
@@ -1915,7 +1942,6 @@ void ThomasTreeSupport::createLayerPathing(std::vector<std::set<TreeSupportEleme
         }
 
         progress_total += data_size_inverse * TREE_PROGRESS_AREA_CALC;
-		//Progress progress;
 		this->application->progressor.messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
 
     }

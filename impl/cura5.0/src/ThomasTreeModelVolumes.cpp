@@ -683,7 +683,7 @@ void ThomasTreeModelVolumes::calculateCollision(std::deque<RadiusLayerPair> keys
             if (precalculated && precalculation_progress < TREE_PROGRESS_PRECALC_COLL)
             {
                 precalculation_progress += TREE_PROGRESS_PRECALC_COLL / keys.size();
-				this->application->progressor.messageProgress(Progress::Stage::SUPPORT, precalculation_progress* progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+				this->application->progressor.messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
             }
         }
 
