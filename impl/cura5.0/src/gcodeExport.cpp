@@ -1718,7 +1718,7 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
 {
     if (std::abs(current_fan_speed - speed) < 0.1)
     {
-        writeCdsFanCommand(cds_speed);
+        writeCdsFanCommand(speed / 100 * cds_speed);
         return;
     }
     if (flavor == EGCodeFlavor::MAKERBOT)
@@ -1741,6 +1741,8 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
             *output_stream << " P" << fan_number;
         }
         *output_stream << new_line;
+
+        writeCdsFanCommand(speed / 100 * cds_speed);
     }
     else
     {
@@ -1750,11 +1752,10 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
             *output_stream << " P" << fan_number;
         }
         *output_stream << new_line;
-        current_cds_fan_speed = speed;
+        current_cds_fan_speed = 0;
     }
 
     current_fan_speed = speed;
-    writeCdsFanCommand(cds_speed);
 }
 
 void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperature& temperature, const bool wait)

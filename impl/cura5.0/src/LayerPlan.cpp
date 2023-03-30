@@ -1821,9 +1821,16 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
     gcode.writeLayerComment(layer_nr);
 
-    bool close_cds = false;
+    // flow-rate compensation
+    size_t extruder_nr = gcode.getExtruderNr();
+    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
+    const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_nr].settings;
+    gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
 
-#if 0
+    coord_t cds_fan_start_layer = extruder_settings.get<coord_t>("cool_cds_fan_start_at_height") / layer_thickness;
+    double cds_fan_speed = extruder_settings.get<Ratio>("cool_cds_fan_speed") * 100.0;
+
+#if 1
     double print_time = 0;
     double low_speed_print_time = 0;
     for (ExtruderPlan& extruder_plan : extruder_plans)
@@ -1837,12 +1844,13 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
         }
     }
-    close_cds = print_time > 6 || low_speed_print_time < 1;
+    if (layer_nr < cds_fan_start_layer)
+        cds_fan_speed = 0.;
+    else if (print_time < 6 || low_speed_print_time > 1)
+    {
+        cds_fan_speed = 100.;
+    }
 #endif 
-    
-    // flow-rate compensation
-    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
-    gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
 
     static LayerIndex layer_1{ 1 - static_cast<LayerIndex>(Raft::getTotalExtraLayers(gcode.application)) };
     if (layer_nr == layer_1 && mesh_group_settings.get<bool>("machine_heated_bed") && mesh_group_settings.get<Temperature>("material_bed_temperature") != mesh_group_settings.get<Temperature>("material_bed_temperature_layer_0"))
@@ -1853,8 +1861,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     gcode.setZ(z);
 
     const GCodePathConfig* last_extrusion_config = nullptr; // used to check whether we need to insert a TYPE comment in the gcode.
-
-    size_t extruder_nr = gcode.getExtruderNr();
     const bool acceleration_enabled = mesh_group_settings.get<bool>("acceleration_enabled");
     const bool acceleration_travel_enabled = mesh_group_settings.get<bool>("acceleration_travel_enabled");
     const bool jerk_enabled = mesh_group_settings.get<bool>("jerk_enabled");
@@ -1925,8 +1931,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
         }
 
-        double cds_speed_fix = close_cds ? 0 : extruder_plan.getFanSpeed() / 100 * extruder_plan.cds_fan_speed;
-        gcode.writeFanCommand(extruder_plan.getFanSpeed(), cds_speed_fix);
+        gcode.writeFanCommand(extruder_plan.getFanSpeed(), cds_fan_speed);
    
         std::vector<GCodePath>& paths = extruder_plan.paths;
 
@@ -2179,7 +2184,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             {
                 // if path provides a valid (in range 0-100) fan speed, use it
                 const double path_fan_speed = path.getFanSpeed();
-                gcode.writeFanCommand(path_fan_speed != GCodePathConfig::FAN_SPEED_DEFAULT ? path_fan_speed : extruder_plan.getFanSpeed(), cds_speed_fix);
+                gcode.writeFanCommand(path_fan_speed != GCodePathConfig::FAN_SPEED_DEFAULT ? path_fan_speed : extruder_plan.getFanSpeed(), cds_fan_speed);
 
                 bool coasting = extruder.settings.get<bool>("coasting_enable");
                 if (coasting)
