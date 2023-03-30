@@ -594,7 +594,7 @@ Polygons ThomasTreeSupport::generateSupportInfillLines(const Polygons& area, boo
     constexpr coord_t support_roof_overlap = 0;
     constexpr size_t infill_multiplier = 1;
     const int support_shift = roof ? 0 : support_infill_distance / 2;
-    const size_t wall_line_count = include_walls && !roof ? config.support_wall_count : 0;
+    const size_t wall_line_count = include_walls ? (roof ? (config.roof_pattern == EFillMethod::LINES || config.roof_pattern == EFillMethod::GRID || config.roof_pattern == EFillMethod::CONCENTRIC || config.roof_pattern == EFillMethod::TRIANGLES ? config.support_wall_count : 0) : config.support_wall_count) : 0;//const size_t wall_line_count = include_walls && !roof ? config.support_wall_count : 0;(default include_walls should be false in this case[zjz]).
     const Point infill_origin;
     constexpr bool skip_stitching = false;
     constexpr bool fill_gaps = true;
@@ -612,22 +612,23 @@ Polygons ThomasTreeSupport::generateSupportInfillLines(const Polygons& area, boo
     const AngleDegrees fill_angle = angles[index];
     Infill roof_computation
         (
-            pattern, 
+            pattern,
             zig_zaggify_infill,
             connect_polygons,
-            area, 
-            roof ? config.support_roof_line_width : config.support_line_width, 
+            area,
+            roof ? config.support_roof_line_width : config.support_line_width,
             support_infill_distance,
-            support_roof_overlap, 
+            support_roof_overlap,
             infill_multiplier,
             fill_angle,
             z,
-            support_shift, 
-            config.maximum_resolution, 
-            config.maximum_deviation, 
-            wall_line_count, 
-            infill_origin, skip_stitching,
-            fill_gaps, 
+            support_shift,
+            config.maximum_resolution,
+            config.maximum_deviation,
+            wall_line_count,
+            infill_origin,
+            skip_stitching,
+            fill_gaps,
             connected_zigzags,
             use_endpieces,
             skip_some_zags,
