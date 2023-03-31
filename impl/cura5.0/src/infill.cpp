@@ -5,6 +5,8 @@
 #include <functional>
 #include <unordered_set>
 
+#include "limits.h"
+
 #include "ccglobal/log.h"
 
 #include "WallToolPaths.h"

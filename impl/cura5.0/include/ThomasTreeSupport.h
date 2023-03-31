@@ -166,7 +166,7 @@ private:
      *
      * \return A Polygons object that represents the resulting infill lines.
      */
-    Polygons generateSupportInfillLines(const Polygons& area, bool roof, LayerIndex layer_idx, coord_t support_infill_distance, SierpinskiFillProvider* cross_fill_provider = nullptr, bool include_walls = false);
+    Polygons generateSupportInfillLines(const Polygons& area, bool roof, LayerIndex layer_idx, coord_t support_infill_distance, SierpinskiFillProvider* cross_fill_provider = nullptr, bool include_walls = true);
 
     /*!
      * \brief Unions two Polygons. Ensures that if the input is non empty that the output also will be non empty.
