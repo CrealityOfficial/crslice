@@ -279,6 +279,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         // always make a new SliceMeshStorage, so that they have the same ordering / indexing as meshgroup.meshes
         storage.meshes.emplace_back(&meshgroup->meshes[meshIdx], slicer->layers.size()); // new mesh in storage had settings from the Mesh
         SliceMeshStorage& meshStorage = storage.meshes.back();
+        meshStorage.appliction = storage.application;
 
         // only create layer parts for normal meshes
         const bool is_support_modifier = AreaSupport::handleSupportModifierMesh(storage, mesh.settings, slicer);
@@ -752,7 +753,7 @@ void FffPolygonGenerator::processDerivedWallsSkinInfill(SliceMeshStorage& mesh)
 void FffPolygonGenerator::processWalls(SliceMeshStorage& mesh, size_t layer_nr)
 {
     SliceLayer* layer = &mesh.layers[layer_nr];
-    WallsComputation walls_computation(mesh.settings, layer_nr);
+    WallsComputation walls_computation(mesh.settings, layer_nr, mesh.appliction);
     walls_computation.generateWalls(layer);
 }
 

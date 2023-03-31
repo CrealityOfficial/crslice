@@ -13,7 +13,10 @@
 namespace cura52
 {
 
-WallsComputation::WallsComputation(const Settings& settings, const LayerIndex layer_nr) : settings(settings), layer_nr(layer_nr)
+WallsComputation::WallsComputation(const Settings& settings, const LayerIndex layer_nr, Application* _application)
+    : settings(settings)
+    , layer_nr(layer_nr)
+    , application(_application)
 {
 }
 
@@ -85,6 +88,7 @@ void WallsComputation::generateWalls(SliceLayer* layer)
 {
     for(SliceLayerPart& part : layer->parts)
     {
+        INTERRUPT_BREAK("WallsComputation::generateWalls. ");
         generateWalls(&part);
     }
 
