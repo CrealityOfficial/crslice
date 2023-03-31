@@ -10,7 +10,7 @@
 #include "mmesh/util/trimecr30.h"
 namespace crslice
 {
-    static void trimesh2CuraMesh(trimesh::TriMesh* mesh, cura52::Mesh& curaMesh)
+    void trimesh2CuraMesh(trimesh::TriMesh* mesh, cura52::Mesh& curaMesh, cura52::Application* application)
     {
         curaMesh.faces.reserve(mesh->faces.size());
         curaMesh.vertices.reserve(mesh->vertices.size());
@@ -26,11 +26,18 @@ namespace crslice
             cura52::Point3 p2(MM2INT(v2.x), MM2INT(v2.y), MM2INT(v2.z));
             cura52::Point3 p3(MM2INT(v3.x), MM2INT(v3.y), MM2INT(v3.z));
             curaMesh.addFace(p1, p2, p3);
+
+            if (i % 10000 == 0)
+            {
+                INTERRUPT_BREAK("CRSliceFromScene::sliceNext  trimesh2CuraMesh.");
+            }
         }
-        curaMesh.finish();
+
+        if(!application->checkInterrupt())
+            curaMesh.finish();
     }
 
-    static void crSetting2CuraSettings(const crcommon::Settings &crSettings, cura52::Settings *curaSettings)
+    void crSetting2CuraSettings(const crcommon::Settings &crSettings, cura52::Settings *curaSettings)
     {
         for (const std::pair<std::string, std::string> pair : crSettings.settings)
         {
@@ -211,7 +218,9 @@ namespace crslice
                             {
                                 slice.scene.mesh_groups[0].meshes.emplace_back(cura52::Mesh());
                                 cura52::Mesh& meshsupport = slice.scene.mesh_groups[0].meshes.back();
-                                trimesh2CuraMesh(outmesh, meshsupport);
+                                trimesh2CuraMesh(outmesh, meshsupport, application);
+                                INTERRUPT_BREAK("CRSliceFromScene::sliceNext  trimesh2CuraMesh.");
+
                                 SettingsPtr settings(new crcommon::Settings());
                                 *settings = *(object.m_settings);
                                 settings->add("support_enable", "false");
@@ -245,17 +254,23 @@ namespace crslice
                 {
                     if (object.m_mesh.get() != nullptr)
                     {
+                        INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
+
                         slice.scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
                         cura52::Mesh& mesh = slice.scene.mesh_groups[i].meshes.back();
-                        trimesh2CuraMesh(object.m_mesh.get(), mesh);
+                        trimesh2CuraMesh(object.m_mesh.get(), mesh, application);
+
+                        INTERRUPT_BREAK("CRSliceFromScene::sliceNext  trimesh2CuraMesh.");
                         crSetting2CuraSettings(*(object.m_settings), &(mesh.settings));
                         sliceValible = true;
                     }
                 }
             }
+
+            INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
         }
 
-        if (sliceValible == false)
+        if (sliceValible == false || application->checkInterrupt())
         {
             LOGE("scene convert failed.");
             runFinished();

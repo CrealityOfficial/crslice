@@ -166,7 +166,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
 
     if (candidateFaces.size() == 0)
     {
-        LOGD("Couldn't find face connected to face {}", notFaceIdx);
+        // LOGD("Couldn't find face connected to face { %d }", notFaceIdx);
         if (! has_disconnected_faces)
         {
             LOGW("Mesh has disconnected faces!");
@@ -225,7 +225,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
 
         if (angle == 0)
         {
-            LOGD("Overlapping faces: face { %d } and face { %d }.", notFaceIdx, candidateFace);
+            // LOGD("Overlapping faces: face { %d } and face { %d }.", notFaceIdx, candidateFace);
             if (! has_overlapping_faces)
             {
                 LOGW("Mesh has overlapping faces!");
@@ -240,7 +240,7 @@ int Mesh::getFaceIdxWithPoints(int idx0, int idx1, int notFaceIdx, int notFaceVe
     }
     if (bestIdx < 0)
     {
-        LOGD("Couldn't find face connected to face { %d }.", notFaceIdx);
+        //LOGD("Couldn't find face connected to face { %d }.", notFaceIdx);
         if (! has_disconnected_faces)
         {
             LOGW("Mesh has disconnected faces!");

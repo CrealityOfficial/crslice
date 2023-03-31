@@ -133,6 +133,8 @@ namespace cura52
 #define INTERRUPT_BREAK(x) 	if (application->checkInterrupt(x)) break
 #else
 #define INTERRUPT_RETURN(x) 	(void)0
+#define INTERRUPT_RETURN_FALSE(x)  (void)0
+#define INTERRUPT_BREAK(x) (void)0
 #endif
 
 #endif //APPLICATION_H

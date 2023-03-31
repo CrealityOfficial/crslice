@@ -1965,12 +1965,12 @@ void GCodeExport::finalize(const std::string& endCode)
     writeCode(endCode.c_str());
     int64_t print_time = getSumTotalPrintTimes();
     int mat_0 = getTotalFilamentUsed(0);
-    LOGI("Print time (s): {}", print_time);
-    LOGI("Print time (hr|min|s): {}h {}m {}s", int(print_time / 60 / 60), int((print_time / 60) % 60), int(print_time % 60));
-    LOGI("Filament (mm^3): {}", mat_0);
+    LOGI("Print time (s): { %d }", print_time);
+    LOGI("Print time (hr|min|s): { %d }h { %d }m { %d }s", int(print_time / 60 / 60), int((print_time / 60) % 60), int(print_time % 60));
+    LOGI("Filament (mm^3): { %d }", mat_0);
     for (int n = 1; n < MAX_EXTRUDERS; n++)
         if (getTotalFilamentUsed(n) > 0)
-            LOGI("Filament {}: {}", n + 1, int(getTotalFilamentUsed(n)));
+            LOGI("Filament { %d }: { %d }", n + 1, int(getTotalFilamentUsed(n)));
     output_stream->flush();
 }
 
