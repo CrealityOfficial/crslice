@@ -2262,9 +2262,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
                                         const double extrude_speed = speed * path.speed_back_pressure_factor;
                                         {
-                                            std::stringstream ss;
-                                            ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
-                                            gcode.writeComment(ss.str());
+                                            //屏蔽说明信息
+                                            //std::stringstream ss;
+                                            //ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
+                                            //gcode.writeComment(ss.str());
                                             //确保每次都在圆弧拟合的起点
                                             //gcode.writeArcSatrt(start_point);
                                         }
