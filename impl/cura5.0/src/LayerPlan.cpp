@@ -741,7 +741,9 @@ void LayerPlan::addWallLine(const Point& p0,
         else {
             for (int i = 0; i < overhang_mask.size(); i++)
             {
-                if (overhang_mask[i].inside((p0+p1)/2, true))
+                float rand_radio_1 = (std::rand() % 60 + 20) / 100.;
+                float rand_radio_2 = (std::rand() % 60 + 20) / 100.;
+                if (overhang_mask[i].inside(p0 + rand_radio_1 * (p1 - p0), true) && overhang_mask[i].inside(p0 + rand_radio_2 * (p1 - p0), true))
                 {
                     return overhang_speed_factor_vec[i];
                 }
@@ -876,16 +878,20 @@ void LayerPlan::addWallLine(const Point& p0,
                     b1 = bridge[0];
                 }
 
-                // extrude using non_bridge_config to the start of the next bridge segment
-
-                addNonBridgeLine(b0);
-
-                const double bridge_line_len = vSize(b1 - cur_point);
-
-                if (bridge_line_len >= min_bridge_line_len)
+                const double bridge_line_len = vSize(b1 - b0);
+                if (bridge_line_len < min_bridge_line_len)
                 {
-                    // extrude using bridge_config to the end of the next bridge segment
+                    // treat the short bridge line just like a normal line
+                    GCodePath path = extruder_plans.back().paths.back();
+                    addExtrusionMove(b1, non_bridge_config, SpaceFillType::Polygons, flow, path.width_factor, spiralize, path.speed_factor);
+                    cur_point = b1;
+                }
+                else
+                {
+                    // extrude using non_bridge_config to the start of the next bridge segment
+                    addNonBridgeLine(b0);
 
+                    // extrude using bridge_config to the end of the next bridge segment
                     if (bridge_line_len > min_line_len)
                     {
                         addExtrusionMove(b1, bridge_config, SpaceFillType::Polygons, flow, width_factor);
@@ -894,12 +900,6 @@ void LayerPlan::addWallLine(const Point& p0,
                         // after a bridge segment, start slow and accelerate to avoid under-extrusion due to extruder lag
                         speed_factor = std::max(std::min(Ratio(bridge_config.getSpeed() / non_bridge_config.getSpeed()), 1.0_r), 0.8_r);
                     }
-                }
-                else
-                {
-                    // treat the short bridge line just like a normal line
-
-                    addNonBridgeLine(b1);
                 }
 
                 // finished with this segment
