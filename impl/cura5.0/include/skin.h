@@ -77,6 +77,9 @@ public:
      */
     static void generateInfillSupport(SliceMeshStorage& mesh);
 
+public:
+    Application* application = nullptr;
+
 protected:
     /*!
      * Generate the skin areas (outlines) and the infill areas

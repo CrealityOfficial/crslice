@@ -1597,6 +1597,7 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
     for (const PathOrderPath<const SliceLayerPart*>& path : part_order_optimizer.paths)
     {
         addMeshPartToGCode(storage, mesh, extruder_nr, mesh_config, *path.vertices, gcode_layer);
+        INTERRUPT_RETURN("addMeshLayerToGCode");
     }
 
     const std::string extruder_identifier = (mesh.settings.get<size_t>("roofing_layer_count") > 0) ? "roofing_extruder_nr" : "top_bottom_extruder_nr";
@@ -1604,10 +1605,12 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
     {
         processIroning(storage, mesh, layer, mesh_config.ironing_config, gcode_layer);
     }
+    INTERRUPT_RETURN("processIroning");
     if (mesh.settings.get<ESurfaceMode>("magic_mesh_surface_mode") != ESurfaceMode::NORMAL && extruder_nr == mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr)
     {
         addMeshOpenPolyLinesToGCode(mesh, mesh_config, gcode_layer);
     }
+    INTERRUPT_RETURN("addMeshOpenPolyLinesToGCode");
     gcode_layer.setMesh("NONMESH");
 }
 

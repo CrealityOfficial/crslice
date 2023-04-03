@@ -45,6 +45,7 @@ SkinInfillAreaComputation::SkinInfillAreaComputation(const LayerIndex& layer_nr,
 , bottom_skin_preshrink(mesh.settings.get<coord_t>("bottom_skin_preshrink"))
 , top_skin_expand_distance(mesh.settings.get<coord_t>("top_skin_expand_distance"))
 , bottom_skin_expand_distance(mesh.settings.get<coord_t>("bottom_skin_expand_distance"))
+, application(mesh.appliction)
 {
 }
 
@@ -85,6 +86,8 @@ void SkinInfillAreaComputation::generateSkinsAndInfill()
 {
     generateSkinAndInfillAreas();
 
+    INTERRUPT_RETURN("SkinInfillAreaComputation::generateSkinsAndInfill");
+
     SliceLayer* layer = &mesh.layers[layer_nr];
     for (unsigned int part_nr = 0; part_nr < layer->parts.size(); part_nr++)
     {
@@ -93,6 +96,8 @@ void SkinInfillAreaComputation::generateSkinsAndInfill()
         generateRoofing(part);
 
         generateTopAndBottomMostSkinSurfaces(part);
+
+        INTERRUPT_RETURN("SkinInfillAreaComputation::generateSkinsAndInfill");
     }
 }
 
@@ -114,6 +119,8 @@ void SkinInfillAreaComputation::generateSkinAndInfillAreas()
     for(SliceLayerPart& part : layer.parts)
     {
         generateSkinAndInfillAreas(part);
+
+        INTERRUPT_RETURN("SkinInfillAreaComputation::generateSkinAndInfillAreas");
     }
 }
 
@@ -652,8 +659,9 @@ void SkinInfillAreaComputation::generateTopAndBottomMostSkinSurfaces(SliceLayerP
 
         Polygons no_air_below = generateNoAirBelow(part, 1);
         skin_part.bottom_most_surface_fill = skin_part.skin_fill.difference(no_air_below);
+
+        INTERRUPT_RETURN("SkinInfillAreaComputation::generateTopAndBottomMostSkinSurfaces");
     }
 }
-
 
 }//namespace cura52
