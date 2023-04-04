@@ -710,7 +710,12 @@ const std::string Settings::getAllSettingsString() const
 
 bool Settings::has(const std::string& key) const
 {
-    return settings.find(key) != settings.end();
+    if (settings.find(key) != settings.end())
+        return true;
+
+    if (parent)
+        return parent->has(key);
+    return false;
 }
 
 void Settings::setParent(Settings* new_parent)
