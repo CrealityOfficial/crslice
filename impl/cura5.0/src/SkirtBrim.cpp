@@ -313,6 +313,32 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 			}
 		}
 	}
+
+	Polygons support_outline;
+	if (storage.support.generated && !storage.support.supportLayers.empty())
+	{ // remove model-brim from support
+		SupportLayer& support_layer = storage.support.supportLayers[0];
+		for (const SupportInfillPart& support_infill_part : support_layer.support_infill_parts)
+		{
+			support_outline.add(support_infill_part.outline);
+		}
+		support_outline.add(support_layer.support_bottom);
+		support_outline.add(support_layer.support_roof);
+	}
+	if (storage.primeTower.enabled && !storage.application->current_slice->scene.current_mesh_group->settings.get<bool>("prime_tower_brim_enable"));
+	{
+		support_outline.add(storage.primeTower.outer_poly_first_layer); // don't remove parts of the prime tower, but make a brim for it
+	}
+	constexpr coord_t join_distance = 20;
+	support_outline = support_outline.offset(join_distance).offset(-join_distance); // merge adjacent models into single polygon
+	constexpr coord_t smallest_line_length = 200;
+	constexpr coord_t largest_error_of_removed_point = 50;
+	support_outline = Simplify(smallest_line_length, largest_error_of_removed_point, 0).polygon(support_outline);
+	for (ClipperLib::Paths::iterator it = support_outline.begin();it !=support_outline.end();it++)
+	{
+		first_layer_outline.add(*it);
+		vct_primary_line_count.push_back(5.0);
+	}
 }
 
 
@@ -547,46 +573,40 @@ coord_t SkirtBrim::generatePrimarySkirtBrimLines(SliceDataStorage& storage, cons
 }
 
 
-coord_t SkirtBrim::generatePrimaryAutoBrimLines(SliceDataStorage& storage, const coord_t start_distance, std::vector<size_t>& vct_primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder)
+coord_t SkirtBrim::generatePrimaryAutoBrimLines(SliceDataStorage& storage, const coord_t start_distance, std::vector<size_t>& vct_primary_line_count, const coord_t primary_extruder_minimal_length, const Polygons& first_layer_outline, Polygons& skirt_brim_primary_extruder, int max_line_count)
 {
 	const Settings& adhesion_settings = storage.application->current_slice->scene.current_mesh_group->settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").settings;
-	const coord_t primary_extruder_skirt_brim_line_width = adhesion_settings.get<coord_t>("skirt_brim_line_width") * adhesion_settings.get<Ratio>("initial_layer_line_width_factor");	
-	coord_t max_offset_distance = 0;
-
-	//for (const ClipperLib::Path& apath : first_layer_outline.paths)
-	for (int n = 0; n < first_layer_outline.size(); n++)
+	const coord_t primary_extruder_skirt_brim_line_width = adhesion_settings.get<coord_t>("skirt_brim_line_width") * adhesion_settings.get<Ratio>("initial_layer_line_width_factor");
+	coord_t offset_distance = start_distance - primary_extruder_skirt_brim_line_width / 2;
+	for (unsigned int skirt_brim_number = 0; skirt_brim_number < max_line_count; skirt_brim_number++)
 	{
-		coord_t offset_distance = start_distance - primary_extruder_skirt_brim_line_width / 2;
-		for (unsigned int skirt_brim_number = 0; skirt_brim_number < vct_primary_line_count[n]; skirt_brim_number++)
+		offset_distance += primary_extruder_skirt_brim_line_width;
+		Polygons current_polygons;
+		for (int icount =0;icount<vct_primary_line_count.size();icount++)
 		{
-			offset_distance += primary_extruder_skirt_brim_line_width;
-
-			Polygons outer_skirt_brim_line = first_layer_outline[n].offset(offset_distance, ClipperLib::jtRound);
-
-			//Remove small inner skirt and brim holes. Holes have a negative area, remove anything smaller then 100x extrusion "area"
-			for (unsigned int n = 0; n < outer_skirt_brim_line.size(); n++)
+			if (vct_primary_line_count[icount] >skirt_brim_number)
 			{
-				double area = outer_skirt_brim_line[n].area();
-				if (area < 0 && area > -primary_extruder_skirt_brim_line_width * primary_extruder_skirt_brim_line_width * 100)
-				{
-					outer_skirt_brim_line.remove(n--);
-				}
+				current_polygons.add(first_layer_outline[icount]);
 			}
-
-			skirt_brim_primary_extruder.add(outer_skirt_brim_line);
-
-			//const coord_t length = skirt_brim_primary_extruder.polygonLength();
-			//if (skirt_brim_number + 1 >= vct_primary_line_count[n] && length > 0 && length < primary_extruder_minimal_length) //Make brim or skirt have more lines when total length is too small.
-			//{
-			//  vct_primary_line_count[n]++;
-			//}
 		}
-		if (max_offset_distance < offset_distance)
+
+		Polygons outer_skirt_brim_line = current_polygons.offset(offset_distance, ClipperLib::jtRound);
+
+		// Remove small inner skirt and brim holes. Holes have a negative area, remove anything smaller then 100x extrusion "area"
+		for (unsigned int n = 0; n < outer_skirt_brim_line.size(); n++)
 		{
-			max_offset_distance = offset_distance;
+			double area = outer_skirt_brim_line[n].area();
+			if (area < 0 && area > -primary_extruder_skirt_brim_line_width * primary_extruder_skirt_brim_line_width * 100)
+			{
+				outer_skirt_brim_line.remove(n--);
+			}
 		}
+
+		skirt_brim_primary_extruder.add(outer_skirt_brim_line);
 	}
-	return max_offset_distance;
+
+	skirt_brim_primary_extruder = skirt_brim_primary_extruder.difference(first_layer_outline);
+	return offset_distance;
 }
 
 
@@ -743,7 +763,7 @@ void SkirtBrim::generateEX(SliceDataStorage& storage, Polygons first_layer_outli
 	const bool has_ooze_shield = allow_helpers && storage.oozeShield.size() > 0 && storage.oozeShield[0].size() > 0;
 	const bool has_draft_shield = allow_helpers && storage.draft_protection_shield.size() > 0;
 
-	coord_t offset_distance = generatePrimaryAutoBrimLines(storage, start_distance, vct_primary_line_count, primary_extruder_minimal_length, first_layer_outline, skirt_brim_primary_extruder);
+	coord_t offset_distance = generatePrimaryAutoBrimLines(storage, start_distance, vct_primary_line_count, primary_extruder_minimal_length, first_layer_outline, skirt_brim_primary_extruder, max_line_count);
 
 	storage.skirt_brim_max_locked_part_order[skirt_brim_extruder_nr] = std::max(max_line_count, storage.skirt_brim_max_locked_part_order[skirt_brim_extruder_nr]);
 

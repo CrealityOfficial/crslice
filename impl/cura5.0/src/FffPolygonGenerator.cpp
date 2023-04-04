@@ -1064,7 +1064,6 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
         SkirtBrim::generate(storage, storage.primeTower.outer_poly, 0, train.settings.get<size_t>("brim_line_count"), dont_allow_helpers);
     }
 
-	size_t max_line_count = 0;
 	std::vector<size_t> vct_primary_line_count;
     switch (adhesion_type)
     {
