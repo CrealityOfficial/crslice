@@ -2202,6 +2202,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             {
                             case PrintFeatureType::OuterWall:
                             case PrintFeatureType::InnerWall:
+                            case PrintFeatureType::Infill:
                             {
                                 {
                                     //std::stringstream ss;
