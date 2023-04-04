@@ -1592,6 +1592,7 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
     for (const SliceLayerPart& part : layer.parts)
     {
         part_order_optimizer.addPolygon(&part);
+        INTERRUPT_RETURN("part_order_optimizer");
     }
     part_order_optimizer.optimize();
     for (const PathOrderPath<const SliceLayerPart*>& path : part_order_optimizer.paths)
@@ -1618,13 +1619,14 @@ void FffGcodeWriter::addMeshPartToGCode(const SliceDataStorage& storage, const S
     const
 {
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
-
+    INTERRUPT_RETURN("addMeshPartToGCode");
     bool added_something = false;
 
     if (mesh.settings.get<bool>("infill_before_walls"))
     {
         added_something = added_something | processInfill(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
     }
+    INTERRUPT_RETURN("infill_before_walls");
 
     added_something = added_something | processInsets(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
 
@@ -1632,9 +1634,10 @@ void FffGcodeWriter::addMeshPartToGCode(const SliceDataStorage& storage, const S
     {
         added_something = added_something | processInfill(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
     }
+    INTERRUPT_RETURN("infill_before_walls");
 
     added_something = added_something | processSkin(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
-
+    INTERRUPT_RETURN("processSkin");
     // After a layer part, make sure the nozzle is inside the comb boundary, so we do not retract on the perimeter.
     if (added_something && (! mesh_group_settings.get<bool>("magic_spiralize") || gcode_layer.getLayerNr() < static_cast<LayerIndex>(mesh.settings.get<size_t>("initial_bottom_layers"))))
     {
@@ -1742,6 +1745,7 @@ bool FffGcodeWriter::processMultiLayerInfill(const SliceDataStorage& storage, La
                                zag_skip_count,
                                mesh.settings.get<coord_t>("cross_infill_pocket_size"));
             infill_comp.generate(infill_paths, infill_polygons, infill_lines, mesh.settings, mesh.cross_fill_provider, lightning_layer, &mesh);
+            INTERRUPT_RETURN_FALSE("processMultiLayerInfill");
         }
         if (! infill_lines.empty() || ! infill_polygons.empty())
         {
@@ -1775,6 +1779,7 @@ bool FffGcodeWriter::processMultiLayerInfill(const SliceDataStorage& storage, La
                                                 near_start_location);
             }
         }
+        INTERRUPT_RETURN_FALSE("processMultiLayerInfill");
     }
     return added_something;
 }
@@ -1845,6 +1850,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
     constexpr bool skip_some_zags = false;
     constexpr int zag_skip_count = 0;
 
+    INTERRUPT_RETURN_FALSE("processSingleLayerInfill");
     for (size_t density_idx = last_idx; static_cast<int>(density_idx) >= 0; density_idx--)
     {
         // Only process dense areas when they're initialized
@@ -1996,6 +2002,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
         }
         infill_lines.add(infill_lines_here);
         infill_polygons.add(infill_polygons_here);
+        INTERRUPT_RETURN_FALSE("processSingleLayerInfill");
     }
 
     wall_tool_paths.emplace_back(part.infill_wall_toolpaths); // The extra infill walls were generated separately. Add these too.
@@ -2053,6 +2060,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
                                                  z_seam_config,
                                                  tool_paths);
                 added_something |= wall_orderer.addToLayer();
+                INTERRUPT_RETURN_FALSE("processSingleLayerInfill");
             }
         }
         if (! infill_polygons.empty())
@@ -2206,6 +2214,7 @@ void FffGcodeWriter::processSpiralizedWall(const SliceDataStorage& storage, Laye
     for (const ConstPolygonRef& wall_outline : part.spiral_wall)
     {
         gcode_layer.spiralizeWallSlice(mesh_config.inset0_config, wall_outline, ConstPolygonRef(*last_wall_outline), seam_vertex_idx, last_seam_vertex_idx, is_top_layer, is_bottom_layer);
+        INTERRUPT_RETURN("processSpiralizedWall");
     }
 }
 
@@ -2276,7 +2285,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
         const coord_t layer_height = mesh_config.inset0_config.getLayerThickness();
 
         // if support is enabled, add the support outlines also so we don't generate bridges over support
-
+        INTERRUPT_RETURN_FALSE("processInsets");
         const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
         if (mesh_group_settings.get<bool>("support_enable"))
         {
@@ -2309,7 +2318,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                 }
             }
         }
-
+        INTERRUPT_RETURN_FALSE("processInsets");
         const int half_outer_wall_width = mesh_config.inset0_config.getLineWidth() / 2;
 
         // remove those parts of the layer below that are narrower than a wall line width as they will not be printed
@@ -2396,7 +2405,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
         // clear to disable overhang detection
         gcode_layer.setOverhangMask(Polygons(), 0);
     }
-
+    INTERRUPT_RETURN_FALSE("processInsets");
     if (spiralize && extruder_nr == mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr && ! part.spiral_wall.empty())
     {
         added_something = true;
@@ -2499,6 +2508,7 @@ bool FffGcodeWriter::processSkin(const SliceDataStorage& storage, LayerPlan& gco
         const SkinPart& skin_part = *path.vertices;
 
         added_something = added_something | processSkinPart(storage, gcode_layer, mesh, extruder_nr, mesh_config, skin_part);
+        INTERRUPT_RETURN_FALSE("processSkin");
     }
 
     return added_something;
@@ -2812,6 +2822,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
                        pocket_size);
     infill_comp.generate(skin_paths, skin_polygons, skin_lines, mesh.settings);
 
+    INTERRUPT_RETURN("processSkinPrintFeature");
     // add paths
     if (! skin_polygons.empty() || ! skin_lines.empty() || ! skin_paths.empty())
     {
@@ -2846,6 +2857,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
                 added_something |= wall_orderer.addToLayer();
             }
         }
+        INTERRUPT_RETURN("processSkinPrintFeature");
         if (! skin_polygons.empty())
         {
             constexpr bool force_comb_retract = false;
@@ -2880,7 +2892,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
             { // update near_start_location to a location which tries to avoid seams in skin
                 near_start_location = getSeamAvoidingLocation(area, skin_angle, gcode_layer.getLastPlannedPositionOrStartingPosition());
             }
-
+            INTERRUPT_RETURN("processSkinPrintFeature");
             constexpr bool enable_travel_optimization = false;
             constexpr float flow = 1.0;
             if (pattern == EFillMethod::GRID || pattern == EFillMethod::LINES || pattern == EFillMethod::TRIANGLES || pattern == EFillMethod::CUBIC || pattern == EFillMethod::TETRAHEDRAL || pattern == EFillMethod::QUARTER_CUBIC
@@ -2935,19 +2947,22 @@ bool FffGcodeWriter::addSupportToGCode(const SliceDataStorage& storage, LayerPla
     {
         return support_added;
     }
-
+    INTERRUPT_RETURN_FALSE("addSupportToGCode");
     if (extruder_nr == support_infill_extruder_nr)
     {
         support_added |= processSupportInfill(storage, gcode_layer);
     }
+    INTERRUPT_RETURN_FALSE("processSupportInfill");
     if (extruder_nr == support_roof_extruder_nr)
     {
         support_added |= addSupportRoofsToGCode(storage, gcode_layer);
     }
+    INTERRUPT_RETURN_FALSE("addSupportRoofsToGCode");
     if (extruder_nr == support_bottom_extruder_nr)
     {
         support_added |= addSupportBottomsToGCode(storage, gcode_layer);
     }
+    INTERRUPT_RETURN_FALSE("addSupportBottomsToGCode");
     return support_added;
 }
 
@@ -3200,7 +3215,9 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
                     *this, storage, gcode_layer, infill_extruder.settings, extruder_nr, config, config, config, config, retract_before_outer_wall, wipe_dist, wipe_dist, extruder_nr, extruder_nr, z_seam_config, wall_toolpaths_here);
                 added_something |= wall_orderer.addToLayer();
             }
+            INTERRUPT_RETURN_FALSE("processSupportInfill");
         }
+        INTERRUPT_RETURN_FALSE("processSupportInfill");
     }
 
     return added_something;
