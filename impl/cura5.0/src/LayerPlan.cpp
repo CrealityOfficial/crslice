@@ -2210,6 +2210,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                     //gcode.writeComment(ss.str());
                                 }
                                 double tolerance = application->current_slice->scene.settings.get<double>("arc_tolerance");
+
+                                //填充模式下加大偏差值
+                                if (PrintFeatureType::Infill == path.config->type)
+                                    tolerance *= 2.0;
+
                                 //double tolerance = 100;// 200;
                                 Slic3r::Points points;
                                 std::vector<Slic3r::PathFittingData> fitting_result;
