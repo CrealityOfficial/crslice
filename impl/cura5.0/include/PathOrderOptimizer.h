@@ -196,10 +196,12 @@ public:
                 }
 
                 int startIdx = path.startIdx();
-                if (startIdx > -1)
+                if (startIdx < path.getVertexData().size()
+                    && startIdx > -1)
                     path.start_vertex = startIdx;
                 else
                     path.start_vertex = findStartLocation(path, seam_config.pos);
+
             }
         }
         
