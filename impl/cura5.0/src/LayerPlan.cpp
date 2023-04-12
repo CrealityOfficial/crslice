@@ -283,10 +283,10 @@ void LayerPlan::setIsInside(bool _is_inside)
 
 bool LayerPlan::setExtruder(const size_t extruder_nr)
 {
-    if (extruder_nr == getExtruder())
-    {
-        return false;
-    }
+    //if (extruder_nr == getExtruder())
+    //{
+    //    return false;
+    //}
     setIsInside(false);
     { // handle end position of the prev extruder
         ExtruderTrain* extruder = getLastPlannedExtruderTrain();
@@ -360,6 +360,19 @@ void LayerPlan::moveInsideCombBoundary(const coord_t distance, const std::option
 bool LayerPlan::getPrimeTowerIsPlanned(unsigned int extruder_nr) const
 {
     return has_prime_tower_planned_per_extruder[extruder_nr];
+}
+
+bool LayerPlan::getTowerIsPlanned()
+{
+    bool isPlanned = false;
+    for (std::vector<bool>::iterator it = has_prime_tower_planned_per_extruder.begin();it !=has_prime_tower_planned_per_extruder.end();it++)
+    {
+        if (*it)
+        {
+            isPlanned = *it;
+        }
+    }
+    return isPlanned;
 }
 
 void LayerPlan::setPrimeTowerIsPlanned(unsigned int extruder_nr)

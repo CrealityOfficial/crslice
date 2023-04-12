@@ -164,15 +164,25 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
-    run_multiple_producers_ordered_consumer(application,
-        process_layer_starting_layer_nr,
-        total_layers,
-        [&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
-        [this, total_layers](LayerPlan* gcode_layer)
-        {
-            application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
-            layer_plan_buffer.handle(*gcode_layer, gcode);
-        });
+
+//引擎调试多线程
+#ifdef _DEBUG
+		for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
+		{
+			application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
+			layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers), gcode);
+		}
+#else
+		run_multiple_producers_ordered_consumer(application,
+			process_layer_starting_layer_nr,
+			total_layers,
+			[&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
+			[this, total_layers](LayerPlan* gcode_layer)
+			{
+				application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
+				layer_plan_buffer.handle(*gcode_layer, gcode);
+			});
+#endif
 
     layer_plan_buffer.flush();
 
@@ -1104,7 +1114,6 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
 LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIndex layer_nr, const size_t total_layers) const
 {
     //LOGD("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
-
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
     coord_t z;
@@ -1231,17 +1240,22 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
         }
         // ensure we print the prime tower with this extruder, because the next layer begins with this extruder!
         // If this is not performed, the next layer might get two extruder switches...
-        setExtruder_addPrime(storage, gcode_layer, extruder_nr);
+        //setExtruder_addPrime(storage, gcode_layer, extruder_nr);
     }
 
-    if (include_helper_parts)
-    { // add prime tower if it hasn't already been added
-        const size_t prev_extruder = gcode_layer.getExtruder(); // most likely the same extruder as we are extruding with now
+    //if (include_helper_parts)
+    //{ // add prime tower if it hasn't already been added
+    //    const size_t prev_extruder = gcode_layer.getExtruder(); // most likely the same extruder as we are extruding with now
 
-        if (gcode_layer.getLayerNr() != 0 || storage.primeTower.extruder_order[0] == prev_extruder)
-        {
-            addPrimeTower(storage, gcode_layer, prev_extruder);
-        }
+    //    if (gcode_layer.getLayerNr() != 0 || storage.primeTower.extruder_order[0] == prev_extruder)
+    //    {
+    //        addPrimeTower(storage, gcode_layer, prev_extruder);
+    //    }
+    //}
+
+    if (!gcode_layer.getTowerIsPlanned())
+    {
+        addPrimeTower(storage, gcode_layer, gcode_layer.getExtruder());
     }
 
     gcode_layer.applyBackPressureCompensation();
@@ -3432,8 +3446,9 @@ void FffGcodeWriter::setExtruder_addPrime(const SliceDataStorage& storage, Layer
     const size_t outermost_prime_tower_extruder = storage.primeTower.extruder_order[0];
 
     const size_t previous_extruder = gcode_layer.getExtruder();
-    if (previous_extruder == extruder_nr && ! (gcode_layer.getLayerNr() > -static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)) && extruder_nr == outermost_prime_tower_extruder)
-        && ! (gcode_layer.getLayerNr() == -static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)))) // No unnecessary switches, unless switching to extruder for the outer shell of the prime tower.
+    //if (previous_extruder == extruder_nr && ! (gcode_layer.getLayerNr() > -static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)) && extruder_nr == outermost_prime_tower_extruder)
+     //   && ! (gcode_layer.getLayerNr() == -static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)))) // No unnecessary switches, unless switching to extruder for the outer shell of the prime tower.
+	if(previous_extruder == extruder_nr)
     {
         return;
     }
@@ -3454,11 +3469,11 @@ void FffGcodeWriter::setExtruder_addPrime(const SliceDataStorage& storage, Layer
                 gcode_layer.addTravel(prime_pos_is_abs ? prime_pos : gcode_layer.getLastPlannedPositionOrStartingPosition() + prime_pos);
                 gcode_layer.planPrime();
             }
-            else
-            {
-                // Otherwise still prime, but don't do any other travels.
-                gcode_layer.planPrime(0.0);
-            }
+            //else
+            //{
+            //    // Otherwise still prime, but don't do any other travels.
+            //    gcode_layer.planPrime(0.0);
+            //}
         }
 
         if (gcode_layer.getLayerNr() == 0 && ! gcode_layer.getSkirtBrimIsPlanned(extruder_nr))
@@ -3470,7 +3485,7 @@ void FffGcodeWriter::setExtruder_addPrime(const SliceDataStorage& storage, Layer
 
     // When the first layer of the prime tower is printed with one material only, do not prime another material on the
     // first layer again.
-    if ((((gcode_layer.getLayerNr() > 0) && extruder_changed) || ((gcode_layer.getLayerNr() == 0) && storage.primeTower.multiple_extruders_on_first_layer)) || (extruder_nr == outermost_prime_tower_extruder))
+    if (((/*(gcode_layer.getLayerNr() > 0) && */extruder_changed) || ((gcode_layer.getLayerNr() == 0) && storage.primeTower.multiple_extruders_on_first_layer)) || (extruder_nr == outermost_prime_tower_extruder))
     {
         addPrimeTower(storage, gcode_layer, previous_extruder);
     }

@@ -179,6 +179,14 @@ void PrimeTower::generatePaths_denseInfill()
             }
         }
     }
+
+    if (pattern_per_extruder.size()>1)
+    {
+		pattern_per_extruder[0].polygons.add(pattern_per_extruder[1].polygons);
+        pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
+		pattern_per_extruder[1].polygons = pattern_per_extruder[0].polygons;
+		pattern_per_extruder[1].lines = pattern_per_extruder[0].lines;
+    }
 }
 
 void PrimeTower::generateStartLocations()
@@ -203,7 +211,7 @@ void PrimeTower::addToGcode(const SliceDataStorage& storage, LayerPlan& gcode_la
     }
 
     const LayerIndex layer_nr = gcode_layer.getLayerNr();
-    if (layer_nr < 0 || layer_nr > storage.max_print_height_second_to_last_extruder + 1)
+    if (layer_nr < 0 /*|| layer_nr > storage.max_print_height_second_to_last_extruder + 1*/)
     {
         return;
     }

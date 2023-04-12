@@ -353,6 +353,8 @@ public:
      */
     bool getPrimeTowerIsPlanned(unsigned int extruder_nr) const;
 
+    bool getTowerIsPlanned();
+
     /*!
      * Mark the prime tower as planned for the specified extruder.
      * \param extruder_nr The extruder to mark as having its prime tower
