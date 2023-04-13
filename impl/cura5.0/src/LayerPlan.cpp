@@ -95,7 +95,7 @@ double ExtruderPlan::getTotalPrintTime()
     return totalPrintTime;
 }
 
-void ExtruderPlan::applyBackPressureCompensation(const Ratio back_pressure_compensation)
+void ExtruderPlan::applyBackPressureCompensation(const Ratio back_pressure_compensation, const Velocity max_feed_speed)
 {
     constexpr double epsilon_speed_factor = 0.001; // Don't put on actual 'limit double minimum', because we don't want printers to stall.
     for (auto& path : paths)
@@ -106,7 +106,8 @@ void ExtruderPlan::applyBackPressureCompensation(const Ratio back_pressure_compe
             continue;
         }
         const double line_width_for_path = path.width_factor * nominal_width_for_path;
-        path.speed_back_pressure_factor = std::max(epsilon_speed_factor, 1.0 + (nominal_width_for_path / line_width_for_path - 1.0) * back_pressure_compensation);
+        double max_speed_back_pressure_factor = max_feed_speed / path.config->getSpeed();
+        path.speed_back_pressure_factor = std::min(max_speed_back_pressure_factor, std::max(epsilon_speed_factor, 1.0 + (nominal_width_for_path / line_width_for_path - 1.0) * back_pressure_compensation));
     }
 }
 
@@ -2139,7 +2140,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if (path.config->isBridgePath())
                 {
                     gcode.writeComment("BRIDGE");
-                    //gcode.writeCdsFanCommand(0);
                 }
                 last_extrusion_config = path.config;
                 update_extrusion_offset = true;
@@ -2390,10 +2390,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                    extruder_plan.handleInserts(path_idx, gcode);
             }
 
-            //if (path.config->isBridgePath())
-            //{
-            //    gcode.writeCdsFanCommand(extruder_plan.cds_fan_speed);
-            //}
         } // paths for this extruder /\  .
 
         if (extruder.settings.get<bool>("cool_lift_head") && extruder_plan.extraTime > 0.0)
@@ -2573,10 +2569,12 @@ void LayerPlan::applyBackPressureCompensation()
 {
     for (auto& extruder_plan : extruder_plans)
     {
-        const Ratio back_pressure_compensation = application->current_slice->scene.extruders[extruder_plan.extruder_nr].settings.get<Ratio>("speed_equalize_flow_width_factor");
+        const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_plan.extruder_nr].settings;
+        const Ratio back_pressure_compensation = extruder_settings.get<Ratio>("speed_equalize_flow_width_factor");
+        const Velocity machine_max_feedrate = std::min(extruder_settings.get<Velocity>("machine_max_feedrate_x"), extruder_settings.get<Velocity>("machine_max_feedrate_y"));
         if (back_pressure_compensation != 0.0)
         {
-            extruder_plan.applyBackPressureCompensation(back_pressure_compensation);
+            extruder_plan.applyBackPressureCompensation(back_pressure_compensation, machine_max_feedrate);
         }
     }
 }

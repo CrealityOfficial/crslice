@@ -162,7 +162,7 @@ public:
      *
      * \param The amount of back-pressure compensation as a ratio. 'Applying' a value of 0 is a no-op.
      */
-    void applyBackPressureCompensation(const Ratio back_pressure_compensation);
+    void applyBackPressureCompensation(const Ratio back_pressure_compensation, const Velocity max_feed_speed);
 
     double getTotalPrintTime();
 
