@@ -50,7 +50,7 @@ namespace cura52
     template<>
     int PathOrderPath<ConstPolygonPointer>::startIdx()
     {
-        return 0;
+        return -1;
     }
 
     template<>

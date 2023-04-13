@@ -1746,13 +1746,15 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
     }
     else
     {
-        *output_stream << "M107";
-        if (fan_number)
-        {
-            *output_stream << " P" << fan_number;
-        }
-        *output_stream << new_line;
-        current_cds_fan_speed = 0;
+        //*output_stream << "M107";
+        //if (fan_number)
+        //{
+        //    *output_stream << " P" << fan_number;
+        //}
+        //*output_stream << new_line;
+        *output_stream << "M106 S0" << new_line;
+        
+        writeCdsFanCommand(0);
     }
 
     current_fan_speed = speed;

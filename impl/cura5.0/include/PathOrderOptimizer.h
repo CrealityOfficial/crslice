@@ -368,7 +368,7 @@ public:
                     continue;
                 }
                 path.start_vertex = findStartLocation(path, seam_config.pos, path_idx);
-                start_idx.push_back(path.start_vertex);
+                start_idx.push_back(static_cast<int>(path.start_vertex));
                 path_idx++;
             }
         }
