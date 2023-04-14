@@ -470,6 +470,7 @@ void Infill::generateHoneycombInfill(Polygons& result, int _line_distance)
 	infill_overlap;
 	Polygons outline = outer_contour.offset(-infill_line_width / 2 + infill_overlap);
 	Polygons all_polylines;
+    if (outline.size()>0)
 	{
 		AABB bounding_box;
 		bounding_box.calculate(outline);
