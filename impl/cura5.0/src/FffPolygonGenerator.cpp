@@ -1062,6 +1062,8 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
     {
         constexpr bool dont_allow_helpers = false;
         SkirtBrim::generate(storage, storage.primeTower.outer_poly, 0, train.settings.get<size_t>("brim_line_count"), dont_allow_helpers);
+		storage.skirt_brim[1] = storage.skirt_brim[0];
+		storage.skirt_brim[0].clear();
     }
 
 	std::vector<size_t> vct_primary_line_count;
