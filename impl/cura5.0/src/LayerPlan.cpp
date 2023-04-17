@@ -897,7 +897,7 @@ void LayerPlan::addWallLine(const Point& p0,
                 {
                     // treat the short bridge line just like a normal line
                     GCodePath path = extruder_plans.back().paths.back();
-                    addExtrusionMove(b1, non_bridge_config, SpaceFillType::Polygons, flow, path.width_factor, spiralize, path.speed_factor);
+                    addExtrusionMove(b1, non_bridge_config, SpaceFillType::Polygons, flow, path.width_factor, spiralize, std::min(getSpeedFactor(cur_point, b1), path.speed_factor));
                     cur_point = b1;
                 }
                 else

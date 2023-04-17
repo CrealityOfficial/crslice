@@ -94,7 +94,7 @@ public:
     void addTime(const Duration& time);
     void setAcceleration(const Acceleration& acc); //!< Set the default acceleration to \p acc
     void setMaxXyJerk(const Velocity& jerk); //!< Set the max xy jerk to \p jerk
-
+    Velocity* maxFeedrate();
     void reset();
     
     std::vector<Duration> calculate();

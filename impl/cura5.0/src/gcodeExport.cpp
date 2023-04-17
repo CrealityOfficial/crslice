@@ -595,6 +595,19 @@ bool GCodeExport::getExtruderIsUsed(const int extruder_nr) const
     return extruder_attr[extruder_nr].is_used;
 }
 
+int GCodeExport::getExtruderNum()
+{
+    int extruderNum = 0;
+    for (ExtruderTrainAttributes extruder : extruder_attr)
+    {
+        if (extruder.filament_area > 0)
+        {
+            extruderNum++;
+        }
+    }
+    return extruderNum;
+}
+
 Point GCodeExport::getGcodePos(const coord_t x, const coord_t y, const int extruder_train) const
 {
     if (use_extruder_offset_to_offset_coords)
@@ -1128,7 +1141,14 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     const double new_e_value = current_e_value + extrusion_per_mm * diff_length;
 
     *output_stream << "G1";
-    writeFXYZE(speed, x, y, z, new_e_value, feature);
+    Velocity speed_e = speed;
+    if (diff_length)
+    {
+        Velocity* max_feedrate = estimateCalculator.maxFeedrate();
+        Velocity max_E_feedrate = max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area / extrusion_mm3_per_mm;
+        speed_e = std::min(std::min(speed, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
+    }
+    writeFXYZE(speed_e, x, y, z, new_e_value, feature);
 }
 void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j, double arc_length, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset,const bool is_ccw)
 {
@@ -1207,7 +1227,14 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     break;
 
     }
-    writeFXYZIJE(speed, x, y, z,i,j, new_e_value, feature);
+    Velocity speed_e = speed;
+    if (diff_length)
+    {
+        Velocity* max_feedrate = estimateCalculator.maxFeedrate();
+        Velocity max_E_feedrate = max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area / extrusion_mm3_per_mm;
+        speed_e = std::min(std::min(speed, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
+    }
+    writeFXYZIJE(speed_e, x, y, z,i,j, new_e_value, feature);
 }
 void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const PrintFeatureType& feature)
 {

@@ -246,6 +246,7 @@ public:
 
     void setOutputStream(std::ostream* stream);
 
+    int getExtruderNum();
     bool getExtruderIsUsed(const int extruder_nr) const; //!< return whether the extruder has been used throughout printing all meshgroup up till now
 
     Point getGcodePos(const coord_t x, const coord_t y, const int extruder_train) const;

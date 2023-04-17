@@ -44,7 +44,7 @@ void TimeEstimateCalculator::addTime(const Duration& time)
     extra_time += time;
 }
 
-void TimeEstimateCalculator::setAcceleration(const Velocity& acc)
+void TimeEstimateCalculator::setAcceleration(const Acceleration& acc)
 {
     acceleration = acc;
 }
@@ -52,6 +52,11 @@ void TimeEstimateCalculator::setAcceleration(const Velocity& acc)
 void TimeEstimateCalculator::setMaxXyJerk(const Velocity& jerk)
 {
     max_xy_jerk = jerk;
+}
+
+Velocity* TimeEstimateCalculator::maxFeedrate()
+{
+    return max_feedrate;
 }
 
 void TimeEstimateCalculator::reset()
