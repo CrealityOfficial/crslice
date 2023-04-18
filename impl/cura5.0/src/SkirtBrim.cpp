@@ -12,6 +12,9 @@
 #include "support.h"
 #include "utils/Simplify.h" //Simplifying the brim/skirt at every inset.
 
+#define MINAREA 100
+
+
 namespace cura52
 {
 
@@ -252,64 +255,79 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 	{
 		if (amesh.layers.size() > 0)
 		{
-				Polygons aExpolysHole;
-				Polygons allExpolys = amesh.layers[0].getOutlines(true);
-
-				aExpolysHole = allExpolys.getEmptyHoles();
-				allExpolys = allExpolys.removeEmptyHoles();
-				first_layer_outline.add(allExpolys);
-
-				for (ClipperLib::Paths::iterator it=allExpolys.begin();it!=allExpolys.end();it++)
+			Polygons aExpolysHole;
+			int index = 0;
+			for (int alayer =0;alayer<amesh.layers.size();alayer++)
+			{
+				if (amesh.layers[alayer].parts.size() > 0)
 				{
-					Polygons aExpolys;
-					AABB box(*it);
-					ClipperLib::IntPoint center= box.getMiddle();
+					index = alayer;
+					break;
+				}
+			}
 
-					for (ClipperLib::IntPoint& aPoint : *it)
+			Polygons allExpolys = amesh.layers[index].getOutlines(true);
+
+			aExpolysHole = allExpolys.getEmptyHoles();
+			allExpolys = allExpolys.removeEmptyHoles();
+			first_layer_outline.add(allExpolys);
+
+			for (ClipperLib::Paths::iterator it=allExpolys.begin();it!=allExpolys.end();it++)
+			{
+				double polygonArea = INT2MM2(ClipperLib::Area(*it));
+				Polygons aExpolys;
+				AABB box(*it);
+				ClipperLib::IntPoint center= box.getMiddle();
+
+				for (ClipperLib::IntPoint& aPoint : *it)
+				{
+					aPoint -= center;
+					aPoint.X *= 1000.0;
+					aPoint.Y *= 1000.0;
+				}
+				aExpolys.add(*it);
+
+				ClipperLib::Paths aPolysPaths;
+				for (ClipperLib::Paths::iterator it = aExpolys.begin(); it != aExpolys.end(); it++)
+				{
+					aPolysPaths.push_back(*it);
+				}
+
+				auto bbox_size = amesh.bounding_box;
+				double height = INT2MM(bbox_size.max.z - bbox_size.min.z);
+				double Ixx = -1.e30, Iyy = -1.e30;
+				if (!aExpolys.empty())
+				{
+					ClipperLib::Paths path;
+					if (!compSecondMoment(aPolysPaths, Ixx, Iyy, path))
+						Ixx = Iyy = -1.e30;
+
+					static constexpr double SCALING_FACTOR = 0.000001;
+					Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+					Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
+
+					// bounding box of the expolygons of the first layer of the volume
+					//BoundingBox bbox2;
+					//for (const auto& expoly : expolys)
+					//	bbox2.merge(get_extents(expoly.contour));
+					const double& bboxX = MM2INT(amesh.bounding_box.max.x - amesh.bounding_box.min.x);
+					const double& bboxY = MM2INT(amesh.bounding_box.max.y - amesh.bounding_box.min.y);
+					double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
+					double thermalLengthRef = 200;//Ĭ��Pla;
+
+					double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
+					double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
+					// small brims are omitted
+					if (brim_width < 3 && brim_width < 1.5 * thermalLength)
+						brim_width = 0;
+					// large brims are omitted
+					if (brim_width > 10) brim_width = 10.;
+					if (brim_width==0 && polygonArea < MINAREA)
 					{
-						aPoint -= center;
-						aPoint.X *= 1000.0;
-						aPoint.Y *= 1000.0;
+						brim_width = 3;
 					}
-					aExpolys.add(*it);
-
-					ClipperLib::Paths aPolysPaths;
-					for (ClipperLib::Paths::iterator it = aExpolys.begin(); it != aExpolys.end(); it++)
-					{
-						aPolysPaths.push_back(*it);
-					}
-
-					auto bbox_size = amesh.bounding_box;
-					double height = INT2MM(bbox_size.max.z - bbox_size.min.z);
-					double Ixx = -1.e30, Iyy = -1.e30;
-					if (!aExpolys.empty())
-					{
-						ClipperLib::Paths path;
-						if (!compSecondMoment(aPolysPaths, Ixx, Iyy, path))
-							Ixx = Iyy = -1.e30;
-
-						static constexpr double SCALING_FACTOR = 0.000001;
-						Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
-						Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
-
-						// bounding box of the expolygons of the first layer of the volume
-						//BoundingBox bbox2;
-						//for (const auto& expoly : expolys)
-						//	bbox2.merge(get_extents(expoly.contour));
-						const double& bboxX = MM2INT(amesh.bounding_box.max.x - amesh.bounding_box.min.x);
-						const double& bboxY = MM2INT(amesh.bounding_box.max.y - amesh.bounding_box.min.y);
-						double thermalLength = sqrt(bboxX * bboxX + bboxY * bboxY) * SCALING_FACTOR;
-						double thermalLengthRef = 200;//Ĭ��Pla;
-
-						double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
-						double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
-						// small brims are omitted
-						if (brim_width < 5 && brim_width < 1.5 * thermalLength)
-							brim_width = 0;
-						// large brims are omitted
-						if (brim_width > 10) brim_width = 10.;
-						vct_primary_line_count.push_back(brim_width);
-					}
+					vct_primary_line_count.push_back(brim_width);
+				}
 			}
 		}
 	}
