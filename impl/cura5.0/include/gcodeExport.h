@@ -73,6 +73,7 @@ private:
         char extruderCharacter;
 
         double filament_area; //!< in mm^2 for non-volumetric, cylindrical filament
+        Velocity max_volumetric_spped;
 
         double totalFilament; //!< total filament used per extruder in mm^3
         Temperature currentTemperature;

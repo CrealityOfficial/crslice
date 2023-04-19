@@ -112,6 +112,7 @@ void GCodeExport::preSetup(const size_t start_extruder)
         const ExtruderTrain& train = scene.extruders[extruder_nr];
         setFilamentDiameter(extruder_nr, train.settings.get<coord_t>("material_diameter"));
 
+        extruder_attr[extruder_nr].max_volumetric_spped = train.settings.get<Velocity>("material_max_volumetric_speed");
         extruder_attr[extruder_nr].last_retraction_prime_speed = train.settings.get<Velocity>("retraction_prime_speed"); // the alternative would be switch_extruder_prime_speed, but dual extrusion might not even be configured...
         extruder_attr[extruder_nr].fan_number = train.settings.get<size_t>("machine_extruder_cooling_fan_number");
     }
@@ -1145,8 +1146,8 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     if (diff_length)
     {
         Velocity* max_feedrate = estimateCalculator.maxFeedrate();
-        Velocity max_E_feedrate = max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area / extrusion_mm3_per_mm;
-        speed_e = std::min(std::min(speed, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
+        Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
+        speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
     }
     writeFXYZE(speed_e, x, y, z, new_e_value, feature);
 }
@@ -1231,8 +1232,8 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     if (diff_length)
     {
         Velocity* max_feedrate = estimateCalculator.maxFeedrate();
-        Velocity max_E_feedrate = max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area / extrusion_mm3_per_mm;
-        speed_e = std::min(std::min(speed, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
+        Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
+        speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
     }
     writeFXYZIJE(speed_e, x, y, z,i,j, new_e_value, feature);
 }
