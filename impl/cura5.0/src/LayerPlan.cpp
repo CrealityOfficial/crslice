@@ -48,6 +48,7 @@ ExtruderPlan::ExtruderPlan(const size_t extruder,
     , extraTime(0.0)
     , totalPrintTime(0)
     , cool_min_layer_time_correct(0)
+    , infill_speed_slowdown_first(false)
 {
 }
 
@@ -188,6 +189,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     }
     extruder_plans.reserve(application->current_slice->scene.extruders.size());
     extruder_plans.emplace_back(current_extruder, layer_nr, is_initial_layer, is_raft_layer, layer_thickness, fan_speed_layer_time_settings_per_extruder[current_extruder], storage.retraction_config_per_extruder[current_extruder]);
+    extruder_plans.back().infill_speed_slowdown_first = application->current_slice->scene.extruders[current_extruder].settings.get<bool>("cool_infill_speed_slowdown_first");
 
     for (size_t extruder_nr = 0; extruder_nr < application->current_slice->scene.extruders.size(); extruder_nr++)
     { // Skirt and brim.
@@ -1081,7 +1083,7 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
     coord_t big_length = small_feature_max_length;
     coord_t smaller_length = 0;
     int64_t wall_length = wall.getLength();
-    if (settings.get<bool>("set_small_feature_grading") && wall_length > 0)
+    if (settings.get<bool>("set_small_feature_grading") && wall_length > 0 && non_bridge_config.type != PrintFeatureType::Support)
     {
         int level = -1;
         if (wall_length < settings.get<coord_t>("special_small_feature_max_length_4"))
@@ -1624,7 +1626,7 @@ void LayerPlan::spiralizeWallSlice(const GCodePathConfig& config, ConstPolygonRe
     }
 }
 
-void ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, double travelTime, double extrudeTime)
+bool ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, double travelTime, double extrudeTime)
 {
     double totalTime = travelTime + extrudeTime;
     if (totalTime < minTime && extrudeTime > 0.0)
@@ -1633,9 +1635,26 @@ void ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
         if (minExtrudeTime < 1)
             minExtrudeTime = 1;
         double factor = extrudeTime / minExtrudeTime;
+
+        if (infill_speed_slowdown_first)
+        {
+            for (GCodePath& path : paths)
+            {
+                if (path.config->type == PrintFeatureType::Infill)
+                {
+                    double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor * factor;
+                    if (speed < minimalSpeed)
+                    {
+                        infill_speed_slowdown_first = false;
+                        return false;
+                    }
+                }
+            }
+        }
+
         for (GCodePath& path : paths)
         {
-            if (path.isTravelPath())
+            if (infill_speed_slowdown_first ? path.config->type != PrintFeatureType::Infill : path.isTravelPath())
                 continue;
             double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor * factor;
             if (speed < minimalSpeed)
@@ -1679,6 +1698,7 @@ void ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
                 path.speed_factor = minimalSpeed / path.config->getSpeed() / path.speed_back_pressure_factor;
         }
     }
+    return true;
 }
 
 TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_position)
@@ -1692,9 +1712,13 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
         bool is_extrusion_path = false;
         double* path_time_estimate;
         double& material_estimate = path.estimates.material;
-        if (! path.isTravelPath())
+
+        if (!path.isTravelPath())
         {
             is_extrusion_path = true;
+        }
+        if (infill_speed_slowdown_first ? path.config->type == PrintFeatureType::Infill : ! path.isTravelPath())
+        {
             path_time_estimate = &path.estimates.extrude_time;
         }
         else
@@ -1746,10 +1770,21 @@ void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_t
         cool_min_layer_time = cool_min_layer_time_correct;
     }
     TimeMaterialEstimates estimates = computeNaiveTimeEstimates(starting_position);
+    if (estimates.getExtrudeTime() == 0 && infill_speed_slowdown_first)
+    {
+        infill_speed_slowdown_first = false;
+        estimates = computeNaiveTimeEstimates(starting_position);
+    }
     totalPrintTime = estimates.getTotalTime();
     if (force_minimal_layer_time)
     {
-        forceMinimalLayerTime(cool_min_layer_time, fan_speed_layer_time_settings.cool_min_speed, estimates.getTravelTime(), estimates.getExtrudeTime());
+        bool done = forceMinimalLayerTime(cool_min_layer_time, fan_speed_layer_time_settings.cool_min_speed, estimates.getTravelTime(), estimates.getExtrudeTime());
+        if (!done)
+        {
+            estimates = computeNaiveTimeEstimates(starting_position);
+            totalPrintTime = estimates.getTotalTime();
+            forceMinimalLayerTime(cool_min_layer_time, fan_speed_layer_time_settings.cool_min_speed, estimates.getTravelTime(), estimates.getExtrudeTime());
+        }
     }
 
     /*
@@ -2155,7 +2190,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             speed *= path.speed_factor;
 
             // Apply the extrusion speed factor if it's an extrusion move.
-            if (! path.config->isTravelPath())
+            if (extruder_plan.infill_speed_slowdown_first ? path.config->type == PrintFeatureType::Infill : !path.config->isTravelPath())
             {
                 speed *= extruder_plan.getExtrudeSpeedFactor();
             }
@@ -2471,7 +2506,11 @@ bool LayerPlan::writePathWithCoasting(GCodeExport& gcode, const size_t extruder_
 
     coord_t coasting_min_dist_considered = MM2INT(0.1); // hardcoded setting for when to not perform coasting
 
-    const double extrude_speed = path.config->getSpeed() * extruder_plan.getExtrudeSpeedFactor() * path.speed_factor * path.speed_back_pressure_factor;
+    double extrude_speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor;
+    if (extruder_plan.infill_speed_slowdown_first ? path.config->type == PrintFeatureType::Infill : true)
+    {
+        extrude_speed *= extruder_plan.getExtrudeSpeedFactor();
+    }
 
     const coord_t coasting_dist = MM2INT(MM2_2INT(coasting_volume) / layer_thickness) / path.config->getLineWidth(); // closing brackets of MM2INT at weird places for precision issues
     const double coasting_min_volume = extruder.settings.get<double>("coasting_min_volume");
