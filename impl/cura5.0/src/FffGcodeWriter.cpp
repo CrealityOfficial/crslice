@@ -3543,8 +3543,8 @@ void FffGcodeWriter::finalize()
     }
     if (mesh_group_settings.get<bool>("acceleration_enabled"))
     {
-        gcode.writePrintAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"));
-        gcode.writeTravelAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"));
+        gcode.writePrintAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"),false,0);
+        gcode.writeTravelAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), false, 0);
     }
     if (mesh_group_settings.get<bool>("jerk_enabled"))
     {

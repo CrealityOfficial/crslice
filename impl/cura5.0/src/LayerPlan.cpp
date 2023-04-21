@@ -1912,6 +1912,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     const GCodePathConfig* last_extrusion_config = nullptr; // used to check whether we need to insert a TYPE comment in the gcode.
     const bool acceleration_enabled = mesh_group_settings.get<bool>("acceleration_enabled");
     const bool acceleration_travel_enabled = mesh_group_settings.get<bool>("acceleration_travel_enabled");
+    const bool acceleration_breaking_enabled = mesh_group_settings.get<bool>("acceleration_breaking_enable");
+    const float acceleration_breaking = mesh_group_settings.get<double>("acceleration_breaking");
     const bool jerk_enabled = mesh_group_settings.get<bool>("jerk_enabled");
     const bool jerk_travel_enabled = mesh_group_settings.get<bool>("jerk_travel_enabled");
     std::string current_mesh = "NONMESH";
@@ -2029,7 +2031,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 {
                     if (acceleration_travel_enabled)
                     {
-                        gcode.writeTravelAcceleration(path.config->getAcceleration());
+                        gcode.writeTravelAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                     }
                     else
                     {
@@ -2038,18 +2040,18 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         {
                             if (static_cast<bool>(next_layer_acc_jerk))
                             {
-                                gcode.writeTravelAcceleration(next_layer_acc_jerk->first);
+                                gcode.writeTravelAcceleration(next_layer_acc_jerk->first, acceleration_breaking_enabled, acceleration_breaking);
                             } // If the next layer has no extruded move, just keep the old acceleration. Should be very rare to have an empty layer.
                         }
                         else
                         {
-                            gcode.writeTravelAcceleration(paths[next_extrusion_idx].config->getAcceleration());
+                            gcode.writeTravelAcceleration(paths[next_extrusion_idx].config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                         }
                     }
                 }
                 else
                 {
-                    gcode.writePrintAcceleration(path.config->getAcceleration());
+                    gcode.writePrintAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                 }
             }
             if (jerk_enabled)

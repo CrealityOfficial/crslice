@@ -1915,7 +1915,7 @@ void GCodeExport::writeBuildVolumeTemperatureCommand(const Temperature& temperat
     *output_stream << PrecisionedDouble{ 1, temperature } << new_line;
 }
 
-void GCodeExport::writePrintAcceleration(const Acceleration& acceleration)
+void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
     switch (getFlavor())
     {
@@ -1936,6 +1936,10 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration)
         if (current_print_acceleration != acceleration)
         {
             *output_stream << "M204 S" << PrecisionedDouble{ 0, acceleration } << new_line;
+            if (acceleration_breaking_enable)
+            {
+                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acceleration* acceleration_percent/100 } << new_line;
+            }
         }
         break;
     }
@@ -1943,7 +1947,7 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration)
     estimateCalculator.setAcceleration(acceleration);
 }
 
-void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration)
+void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
     switch (getFlavor())
     {
@@ -1961,7 +1965,7 @@ void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration)
         break;
     default:
         // MARLIN, etc. only have one acceleration for both print and travel
-        writePrintAcceleration(acceleration);
+        writePrintAcceleration(acceleration, acceleration_breaking_enable, acceleration_percent);
         break;
     }
     current_travel_acceleration = acceleration;
