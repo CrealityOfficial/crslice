@@ -76,6 +76,7 @@ protected:
 public:
     size_t extruder_nr; //!< The extruder used for this paths in the current plan.
     Duration cool_min_layer_time_correct;
+    bool infill_speed_slowdown_first;
     /*!
      * Simple contructor.
      * 
@@ -196,7 +197,7 @@ protected:
      * Force the minimal layer time to hold by slowing down and lifting the head if required.
      * 
      */
-    void forceMinimalLayerTime(double minTime, double minimalSpeed, double travelTime, double extrusionTime);
+    bool forceMinimalLayerTime(double minTime, double minimalSpeed, double travelTime, double extrusionTime);
 
     /*!
      * Compute naive time estimates (without accounting for slow down at corners etc.) and naive material estimates.
