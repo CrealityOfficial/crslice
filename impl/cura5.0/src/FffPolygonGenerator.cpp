@@ -299,6 +299,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
         // check one if raft offset is needed
         const bool has_raft = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT;
+        const bool has_simple_raft = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::SIMPLERAFT;
 
         // calculate the height at which each layer is actually printed (printZ)
         for (unsigned int layer_nr = 0; layer_nr < meshStorage.layers.size(); layer_nr++)
@@ -333,6 +334,22 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
                 if (layer_nr == 0)
                 {
                     layer.printZ += train.settings.get<coord_t>("layer_0_z_overlap"); // undo shifting down of first layer
+                }
+            }
+
+            if (has_simple_raft)
+            {
+                const ExtruderTrain& extruder = mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr");
+                auto t = Raft::getTotalSimpleRaftThickness(application);
+                auto air = extruder.settings.get<coord_t>("raft_airgap");
+                auto ov = extruder.settings.get<coord_t>("layer_0_z_overlap");
+                layer.printZ += t
+                    + extruder.settings.get<coord_t>("raft_airgap")
+                    - extruder.settings.get<coord_t>("layer_0_z_overlap"); // shift all layers (except 0) down
+
+                if (layer_nr == 0)
+                {
+                    layer.printZ += extruder.settings.get<coord_t>("layer_0_z_overlap"); // undo shifting down of first layer
                 }
             }
         }
@@ -917,6 +934,7 @@ void FffPolygonGenerator::computePrintHeightStatistics(SliceDataStorage& storage
             break;
         }
         case EPlatformAdhesion::RAFT:
+        case EPlatformAdhesion::SIMPLERAFT:
         {
             const size_t base_extruder_nr = mesh_group_settings.get<ExtruderTrain&>("raft_base_extruder_nr").extruder_nr;
             max_print_height_per_extruder[base_extruder_nr] = std::max(-raft_layers, max_print_height_per_extruder[base_extruder_nr]); // Includes the lowest raft layer.
@@ -1058,7 +1076,7 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
 	}
 
     // Generate any brim for the prime tower, should happen _after_ any skirt, but _before_ any other brim (since FffGCodeWriter assumes that the outermost contour is last).
-    if (adhesion_type != EPlatformAdhesion::RAFT && storage.primeTower.enabled && mesh_group_settings.get<bool>("prime_tower_brim_enable"))
+    if ((adhesion_type != EPlatformAdhesion::RAFT && adhesion_type != EPlatformAdhesion::SIMPLERAFT) && storage.primeTower.enabled && mesh_group_settings.get<bool>("prime_tower_brim_enable"))
     {
         constexpr bool dont_allow_helpers = false;
         SkirtBrim::generate(storage, storage.primeTower.outer_poly, 0, train.settings.get<size_t>("brim_line_count"), dont_allow_helpers);
@@ -1082,6 +1100,7 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
 		SkirtBrim::generateEX(storage, first_layer_outline, 0, vct_primary_line_count);
 		break;
     case EPlatformAdhesion::RAFT:
+    case EPlatformAdhesion::SIMPLERAFT:
         Raft::generate(storage);
         break;
     case EPlatformAdhesion::NONE:

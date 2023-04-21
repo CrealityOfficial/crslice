@@ -388,7 +388,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed() const
             }
         }
     }
-    else if (adhesion_type == EPlatformAdhesion::RAFT)
+    else if (adhesion_type == EPlatformAdhesion::RAFT || adhesion_type == EPlatformAdhesion::SIMPLERAFT)
     {
         ret[mesh_group_settings.get<ExtruderTrain&>("raft_base_extruder_nr").extruder_nr] = true;
         const size_t num_interface_layers = mesh_group_settings.get<ExtruderTrain&>("raft_interface_extruder_nr").settings.get<size_t>("raft_interface_layers");
@@ -454,7 +454,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
             include_helper_parts = false;
         }
     }
-    else if (layer_nr > 0 || adhesion_type == EPlatformAdhesion::RAFT)
+    else if (layer_nr > 0 || adhesion_type == EPlatformAdhesion::RAFT || adhesion_type == EPlatformAdhesion::SIMPLERAFT)
     { // only include adhesion only for layers where platform adhesion actually occurs
         // i.e. layers < 0 are for raft, layer 0 is for brim/skirt
         include_adhesion = false;
@@ -472,7 +472,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
                 }
             }
         }
-        if (adhesion_type == EPlatformAdhesion::RAFT)
+        if (adhesion_type == EPlatformAdhesion::RAFT || adhesion_type == EPlatformAdhesion::SIMPLERAFT)
         {
             const LayerIndex raft_layers = Raft::getTotalExtraLayers(application);
             if (layer_nr == -raft_layers) // Base layer.
@@ -608,6 +608,7 @@ Polygon SliceDataStorage::getMachineBorder(bool adhesion_offset) const
             skirt_brim_train.settings.get<coord_t>("skirt_brim_line_width") * skirt_brim_train.settings.get<Ratio>("initial_layer_line_width_factor") * skirt_brim_train.settings.get<size_t>("brim_line_count") + extra_skirt_line_width;
         break;
     case EPlatformAdhesion::RAFT:
+    case EPlatformAdhesion::SIMPLERAFT:
         adhesion_size = std::max({ base_train.settings.get<coord_t>("raft_margin"), interface_train.settings.get<coord_t>("raft_margin"), surface_train.settings.get<coord_t>("raft_margin") });
         break;
     case EPlatformAdhesion::SKIRT:

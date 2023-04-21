@@ -231,7 +231,7 @@ private:
      * \param[in,out] storage where the slice data is stored.
      */
     void processRaft(const SliceDataStorage& storage);
-
+    void processSimpleRaft(const SliceDataStorage& storage);
     void processZSeam(SliceDataStorage& storage, const size_t total_layers);
 
     /*!

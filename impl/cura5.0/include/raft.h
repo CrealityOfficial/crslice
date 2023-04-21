@@ -49,7 +49,7 @@ public:
      * \brief Get the total thickness of the raft (without airgap).
      */
     static coord_t getTotalThickness(Application* application);
-
+    static coord_t getTotalSimpleRaftThickness(Application* application);
     /*!
      * \brief Get the total amount of extra layers below zero because there is a
      * raft.
@@ -57,7 +57,7 @@ public:
      * This includes the filler layers which are introduced in the air gap.
      */
     static size_t getTotalExtraLayers(Application* application);
-
+    static size_t getTotalSimpleExtraLayers(Application* application);
 };
 
 }//namespace cura52

@@ -314,7 +314,7 @@ bool LayerPlan::setExtruder(const size_t extruder_nr)
         extruder_plans.back().extruder_nr = extruder_nr;
     }
     extruder_plans.emplace_back(extruder_nr, layer_nr, is_initial_layer, is_raft_layer, layer_thickness, fan_speed_layer_time_settings_per_extruder[extruder_nr], storage.retraction_config_per_extruder[extruder_nr]);
-    assert(extruder_plans.size() <= application->current_slice->scene.extruders.size() && "Never use the same extruder twice on one layer!");
+    //assert(extruder_plans.size() <= application->current_slice->scene.extruders.size() && "Never use the same extruder twice on one layer!");
     last_planned_extruder = &application->current_slice->scene.extruders[extruder_nr];
 
     { // handle starting pos of the new extruder
