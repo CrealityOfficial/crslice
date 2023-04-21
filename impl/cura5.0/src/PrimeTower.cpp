@@ -76,13 +76,13 @@ void PrimeTower::generateGroundpoly()
     const Settings& brim_extruder_settings = mesh_group_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").settings;
     const bool has_raft = (mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT);
     const bool has_prime_brim = mesh_group_settings.get<bool>("prime_tower_brim_enable");
-    const coord_t offset = (has_raft || ! has_prime_brim) ? 0 :
-        brim_extruder_settings.get<size_t>("brim_line_count") *
-        brim_extruder_settings.get<coord_t>("skirt_brim_line_width") *
-        brim_extruder_settings.get<Ratio>("initial_layer_line_width_factor");
+    //const coord_t offset = (has_raft || ! has_prime_brim) ? 0 :
+    //    brim_extruder_settings.get<size_t>("brim_line_count") *
+    //    brim_extruder_settings.get<coord_t>("skirt_brim_line_width") *
+    //    brim_extruder_settings.get<Ratio>("initial_layer_line_width_factor");
 
-    const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x") - offset;
-    const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y") - offset;
+    const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x"); /*- offset*/;
+    const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y"); /*- offset*/;
     Polygon aPolygon = PolygonUtils::makeCircle(Point(x, y), tower_size / 2, TAU / CIRCLE_RESOLUTION);
 	
     coord_t machine_depth = mesh_group_settings.get<coord_t>("machine_depth");
@@ -112,7 +112,7 @@ void PrimeTower::generateGroundpoly()
 
     post_wipe_point = Point(x - tower_size / 2, y + tower_size / 2);
 
-    outer_poly_first_layer = outer_poly.offset(offset);
+    outer_poly_first_layer = outer_poly;// .offset(offset);
 }
 
 void PrimeTower::generatePaths(const SliceDataStorage& storage)
@@ -182,10 +182,14 @@ void PrimeTower::generatePaths_denseInfill()
 
     if (pattern_per_extruder.size()>1)
     {
+
 		pattern_per_extruder[0].polygons.add(pattern_per_extruder[1].polygons);
-        pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
+		pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
+		ClipperLib::Paths& apaths = pattern_per_extruder[0].polygons.paths;
+		std::reverse(apaths.rbegin(), apaths.rend());
 		pattern_per_extruder[1].polygons = pattern_per_extruder[0].polygons;
 		pattern_per_extruder[1].lines = pattern_per_extruder[0].lines;
+
     }
 }
 
@@ -254,7 +258,11 @@ void PrimeTower::addToGcode_denseInfill(LayerPlan& gcode_layer, const size_t ext
 
     const GCodePathConfig& config = gcode_layer.configs_storage.prime_tower_config_per_extruder[extruder_nr];
 
-    gcode_layer.addPolygonsByOptimizer(pattern.polygons, config);
+    //gcode_layer.addPolygonsByOptimizer(pattern.polygons, config);
+    for (ClipperLib::Path apath:pattern.polygons.paths)
+    {
+        gcode_layer.addPolygon(ConstPolygonRef(apath), 0, 1, config, 0, false, 1.0_r, false);
+    }
     gcode_layer.addLinesByOptimizer(pattern.lines, config, SpaceFillType::Lines);
 }
 
