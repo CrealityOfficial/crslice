@@ -322,6 +322,18 @@ public:
      */
     void writeTimeComment(const Duration time);
 
+      /*!
+     * Enable the offset of gcode in the z-direction.
+     *
+     * \
+     */
+    void writeZoffsetComment(const double zOffset);
+
+    /*!
+    * Pressure advance(Klipper) AKA Linear advance(Marlin).
+    */
+    void writePressureComment(const double length);
+
     /*!
      * Write a comment saying that we're starting a certain layer.
      */

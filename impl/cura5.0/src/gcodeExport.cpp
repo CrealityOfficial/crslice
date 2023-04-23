@@ -850,6 +850,16 @@ void GCodeExport::writeTimeComment(const Duration time)
     *output_stream << ";TIME_ELAPSED:" << time << new_line;
 }
 
+void GCodeExport::writeZoffsetComment(const double zOffset)
+{
+    *output_stream << "SET_GCODE_OFFSET Z_ADJUST=" << zOffset << new_line;
+}
+
+void GCodeExport::writePressureComment(const double length)
+{
+    *output_stream << "M900 K" << length << new_line;
+}
+
 void GCodeExport::writeTypeComment(const PrintFeatureType& type)
 {
     switch (type)

@@ -666,9 +666,20 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         processInitialLayerTemperature(storage, start_extruder_nr);
     }
 
+	bool pressure_enable = mesh_group_settings.get<bool>("material_pressure_advance");//Ñ¹Á¦ÍÆ½ø
+	if (pressure_enable)
+	{
+		double  length = mesh_group_settings.get<double>("material_advance_length");
+		gcode.writePressureComment(length);
+	}
     gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
-
 	gcode.writeCode(strTemp.c_str());
+    bool used_Zoffset = mesh_group_settings.get<bool>("zadjust_enable");//Z Æ«ÒÆ
+    if (used_Zoffset)
+    {
+        double  zOffset = mesh_group_settings.get<double>("gcode_offset_zadjust");
+        gcode.writeZoffsetComment(zOffset);
+    }
 
     // in case of shared nozzle assume that the machine-start gcode reset the extruders as per machine description
     if (application->current_slice->scene.settings.get<bool>("machine_extruders_share_nozzle"))
