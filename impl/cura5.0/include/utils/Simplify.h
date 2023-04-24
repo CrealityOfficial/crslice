@@ -288,11 +288,17 @@ protected:
             return;
         }
 
-        const coord_t v_ab_dis = LinearAlg2D::getDistFromLine(vertex_position, before_position, after_position);
+        const coord_t v_ab_dis = LinearAlg2D::getDistFromLine(vertex_position, before_position, after_position);    
         if (v_ab_dis < max_deviation)
         {
-            to_delete[vertex] = true;
-            return;
+            float angle_min = 1.58;//90бу
+            float angle_max = 2.6;//150бу
+            float angle = LinearAlg2D::getAngleLeft(before_position, vertex_position, after_position);
+            if ((angle > angle_min && angle < angle_max) || (angle < 6.28 - angle_min && angle > 6.28 - angle_max))
+            {
+                to_delete[vertex] = true;
+                return;
+            }
         }
 
         //Otherwise, one edge next to this vertex is longer than max_resolution. The other is shorter.
