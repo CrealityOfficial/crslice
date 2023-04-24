@@ -52,4 +52,21 @@ double GCodePath::getFanSpeed() const
     return (fan_speed >= 0 && fan_speed <= 100) ? fan_speed : config->getFanSpeed();
 }
 
+bool GCodePath::needSlowdown(int level) const
+{
+    switch (level)
+    {
+        case 1:
+        {
+            return config->type == PrintFeatureType::Infill || config->type == PrintFeatureType::Skin;
+        }
+        case 2:
+        {
+            return config->type == PrintFeatureType::Infill || config->type == PrintFeatureType::Skin || config->type == PrintFeatureType::InnerWall;
+        }
+        default:
+            return !isTravelPath();
+    }
+}
+
 }

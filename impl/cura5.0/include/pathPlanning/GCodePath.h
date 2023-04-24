@@ -98,6 +98,8 @@ public:
      * \return the value of fan_speed if it is in the range 0-100, otherwise the value from the config
      */
     double getFanSpeed() const;
+
+    bool needSlowdown(int level) const;
 };
 
 }//namespace cura52

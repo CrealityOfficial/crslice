@@ -76,7 +76,7 @@ protected:
 public:
     size_t extruder_nr; //!< The extruder used for this paths in the current plan.
     Duration cool_min_layer_time_correct;
-    bool infill_speed_slowdown_first;
+    int slowdown_level;
     /*!
      * Simple contructor.
      * 
@@ -197,7 +197,7 @@ protected:
      * Force the minimal layer time to hold by slowing down and lifting the head if required.
      * 
      */
-    bool forceMinimalLayerTime(double minTime, double minimalSpeed, double travelTime, double extrusionTime);
+    bool forceMinimalLayerTime(double minTime, double minimalSpeed, double travelTime, double extrusionTime,Point starting_position);
 
     /*!
      * Compute naive time estimates (without accounting for slow down at corners etc.) and naive material estimates.
@@ -206,7 +206,7 @@ protected:
      * \param starting_position The position the head was in before starting this layer
      * \return the total estimates of this layer
      */
-    TimeMaterialEstimates computeNaiveTimeEstimates(Point starting_position);
+    TimeMaterialEstimates computeNaiveTimeEstimates(Point starting_position, int level);
 };
 
 class LayerPlanBuffer; // forward declaration to prevent circular dependency
