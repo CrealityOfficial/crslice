@@ -666,10 +666,12 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         processInitialLayerTemperature(storage, start_extruder_nr);
     }
 
-	bool pressure_enable = mesh_group_settings.get<bool>("material_pressure_advance");//压力推进
+    const Scene& scene = application->current_slice->scene;
+	const ExtruderTrain& train = scene.extruders[start_extruder_nr];
+	bool pressure_enable = train.settings.get<bool>("material_pressure_advance");//压力推进
 	if (pressure_enable)
 	{
-		double  length = mesh_group_settings.get<double>("material_advance_length");
+		double  length = train.settings.get<double>("material_advance_length");
 		gcode.writePressureComment(length);
 	}
     gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
