@@ -1015,7 +1015,7 @@ void Slicer::makePolygons(Application* application, Mesh& mesh, SlicingTolerance
                                    const coord_t xy_offset_local = (layer_nr <= layer_apply_initial_xy_offset) ? xy_offset_0 - offset_rectify : xy_offset - offset_rectify;
                                    if (xy_offset_local != 0)
                                    {
-                                       layers[layer_nr].polygons = Simplify(mesh.settings).polygon(layers[layer_nr].polygons.offset(xy_offset_local, ClipperLib::JoinType::jtRound));
+                                       layers[layer_nr].polygons = layers[layer_nr].polygons.offset(xy_offset_local, ClipperLib::JoinType::jtRound);
                                    }
                                });
 

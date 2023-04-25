@@ -291,13 +291,18 @@ protected:
         const coord_t v_ab_dis = LinearAlg2D::getDistFromLine(vertex_position, before_position, after_position);    
         if (v_ab_dis < max_deviation)
         {
-            float angle_min = 1.58;//90бу
-            float angle_max = 2.6;//150бу
-            float angle = LinearAlg2D::getAngleLeft(before_position, vertex_position, after_position);
-            if ((angle > angle_min && angle < angle_max) || (angle < 6.28 - angle_min && angle > 6.28 - angle_max))
+            size_t ab2 = vSize2(before_position - vertex_position);
+            size_t bc2 = vSize2(after_position - vertex_position);
+            if (ab2 < 100000000 && bc2 < 100000000)
             {
-                to_delete[vertex] = true;
-                return;
+                float angle_min = 1.57;//90бу
+                float angle_max = 2.6;//150бу
+                float angle = LinearAlg2D::getAngleLeft(before_position, vertex_position, after_position);
+                if ((angle > angle_min && angle < angle_max) || (angle < 6.28 - angle_min && angle > 6.28 - angle_max))
+                {
+                    to_delete[vertex] = true;
+                    return;
+                }
             }
         }
 
