@@ -1340,7 +1340,7 @@ void LayerPlan::addLinesByOptimizer(const Polygons& polygons,
 
 void LayerPlan::addLinesInGivenOrder(const std::vector<PathOrderPath<ConstPolygonPointer>>& paths, const GCodePathConfig& config, const SpaceFillType space_fill_type, const coord_t wipe_dist, const Ratio flow_ratio, const double fan_speed)
 {
-    coord_t half_line_width = config.getLineWidth() / 2;
+    coord_t half_line_width = (config.isBridgePath() ? 2.0 : 0.5) * config.getLineWidth();
     coord_t line_width_2 = half_line_width * half_line_width;
     for (size_t order_idx = 0; order_idx < paths.size(); order_idx++)
     {
@@ -1350,7 +1350,7 @@ void LayerPlan::addLinesInGivenOrder(const std::vector<PathOrderPath<ConstPolygo
         assert(start_idx == 0 || start_idx == polyline.size() - 1 || path.is_closed);
         const Point start = polyline[start_idx];
 
-        if (vSize2(getLastPlannedPositionOrStartingPosition() - start) < line_width_2)
+        if (vSize2(getLastPlannedPositionOrStartingPosition() - start) <= line_width_2)
         {
             // Instead of doing a small travel that is shorter than the line width (which is generally done at pretty high jerk & move) do a
             // "fake" extrusion move
@@ -1358,7 +1358,7 @@ void LayerPlan::addLinesInGivenOrder(const std::vector<PathOrderPath<ConstPolygo
             constexpr Ratio width_factor = 1.0_r;
             constexpr bool spiralize = false;
             constexpr Ratio speed_factor = 1.0_r;
-            addExtrusionMove(start, config, space_fill_type, flow, width_factor, spiralize, speed_factor, fan_speed);
+            addExtrusionMove(start, config, space_fill_type, config.isBridgePath() ? flow_ratio : flow, width_factor, spiralize, speed_factor, fan_speed);
         }
         else
         {

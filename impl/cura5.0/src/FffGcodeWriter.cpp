@@ -3093,10 +3093,6 @@ void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage,
             fan_speed = mesh.settings.get<Ratio>("support_supported_skin_fan_speed") * 100.0;
         }
     }
-    if (is_bridge_skin)
-    {
-        pattern = EFillMethod::ZIG_ZAG;
-    }
 
     const bool monotonic = mesh.settings.get<bool>("skin_monotonic");
     processSkinPrintFeature(storage, gcode_layer, mesh, mesh_config, extruder_nr, skin_part.skin_fill, *skin_config, pattern, skin_angle, skin_overlap, skin_density, monotonic, added_something, fan_speed);
