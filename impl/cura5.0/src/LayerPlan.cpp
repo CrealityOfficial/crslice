@@ -725,17 +725,17 @@ void LayerPlan::addWallLine(const Point& p0,
         }
         if (sf0 < speed_factor && sf1 < speed_factor)
         {
-            bool make_sure = false;
-            for (int i = 0; i < overhang_mask.size(); i++)
-            {
-                float rand_radio = (std::rand() % 60 + 20) / 100.;
-                if (overhang_mask[i].inside(p0 + rand_radio * (p1 - p0), true))
-                {
-                    make_sure = true;
-                    break;
-                }
-            }
-            if(make_sure)
+            //bool make_sure = false;
+            //for (int i = 0; i < overhang_mask.size(); i++)
+            //{
+            //    float rand_radio = (std::rand() % 60 + 20) / 100.;
+            //    if (overhang_mask[i].inside(p0 + rand_radio * (p1 - p0), true))
+            //    {
+            //        make_sure = true;
+            //        break;
+            //    }
+            //}
+            //if(make_sure)
                 return std::min(sf0, sf1);
         }
         else if (sf0 < speed_factor || sf1 < speed_factor)
@@ -1673,9 +1673,9 @@ bool ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
         {
             if (!path.needSlowdown(slowdown_level))
                 continue;
-            double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor * factor;
-            if (speed < minimalSpeed)
-                path.speed_factor = minimalSpeed / path.config->getSpeed() / path.speed_back_pressure_factor / factor;
+            double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor;
+            if (speed * factor < minimalSpeed)
+                path.speed_factor = speed / path.config->getSpeed() / path.speed_back_pressure_factor / factor;
         }
 
         // Only slow down for the minimal time if that will be slower.
