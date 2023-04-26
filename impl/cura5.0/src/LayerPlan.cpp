@@ -1896,15 +1896,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
 
     coord_t cds_fan_start_layer = extruder_settings.get<coord_t>("cool_cds_fan_start_at_height") / layer_thickness;
-    double cds_fan_speed = extruder_settings.get<Ratio>("cool_cds_fan_speed") * 100.0;
-
-#if 1
     double print_time = 0;
     double low_speed_print_time = 0;
-    for (ExtruderPlan& extruder_plan : extruder_plans)
+    for (ExtruderPlan extruder_plan : extruder_plans)
     {
         print_time += extruder_plan.getTotalPrintTime();
-        for (GCodePath& path : extruder_plan.paths)
+        for (GCodePath path : extruder_plan.paths)
         {
             if (path.speed_factor < 1.0 || path.config->isBridgePath())
             {
@@ -1912,13 +1909,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
         }
     }
-    if (layer_nr < cds_fan_start_layer)
-        cds_fan_speed = 0.;
-    else if (print_time < 6 || low_speed_print_time > 1)
-    {
-        cds_fan_speed = 100.;
-    }
-#endif 
 
     static LayerIndex layer_1{ 1 - static_cast<LayerIndex>(Raft::getTotalExtraLayers(gcode.application)) };
     if (layer_nr == layer_1 && mesh_group_settings.get<bool>("machine_heated_bed") && mesh_group_settings.get<Temperature>("material_bed_temperature") != mesh_group_settings.get<Temperature>("material_bed_temperature_layer_0"))
@@ -1942,6 +1932,17 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         ExtruderPlan& extruder_plan = extruder_plans[extruder_plan_idx];
         const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[extruder_plan.extruder_nr];
         coord_t z_hop_height = retraction_config.zHop;
+
+        double cds_fan_speed = extruder_plan.cds_fan_speed * 100.0;
+        if (cds_fan_speed > 0)
+        {
+            if (layer_nr < cds_fan_start_layer)
+                cds_fan_speed = 0.;
+            else if (print_time < 6 || low_speed_print_time > 1)
+            {
+                cds_fan_speed = 100.;
+            }
+        }
 
         if (extruder_nr != extruder_plan.extruder_nr)
         {
