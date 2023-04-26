@@ -736,7 +736,8 @@ void LayerPlan::addWallLine(const Point& p0,
             //    }
             //}
             //if(make_sure)
-                return std::min(sf0, sf1);
+            //    return std::min(sf0, sf1);
+            return Ratio((sf0 + sf1) / 2);
         }
         else if (sf0 < speed_factor || sf1 < speed_factor)
         {
@@ -1933,7 +1934,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[extruder_plan.extruder_nr];
         coord_t z_hop_height = retraction_config.zHop;
 
-        double cds_fan_speed = extruder_plan.cds_fan_speed * 100.0;
+        double cds_fan_speed = extruder_plan.cds_fan_speed;
         if (cds_fan_speed > 0)
         {
             if (layer_nr < cds_fan_start_layer)
