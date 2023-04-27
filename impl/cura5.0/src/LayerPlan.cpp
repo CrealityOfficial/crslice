@@ -1669,14 +1669,17 @@ bool ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
                 return false;
             }             
         }
-
+        if (layer_nr == 138)
+            int aaa = 0;;
         for (GCodePath& path : paths)
         {
             if (!path.needSlowdown(slowdown_level))
                 continue;
             double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor;
-            if (speed * factor < minimalSpeed)
+            if (speed < minimalSpeed)
                 path.speed_factor = speed / path.config->getSpeed() / path.speed_back_pressure_factor / factor;
+            else if (speed * factor < minimalSpeed)
+                path.speed_factor = minimalSpeed / path.config->getSpeed() / path.speed_back_pressure_factor / factor;
         }
 
         // Only slow down for the minimal time if that will be slower.
