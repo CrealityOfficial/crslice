@@ -175,7 +175,7 @@ void PrimeTower::generatePaths_denseInfill()
             while (!inset.empty())
             {
                 pattern_layer0.polygons.add(inset);
-                inset = inset.offset(-line_width_layer0);
+                inset = inset.offset(-line_width_layer0*1.4);
             }
         }
     }
@@ -252,18 +252,14 @@ void PrimeTower::addToGcode(const SliceDataStorage& storage, LayerPlan& gcode_la
 
 void PrimeTower::addToGcode_denseInfill(LayerPlan& gcode_layer, const size_t extruder_nr) const
 {
-    const ExtrusionMoves& pattern = (gcode_layer.getLayerNr() == -static_cast<LayerIndex>(Raft::getFillerLayerCount(application)))
-        ? pattern_per_extruder_layer0[extruder_nr]
-        : pattern_per_extruder[extruder_nr];
+	const ExtrusionMoves& pattern = (gcode_layer.getLayerNr() == -static_cast<LayerIndex>(Raft::getFillerLayerCount(application)))
+		? pattern_per_extruder_layer0[extruder_nr]
+		: pattern_per_extruder[extruder_nr];
 
-    const GCodePathConfig& config = gcode_layer.configs_storage.prime_tower_config_per_extruder[extruder_nr];
-
-    //gcode_layer.addPolygonsByOptimizer(pattern.polygons, config);
-    for (ClipperLib::Path apath:pattern.polygons.paths)
-    {
-        gcode_layer.addPolygon(ConstPolygonRef(apath), 0, 1, config, 0, false, 1.0_r, false);
-    }
-    gcode_layer.addLinesByOptimizer(pattern.lines, config, SpaceFillType::Lines);
+	const GCodePathConfig& config = gcode_layer.configs_storage.prime_tower_config_per_extruder[extruder_nr];
+	const auto tower_zseam_config = ZSeamConfig(EZSeamType::SKIRT_BRIM);
+	gcode_layer.addPolygonsByOptimizer(pattern.polygons, config, tower_zseam_config, 0, false, 1.0_r, false, true);
+	gcode_layer.addLinesByOptimizer(pattern.lines, config, SpaceFillType::Lines);
 }
 
 void PrimeTower::subtractFromSupport(SliceDataStorage& storage)
