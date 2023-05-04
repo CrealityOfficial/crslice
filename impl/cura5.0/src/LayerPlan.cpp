@@ -1341,7 +1341,9 @@ void LayerPlan::addLinesByOptimizer(const Polygons& polygons,
 
 void LayerPlan::addLinesInGivenOrder(const std::vector<PathOrderPath<ConstPolygonPointer>>& paths, const GCodePathConfig& config, const SpaceFillType space_fill_type, const coord_t wipe_dist, const Ratio flow_ratio, const double fan_speed)
 {
-    coord_t half_line_width = (config.isBridgePath() ? 2.0 : 0.5) * config.getLineWidth();
+    coord_t min_travel_speed_length = storage.meshes.back().settings.get<coord_t>("speed_min_travel_speed_length");
+    coord_t half_line_width = config.isBridgePath() ? 2.0 * config.getLineWidth() :
+        (0.5 * config.getLineWidth() > min_travel_speed_length ? 0.5 * config.getLineWidth() : min_travel_speed_length);
     coord_t line_width_2 = half_line_width * half_line_width;
     for (size_t order_idx = 0; order_idx < paths.size(); order_idx++)
     {
