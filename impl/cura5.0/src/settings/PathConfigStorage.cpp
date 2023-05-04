@@ -338,7 +338,7 @@ void PathConfigStorage::handleTowerSpeedup(const SliceDataStorage& storage, cons
 	{
 		global_first_layer_config_per_extruder.emplace_back(
 			GCodePathConfig::SpeedDerivatives{
-				extruder.settings.get<Velocity>("speed_print_layer_0")>30? 30.0: extruder.settings.get<Velocity>("speed_print_layer_0")
+				extruder.settings.get<Velocity>("speed_prime_tower")/2.0
 				, extruder.settings.get<Acceleration>("acceleration_print_layer_0")
 				, extruder.settings.get<Velocity>("jerk_print_layer_0")
 			});
