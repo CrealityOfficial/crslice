@@ -692,7 +692,10 @@ void LayerPlan::addWallLine(const Point& p0,
     {
         for (int i = 1; i < 5; i++)
         {
-            overhang_speed_factor_vec.push_back(std::min(Ratio(settings.get<Velocity>("wall_overhang_speed_" + std::to_string(i)) / non_bridge_config.getSpeed()), Ratio(1.0)));
+            Ratio level_speed_factor = std::min(Ratio(settings.get<Velocity>("wall_overhang_speed_" + std::to_string(i)) / non_bridge_config.getSpeed()), Ratio(1.0));
+            if (level_speed_factor <= 0) 
+                level_speed_factor = Ratio(1.0);
+            overhang_speed_factor_vec.push_back(level_speed_factor);
         }
     }
     else
