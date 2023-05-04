@@ -53,6 +53,28 @@ void SkirtBrim::getFirstLayerOutline(SliceDataStorage& storage, const size_t pri
         {
             first_layer_empty_holes = first_layer_outline.getEmptyHoles();
             first_layer_outline = first_layer_outline.removeEmptyHoles();
+			
+			Polygons resultPolygons;
+			for (ClipperLib::Paths::iterator it = first_layer_outline.begin(); it != first_layer_outline.end(); it++)
+			{
+				if (it== first_layer_outline.begin())
+				{
+					resultPolygons.add(*it);
+				} 
+				else
+				{
+					Polygons tempPolygons;
+					tempPolygons.add(*it);
+					Polygons ret;
+					ClipperLib::Clipper clipper(clipper_init);
+					clipper.AddPaths(resultPolygons.paths, ClipperLib::ptSubject, true);
+					clipper.AddPaths(tempPolygons.paths, ClipperLib::ptClip, true);
+					clipper.Execute(ClipperLib::ctUnion, ret.paths, ClipperLib::PolyFillType::pftEvenOdd, ClipperLib::PolyFillType::pftEvenOdd);
+					resultPolygons = ret;
+				}
+			}
+			first_layer_outline.clear();
+			first_layer_outline = resultPolygons;
         }
         if (storage.support.generated && primary_line_count > 0 && ! storage.support.supportLayers.empty())
         { // remove model-brim from support
