@@ -360,15 +360,29 @@ void GCodeExport::writeSpeedAndTravelConfig()
 
     tmp << ";Z Hop When Retracted:" << (extruderSettings->get<bool>("retraction_hop_enabled") ? "true" : "false") << new_line;
     tmp << ";Z Hop Height:" << (float)extruderSettings->get<coord_t>("retraction_hop") / 1000.0f << new_line;
-    tmp << ";Retract Before Outer Wall:" << (groupSettings->get<bool>("travel_retract_before_outer_wall") ? "true" : "false") << new_line;
-    tmp << ";Print Speed:" << groupSettings->get<Velocity>("speed_infill") << new_line;
-    tmp << ";Infill Speed:" << groupSettings->get<Velocity>("speed_infill") << new_line << new_line;
-    tmp << ";Prime Tower Speed:" << extruderSettings->get<Velocity>("speed_prime_tower") << new_line;
+    tmp << ";Retract Before Outer Wall:" << (groupSettings->get<bool>("travel_retract_before_outer_wall") ? "true" : "false") << new_line<< new_line;
+    
+    tmp << ";Outer Wall Speed:" << groupSettings->get<Velocity>("speed_wall_0") << new_line;
+    tmp << ";Inner Wall Speed:" << groupSettings->get<Velocity>("speed_wall_x") << new_line;
+    tmp << ";Infill Speed:" << groupSettings->get<Velocity>("speed_infill") << new_line;
+    tmp << ";Top/Bottom Speed:" << extruderSettings->get<Velocity>("speed_topbottom") << new_line;
     tmp << ";Travel Speed:" << extruderSettings->get<Velocity>("speed_travel") << new_line;
     tmp << ";Initial Layer Speed:" << extruderSettings->get<Velocity>("speed_print_layer_0") << new_line;
     tmp << ";Skirt/Brim Speed:" << extruderSettings->get<Velocity>("skirt_brim_speed") << new_line;
+    tmp << ";Prime Tower Speed:" << extruderSettings->get<Velocity>("speed_prime_tower") << new_line;
+    tmp << ";Outer Wall Acceleration:" << groupSettings->get<Velocity>("acceleration_wall_0") << new_line;
+    tmp << ";Inner Wall Acceleration:" << groupSettings->get<Velocity>("acceleration_wall_x") << new_line;
+    tmp << ";Infill Acceleration:" << groupSettings->get<Velocity>("acceleration_infill") << new_line;
+    tmp << ";Top/Bottom Acceleration:" << groupSettings->get<Velocity>("acceleration_topbottom") << new_line;
+    tmp << ";Travel Acceleration:" << groupSettings->get<Velocity>("acceleration_travel") << new_line;
+    tmp << ";Initial Layer Print Acceleration:" << groupSettings->get<Velocity>("acceleration_print_layer_0") << new_line;
+    tmp << ";Initial Layer Travel Acceleration:" << groupSettings->get<Velocity>("acceleration_travel_layer_0") << new_line;
+    tmp << ";Skirt/Brim Acceleration:" << groupSettings->get<Velocity>("acceleration_skirt_brim") << new_line;
+    if (groupSettings->get<bool>("acceleration_breaking_enable"))
+    {
+        tmp << ";Acceleration to decelerate:" << groupSettings->get<Velocity>("acceleration_breaking") << new_line;
+    }
     tmp << ";Combing Mode:" << extruderSettings->get<std::string>("retraction_combing") << new_line;
-
     *output_stream << tmp.str();
 }
 void GCodeExport::writeSpecialModelAndMeshConfig()
