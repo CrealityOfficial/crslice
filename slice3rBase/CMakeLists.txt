@@ -54,7 +54,7 @@ set(SRCS	Slice3rBase/Int128.hpp
 set(ILIBS boost_system boost_filesystem boost_iostreams eigen cereal)
 			
 set(INCS)
-set(DEFS)
+set(DEFS BOOST_ALL_NO_LIB)
 set(INTERFACES)
 
 set(SLICE3RBASE_STATIC ON)
