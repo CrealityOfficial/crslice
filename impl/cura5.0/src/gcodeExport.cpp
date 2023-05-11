@@ -283,6 +283,7 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Raft Base Line Spacing:" << (float)groupSettings->get<coord_t>("raft_base_line_spacing") / 1000.0f << new_line;
     tmp << ";Wait Heatup Sync:" << (groupSettings->get<bool>("bed_print_temp_wait_sync") ? "true" : "false") << new_line;
     tmp << ";Enable Ironing:" << (groupSettings->get<bool>("ironing_enabled") ? "true" : "false") << new_line;
+    tmp << ";Material Type:" << extruderSettings->get<std::string>("material_type") << new_line;
     *output_stream << tmp.str();
 }
 
