@@ -2145,7 +2145,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     double wipe_length = MM2INT(extruder.settings.get<double>("wipe_length"));
                     double cur_dis_path = 0;
                     double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
-                    double speed = path.config->getSpeed() * path.speed_factor;
+                    double speed = path.config->getSpeed() * 0.5; //retraction_config.speed; //path.config->getSpeed() * path.speed_factor;
                     for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
                     {
                         Point src_pos = gcode.getPositionXY();
