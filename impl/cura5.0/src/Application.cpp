@@ -24,8 +24,7 @@ namespace cura52
         : tracer(_tracer)
         , m_error(false)
     {
-        if (!tracer)
-            tracer = this;
+        assert(tracer);
 
         progressor.application = this;
         processor.gcode_writer.application = this;
@@ -43,13 +42,17 @@ namespace cura52
 
     void Application::sendProgress(float r)
     {
-        tracer->progress(r);
+        if(tracer)
+            tracer->progress(r);
     }
 
     bool Application::checkInterrupt(const std::string& message)
     {
         if (m_error)
             return true;
+
+        if (!tracer)
+            return false;
 
         bool rupt = tracer->interrupt();
         if (rupt)
@@ -109,26 +112,5 @@ namespace cura52
         }
         delete thread_pool;
         thread_pool = new ThreadPool(nthreads);
-    }
-
-    void Application::progress(float r) 
-    {
-    }
-
-    bool Application::interrupt()
-    {
-        return false;
-    }
-
-    void Application::message(const char* msg) 
-    {
-    }
-
-    void Application::failed(const char* msg) 
-    {
-    }
-
-    void Application::success() 
-    {
     }
 } // namespace cura52

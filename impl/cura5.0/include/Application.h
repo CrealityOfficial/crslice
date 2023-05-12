@@ -50,7 +50,7 @@ namespace cura52
      * maintains communication with other applications and uses that to schedule
      * slices.
      */
-    class Application : public ccglobal::Tracer
+    class Application
     {
     public:
         /*!
@@ -113,15 +113,7 @@ namespace cura52
         bool checkInterrupt(const std::string& message = "");
 
         SliceResult sliceResult;
-    protected:
-        void progress(float r) override;
-        bool interrupt() override;
-
-        void message(const char* msg) override;
-        void failed(const char* msg) override;
-        void success() override;
     private:
-        std::vector<std::string> m_args;
         bool m_error;
     };
 

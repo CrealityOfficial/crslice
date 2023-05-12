@@ -43,7 +43,6 @@ namespace crslice
         {
              curaSettings->add(pair.first, pair.second);
         }
-
     }
 
     CRSliceFromScene::CRSliceFromScene(CrScenePtr scene)
