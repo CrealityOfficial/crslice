@@ -46,4 +46,31 @@ namespace crslice
         groupData._max = _max;
         groupData._min = _min;
     }
+
+    void CacheDebugger::sliceLayerCount(int count)
+    {
+        groupData.sliceLayers.resize(count);
+        groupData.partLayers.resize(count);
+    }
+
+    void CacheDebugger::sliceLayerData(int index, int z, const cura52::Polygons& polygons, const cura52::Polygons& openPolygons)
+    {
+        SlicerLayerData& data = groupData.sliceLayers.at(index);
+        data.z = z;
+        data.polygons = polygons;
+        data.openPolygons = openPolygons;
+    }
+
+    void CacheDebugger::parts(const cura52::SliceMeshStorage& storage)
+    {
+        for (int i = 0; i < (int)storage.layers.size(); ++i)
+        {
+            const cura52::SliceLayer& layer = storage.layers.at(i);
+            LayerPartsData& data = groupData.partLayers.at(i);
+            data.z = layer.printZ;
+
+            for(const cura52::SliceLayerPart& p : layer.parts)
+                data.parts.push_back(p.outline);
+        }
+    }
 } // namespace crslice

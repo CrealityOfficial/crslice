@@ -7,10 +7,26 @@
 
 namespace crslice
 {
+    struct SlicerLayerData
+    {
+        int z;
+        cura52::Polygons polygons;
+        cura52::Polygons openPolygons;
+    };
+
+    struct LayerPartsData
+    {
+        cura52::coord_t z;
+        std::vector<cura52::PolygonsPart> parts;
+    };
+
     struct GroupData
     {
         cura52::Point3 _min;
         cura52::Point3 _max;
+
+        std::vector<SlicerLayerData> sliceLayers;
+        std::vector<LayerPartsData> partLayers;
     };
 
     class CacheDebugger : public cura52::Communication
@@ -34,6 +50,10 @@ namespace crslice
         void startGroup(int index) override;
         void groupBox(const cura52::Point3& _min, const cura52::Point3& _max) override;
 
+        void sliceLayerCount(int count) override;
+        void sliceLayerData(int index, int z, const cura52::Polygons& polygons, const cura52::Polygons& openPolygons) override;
+
+        void parts(const cura52::SliceMeshStorage& storage) override;
     public:
         std::vector<GroupData> groupDatas;
         int currentIndex;
