@@ -12,7 +12,6 @@
 #include "PathOrderMonotonic.h" //Monotonic ordering of skin lines.
 #include "Slice.h"
 #include "WipeScriptConfig.h"
-#include "communication/Communication.h"
 #include "pathPlanning/Comb.h"
 #include "pathPlanning/CombPaths.h"
 #include "raft.h" // getTotalExtraLayers
@@ -1891,9 +1890,6 @@ void LayerPlan::processFanSpeedAndMinimalLayerTime(Point starting_position)
 
 void LayerPlan::writeGCode(GCodeExport& gcode)
 {
-    Communication* communication = application->communication;
-    communication->setLayerForSend(layer_nr);
-    communication->sendCurrentPosition(gcode.getPositionXY());
     gcode.setLayerNr(layer_nr);
 
     gcode.writeLayerComment(layer_nr);
@@ -2329,8 +2325,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         for (size_t point_index = start_index; point_index < end_index + 1; point_index++)
                                         {
                                             Point gcodePt(points[point_index].x(), points[point_index].y());
-                                            communication->sendLineTo(path.config->type, gcodePt, path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
-                                            //
                                             gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
 
                                         }
@@ -2376,8 +2370,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                                 {
                                     const double extrude_speed = speed * path.speed_back_pressure_factor;
-                                    communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
-                                    //
                                     gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                                 }
                                 break;
@@ -2389,8 +2381,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                             {
                                 const double extrude_speed = speed * path.speed_back_pressure_factor;
-                                communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
-                                //
                                 gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                             }
 
@@ -2401,7 +2391,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
                             const double extrude_speed = speed * path.speed_back_pressure_factor;
-                            communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
                             gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                         }
                     }
@@ -2437,7 +2426,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         gcode.setZ(std::round(z + layer_thickness * length / totalLength));
 
                         const double extrude_speed = speed * path.speed_back_pressure_factor;
-                        communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
                         gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                     }
                     // for layer display only - the loop finished at the seam vertex but as we started from
@@ -2449,7 +2437,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     // vertex would not be shifted (as it's the last vertex in the sequence). The smoother the model,
                     // the less the vertices are shifted and the less obvious is the ridge. If the layer display
                     // really displayed a spiral rather than slices of a spiral, this would not be required.
-                    communication->sendLineTo(path.config->type, path.points[0], path.getLineWidthForLayerView(), path.config->getLayerThickness(), speed);
                 }
                 path_idx--; // the last path_idx didnt spiralize, so it's not part of the current spiralize path
                 if(paths[path_idx].spiralize)
@@ -2480,7 +2467,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         extruder_plan.handleAllRemainingInserts(gcode);
     } // extruder plans /\  .
 
-    communication->sendLayerComplete(layer_nr, z, layer_thickness);
     gcode.updateTotalPrintTime();
 }
 
@@ -2615,13 +2601,10 @@ bool LayerPlan::writePathWithCoasting(GCodeExport& gcode, const size_t extruder_
     }
 
     { // write normal extrude path:
-        Communication* communication = application->communication;
         for (size_t point_idx = 0; point_idx <= point_idx_before_start; point_idx++)
         {
-            communication->sendLineTo(path.config->type, path.points[point_idx], path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
             gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type);
         }
-        communication->sendLineTo(path.config->type, start, path.getLineWidthForLayerView(), path.config->getLayerThickness(), extrude_speed);
         gcode.writeExtrusion(start, extrude_speed, path.getExtrusionMM3perMM(), path.config->type);
     }
 

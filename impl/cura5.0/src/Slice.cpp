@@ -5,6 +5,8 @@
 
 #include "ExtruderTrain.h"
 #include "Slice.h"
+#include "Application.h"
+
 #include <fstream>      // std::ofstream
 
 namespace cura52
@@ -16,6 +18,10 @@ namespace cura52
 
     void Slice::compute()
     {
+        if (scene.application->debugger)
+            scene.application->debugger->startSlice((int)scene.mesh_groups.size());
+
+        int index = 0;
         for (std::vector<MeshGroup>::iterator mesh_group = scene.mesh_groups.begin(); mesh_group != scene.mesh_groups.end(); mesh_group++)
         {
             scene.current_mesh_group = mesh_group;
@@ -23,7 +29,15 @@ namespace cura52
             {
                 extruder.settings.setParent(&scene.current_mesh_group->settings);
             }
+
+            if (scene.application->debugger)
+            {
+                scene.application->debugger->startGroup(index);
+                scene.application->debugger->groupBox(mesh_group->min(), mesh_group->max());
+            }
+
             scene.processMeshGroup(*mesh_group);
+            ++index;
         }
     }
 

@@ -1,16 +1,15 @@
 // Copyright (c) 2022 Ultimaker B.V.
 // CuraEngine is released under the terms of the AGPLv3 or higher
 
-#include "ccglobal/log.h"
-
 #include "Application.h"
 #include "FffProcessor.h" //To start a slice.
 #include "Scene.h"
 #include "Weaver.h"
 #include "Wireframe2gcode.h"
-#include "communication/Communication.h" //To flush g-code and layer view when we're done.
 #include "progress/Progress.h"
 #include "sliceDataStorage.h"
+
+#include "ccglobal/log.h"
 
 namespace cura52
 {
@@ -112,8 +111,6 @@ namespace cura52
         }
 
         application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
-        application->communication->flushGCode();
-        application->communication->sendOptimizedLayerData();
         LOGI("Total time elapsed { %f }s.\n", time_keeper_total.restart());
     }
 } // namespace cura52

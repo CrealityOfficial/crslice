@@ -13,7 +13,6 @@
 #include "Slice.h"
 #include "Weaver.h"
 #include "Wireframe2gcode.h"
-#include "communication/Communication.h" //To write g-code output.
 #include "progress/Progress.h"
 #include "utils/math.h"
 #include "weaveDataStorage.h"
@@ -28,8 +27,6 @@ void Wireframe2gcode::writeGCode()
     const size_t start_extruder_nr = scene_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr; // TODO: figure out how Wireframe works with dual extrusion
     gcode.preSetup(start_extruder_nr);
     gcode.setInitialAndBuildVolumeTemps(start_extruder_nr);
-
-    application->communication->beginGCode();
 
     processStartingCode();
 
@@ -570,7 +567,7 @@ void Wireframe2gcode::processStartingCode()
     size_t start_extruder_nr = scene_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr;
     const Settings& start_extruder_settings = application->current_slice->scene.extruders[start_extruder_nr].settings;
 
-    if (application->communication->isSequential())
+    if (true)
     {
         std::vector<bool> extruder_is_used;
         extruder_is_used.resize(extruder_count, false);
@@ -622,7 +619,6 @@ void Wireframe2gcode::processStartingCode()
     else if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
     { // initialize extruder trains
         gcode.writeCode("T0"); // Toolhead already assumed to be at T0, but writing it just to be safe...
-        application->communication->sendCurrentPosition(gcode.getPositionXY());
         gcode.startExtruder(start_extruder_nr);
         constexpr bool wait = true;
         gcode.writeTemperatureCommand(start_extruder_nr, start_extruder_settings.get<Temperature>("material_print_temperature"), wait);

@@ -14,7 +14,6 @@
 #include "RetractionConfig.h"
 #include "Slice.h"
 #include "WipeScriptConfig.h"
-#include "communication/Communication.h" //To send layer view data.
 #include "gcodeExport.h"
 #include "settings/types/LayerIndex.h"
 #include "utils/Date.h"
@@ -1093,7 +1092,6 @@ void GCodeExport::writeTravel(const coord_t x, const coord_t y, const coord_t z,
     const PrintFeatureType travel_move_type = extruder_attr[current_extruder].retraction_e_amount_current ? PrintFeatureType::MoveRetraction : PrintFeatureType::MoveCombing;
     const int display_width = extruder_attr[current_extruder].retraction_e_amount_current ? MM2INT(0.2) : MM2INT(0.1);
     const double layer_height = application->current_slice->scene.current_mesh_group->settings.get<double>("layer_height");
-    application->communication->sendLineTo(travel_move_type, Point(x, y), display_width, layer_height, speed);
 
     *output_stream << "G0";
     writeFXYZE(speed, x, y, z, current_e_value, travel_move_type);
@@ -1573,9 +1571,6 @@ void GCodeExport::startExtruder(const size_t new_extruder)
             writeExtrusionMode(true); // restore relative extrusion mode
         }
     }
-
-    application->communication->setExtruderForSend(application->current_slice->scene.extruders[new_extruder]);
-    application->communication->sendCurrentPosition(getPositionXY());
 
     // Change the Z position so it gets re-written again. We do not know if the switch code modified the Z position.
     currentPosition.z += 1;

@@ -12,6 +12,7 @@
 
 #include "FffProcessor.h"
 #include "progress/Progress.h"
+#include "debugger.h"
 
 #include "ccglobal/tracer.h"
 
@@ -71,18 +72,7 @@ namespace cura52
         Progress progressor;
         std::string tempDirectory;
         ccglobal::Tracer* tracer = nullptr;
-
-        /*
-         * \brief The communication currently in use.
-         *
-         * This may be set to ``nullptr`` during the initialisation of the program,
-         * while the correct communication class has not yet been chosen because the
-         * command line arguments have not yet been parsed. In general though you
-         * can assume that it is safe to access this without checking whether it is
-         * initialised.
-         */
-        Communication* communication = nullptr;
-
+        Debugger* debugger = nullptr;
         /*
          * \brief The slice that is currently ongoing.
          *
@@ -96,7 +86,6 @@ namespace cura52
         ThreadPool* thread_pool = nullptr;
 
         void runCommulication(Communication* communication);
-        void releaseCommulication();
         /*!
          * \brief Start the global thread pool.
          *

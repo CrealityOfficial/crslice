@@ -8,12 +8,12 @@
 //Include Clipper to get the ClipperLib::IntPoint definition, which we reuse as Point definition.
 #include <polyclipping/clipper.hpp>
 
+#define FDM_USE_MM
 namespace cura52
 {
+	using coord_t = ClipperLib::cInt;
 
-using coord_t = ClipperLib::cInt;
-
-static inline coord_t operator "" _mu(unsigned long long i) { return i; };
+	static inline coord_t operator "" _mu(unsigned long long i) { return i; };
 
 #define INT2MM(n) (static_cast<double>(n) / 1000.0)
 #define INT2MM2(n) (static_cast<double>(n) / 1000000.0)
@@ -26,5 +26,11 @@ static inline coord_t operator "" _mu(unsigned long long i) { return i; };
 
 } // namespace cura52
 
-
+#ifdef FDM_USE_MM
+#define FDM_F2I(n) MM2INT(n)
+#define FDM_I2F(n) INT2MM(n)
+#else
+#define FDM_F2I(n) MM2_2INT(n)
+#define FDM_I2F(n) INT2MM2(n)
+#endif
 #endif // UTILS_COORD_T_H

@@ -10,7 +10,6 @@
 #include "PrintFeature.h"
 #include "Slice.h"
 #include "Weaver.h"
-#include "communication/Communication.h" //To send layer view data.
 #include "progress/Progress.h"
 #include "settings/AdaptiveLayerHeights.h"
 #include "settings/types/Angle.h"
@@ -65,8 +64,6 @@ void Weaver::weave(MeshGroup* meshgroup)
         for (cura52::Slicer* slicer : slicerList)
             wireFrame.bottom_outline.add(slicer->layers[starting_layer_idx].polygons);
 
-        application->communication->sendPolygons(PrintFeatureType::OuterWall, wireFrame.bottom_outline, 1, 1, 1);
-
         if (slicerList.empty()) // Wait, there is nothing to slice.
         {
             wireFrame.z_bottom = 0;
@@ -99,8 +96,6 @@ void Weaver::weave(MeshGroup* meshgroup)
             Polygons chainified;
 
             chainify_polygons(parts1, starting_point_in_layer, chainified);
-
-            application->communication->sendPolygons(PrintFeatureType::OuterWall, chainified, 1, 1, 1);
 
             if (chainified.size() > 0)
             {

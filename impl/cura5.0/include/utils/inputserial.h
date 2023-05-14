@@ -5,7 +5,7 @@
 #include "polygon.h"
 
 #if _DEBUG
-#define CURA_SERIAL_DATA 1   // set 0, when shipping
+#define CURA_SERIAL_DATA 0   // set 0, when shipping
 #else
 #define CURA_SERIAL_DATA 0
 #endif

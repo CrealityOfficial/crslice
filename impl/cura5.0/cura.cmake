@@ -112,6 +112,7 @@ set(engine_SRCS # Except main.cpp.
 		${PREFIX5.2}include/TreeSupportElement.h
 		${PREFIX5.2}include/TreeSupportSettings.h
 		${PREFIX5.2}include/utils/inputserial.h
+		${PREFIX5.2}include/debugger.h
         )
 
 __cc_find(RapidJSON)

@@ -13,6 +13,7 @@
 
 #include "ccglobal/log.h"
 
+#include "Slice.h"
 #include "FffProcessor.h"
 #include "progress/Progress.h"
 #include "utils/ThreadPool.h"
@@ -36,8 +37,11 @@ namespace cura52
 
     Application::~Application()
     {
-        releaseCommulication();
-        delete thread_pool;
+        if (thread_pool)
+        {
+            delete thread_pool;
+            thread_pool = nullptr;
+        }
     }
 
     void Application::sendProgress(float r)
@@ -69,25 +73,26 @@ namespace cura52
         if (!_communication)
             return;
 
-        releaseCommulication();
-        communication = _communication;
-        communication->application = this;
-
         progressor.init();
-
         startThreadPool(); // Start the thread pool
-        while (communication->hasSlice())
-        {
-            communication->sliceNext();
-        }
-    }
 
-    void Application::releaseCommulication()
-    {
-        if (communication)
+        if (_communication->hasSlice())
         {
-            delete communication;
-            communication = nullptr;
+            std::shared_ptr<Slice> slice(_communication->createSlice());
+            if (slice)
+            {
+                processor.time_keeper.restart();
+
+                current_slice = slice.get();
+                current_slice->scene.application = this;
+
+                processor.setTargetFile(current_slice->gcodeFile.c_str());
+
+                current_slice->finalize();
+                current_slice->compute();
+                // Finalize the processor. This adds the end g-code and reports statistics.
+                processor.finalize();
+            }
         }
     }
 

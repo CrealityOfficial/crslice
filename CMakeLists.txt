@@ -17,8 +17,10 @@ set(SRCS crslice/interface.h
 		 crslice/header.h
 		 crslice/crslice.h
 		 crslice/crscene.h
+		 crslice/crcacheslice.h
 		 
 		 src/crslice.cpp
+		 src/crcacheslice.cpp
 		 src/crscene.cpp
 		 src/crobject.h
 		 src/crobject.cpp
@@ -28,6 +30,12 @@ set(SRCS crslice/interface.h
 		 src/crgroup.cpp
 		 src/crslicefromscene.h
 		 src/crslicefromscene.cpp
+		 src/cachedebugger.h
+		 src/cachedebugger.cpp
+		 src/create.h
+		 src/create.cpp
+		 src/conv.h
+		 src/conv.cpp
 		 )
 		 
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)

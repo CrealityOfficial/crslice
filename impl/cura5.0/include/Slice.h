@@ -27,7 +27,7 @@ public:
      * \brief The scene that must be sliced.
      */
     Scene scene;
-
+    std::string gcodeFile;
     /*
      * \brief Slice the scene, producing g-code output.
      *
