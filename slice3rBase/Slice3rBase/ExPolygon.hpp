@@ -5,6 +5,23 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 #include <vector>
+#include "Point.hpp"
+
+class Linef
+{
+public:
+    Linef() : a(Slic3r::Vec2d::Zero()), b(Slic3r::Vec2d::Zero()) {}
+    Linef(const Slic3r::Vec2d& _a, const Slic3r::Vec2d& _b) : a(_a), b(_b) {}
+
+    Slic3r::Vec2d a;
+    Slic3r::Vec2d b;
+
+    static const constexpr int Dim = 2;
+    using Scalar = Slic3r::Vec2d::Scalar;
+};
+
+using Linesf = std::vector<Linef>;
+
 
 namespace Slic3r {
 
@@ -130,6 +147,38 @@ inline Lines to_lines(const ExPolygons &src)
     }
     return lines;
 }
+
+inline size_t count_points(const ExPolygons& expolys)
+{
+    size_t n_points = 0;
+    for (const auto& expoly : expolys) {
+        n_points += expoly.contour.points.size();
+        for (const auto& hole : expoly.holes)
+            n_points += hole.points.size();
+    }
+    return n_points;
+}
+
+inline  std::vector<Linef> to_unscaled_linesf(const ExPolygons& src)
+{
+     std::vector<Linef> lines;
+    lines.reserve(count_points(src));
+    for (ExPolygons::const_iterator it_expoly = src.begin(); it_expoly != src.end(); ++it_expoly) {
+        for (size_t i = 0; i <= it_expoly->holes.size(); ++i) {
+            const Points& points = ((i == 0) ? it_expoly->contour : it_expoly->holes[i - 1]).points;
+            Vec2d unscaled_a = unscaled(points.front());
+            Vec2d unscaled_b = unscaled_a;
+            for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
+                unscaled_b = unscaled(*(it));
+                lines.push_back(Slic3r:: Linef(unscaled_a, unscaled_b));
+                unscaled_a = unscaled_b;
+            }
+            lines.push_back(Slic3r:: Linef(unscaled_a, unscaled(points.front())));
+        }
+    }
+    return lines;
+}
+
 
 inline Polylines to_polylines(const ExPolygon &src)
 {
