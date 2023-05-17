@@ -46,6 +46,14 @@ namespace crslice
 		std::string m_gcodeFileName;
 		std::string m_tempDirectory;
 	};
+
+	class SceneCreator
+	{
+	public:
+		virtual ~SceneCreator() {}
+
+		virtual CrScene* create(ccglobal::Tracer* tracer = nullptr) = 0;
+	};
 }
 
 typedef std::shared_ptr<crslice::CrScene> CrScenePtr;
