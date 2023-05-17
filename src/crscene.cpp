@@ -174,6 +174,43 @@ namespace crslice
 		}
 	}
 
+	void CrScene::setMeshsHighFlow()
+	{
+		int startFlow = 0;
+		int endFlow = -9;
+		CrGroup* currentGrop = getGroupsIndex(0);
+		for (size_t i = 0; i < 10; i++)
+		{
+			currentGrop->m_objects[i].m_settings->add("wall_0_material_flow", std::to_string(100 -i));
+			currentGrop->m_objects[i].m_settings->add("wall_x_material_flow", std::to_string(100 - i));
+			currentGrop->m_objects[i].m_settings->add("skin_material_flow", std::to_string(100 - i));
+			currentGrop->m_objects[i].m_settings->add("roofing_material_flow", std::to_string(100 - i));
+			currentGrop->m_objects[i].m_settings->add("material_flow_layer_0", std::to_string(100 - i));
+			currentGrop->m_objects[i].m_settings->add("wall_x_material_flow_layer_0", std::to_string(100 - i));
+			currentGrop->m_objects[i].m_settings->add("wall_0_material_flow_layer_0", std::to_string(100 - i));
+			currentGrop->m_objects[i].m_settings->add("skin_material_flow_layer_0", std::to_string(100 - i));
+		}
+	};
+
+
+	void CrScene::setMeshsLowFlow()
+	{
+		int startFlow = 0;
+		int endFlow = -9;
+		CrGroup* currentGrop = getGroupsIndex(0);
+		for (size_t i = 0; i < 9; i++)
+		{
+			currentGrop->m_objects[i].m_settings->add("wall_0_material_flow", std::to_string(120 - i*5));
+			currentGrop->m_objects[i].m_settings->add("wall_x_material_flow", std::to_string(120 - i * 5));
+			currentGrop->m_objects[i].m_settings->add("skin_material_flow", std::to_string(120 - i * 5));
+			currentGrop->m_objects[i].m_settings->add("roofing_material_flow", std::to_string(120 - i * 5));
+			currentGrop->m_objects[i].m_settings->add("material_flow_layer_0", std::to_string(120 - i * 5));
+			currentGrop->m_objects[i].m_settings->add("wall_x_material_flow_layer_0", std::to_string(120 - i * 5));
+			currentGrop->m_objects[i].m_settings->add("wall_0_material_flow_layer_0", std::to_string(120 - i * 5));
+			currentGrop->m_objects[i].m_settings->add("skin_material_flow_layer_0", std::to_string(120 - i * 5));
+		}
+	};
+
 	CrGroup* CrScene::getGroupsIndex(int groupID)
 	{
 		if (groupID < m_groups.size())
