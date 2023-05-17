@@ -194,6 +194,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     { // Skirt and brim.
         skirt_brim_is_processed[extruder_nr] = false;
     }
+    layerTemp = 0;
 }
 
 LayerPlan::~LayerPlan()
@@ -1894,6 +1895,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
     gcode.writeLayerComment(layer_nr);
 
+    if (layerTemp >0)
+    {
+        gcode.writeTemperatureCommand(gcode.getExtruderNr(), layerTemp);
+    }
+   
     // flow-rate compensation
     size_t extruder_nr = gcode.getExtruderNr();
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;

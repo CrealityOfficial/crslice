@@ -162,6 +162,18 @@ namespace crslice
 		in.close();
 	}
 
+	void CrScene::setMeshsTemps(int startTemp, int endTemp, int step)
+	{
+		CrGroup* currentGrop = getGroupsIndex(0);
+		if ((startTemp-endTemp)/step +1 == currentGrop->m_objects.size())
+		{
+			for (int n=0;n< currentGrop->m_objects.size();n++)
+			{
+				currentGrop->m_objects[n].m_settings->add("material_print_temperature",std::to_string(startTemp - step*n));
+			}
+		}
+	}
+
 	CrGroup* CrScene::getGroupsIndex(int groupID)
 	{
 		if (groupID < m_groups.size())
