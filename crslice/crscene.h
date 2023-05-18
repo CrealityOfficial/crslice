@@ -34,6 +34,9 @@ namespace crslice
 
 		void save(const std::string& fileName);
 		void load(const std::string& fileName);
+		void setMeshsTemps(int startTemp, int endTemp, int step);
+		void setMeshsHighFlow();
+		void setMeshsLowFlow();
 	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;

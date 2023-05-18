@@ -231,7 +231,7 @@ public:
     coord_t z;
     coord_t final_travel_z;
     bool mode_skip_agressive_merge; //!< Whether to give every new path the 'skip_agressive_merge_hint' property (see GCodePath); default is false.
-
+    Temperature layerTemp;
 private:
     Application* application = nullptr;
     const SliceDataStorage& storage; //!< The polygon data obtained from FffPolygonProcessor
@@ -245,7 +245,6 @@ private:
     std::optional<Point> last_planned_position; //!< The last planned XY position of the print head (if known)
 
     std::string current_mesh; //<! A unique ID for the mesh of the last planned move.
-
     /*!
      * Whether the skirt or brim polygons have been processed into planned paths
      * for each extruder train.

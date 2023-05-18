@@ -182,7 +182,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 		for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
 		{
 			application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
-			layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers), gcode);
+            layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers), gcode);
 		}
 #else
 		run_multiple_producers_ordered_consumer(application,
@@ -1459,6 +1459,7 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
     //LOGD("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
+    Temperature mesh_print_temp=0;
     coord_t z;
     bool include_helper_parts = true;
     if (layer_nr < 0)
@@ -1484,6 +1485,14 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
             z = mesh.layers[layer_nr].printZ;
             layer_thickness = mesh.layers[layer_nr].thickness;
             break;
+        }
+
+        for (const SliceMeshStorage& mesh : storage.meshes)
+        {
+			if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("material_print_temperature"))
+			{
+				mesh_print_temp = mesh.settings.get<Temperature>("material_print_temperature");
+			}
         }
 
         if (layer_nr == 0)
@@ -1531,6 +1540,13 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
     const coord_t first_outer_wall_line_width = scene.extruders[extruder_order.front()].settings.get<coord_t>("wall_line_width_0");
     LayerPlan& gcode_layer = *new LayerPlan(storage, layer_nr, z, layer_thickness, extruder_order.front(), fan_speed_layer_time_settings_per_extruder, comb_offset_from_outlines, first_outer_wall_line_width, avoid_distance);
     
+
+    if (mesh_print_temp>0)
+    {
+        gcode_layer.layerTemp = mesh_print_temp;
+    }
+
+
     if (scene.extruders[extruder_order.front()].settings.get<bool>("special_exact_flow_enable"))
     {
         gcode_layer.setFillLineWidthDiff(layer_thickness * float(1. - 0.25 * M_PI) + 0.5);
