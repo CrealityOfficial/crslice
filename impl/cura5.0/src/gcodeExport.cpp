@@ -520,7 +520,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 
         if (!print_time)
         {
-            for (int i = 0; i < 100; i++) prefix << " ";
+            //for (int i = 0; i < 100; i++) prefix << " ";
             prefix << new_line;
         }
     }
