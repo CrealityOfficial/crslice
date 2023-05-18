@@ -95,6 +95,11 @@ void MeshGroup::finalize()
         meshgroup_offset.y = settings.get<coord_t>("machine_depth") / 2;
     }
 
+#define SKIP_OFFSET_Z 1
+
+    coord_t zOffset = 0;
+
+
     // If a mesh position was given, put the mesh at this position in 3D space.
     for (Mesh& mesh : meshes)
     {
@@ -104,7 +109,11 @@ void MeshGroup::finalize()
             Point3 object_min = mesh.min();
             Point3 object_max = mesh.max();
             Point3 object_size = object_max - object_min;
-            mesh_offset += Point3(-object_min.x - object_size.x / 2, -object_min.y - object_size.y / 2, -object_min.z);
+
+#if !SKIP_OFFSET_Z
+            zOffset = -object_min.z;
+#endif
+            mesh_offset += Point3(-object_min.x - object_size.x / 2, -object_min.y - object_size.y / 2, zOffset);
         }
         mesh.offset(mesh_offset + meshgroup_offset);
     }
