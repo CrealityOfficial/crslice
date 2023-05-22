@@ -196,12 +196,16 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     }
     layerTemp = 0;
 	pressureValue = 0.0;
-
 	for (const SliceMeshStorage& mesh : storage.meshes)
 	{
 		if (mesh.settings.has("maxvolumetricspeed_step"))
 		{
 			maxvolumetricspeed = mesh.settings.get<Temperature>("maxvolumetricspeed_start");
+			break;
+		}
+		else
+		{
+			maxvolumetricspeed = 0;
 			break;
 		}
 	}
