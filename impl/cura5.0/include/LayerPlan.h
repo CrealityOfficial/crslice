@@ -232,6 +232,8 @@ public:
     coord_t final_travel_z;
     bool mode_skip_agressive_merge; //!< Whether to give every new path the 'skip_agressive_merge_hint' property (see GCodePath); default is false.
     Temperature layerTemp;
+	float pressureValue;
+	float maxvolumetricspeed;
 private:
     Application* application = nullptr;
     const SliceDataStorage& storage; //!< The polygon data obtained from FffPolygonProcessor

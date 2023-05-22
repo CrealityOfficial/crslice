@@ -176,7 +176,6 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
-
 //引擎调试多线程
 #ifdef _DEBUG
 		for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
@@ -1459,7 +1458,6 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
     //LOGD("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
-    Temperature mesh_print_temp=0;
     coord_t z;
     bool include_helper_parts = true;
     if (layer_nr < 0)
@@ -1485,14 +1483,6 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
             z = mesh.layers[layer_nr].printZ;
             layer_thickness = mesh.layers[layer_nr].thickness;
             break;
-        }
-
-        for (const SliceMeshStorage& mesh : storage.meshes)
-        {
-			if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("material_print_temperature"))
-			{
-				mesh_print_temp = mesh.settings.get<Temperature>("material_print_temperature");
-			}
         }
 
         if (layer_nr == 0)
@@ -1537,14 +1527,41 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
     assert(static_cast<LayerIndex>(extruder_order_per_layer_negative_layers.size()) + layer_nr >= 0 && "Layer numbers shouldn't get more negative than there are raft/filler layers");
     const std::vector<size_t>& extruder_order = (layer_nr < 0) ? extruder_order_per_layer_negative_layers[extruder_order_per_layer_negative_layers.size() + layer_nr] : extruder_order_per_layer[layer_nr];
 
+	for (const SliceMeshStorage& mesh : storage.meshes)
+	{
+		if (mesh.settings.has("VFA_step"))
+		{
+			float VFA_step = mesh.settings.get<double>("VFA_step");
+			float VFA_start = mesh.settings.get<double>("VFA_start");
+			int currentZ = INT2MM(mesh.layers[layer_nr].printZ);
+			int  speed_wall_0 = VFA_start + currentZ / 5 * VFA_step;
+			mesh.settings.add("speed_wall_0", std::to_string(speed_wall_0));
+		}
+	}
+
+
     const coord_t first_outer_wall_line_width = scene.extruders[extruder_order.front()].settings.get<coord_t>("wall_line_width_0");
     LayerPlan& gcode_layer = *new LayerPlan(storage, layer_nr, z, layer_thickness, extruder_order.front(), fan_speed_layer_time_settings_per_extruder, comb_offset_from_outlines, first_outer_wall_line_width, avoid_distance);
     
-
-    if (mesh_print_temp>0)
-    {
-        gcode_layer.layerTemp = mesh_print_temp;
-    }
+	for (const SliceMeshStorage& mesh : storage.meshes)
+	{
+		if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
+		{
+			gcode_layer.layerTemp = mesh.settings.get<Temperature>("calibration_temperature");
+		}
+		else if (mesh.settings.has("pressure_step"))
+		{
+			float pressureStep = mesh.settings.get<Temperature>("pressureStep");
+			int currentZ = INT2MM(mesh.layers[layer_nr].printZ);
+			gcode_layer.pressureValue = currentZ * pressureStep;
+		}
+		else if (mesh.settings.has("maxvolumetricspeed_step"))
+		{
+			float maxvolumetricspeed_step = mesh.settings.get<Temperature>("maxvolumetricspeed_step");
+			int addSpeed = maxvolumetricspeed_step*(layer_nr / 3);
+			gcode_layer.maxvolumetricspeed += addSpeed;
+		}
+	}
 
 
     if (scene.extruders[extruder_order.front()].settings.get<bool>("special_exact_flow_enable"))

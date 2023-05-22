@@ -266,6 +266,8 @@ public:
      */
     void addExtraPrimeAmount(double extra_prime_volume);
     
+	void setMaxVolumetricSpeed(float maxSpeed);
+
     Point3 getPosition() const;
     
     Point getPositionXY() const;

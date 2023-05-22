@@ -195,6 +195,16 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
         skirt_brim_is_processed[extruder_nr] = false;
     }
     layerTemp = 0;
+	pressureValue = 0.0;
+
+	for (const SliceMeshStorage& mesh : storage.meshes)
+	{
+		if (mesh.settings.has("maxvolumetricspeed_step"))
+		{
+			maxvolumetricspeed = mesh.settings.get<Temperature>("maxvolumetricspeed_start");
+			break;
+		}
+	}
 }
 
 LayerPlan::~LayerPlan()
@@ -1899,6 +1909,14 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     {
         gcode.writeTemperatureCommand(gcode.getExtruderNr(), layerTemp);
     }
+	else if (pressureValue > 0)
+	{
+		gcode.writePressureComment(pressureValue);
+	}
+	else if (maxvolumetricspeed > 0)
+	{
+		gcode.setMaxVolumetricSpeed(maxvolumetricspeed);
+	}
    
     // flow-rate compensation
     size_t extruder_nr = gcode.getExtruderNr();

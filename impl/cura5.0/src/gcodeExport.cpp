@@ -679,6 +679,11 @@ void GCodeExport::addExtraPrimeAmount(double extra_prime_volume)
     extruder_attr[current_extruder].prime_volume += extra_prime_volume;
 }
 
+void GCodeExport::setMaxVolumetricSpeed(float maxSpeed)
+{
+	extruder_attr[current_extruder].max_volumetric_spped.value = maxSpeed;
+}
+
 void GCodeExport::setFlowRateExtrusionSettings(double max_extrusion_offset, double extrusion_offset_factor)
 {
     this->max_extrusion_offset = max_extrusion_offset;
