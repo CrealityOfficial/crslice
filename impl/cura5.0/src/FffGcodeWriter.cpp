@@ -3949,7 +3949,7 @@ bool FffGcodeWriter::closeGcodeWriterFile()
     return false;
 }
 
-bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, float layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>> extendedPoints)
+bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const float layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints)
 {
     Slic3r::Clipper3r::Paths  paths3r;
     for (auto path : prev_paths.paths)
