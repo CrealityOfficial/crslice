@@ -65,7 +65,7 @@ bool GCodePath::needSlowdown(int level) const
             return config->type == PrintFeatureType::Infill || config->type == PrintFeatureType::Skin || config->type == PrintFeatureType::InnerWall;
         }
         default:
-			return false;//!isTravelPath();
+			return !isTravelPath();
     }
 }
 
