@@ -31,8 +31,8 @@
 *                                                                              *
 *******************************************************************************/
 
-#ifndef clipper_hpp
-#define clipper_hpp
+#ifndef clipper3r_hpp
+#define clipper3r_hpp
 
 #include <inttypes.h>
 #include <functional>
@@ -66,7 +66,9 @@
 #ifdef CLIPPERLIB_USE_XYZ
   namespace ClipperLib_Z {
 #else
-  namespace ClipperLib {
+ // namespace ClipperLib {
+namespace Clipper3r {
+	  
 #endif
 
 enum ClipType { ctIntersection, ctUnion, ctDifference, ctXor };
@@ -571,4 +573,4 @@ inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = 
 } // namespace CLIPPERLIB_NAMESPACE_PREFIX
 #endif // CLIPPERLIB_NAMESPACE_PREFIX
 
-#endif //clipper_hpp
+#endif //clipper3r_hpp

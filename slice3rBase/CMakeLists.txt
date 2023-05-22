@@ -29,8 +29,8 @@ set(SRCS	Slice3rBase/Int128.hpp
 			Slice3rBase/Geometry.hpp
 			Slice3rBase/ExPolygon.cpp
 			Slice3rBase/ExPolygon.hpp
-			Slice3rBase/clipper.cpp
 			Slice3rBase/clipper.hpp
+			Slice3rBase/clipper.cpp
 			Slice3rBase/ClipperUtils.cpp
 			Slice3rBase/ClipperUtils.hpp
 			Slice3rBase/Surface.cpp
@@ -51,11 +51,18 @@ set(SRCS	Slice3rBase/Int128.hpp
 			Slice3rBase/clipper/clipper_z.hpp
 			
 			
-			Slice3rBase/overhang/AABBTreeIndirect.hpp
-			Slice3rBase/overhang/AABBTreeLines.hpp
-			Slice3rBase/overhang/ExtrusionEntity.cpp
-			Slice3rBase/overhang/ExtrusionEntity.hpp
-			Slice3rBase/overhang/ExtrusionProcessor.hpp
+#			Slice3rBase/overhang/AABBTreeIndirect.hpp
+#			Slice3rBase/overhang/AABBTreeLines.hpp
+#			Slice3rBase/overhang/ExtrusionEntity.cpp
+#			Slice3rBase/overhang/ExtrusionEntity.hpp
+#			Slice3rBase/overhang/ExtrusionProcessor.hpp
+
+			Slice3rBase/overhangquality/extrusionerocessor.hpp
+			Slice3rBase/overhangquality/overhanghead.hpp
+			Slice3rBase/AABBTreeLines.hpp
+			Slice3rBase/Layer.hpp
+			Slice3rBase/Layer.hpp
+			Slice3rBase/AABBTreeIndirect.hpp
 			)
 			
 set(ILIBS boost_system boost_filesystem boost_iostreams eigen cereal)

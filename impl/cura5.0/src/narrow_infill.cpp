@@ -27,14 +27,14 @@ Slic3r::ExPolygon convert(const cura52::Polygons& polygons)
     return expolygon;
 }
 
-Slic3r::ClipperLib::Paths  Polygons2clipperpaths(Slic3r::Polygons& out)
+Slic3r::Clipper3r::Paths  Polygons2clipperpaths(Slic3r::Polygons& out)
 {
-    Slic3r::ClipperLib::Path out2path;
-    Slic3r::ClipperLib::Paths out2paths;
+    Slic3r::Clipper3r::Path out2path;
+    Slic3r::Clipper3r::Paths out2paths;
     for (int i = 0; i < out.size(); i++)
     {
         Slic3r::Polygon path = out.at(i);
-        Slic3r::ClipperLib::IntPoint pointcli;
+        Slic3r::Clipper3r::IntPoint pointcli;
 
         for (int j = 0; j < path.size(); j++)
         {
@@ -78,13 +78,13 @@ static bool is_narrow_infill_area(const cura52::Polygons& polygons)
     const float delta = -3000000.0;
     double miterLimit = 3.000;
  
-    Slic3r::ClipperLib::JoinType joinType = Slic3r::ClipperLib::JoinType::jtMiter;;
+    Slic3r::Clipper3r::JoinType joinType = Slic3r::Clipper3r::JoinType::jtMiter;;
     Slic3r::Polygons  out;
     out =  Slic3r::offset(expolygon, delta, joinType, miterLimit);
 
     bool fillType = false;
     
-    Slic3r::ClipperLib::Paths out2paths;
+    Slic3r::Clipper3r::Paths out2paths;
     out2paths = Polygons2clipperpaths(out);
 
     Slic3r::ExPolygons result;

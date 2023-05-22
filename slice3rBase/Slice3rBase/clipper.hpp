@@ -3,7 +3,7 @@
 #ifndef slic3r_clipper_hpp
 
 #ifdef clipper_hpp
-#error "You should include the libslic3r/clipper.hpp before clipper/clipper.hpp"
+//#error "You should include the libslic3r/clipper.hpp before clipper/clipper.hpp"
 #endif
 
 #ifdef CLIPPERLIB_USE_XYZ

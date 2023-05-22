@@ -8,22 +8,22 @@
 #include "Surface.hpp"
 
 // import these wherever we're included
-using Slic3r::ClipperLib::jtMiter;
-using Slic3r::ClipperLib::jtRound;
-using Slic3r::ClipperLib::jtSquare;
+using Slic3r::Clipper3r::jtMiter;
+using Slic3r::Clipper3r::jtRound;
+using Slic3r::Clipper3r::jtSquare;
 
 namespace Slic3r {
 
 static constexpr const float                        ClipperSafetyOffset     = 10.f;
 
-static constexpr const Slic3r::ClipperLib::JoinType DefaultJoinType         = Slic3r::ClipperLib::jtMiter;
+static constexpr const Slic3r::Clipper3r::JoinType DefaultJoinType         = Slic3r::Clipper3r::jtMiter;
 //FIXME evaluate the default miter limit. 3 seems to be extreme, Cura uses 1.2.
 // Mitter Limit 3 is useful for perimeter generator, where sharp corners are extruded without needing a gap fill.
 // However such a high limit causes issues with large positive or negative offsets, where a sharp corner
 // is extended excessively.
 static constexpr const double                       DefaultMiterLimit       = 3.;
 
-static constexpr const Slic3r::ClipperLib::JoinType DefaultLineJoinType     = Slic3r::ClipperLib::jtSquare;
+static constexpr const Slic3r::Clipper3r::JoinType DefaultLineJoinType     = Slic3r::Clipper3r::jtSquare;
 // Miter limit is ignored for jtSquare.
 static constexpr const double                       DefaultLineMiterLimit   = 0.;
 
@@ -299,28 +299,28 @@ namespace ClipperUtils {
 }
 
 // Perform union of input polygons using the non-zero rule, convert to ExPolygons.
-ExPolygons ClipperPaths_to_Slic3rExPolygons(const ClipperLib::Paths &input, bool do_union = false);
+ExPolygons ClipperPaths_to_Slic3rExPolygons(const Clipper3r::Paths &input, bool do_union = false);
 
 // offset Polygons
 // Wherever applicable, please use the expand() / shrink() variants instead, they convey their purpose better.
-Slic3r::Polygons offset(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons offset(const Slic3r::Polygon &polygon, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
 
 // offset Polylines
 // Wherever applicable, please use the expand() / shrink() variants instead, they convey their purpose better.
 // Input polygons for negative offset shall be "normalized": There must be no overlap / intersections between the input polygons.
-Slic3r::Polygons   offset(const Slic3r::Polyline &polyline, const float delta, ClipperLib::JoinType joinType = DefaultLineJoinType, double miterLimit = DefaultLineMiterLimit);
-Slic3r::Polygons   offset(const Slic3r::Polylines &polylines, const float delta, ClipperLib::JoinType joinType = DefaultLineJoinType, double miterLimit = DefaultLineMiterLimit);
-Slic3r::Polygons   offset(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::Polygons   offset(const Slic3r::ExPolygon &expolygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::Polygons   offset(const Slic3r::ExPolygons &expolygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::Polygons   offset(const Slic3r::Surfaces &surfaces, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::Polygons   offset(const Slic3r::SurfacesPtr &surfaces, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::ExPolygons offset_ex(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygon &expolygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygons &expolygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::ExPolygons offset_ex(const Slic3r::Surfaces &surfaces, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons   offset(const Slic3r::Polyline &polyline, const float delta, Clipper3r::JoinType joinType = DefaultLineJoinType, double miterLimit = DefaultLineMiterLimit);
+Slic3r::Polygons   offset(const Slic3r::Polylines &polylines, const float delta, Clipper3r::JoinType joinType = DefaultLineJoinType, double miterLimit = DefaultLineMiterLimit);
+Slic3r::Polygons   offset(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons   offset(const Slic3r::ExPolygon &expolygon, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons   offset(const Slic3r::ExPolygons &expolygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons   offset(const Slic3r::Surfaces &surfaces, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons   offset(const Slic3r::SurfacesPtr &surfaces, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::ExPolygons offset_ex(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygon &expolygon, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::ExPolygons offset_ex(const Slic3r::ExPolygons &expolygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::ExPolygons offset_ex(const Slic3r::Surfaces &surfaces, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
 // BBS
-inline Slic3r::ExPolygons offset_ex(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit)
+inline Slic3r::ExPolygons offset_ex(const Slic3r::Polygon &polygon, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit)
 {
     Slic3r::Polygons temp;
     temp.push_back(polygon);
@@ -339,58 +339,58 @@ Slic3r::ExPolygons union_safety_offset_ex(const Slic3r::Polygons &polygons);
 Slic3r::ExPolygons union_safety_offset_ex(const Slic3r::ExPolygons &expolygons);
 
 // Aliases for the various offset(...) functions, conveying the purpose of the offset.
-inline Slic3r::Polygons   expand(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::Polygons   expand(const Slic3r::Polygon &polygon, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset(polygon, delta, joinType, miterLimit); }
-inline Slic3r::Polygons   expand(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::Polygons   expand(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset(polygons, delta, joinType, miterLimit); }
-inline Slic3r::ExPolygons expand_ex(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::ExPolygons expand_ex(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset_ex(polygons, delta, joinType, miterLimit); }
 // Input polygons for shrinking shall be "normalized": There must be no overlap / intersections between the input polygons.
-inline Slic3r::Polygons   shrink(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::Polygons   shrink(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset(polygons, -delta, joinType, miterLimit); }
-inline Slic3r::ExPolygons shrink_ex(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::ExPolygons shrink_ex(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset_ex(polygons, -delta, joinType, miterLimit); }
 
 // Wherever applicable, please use the opening() / closing() variants instead, they convey their purpose better.
 // Input polygons for negative offset shall be "normalized": There must be no overlap / intersections between the input polygons.
-Slic3r::Polygons   offset2(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::ExPolygons offset2_ex(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::ExPolygons offset2_ex(const Slic3r::Surfaces &surfaces, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons   offset2(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::ExPolygons offset2_ex(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::ExPolygons offset2_ex(const Slic3r::Surfaces &surfaces, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
 
 // BBS
-Slic3r::ExPolygons _clipper_ex(ClipperLib::ClipType clipType,
+Slic3r::ExPolygons _clipper_ex(Clipper3r::ClipType clipType,
     const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);
 
 
 // Offset outside, then inside produces morphological closing. All deltas should be positive.
-Slic3r::Polygons          closing(const Slic3r::Polygons &polygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-inline Slic3r::Polygons   closing(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+Slic3r::Polygons          closing(const Slic3r::Polygons &polygons, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+inline Slic3r::Polygons   closing(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { return closing(polygons, delta, delta, joinType, miterLimit); }
-Slic3r::ExPolygons        closing_ex(const Slic3r::Polygons &polygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-inline Slic3r::ExPolygons closing_ex(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+Slic3r::ExPolygons        closing_ex(const Slic3r::Polygons &polygons, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+inline Slic3r::ExPolygons closing_ex(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { return closing_ex(polygons, delta, delta, joinType, miterLimit); }
-inline Slic3r::ExPolygons closing_ex(const Slic3r::ExPolygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::ExPolygons closing_ex(const Slic3r::ExPolygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset2_ex(polygons, delta, - delta, joinType, miterLimit); }
-inline Slic3r::ExPolygons closing_ex(const Slic3r::Surfaces &surfaces, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::ExPolygons closing_ex(const Slic3r::Surfaces &surfaces, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset2_ex(surfaces, delta, - delta, joinType, miterLimit); }
 
 // Offset inside, then outside produces morphological opening. All deltas should be positive.
 // Input polygons for opening shall be "normalized": There must be no overlap / intersections between the input polygons.
-Slic3r::Polygons          opening(const Slic3r::Polygons &polygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::Polygons          opening(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-Slic3r::Polygons          opening(const Slic3r::Surfaces &surfaces, const float delta1, const float delta2, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
-inline Slic3r::Polygons   opening(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+Slic3r::Polygons          opening(const Slic3r::Polygons &polygons, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons          opening(const Slic3r::ExPolygons &expolygons, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+Slic3r::Polygons          opening(const Slic3r::Surfaces &surfaces, const float delta1, const float delta2, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit);
+inline Slic3r::Polygons   opening(const Slic3r::Polygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { return opening(polygons, delta, delta, joinType, miterLimit); }
-inline Slic3r::Polygons   opening(const Slic3r::ExPolygons &expolygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::Polygons   opening(const Slic3r::ExPolygons &expolygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { return opening(expolygons, delta, delta, joinType, miterLimit); }
-inline Slic3r::Polygons   opening(const Slic3r::Surfaces &surfaces, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::Polygons   opening(const Slic3r::Surfaces &surfaces, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { return opening(surfaces, delta, delta, joinType, miterLimit); }
-inline Slic3r::ExPolygons opening_ex(const Slic3r::ExPolygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::ExPolygons opening_ex(const Slic3r::ExPolygons &polygons, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset2_ex(polygons, - delta, delta, joinType, miterLimit); }
-inline Slic3r::ExPolygons opening_ex(const Slic3r::Surfaces &surfaces, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+inline Slic3r::ExPolygons opening_ex(const Slic3r::Surfaces &surfaces, const float delta, Clipper3r::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset2_ex(surfaces, - delta, delta, joinType, miterLimit); }
 
-Slic3r::Lines _clipper_ln(ClipperLib::ClipType clipType, const Slic3r::Lines &subject, const Slic3r::Polygons &clip);
+Slic3r::Lines _clipper_ln(Clipper3r::ClipType clipType, const Slic3r::Lines &subject, const Slic3r::Polygons &clip);
 
 // Safety offset is applied to the clipping polygons only.
 Slic3r::Polygons   diff(const Slic3r::Polygon &subject, const Slic3r::Polygon &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
@@ -447,7 +447,7 @@ inline Slic3r::ExPolygons diff_ex(const Slic3r::ExPolygons& subject, const Slic3
 
 inline Slic3r::Lines diff_ln(const Slic3r::Lines &subject, const Slic3r::Polygons &clip)
 {
-    return _clipper_ln(ClipperLib::ctDifference, subject, clip);
+    return _clipper_ln(Clipper3r::ctDifference, subject, clip);
 }
 
 // Safety offset is applied to the clipping polygons only.
@@ -486,35 +486,35 @@ inline Slic3r::ExPolygons intersection_ex(const Slic3r::ExPolygon& subject, cons
 
 inline Slic3r::Lines intersection_ln(const Slic3r::Lines &subject, const Slic3r::Polygons &clip)
 {
-    return _clipper_ln(ClipperLib::ctIntersection, subject, clip);
+    return _clipper_ln(Clipper3r::ctIntersection, subject, clip);
 }
 
 inline Slic3r::Lines intersection_ln(const Slic3r::Line &subject, const Slic3r::Polygons &clip)
 {
     Slic3r::Lines lines;
     lines.emplace_back(subject);
-    return _clipper_ln(ClipperLib::ctIntersection, lines, clip);
+    return _clipper_ln(Clipper3r::ctIntersection, lines, clip);
 }
 
 Slic3r::Polygons union_(const Slic3r::Polygons &subject);
 Slic3r::Polygons union_(const Slic3r::ExPolygons &subject);
-Slic3r::Polygons union_(const Slic3r::Polygons &subject, const ClipperLib::PolyFillType fillType);
+Slic3r::Polygons union_(const Slic3r::Polygons &subject, const Clipper3r::PolyFillType fillType);
 Slic3r::Polygons union_(const Slic3r::Polygons &subject, const Slic3r::Polygons &subject2);
 // May be used to "heal" unusual models (3DLabPrints etc.) by providing fill_type (pftEvenOdd, pftNonZero, pftPositive, pftNegative).
-Slic3r::ExPolygons union_ex(const Slic3r::Polygons &subject, ClipperLib::PolyFillType fill_type = ClipperLib::pftNonZero);
+Slic3r::ExPolygons union_ex(const Slic3r::Polygons &subject, Clipper3r::PolyFillType fill_type = Clipper3r::pftNonZero);
 Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons &subject);
 Slic3r::ExPolygons union_ex(const Slic3r::Surfaces &subject);
 
 Slic3r::ExPolygons union_ex(const Slic3r::ExPolygons& poly1, const Slic3r::ExPolygons& poly2, bool safety_offset_ = false);
 
-// Convert polygons / expolygons into ClipperLib::PolyTree using ClipperLib::pftEvenOdd, thus union will NOT be performed.
+// Convert polygons / expolygons into Clipper3r::PolyTree using Clipper3r::pftEvenOdd, thus union will NOT be performed.
 // If the contours are not intersecting, their orientation shall not be modified by union_pt().
-ClipperLib::PolyTree union_pt(const Slic3r::Polygons &subject);
-ClipperLib::PolyTree union_pt(const Slic3r::ExPolygons &subject);
+Clipper3r::PolyTree union_pt(const Slic3r::Polygons &subject);
+Clipper3r::PolyTree union_pt(const Slic3r::ExPolygons &subject);
 
 Slic3r::Polygons union_pt_chained_outside_in(const Slic3r::Polygons &subject);
 
-ClipperLib::PolyNodes order_nodes(const ClipperLib::PolyNodes &nodes);
+Clipper3r::PolyNodes order_nodes(const Clipper3r::PolyNodes &nodes);
 
 // Implementing generalized loop (foreach) over a list of nodes which can be
 // ordered or unordered (performance gain) based on template parameter
@@ -525,12 +525,12 @@ enum class e_ordering {
 
 // Create a template struct, template functions can not be partially specialized
 template<e_ordering o, class Fn> struct _foreach_node {
-    void operator()(const ClipperLib::PolyNodes &nodes, Fn &&fn);
+    void operator()(const Clipper3r::PolyNodes &nodes, Fn &&fn);
 };
 
 // Specialization with NO ordering
 template<class Fn> struct _foreach_node<e_ordering::OFF, Fn> {
-    void operator()(const ClipperLib::PolyNodes &nodes, Fn &&fn)
+    void operator()(const Clipper3r::PolyNodes &nodes, Fn &&fn)
     {
         for (auto &n : nodes) fn(n);    
     }
@@ -538,7 +538,7 @@ template<class Fn> struct _foreach_node<e_ordering::OFF, Fn> {
 
 // Specialization with ordering
 template<class Fn> struct _foreach_node<e_ordering::ON, Fn> {
-    void operator()(const ClipperLib::PolyNodes &nodes, Fn &&fn)
+    void operator()(const Clipper3r::PolyNodes &nodes, Fn &&fn)
     {
         auto ordered_nodes = order_nodes(nodes);
         for (auto &n : nodes) fn(n);    
@@ -547,7 +547,7 @@ template<class Fn> struct _foreach_node<e_ordering::ON, Fn> {
 
 // Wrapper function for the foreach_node which can deduce arguments automatically
 template<e_ordering o, class Fn>
-void foreach_node(const ClipperLib::PolyNodes &nodes, Fn &&fn)
+void foreach_node(const Clipper3r::PolyNodes &nodes, Fn &&fn)
 {
     _foreach_node<o, Fn>()(nodes, std::forward<Fn>(fn));
 }
@@ -555,7 +555,7 @@ void foreach_node(const ClipperLib::PolyNodes &nodes, Fn &&fn)
 // Collecting polygons of the tree into a list of Polygons, holes have clockwise
 // orientation.
 template<e_ordering ordering = e_ordering::OFF>
-void traverse_pt(const ClipperLib::PolyNode *tree, Polygons *out)
+void traverse_pt(const Clipper3r::PolyNode *tree, Polygons *out)
 {
     if (!tree) return; // terminates recursion
     
@@ -568,7 +568,7 @@ void traverse_pt(const ClipperLib::PolyNode *tree, Polygons *out)
 
 // Collecting polygons of the tree into a list of ExPolygons.
 template<e_ordering ordering = e_ordering::OFF>
-void traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *out)
+void traverse_pt(const Clipper3r::PolyNode *tree, ExPolygons *out)
 {
     if (!tree) return;
     else if(tree->IsHole()) {
@@ -582,7 +582,7 @@ void traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *out)
     level.contour.points = tree->Contour;
     
     foreach_node<ordering>(tree->Childs, 
-                           [out, &level] (const ClipperLib::PolyNode *node) {
+                           [out, &level] (const Clipper3r::PolyNode *node) {
         
         // Holes are collected here. 
         level.holes.emplace_back(node->Contour);
@@ -596,9 +596,9 @@ void traverse_pt(const ClipperLib::PolyNode *tree, ExPolygons *out)
 }
 
 template<e_ordering o = e_ordering::OFF, class ExOrJustPolygons>
-void traverse_pt(const ClipperLib::PolyNodes &nodes, ExOrJustPolygons *retval)
+void traverse_pt(const Clipper3r::PolyNodes &nodes, ExOrJustPolygons *retval)
 {
-    foreach_node<o>(nodes, [&retval](const ClipperLib::PolyNode *node) {
+    foreach_node<o>(nodes, [&retval](const Clipper3r::PolyNode *node) {
         traverse_pt<o>(node, retval);
     });
 }
@@ -610,7 +610,7 @@ Slic3r::ExPolygons simplify_polygons_ex(const Slic3r::Polygons &subject, bool pr
 
 Polygons top_level_islands(const Slic3r::Polygons &polygons);
 
-ClipperLib::Path mittered_offset_path_scaled(const Points &contour, const std::vector<float> &deltas, double miter_limit);
+Clipper3r::Path mittered_offset_path_scaled(const Points &contour, const std::vector<float> &deltas, double miter_limit);
 Polygons  variable_offset_inner(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
 Polygons  variable_offset_outer(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);
 ExPolygons variable_offset_outer_ex(const ExPolygon &expoly, const std::vector<std::vector<float>> &deltas, double miter_limit = 2.);

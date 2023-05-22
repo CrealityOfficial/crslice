@@ -28,6 +28,8 @@
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
 
+#include "Slice3rBase/overhangquality/extrusionerocessor.hpp"
+
 namespace cura52
 {
 
@@ -3945,6 +3947,55 @@ bool FffGcodeWriter::closeGcodeWriterFile()
         return true;
     }
     return false;
+}
+
+bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, float layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>> extendedPoints)
+{
+    Slic3r::Clipper3r::Paths  paths3r;
+    for (auto path : prev_paths.paths)
+    {
+        paths3r.push_back(Slic3r::Clipper3r::Path());
+        for (auto p : path)
+        {
+            paths3r.back().push_back(Slic3r::Clipper3r::IntPoint(p.X, p.Y));
+        }
+    }
+
+    //Slic3r::Clipper3r::Paths  paths3rTest;
+    //paths3rTest.push_back(Slic3r::Clipper3r::Path());
+    //paths3rTest.back().push_back(Slic3r::Clipper3r::IntPoint(-11370.994, -17539.082));
+    //paths3rTest.back().push_back(Slic3r::Clipper3r::IntPoint(-11251.467, -17515.446));
+    //paths3rTest.back().push_back(Slic3r::Clipper3r::IntPoint(-17071.256, 11914.638));
+    //paths3rTest.back().push_back(Slic3r::Clipper3r::IntPoint(-23867.872, 10570.606));
+    //paths3rTest.back().push_back(Slic3r::Clipper3r::IntPoint(-18048.084, -18859.478));
+
+    Slic3r::ExPolygons _prev_layer = Slic3r::ClipperPaths_to_Slic3rExPolygons(paths3r);
+    Slic3r::ExtrusionQualityEstimator extrusion_quality_estimator;
+    extrusion_quality_estimator.prepare_for_new_layer(0, _prev_layer);
+
+    Slic3r::Points points;
+    for (auto path : cur_paths.paths)
+    {
+        points.clear();
+        for (auto p : path)
+        {
+            points.push_back(Slic3r::Point(p.X, p.Y));
+
+            //Slic3r::Points pointsTest;
+            //pointsTest.push_back(Slic3r::Point(-17156.329, -17674.819));
+            //pointsTest.push_back(Slic3r::Point(-12300.448, -16714.569));
+            //pointsTest.push_back(Slic3r::Point(-12780.572, -14286.629));
+            //pointsTest.push_back(Slic3r::Point(-17736.457, 10774.780));
+            //pointsTest.push_back(Slic3r::Point(-22592.338, 9814.529));
+            //pointsTest.push_back(Slic3r::Point(-17167.968, -17615.958));
+            //float layer_widthTest = 0.449999392f;
+
+            std::vector<Slic3r::ExtendedPoint> extended_point =
+                Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width);
+            extendedPoints.push_back(extended_point);
+        }
+    }
+    return true;
 }
 
 

@@ -53,7 +53,7 @@ double Polygon::area() const
 
 bool Polygon::is_counter_clockwise() const
 {
-    return ClipperLib::Orientation(this->points);
+    return Clipper3r::Orientation(this->points);
 }
 
 bool Polygon::is_clockwise() const

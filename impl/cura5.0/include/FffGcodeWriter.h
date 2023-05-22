@@ -14,6 +14,8 @@
 #include "utils/ExtrusionLine.h" //Processing variable-width paths.
 #include "utils/NoCopy.h"
 
+#include "Slice3rBase/overhangquality/overhanghead.hpp"
+
 namespace cura52 
 {
 
@@ -625,6 +627,17 @@ public:
      */
     void setExtruder_addPrime(const SliceDataStorage& storage, LayerPlan& gcode_layer, const size_t extruder_nr) const;
 
+
+    /*!
+    * 生成悬垂区域
+    *
+    *
+    * \param prev_paths [in] 下一层轮廓
+    * \param cur_paths [in] 当前层轮廓
+    * \param layer_width  线宽
+    * \param extendedPoints 每一个轮廓对应的点数据
+    */
+    bool processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, float layer_width,std::vector<std::vector<Slic3r::ExtendedPoint>> extendedPoints);
 private:
     /*!
      * Add the prime tower gcode for the current layer.

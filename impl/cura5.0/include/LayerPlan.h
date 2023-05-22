@@ -833,6 +833,26 @@ private:
      * \return the combing boundary or an empty Polygons if no combing is required
      */
     Polygons computeCombBoundary(const CombBoundary boundary_type);
+
+    /*!
+     * 初始化速度因子
+     * \param original_speed 外壁速度
+     * \param line_width 线宽
+     * \param speeds 速度因子.speeds({100,50,30,10});
+     * \param overlaps 垂悬区域.overlaps({ 75, 50, 25, 5 });
+     * \param speed_sections;[out] 速度区间等级
+     */
+    void getSpeedSections(const float original_speed, const float line_width, const std::vector<float>&speeds, const std::vector<double>& overlaps,std::vector<std::pair<float, float>>& speed_sections);
+
+    /*!
+    * 获取点对应的速度
+    * \param p0 
+    * \param distance 
+    * \param speeds 速度因子.speeds({100,50,30,10});
+    * \param overlaps 垂悬区域.overlaps({ 75, 50, 25, 5 });
+    * \param speed_sections;[out] 速度区间等级
+    */
+    float getSpeedFactorP(const Point& p0, const float distance, const float original_speed, std::vector<std::pair<float, float>>& speed_sections);
 };
 
 }//namespace cura52

@@ -68,7 +68,8 @@ namespace CLIPPERLIB_NAMESPACE_PREFIX {
 #ifdef CLIPPERLIB_USE_XYZ
 namespace ClipperLib_Z {
 #else /* CLIPPERLIB_USE_XYZ */
-namespace ClipperLib {
+//namespace ClipperLib {
+   namespace Clipper3r{
 #endif /* CLIPPERLIB_USE_XYZ */
 
 static double const pi = 3.141592653589793238;

@@ -2704,4 +2704,57 @@ void LayerPlan::setFillLineWidthDiff(coord_t diff)
     fill_lineWidth_diff = diff;
 }
 
+void LayerPlan::getSpeedSections(const float original_speed, const float line_width, const std::vector<float>& speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections)
+{
+    //const std::vector<double> overlaps({ 75, 50, 25, 5 });
+    //const std::vector<float> speeds({ 100,50,30,10 });
+
+    size_t  speed_sections_count = std::min(overlaps.size(), speeds.size());
+
+    for (size_t i = 0; i < speed_sections_count; i++) {
+        float distance = line_width * (1.0 - (overlaps.at(i) / 100.0));
+        float speed = speeds.at(i) >= 1 ? (original_speed * speeds.at(i) / 100.0) : speeds.at(i);
+        speed_sections.push_back({ distance, speed });
+    }
+    std::sort(speed_sections.begin(), speed_sections.end(),
+        [](const std::pair<float, float>& a, const std::pair<float, float>& b) {
+            if (a.first == b.first) {
+                return a.second > b.second;
+            }
+            return a.first < b.first; });
+
+    std::pair<float, float> last_section{ INFINITY, 0 };
+    for (auto& section : speed_sections) {
+        if (section.first == last_section.first) {
+            section.second = last_section.second;
+        }
+        else {
+            last_section = section;
+        }
+    }
+}
+
+float getSpeedFactorP(const Point& p0, const float distance, const float original_speed, std::vector<std::pair<float, float>>& speed_sections)
+{
+    float final_speed = original_speed;
+
+    if (distance <= speed_sections.front().first) {
+        final_speed = original_speed;
+    }
+    else if (distance >= speed_sections.back().first) {
+        final_speed = speed_sections.back().second;
+    }
+    else {
+        size_t section_idx = 0;
+        while (distance > speed_sections[section_idx + 1].first) {
+            section_idx++;
+        }
+        float t = (distance - speed_sections[section_idx].first) /
+            (speed_sections[section_idx + 1].first - speed_sections[section_idx].first);
+        t = std::clamp(t, 0.0f, 1.0f);
+        final_speed = (1.0f - t) * speed_sections[section_idx].second + t * speed_sections[section_idx + 1].second;
+    }
+    return Ratio((final_speed * 1.0f) / original_speed);
+}
+
 } // namespace cura52
