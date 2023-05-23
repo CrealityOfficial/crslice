@@ -3991,7 +3991,7 @@ bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Pol
             //float layer_widthTest = 0.449999392f;
         }
         std::vector<Slic3r::ExtendedPoint> extended_point =
-            Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width);
+            Slic3r::estimate_points_properties<true, true, false, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width);
         extendedPoints.push_back(extended_point);
 
     }
