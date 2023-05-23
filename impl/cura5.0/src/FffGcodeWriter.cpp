@@ -3949,7 +3949,7 @@ bool FffGcodeWriter::closeGcodeWriterFile()
     return false;
 }
 
-bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const float layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints)
+bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const float layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints)const
 {
     Slic3r::Clipper3r::Paths  paths3r;
     for (auto path : prev_paths.paths)
@@ -3989,11 +3989,11 @@ bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Pol
             //pointsTest.push_back(Slic3r::Point(-22592.338, 9814.529));
             //pointsTest.push_back(Slic3r::Point(-17167.968, -17615.958));
             //float layer_widthTest = 0.449999392f;
-
-            std::vector<Slic3r::ExtendedPoint> extended_point =
-                Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width);
-            extendedPoints.push_back(extended_point);
         }
+        std::vector<Slic3r::ExtendedPoint> extended_point =
+            Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width);
+        extendedPoints.push_back(extended_point);
+
     }
     return true;
 }
