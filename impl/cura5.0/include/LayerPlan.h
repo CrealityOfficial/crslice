@@ -544,7 +544,7 @@ public:
      * \param distance_to_bridge_start The distance along the wall from p0 to
      * the first bridge segment.
      */
-    void addWallLine(const Point& p0, const Point& p1, const Settings& settings, const GCodePathConfig& non_bridge_config, const GCodePathConfig& bridge_config, float flow, const Ratio width_factor, float& non_bridge_line_volume, Ratio speed_factor, double distance_to_bridge_start);
+    void addWallLine(const Point& p0, const Point& p1, const Settings& settings, const GCodePathConfig& non_bridge_config, const GCodePathConfig& bridge_config, float flow, const Ratio width_factor, float& non_bridge_line_volume, Ratio speed_factor, double distance_to_bridge_start, const float overhang_distance = 0);
 
     /*!
      * Add a wall to the g-code starting at vertex \p start_idx
@@ -842,7 +842,7 @@ private:
      * \param overlaps 垂悬区域.overlaps({ 75, 50, 25, 5 });
      * \param speed_sections;[out] 速度区间等级
      */
-    void getSpeedSections(const float original_speed, const float line_width, const std::vector<float>&speeds, const std::vector<double>& overlaps,std::vector<std::pair<float, float>>& speed_sections);
+    void getSpeedSections(const float original_speed, const float line_width, const std::vector<Ratio>&speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections);
 
     /*!
     * 获取点对应的速度
@@ -852,7 +852,7 @@ private:
     * \param overlaps 垂悬区域.overlaps({ 75, 50, 25, 5 });
     * \param speed_sections;[out] 速度区间等级
     */
-    float getSpeedFactorP(const Point& p0, const float distance, const float original_speed, std::vector<std::pair<float, float>>& speed_sections);
+    Ratio getSpeedFactorP(const Point& p0, const float distance, const float original_speed, const std::vector<std::pair<float, float>>& speed_sections);
 };
 
 }//namespace cura52

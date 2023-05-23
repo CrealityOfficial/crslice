@@ -2653,6 +2653,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
             gcode_layer.addPolygonsByOptimizer(part.spiral_wall, mesh_config.inset0_config, ZSeamConfig(), wall_0_wipe_dist);
         }
     }
+    std::vector<VariableWidthLines> new_wall_toolpaths;
     // for non-spiralized layers, determine the shape of the unsupported areas below this part
     if (! spiralize && gcode_layer.getLayerNr() > 0)
     {
@@ -2789,6 +2790,49 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                 gcode_layer.setOverhangMask(_overhang_region, 0);
             }
         }
+        std::vector<std::vector<Slic3r::ExtendedPoint>> extendedPoints;
+        Polygons toolpaths;
+        for (VariableWidthLines path : part.wall_toolpaths)
+        {
+            for (ExtrusionLine line : path)
+            {
+                toolpaths.add(line.toPolygon());
+            }           
+        }
+        processEstimatePoints(outlines_below.offset(-half_outer_wall_width), toolpaths, 2 * half_outer_wall_width / 1000.0, extendedPoints);
+        
+        int extendedPoints_idx = 0;
+        for (VariableWidthLines path : part.wall_toolpaths)
+        {
+            for (ExtrusionLine& line : path)
+            {
+                std::vector<ExtrusionJunction> new_junctions;
+                std::vector<ExtrusionJunction>& junctions = line.junctions;
+                int junctions_idx = 0;
+                for (int i = 0; i < extendedPoints[extendedPoints_idx].size(); i++)
+                {
+                    Point pt = Point(extendedPoints[extendedPoints_idx][i].position.x() * 1000, extendedPoints[extendedPoints_idx][i].position.y() * 1000);
+                    if (junctions_idx < junctions.size())
+                    {
+                        if (pt == junctions[junctions_idx].p)
+                        {
+                            junctions[junctions_idx].overhang_distance = extendedPoints[extendedPoints_idx][i].distance * 1000;
+                                new_junctions.push_back(junctions[junctions_idx]);
+                                junctions_idx++;
+                        }
+                        else
+                        {
+                            ExtrusionJunction new_pt = ExtrusionJunction(pt, junctions[junctions_idx].w, junctions[junctions_idx].perimeter_index, extendedPoints[extendedPoints_idx][i].distance * 1000);
+                                new_junctions.push_back(new_pt);
+                        }
+                    }
+                }
+                line.junctions.swap(new_junctions);
+                extendedPoints_idx++;
+            }
+            new_wall_toolpaths.push_back(path);
+        }
+        int aaa = 0;
     }
     else
     {
@@ -2837,7 +2881,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                                          mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr,
                                          mesh.settings.get<ExtruderTrain&>("wall_x_extruder_nr").extruder_nr,
                                          z_seam_config,
-                                         part.wall_toolpaths);
+                                         new_wall_toolpaths.empty() ? part.wall_toolpaths : new_wall_toolpaths);
         added_something |= wall_orderer.addToLayer();
     }
     return added_something;

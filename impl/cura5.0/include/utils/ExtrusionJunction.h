@@ -37,7 +37,9 @@ struct ExtrusionJunction
      */
     size_t perimeter_index;
 
-    ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index);
+    coord_t overhang_distance;
+
+    ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index, const coord_t overhang_distance = 0);
 
     bool operator==(const ExtrusionJunction& other) const;
 };

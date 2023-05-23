@@ -10,13 +10,15 @@ bool ExtrusionJunction::operator ==(const ExtrusionJunction& other) const
 {
     return p == other.p
         && w == other.w
-        && perimeter_index == other.perimeter_index;
+        && perimeter_index == other.perimeter_index
+        && overhang_distance == other.overhang_distance;
 }
 
-ExtrusionJunction::ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index)
+ExtrusionJunction::ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index, const coord_t overhang_distance)
     : p(p),
       w(w),
-      perimeter_index(perimeter_index)
+      perimeter_index(perimeter_index),
+      overhang_distance(overhang_distance)
 {}
 
 }

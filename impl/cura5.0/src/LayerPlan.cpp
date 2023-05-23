@@ -690,7 +690,8 @@ void LayerPlan::addWallLine(const Point& p0,
                             const Ratio width_factor,
                             float& non_bridge_line_volume,
                             Ratio speed_factor,
-                            double distance_to_bridge_start)
+                            double distance_to_bridge_start,
+                            const float overhang_distance)
 {
     const coord_t min_line_len = 5; // we ignore lines less than 5um long
     const double acceleration_segment_len = MM2INT(1); // accelerate using segments of this length
@@ -702,6 +703,8 @@ void LayerPlan::addWallLine(const Point& p0,
     const Ratio overhang_speed_factor = settings.get<Ratio>("wall_overhang_speed_factor");
     const bool set_wall_overhang_grading = settings.get<bool>("set_wall_overhang_grading");
     std::vector<Ratio> overhang_speed_factor_vec;
+    std::vector<double> overlaps;
+    std::vector<Ratio> level_speeds;
     if (set_wall_overhang_grading)
     {
         for (int i = 1; i < 5; i++)
@@ -710,12 +713,26 @@ void LayerPlan::addWallLine(const Point& p0,
             if (level_speed_factor <= 0) 
                 level_speed_factor = Ratio(1.0);
             overhang_speed_factor_vec.push_back(level_speed_factor);
+            level_speeds.push_back(level_speed_factor * non_bridge_config.getSpeed());
+        }
+        AngleDegrees overhang_angle_level[4] = { 75, 60, 45, 20 };
+        for (int i = 0; i < 4; i++)
+        {
+            coord_t _overhang_width = non_bridge_config.getLayerThickness() * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
+            overlaps.push_back(std::min(100., _overhang_width * 100.0 / non_bridge_config.getLineWidth()));
         }
     }
     else
     {
         overhang_speed_factor_vec.push_back(overhang_speed_factor);
+        level_speeds.push_back(overhang_speed_factor * non_bridge_config.getSpeed());
+        const AngleDegrees overhang_angle = settings.get<AngleDegrees>("wall_overhang_angle");
+        coord_t _overhang_width = non_bridge_config.getLayerThickness() * std::tan(overhang_angle / (180 / M_PI));
+        overlaps.push_back(std::min(100., _overhang_width * 100.0 / non_bridge_config.getLineWidth()));
     }
+
+    std::vector<std::pair<float, float>> speed_sections;
+    getSpeedSections(non_bridge_config.getSpeed(), non_bridge_config.getLineWidth(), level_speeds, overlaps, speed_sections);
 
     Point cur_point = p0;
     bool p0Added = false;
@@ -726,8 +743,12 @@ void LayerPlan::addWallLine(const Point& p0,
 
     // alternatively, if the line follows a bridge line, it may be segmented and the print speed gradually increased to reduce under-extrusion
 
-    auto getSpeedFactor = [&](const Point& p0, const Point& p1)
+    auto getSpeedFactor = [&, this](const Point& _p0, const Point& _p1)
     {
+#if 1
+        Ratio result_factor = getSpeedFactorP(_p1, overhang_distance, non_bridge_config.getSpeed(), speed_sections);
+        return result_factor;
+#else
         if (overhang_mask.empty()) return speed_factor;
         Ratio sf0 = speed_factor, sf1 = speed_factor;
         int level_min = -1;
@@ -742,18 +763,6 @@ void LayerPlan::addWallLine(const Point& p0,
         }
         if (sf0 < speed_factor && sf1 < speed_factor)
         {
-            //bool make_sure = false;
-            //for (int i = 0; i < overhang_mask.size(); i++)
-            //{
-            //    float rand_radio = (std::rand() % 60 + 20) / 100.;
-            //    if (overhang_mask[i].inside(p0 + rand_radio * (p1 - p0), true))
-            //    {
-            //        make_sure = true;
-            //        break;
-            //    }
-            //}
-            //if(make_sure)
-            //    return std::min(sf0, sf1);
             return Ratio((sf0 + sf1) / 2);
         }
         else if (sf0 < speed_factor || sf1 < speed_factor)
@@ -795,6 +804,7 @@ void LayerPlan::addWallLine(const Point& p0,
             }
         }
         return speed_factor;
+#endif
     };
 
     auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true)
@@ -1224,7 +1234,7 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
             else
             {
                 const Point origin = p0.p + normal(line_vector, piece_length * piece);
-                addWallLine(origin, destination, settings, non_bridge_config, bridge_config, flow_ratio, line_width * nominal_line_width_multiplier, non_bridge_line_volume, speed_factor, distance_to_bridge_start);
+                addWallLine(origin, destination, settings, non_bridge_config, bridge_config, flow_ratio, line_width * nominal_line_width_multiplier, non_bridge_line_volume, speed_factor, distance_to_bridge_start, p1.overhang_distance);
             }
         }
 
@@ -2708,7 +2718,7 @@ void LayerPlan::setFillLineWidthDiff(coord_t diff)
     fill_lineWidth_diff = diff;
 }
 
-void LayerPlan::getSpeedSections(const float original_speed, const float line_width, const std::vector<float>& speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections)
+void LayerPlan::getSpeedSections(const float original_speed, const float line_width, const std::vector<Ratio>& speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections)
 {
     //const std::vector<double> overlaps({ 75, 50, 25, 5 });
     //const std::vector<float> speeds({ 100,50,30,10 });
@@ -2738,7 +2748,7 @@ void LayerPlan::getSpeedSections(const float original_speed, const float line_wi
     }
 }
 
-float getSpeedFactorP(const Point& p0, const float distance, const float original_speed, std::vector<std::pair<float, float>>& speed_sections)
+Ratio LayerPlan::getSpeedFactorP(const Point& p0, const float distance, const float original_speed, const std::vector<std::pair<float, float>>& speed_sections)
 {
     float final_speed = original_speed;
 
