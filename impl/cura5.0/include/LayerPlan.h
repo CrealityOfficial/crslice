@@ -270,6 +270,7 @@ private:
     coord_t comb_move_inside_distance;  //!< Whenever using the minimum boundary for combing it tries to move the coordinates inside by this distance after calculating the combing.
     Polygons bridge_wall_mask; //!< The regions of a layer part that are not supported, used for bridging
     std::vector<Polygons> overhang_mask; //!< The regions of a layer part where the walls overhang
+    std::vector<std::pair<float, float>> overhang_speed_sections;
     coord_t fill_lineWidth_diff;
 
     const std::vector<FanSpeedLayerTimeSettings> fan_speed_layer_time_settings_per_extruder;
@@ -833,7 +834,7 @@ private:
      * \return the combing boundary or an empty Polygons if no combing is required
      */
     Polygons computeCombBoundary(const CombBoundary boundary_type);
-
+public:
     /*!
      * 初始化速度因子
      * \param original_speed 外壁速度
@@ -842,7 +843,10 @@ private:
      * \param overlaps 垂悬区域.overlaps({ 75, 50, 25, 5 });
      * \param speed_sections;[out] 速度区间等级
      */
-    void getSpeedSections(const float original_speed, const float line_width, const std::vector<Ratio>&speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections);
+    void calculateSpeedSections(const float original_speed, const float line_width, const std::vector<Ratio>&speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections);
+
+    void setOverhangSpeedSections(const std::vector<std::pair<float, float>>& speedSections);
+    std::vector<std::pair<float, float>> getOverhangSpeedSections();
 
     /*!
     * 获取点对应的速度

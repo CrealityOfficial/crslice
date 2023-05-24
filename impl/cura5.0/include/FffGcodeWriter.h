@@ -637,7 +637,7 @@ public:
     * \param layer_width  线宽
     * \param extendedPoints 每一个轮廓对应的点数据
     */
-    bool processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const float layer_width,std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints) const;
+    bool processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const coord_t layer_width,std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints) const;
 private:
     /*!
      * Add the prime tower gcode for the current layer.

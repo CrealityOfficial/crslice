@@ -703,8 +703,6 @@ void LayerPlan::addWallLine(const Point& p0,
     const Ratio overhang_speed_factor = settings.get<Ratio>("wall_overhang_speed_factor");
     const bool set_wall_overhang_grading = settings.get<bool>("set_wall_overhang_grading");
     std::vector<Ratio> overhang_speed_factor_vec;
-    std::vector<double> overlaps;
-    std::vector<Ratio> level_speeds;
     if (set_wall_overhang_grading)
     {
         for (int i = 1; i < 5; i++)
@@ -713,29 +711,16 @@ void LayerPlan::addWallLine(const Point& p0,
             if (level_speed_factor <= 0) 
                 level_speed_factor = Ratio(1.0);
             overhang_speed_factor_vec.push_back(level_speed_factor);
-            level_speeds.push_back(level_speed_factor * non_bridge_config.getSpeed());
-        }
-        AngleDegrees overhang_angle_level[4] = { 75, 60, 45, 20 };
-        for (int i = 0; i < 4; i++)
-        {
-            coord_t _overhang_width = non_bridge_config.getLayerThickness() * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
-            overlaps.push_back(std::min(100., _overhang_width * 100.0 / non_bridge_config.getLineWidth()));
         }
     }
     else
     {
         overhang_speed_factor_vec.push_back(overhang_speed_factor);
-        level_speeds.push_back(overhang_speed_factor * non_bridge_config.getSpeed());
-        const AngleDegrees overhang_angle = settings.get<AngleDegrees>("wall_overhang_angle");
-        coord_t _overhang_width = non_bridge_config.getLayerThickness() * std::tan(overhang_angle / (180 / M_PI));
-        overlaps.push_back(std::min(100., _overhang_width * 100.0 / non_bridge_config.getLineWidth()));
     }
 
-    std::vector<std::pair<float, float>> speed_sections;
-    getSpeedSections(non_bridge_config.getSpeed(), non_bridge_config.getLineWidth(), level_speeds, overlaps, speed_sections);
+    std::vector<std::pair<float, float>> speed_sections = getOverhangSpeedSections();
 
     Point cur_point = p0;
-    bool p0Added = false;
 
     // helper function to add a single non-bridge line
 
@@ -746,6 +731,8 @@ void LayerPlan::addWallLine(const Point& p0,
     auto getSpeedFactor = [&, this](const Point& _p0, const Point& _p1)
     {
 #if 1
+        if(speed_sections.empty()) 
+            return speed_factor;
         Ratio result_factor = getSpeedFactorP(_p1, overhang_distance, non_bridge_config.getSpeed(), speed_sections);
         return result_factor;
 #else
@@ -785,7 +772,6 @@ void LayerPlan::addWallLine(const Point& p0,
 
                 if (point_mid != Point())
                 {
-                    p0Added = true;
                     GCodePath path = extruder_plans.back().paths.back();
                     addExtrusionMove(point_mid, non_bridge_config, SpaceFillType::Polygons, flow,  path.width_factor, spiralize, path.speed_factor);
                     if (sf0 == speed_factor) return sf1;
@@ -1698,8 +1684,7 @@ bool ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
                 return false;
             }             
         }
-        if (layer_nr == 138)
-            int aaa = 0;;
+
         for (GCodePath& path : paths)
         {
             if (!path.needSlowdown(slowdown_level))
@@ -2713,12 +2698,22 @@ void LayerPlan::setOverhangMask(const Polygons& polys, int idx)
         overhang_mask[idx] = overhang_mask[idx].unionPolygons(polys);
 }
 
+void LayerPlan::setOverhangSpeedSections(const std::vector<std::pair<float, float>>& SpeedSections)
+{
+    overhang_speed_sections = SpeedSections;
+}
+
+std::vector<std::pair<float, float>> LayerPlan::getOverhangSpeedSections()
+{
+    return overhang_speed_sections;
+}
+
 void LayerPlan::setFillLineWidthDiff(coord_t diff)
 {
     fill_lineWidth_diff = diff;
 }
 
-void LayerPlan::getSpeedSections(const float original_speed, const float line_width, const std::vector<Ratio>& speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections)
+void LayerPlan::calculateSpeedSections(const float original_speed, const float line_width, const std::vector<Ratio>& speeds, const std::vector<double>& overlaps, std::vector<std::pair<float, float>>& speed_sections)
 {
     //const std::vector<double> overlaps({ 75, 50, 25, 5 });
     //const std::vector<float> speeds({ 100,50,30,10 });
@@ -2726,7 +2721,7 @@ void LayerPlan::getSpeedSections(const float original_speed, const float line_wi
     size_t  speed_sections_count = std::min(overlaps.size(), speeds.size());
 
     for (size_t i = 0; i < speed_sections_count; i++) {
-        float distance = line_width * (1.0 - (overlaps.at(i) / 100.0));
+        float distance = line_width * (overlaps.at(i) / 100.0);
         float speed = speeds.at(i) >= 1 ? (original_speed * speeds.at(i) / 100.0) : speeds.at(i);
         speed_sections.push_back({ distance, speed });
     }

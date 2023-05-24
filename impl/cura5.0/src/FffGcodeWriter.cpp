@@ -2780,7 +2780,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                 aabb.add(Point(boundaryBox.max.X, boundaryBox.min.Y));
                 Polygons aabbs;
                 aabbs.add(aabb);
-                overhang_region_last = overhang_region_last.unionPolygons((aabbs.offset(2*half_outer_wall_width).difference(outlines_below_offset)));
+                overhang_region_last = overhang_region_last.unionPolygons((aabbs.offset(2 * half_outer_wall_width).difference(outlines_below_offset)));
                 gcode_layer.setOverhangMask(overhang_region_last, 3);
             }
             else
@@ -2789,50 +2789,87 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                 Polygons _overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width)).offset(10);
                 gcode_layer.setOverhangMask(_overhang_region, 0);
             }
-        }
-        std::vector<std::vector<Slic3r::ExtendedPoint>> extendedPoints;
-        Polygons toolpaths;
-        for (VariableWidthLines path : part.wall_toolpaths)
-        {
-            for (ExtrusionLine line : path)
+
+            auto getWallSpeedSections = [&](const GCodePathConfig& inset_config)
             {
-                toolpaths.add(line.toPolygon());
-            }           
-        }
-        processEstimatePoints(outlines_below.offset(-half_outer_wall_width), toolpaths, 2 * half_outer_wall_width / 1000.0, extendedPoints);
-        
-        int extendedPoints_idx = 0;
-        for (VariableWidthLines path : part.wall_toolpaths)
-        {
-            for (ExtrusionLine& line : path)
-            {
-                std::vector<ExtrusionJunction> new_junctions;
-                std::vector<ExtrusionJunction>& junctions = line.junctions;
-                int junctions_idx = 0;
-                for (int i = 0; i < extendedPoints[extendedPoints_idx].size(); i++)
+                const Velocity wall_speed = inset_config.getSpeed();
+                const int outer_wall_width = inset_config.getLineWidth();
+                std::vector<double> overlaps;
+                std::vector<Ratio> level_speeds;
+                if (mesh.settings.get<bool>("set_wall_overhang_grading"))
                 {
-                    Point pt = Point(extendedPoints[extendedPoints_idx][i].position.x() * 1000, extendedPoints[extendedPoints_idx][i].position.y() * 1000);
-                    if (junctions_idx < junctions.size())
+                    for (int i = 1; i < 5; i++)
                     {
-                        if (pt == junctions[junctions_idx].p)
-                        {
-                            junctions[junctions_idx].overhang_distance = extendedPoints[extendedPoints_idx][i].distance * 1000;
-                                new_junctions.push_back(junctions[junctions_idx]);
-                                junctions_idx++;
-                        }
-                        else
-                        {
-                            ExtrusionJunction new_pt = ExtrusionJunction(pt, junctions[junctions_idx].w, junctions[junctions_idx].perimeter_index, extendedPoints[extendedPoints_idx][i].distance * 1000);
-                                new_junctions.push_back(new_pt);
-                        }
+                        Velocity level_speed = std::min(mesh.settings.get<Velocity>("wall_overhang_speed_" + std::to_string(i)), wall_speed);
+                        if (level_speed <= 0)
+                            level_speed = wall_speed;
+                        level_speeds.push_back(Ratio(level_speed / wall_speed * 100.));
+                    }
+                    AngleDegrees overhang_angle_level[4] = { 20, 45, 60, 75 };
+                    for (int i = 0; i < 4; i++)
+                    {
+                        coord_t _overhang_width = layer_height * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
+                        overlaps.push_back(_overhang_width * 100.0 / outer_wall_width);
                     }
                 }
-                line.junctions.swap(new_junctions);
-                extendedPoints_idx++;
+                else
+                {
+                    level_speeds.push_back(mesh.settings.get<Ratio>("wall_overhang_speed_factor") * wall_speed);
+                    const AngleDegrees overhang_angle = mesh.settings.get<AngleDegrees>("wall_overhang_angle");
+                    coord_t _overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
+                    overlaps.push_back(_overhang_width * 100.0 / outer_wall_width);
+                }
+
+                std::vector<std::pair<float, float>> speed_sections;
+                gcode_layer.calculateSpeedSections(wall_speed, outer_wall_width, level_speeds, overlaps, speed_sections);
+                return speed_sections;
+            };
+
+            gcode_layer.setOverhangSpeedSections(getWallSpeedSections(mesh_config.inset0_config));
+
+            std::vector<std::vector<Slic3r::ExtendedPoint>> extendedPoints;
+            Polygons toolpaths;
+            for (VariableWidthLines path : part.wall_toolpaths)
+            {
+                for (ExtrusionLine line : path)
+                {
+                    toolpaths.add(line.toPolygon());
+                }
             }
-            new_wall_toolpaths.push_back(path);
+            processEstimatePoints(outlines_below, toolpaths, 2 * half_outer_wall_width, extendedPoints);
+
+            int extendedPoints_idx = 0;
+            for (VariableWidthLines path : part.wall_toolpaths)
+            {
+                for (ExtrusionLine& line : path)
+                {
+                    std::vector<ExtrusionJunction> new_junctions;
+                    std::vector<ExtrusionJunction>& junctions = line.junctions;
+                    int junctions_idx = 0;
+                    for (int i = 0; i < extendedPoints[extendedPoints_idx].size(); i++)
+                    {
+                        Point pt = Point(extendedPoints[extendedPoints_idx][i].position.x(), extendedPoints[extendedPoints_idx][i].position.y());
+                        if (junctions_idx < junctions.size())
+                        {
+                            if (pt == junctions[junctions_idx].p)
+                            {
+                                junctions[junctions_idx].overhang_distance = extendedPoints[extendedPoints_idx][i].distance;
+                                new_junctions.push_back(junctions[junctions_idx]);
+                                junctions_idx++;  
+                            }
+                            else
+                            {
+                                ExtrusionJunction new_pt = ExtrusionJunction(pt, junctions[junctions_idx].w, junctions[junctions_idx].perimeter_index, extendedPoints[extendedPoints_idx][i].distance);
+                                new_junctions.push_back(new_pt);                                  
+                            }      
+                        }
+                    }
+                    line.junctions.swap(new_junctions);
+                    extendedPoints_idx++;
+                }
+                new_wall_toolpaths.push_back(path);
+            }
         }
-        int aaa = 0;
     }
     else
     {
@@ -3993,7 +4030,7 @@ bool FffGcodeWriter::closeGcodeWriterFile()
     return false;
 }
 
-bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const float layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints)const
+bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const coord_t layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints)const
 {
     Slic3r::Clipper3r::Paths  paths3r;
     for (auto path : prev_paths.paths)
@@ -4035,7 +4072,12 @@ bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Pol
             //float layer_widthTest = 0.449999392f;
         }
         std::vector<Slic3r::ExtendedPoint> extended_point =
-            Slic3r::estimate_points_properties<true, true, false, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width);
+            Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width / 1000.0);
+        for (Slic3r::ExtendedPoint& pt : extended_point)
+        {
+            pt.position *= 1000;
+            pt.distance *= 1000;
+        }
         extendedPoints.push_back(extended_point);
 
     }
