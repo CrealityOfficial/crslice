@@ -49,13 +49,6 @@ set(SRCS	Slice3rBase/Int128.hpp
 			
 			Slice3rBase/clipper/clipper_z.cpp
 			Slice3rBase/clipper/clipper_z.hpp
-			
-			
-#			Slice3rBase/overhang/AABBTreeIndirect.hpp
-#			Slice3rBase/overhang/AABBTreeLines.hpp
-#			Slice3rBase/overhang/ExtrusionEntity.cpp
-#			Slice3rBase/overhang/ExtrusionEntity.hpp
-#			Slice3rBase/overhang/ExtrusionProcessor.hpp
 
 			Slice3rBase/overhangquality/extrusionerocessor.hpp
 			Slice3rBase/overhangquality/overhanghead.hpp
