@@ -1900,6 +1900,8 @@ void LayerPlan::processFanSpeedAndMinimalLayerTime(Point starting_position)
 
 void LayerPlan::writeGCode(GCodeExport& gcode)
 {
+    bool infill_slow_OK = false;
+    bool wall_slow_OK = false;
     gcode.setLayerNr(layer_nr);
 
     gcode.writeLayerComment(layer_nr);
@@ -2063,6 +2065,25 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             {
                 isAvoidPoint = true;//统计被过滤的点 用于G2G3的判断
             }
+            for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+            {
+                double speed = paths[path_idx].config->getSpeed();
+                if (paths[path_idx].needSlowdown(extruder_plan.slowdown_level))
+                {
+                    speed *= extruder_plan.getExtrudeSpeedFactor();
+                }
+                speed *= paths[path_idx].speed_factor;
+
+                if (!paths[path_idx].config->isTravelPath())
+                {
+                    paths[path_idx].speedSlowDownPath = speed;
+                }
+                else
+                {
+                    paths[path_idx].speedSlowDownPath = -111.0;
+                }
+            }
+
             // In some cases we want to find the next non-travel move.
             size_t next_extrusion_idx = path_idx + 1;
             if ((acceleration_enabled && ! acceleration_travel_enabled) || (jerk_enabled && ! jerk_travel_enabled))
@@ -2277,6 +2298,22 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 continue;
             }
 
+            bool judgeVelocityDip = false;
+            for (int i = 1; i <= path_idx; i++)
+            {   //avoid  line  was splited by algo, same line  slowdown such as circle split into arc
+                if ((paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall ||
+                    paths[path_idx - i].config->type == PrintFeatureType::Infill) && speed == paths[path_idx - i].speedSlowDownPath)
+                    break;
+                float vv = paths[path_idx - i].speedSlowDownPath;
+                if (path_idx - i >= 0 && (vv != -111.0f) && (speed / paths[path_idx - i].speedSlowDownPath) > 3.0f)   //from   large  to  small,  Reversely  is path is Travel Path
+                {
+                    gcode.writeTemperatureCommand(0, 225, false);
+                    judgeVelocityDip = true;
+                    break;
+                }
+
+            }
+
             bool spiralize = path.spiralize;
             if (! spiralize) // normal (extrusion) move (with coasting)
             {
@@ -2332,7 +2369,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
                                 bool arcFittingValiable = Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
-
+                                int count_path_wall = 0;
+                                int count_path_infill = 0;
+                                float flow_solwdown = 0;
+                                bool slow2fastSlowdown = application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown");
                                 // BBS: start to generate gcode from arc fitting data which includes line and arc
                                 for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
                                 {
@@ -2343,14 +2383,34 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                     {
                                         size_t start_index = fitting_result[fitting_index].start_point_index;
                                         size_t end_index = fitting_result[fitting_index].end_point_index;
-                                        const double extrude_speed = speed * path.speed_back_pressure_factor;
-
+                                        double extrude_speed;// = speed * path.speed_back_pressure_factor;
+                                        float dis = 1;
                                         for (size_t point_index = start_index; point_index < end_index + 1; point_index++)
                                         {
                                             Point gcodePt(points[point_index].x(), points[point_index].y());
+                                            if (slow2fastSlowdown && flow_solwdown < 200.0 && wall_slow_OK == false && judgeVelocityDip && count_path_wall < 8 && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
+                                            {
+                                                count_path_wall += 1;
+                                                extrude_speed = 50;
+                                                if (count_path_wall == 7)  wall_slow_OK = true;
+                                            }
+                                            else if (slow2fastSlowdown && flow_solwdown < 200.0 && infill_slow_OK == false && judgeVelocityDip && count_path_infill < 8 && path.config->type == PrintFeatureType::Infill)
+                                            {
+                                                count_path_infill += 1;
+                                                extrude_speed = 50;
+                                                if (count_path_infill == 7)  infill_slow_OK = true;
+                                            }
+                                            else
+                                                extrude_speed = speed * path.speed_back_pressure_factor;
                                             gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+                                            float f = path.config->getcalculateExtrusion();
 
+                                            if (point_index > 0)
+                                                dis = INT2MM2(vSize2(Point(points[point_index].x(), points[point_index].y()) - Point(points[point_index - 1].x(), points[point_index - 1].y())));
+                                            f *= dis;
+                                            flow_solwdown += f;
                                         }
+                                        flow_solwdown = 0;
                                     }
                                     break;
                                     case  Slic3r::EMovePathType::Arc_move_cw:
@@ -2362,7 +2422,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         Point end_point(arc.end_point.x(), arc.end_point.y());
                                         Point center(arc.center.x(), arc.center.y());
                                         Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
-                                        const double extrude_speed = speed * path.speed_back_pressure_factor;
+                                        double extrude_speed;// = speed * path.speed_back_pressure_factor;
                                         {
                                             //屏蔽说明信息
                                             //std::stringstream ss;
@@ -2371,7 +2431,20 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             //确保每次都在圆弧拟合的起点
                                             //gcode.writeArcSatrt(start_point);
                                         }
-
+                                        if (slow2fastSlowdown  && wall_slow_OK == false && judgeVelocityDip && count_path_wall < 8 && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
+                                        {  //arc  maybe short  maybe long   so  this result is  gcode  maybe   1-2 lines
+                                            count_path_wall += 1;
+                                            extrude_speed = 50;
+                                            if (count_path_wall == 7)  wall_slow_OK = true;
+                                        }
+                                        else if (slow2fastSlowdown  && infill_slow_OK == false && judgeVelocityDip && count_path_infill < 8 && path.config->type == PrintFeatureType::Infill)
+                                        {
+                                            count_path_infill += 1;
+                                            extrude_speed = 50;
+                                            if (count_path_infill == 7)  infill_slow_OK = true;
+                                        }
+                                        else
+                                            extrude_speed = speed * path.speed_back_pressure_factor;
                                         gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == Slic3r::ArcDirection::Arc_Dir_CCW);
                                     }
                                     break;
@@ -2465,7 +2538,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if(paths[path_idx].spiralize)
                    extruder_plan.handleInserts(path_idx, gcode);
             }
-
+            infill_slow_OK = false;
+            wall_slow_OK = false;
         } // paths for this extruder /\  .
 
         if (extruder.settings.get<bool>("cool_lift_head") && extruder_plan.extraTime > 0.0)

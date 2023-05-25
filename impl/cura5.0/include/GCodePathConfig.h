@@ -94,7 +94,7 @@ public:
     coord_t getLayerThickness() const;
 
     const PrintFeatureType& getPrintFeatureType() const;
-
+    double getcalculateExtrusion() const;
 private:
     double calculateExtrusion() const;
 };

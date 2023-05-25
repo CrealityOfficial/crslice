@@ -101,6 +101,9 @@ double GCodePathConfig::calculateExtrusion() const
 {
     return INT2MM(line_width) * INT2MM(layer_thickness) * double(flow);
 }
-
+double GCodePathConfig::getcalculateExtrusion() const
+{
+    return calculateExtrusion();
+}
 
 }//namespace cura52

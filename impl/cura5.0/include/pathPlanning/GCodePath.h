@@ -7,7 +7,7 @@
 #include "../SpaceFillType.h"
 #include "../settings/types/Ratio.h"
 #include "../utils/IntPoint.h"
-
+#include "settings/types/Velocity.h"
 #include "TimeMaterialEstimates.h"
 
 namespace cura52 
@@ -48,7 +48,7 @@ public:
     double fan_speed; //!< fan speed override for this path, value should be within range 0-100 (inclusive) and ignored otherwise
 
     TimeMaterialEstimates estimates; //!< Naive time and material estimates
-
+    Velocity speedSlowDownPath;
     /*!
      * \brief Creates a new g-code path.
      *

@@ -25,6 +25,7 @@ spiralize(spiralize),
 fan_speed(GCodePathConfig::FAN_SPEED_DEFAULT),
 estimates(TimeMaterialEstimates())
 {
+    speedSlowDownPath = 0.0;
 }
 
 bool GCodePath::isTravelPath() const
