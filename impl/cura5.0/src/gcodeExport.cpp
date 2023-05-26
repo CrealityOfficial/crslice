@@ -1536,21 +1536,6 @@ void GCodeExport::writeZhopEnd(Velocity speed /*= 0*/)
 
 void GCodeExport::startExtruder(const size_t new_extruder)
 {
-    extruder_attr[new_extruder].is_used = true;
-    if (new_extruder != current_extruder) // wouldn't be the case on the very first extruder start if it's extruder 0
-    {
-        if (flavor == EGCodeFlavor::MAKERBOT)
-        {
-            *output_stream << "M135 T" << new_extruder << new_line;
-        }
-        else
-        {
-            *output_stream << "T" << new_extruder << new_line;
-        }
-    }
-
-    current_extruder = new_extruder;
-
     //assert(getCurrentExtrudedVolume() == 0.0 && "Just after an extruder switch we haven't extruded anything yet!");
     resetExtrusionValue(); // zero the E value on the new extruder, just to be sure
 
@@ -1576,6 +1561,21 @@ void GCodeExport::startExtruder(const size_t new_extruder)
     currentPosition.z += 1;
 
     setExtruderFanNumber(new_extruder);
+
+	extruder_attr[new_extruder].is_used = true;
+	if (new_extruder != current_extruder) // wouldn't be the case on the very first extruder start if it's extruder 0
+	{
+		if (flavor == EGCodeFlavor::MAKERBOT)
+		{
+			*output_stream << "M135 T" << new_extruder << new_line;
+		}
+		else
+		{
+			*output_stream << "T" << new_extruder << new_line;
+		}
+	}
+
+	current_extruder = new_extruder;
 }
 
 void GCodeExport::switchExtruder(size_t new_extruder, const RetractionConfig& retraction_config_old_extruder, coord_t perform_z_hop /*= 0*/)
