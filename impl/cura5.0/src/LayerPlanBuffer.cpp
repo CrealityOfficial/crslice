@@ -509,13 +509,7 @@ void LayerPlanBuffer::insertTempCommands()
             }
             avg_flow = 0.0;
         }
-        Temperature print_temp = preheat_config.getTemp(extruder, avg_flow, extruder_plan.is_initial_layer);
-        if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown")
-            && application->current_slice->scene.settings.get<std::string>("material_name") == "PLA") 
-
-                print_temp += application->current_slice->scene.settings.get<Temperature>("speed_slowtofast_slowdown_revise_temp");
-  
-        
+        Temperature print_temp = preheat_config.getTemp(extruder, avg_flow, extruder_plan.is_initial_layer);        
         const Temperature initial_print_temp = extruder_settings.get<Temperature>("material_initial_print_temperature");
         if (initial_print_temp == 0.0 // user doesn't want to use initial print temp feature
             || extruder_settings.get<bool>("machine_extruders_share_heater") // ignore initial print temps when extruders share a heater
