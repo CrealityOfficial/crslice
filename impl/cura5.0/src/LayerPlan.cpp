@@ -1674,8 +1674,6 @@ bool ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
                 return false;
             }             
         }
-        if (layer_nr == 138)
-            int aaa = 0;;
         for (GCodePath& path : paths)
         {
             if (!path.needSlowdown(slowdown_level))
