@@ -2297,22 +2297,43 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 gcode.writeTravel(path.points.back(), speed);
                 continue;
             }
-
+            //if (paths[path_idx].config->type == PrintFeatureType::OuterWall)
+            //    speed = 10;
             bool judgeVelocityDip = false;
-            for (int i = 1; i <= path_idx; i++)
-            {   //avoid  line  was splited by algo, same line  slowdown such as circle split into arc
-                if ((paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall ||
-                    paths[path_idx - i].config->type == PrintFeatureType::Infill) && speed == paths[path_idx - i].speedSlowDownPath)
-                    break;
-                float vv = paths[path_idx - i].speedSlowDownPath;
-                if (path_idx - i >= 0 && (vv != -111.0f) && (speed / paths[path_idx - i].speedSlowDownPath) > 3.0f)   //from   large  to  small,  Reversely  is path is Travel Path
-                {
-                    gcode.writeTemperatureCommand(0, 225, false);
-                    judgeVelocityDip = true;
-                    break;
-                }
+            if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
+            {
+                for (int i = 1; i <= path_idx; i++)
+                {   //avoid  line  was splited by algo, same line  slowdown such as circle split into arc
+                    if (paths[path_idx - i].config->type == PrintFeatureType::Infill && speed == paths[path_idx - i].speedSlowDownPath)
+                        break;
+                    if ((paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall) &&
+                        speed == paths[path_idx - i].speedSlowDownPath && !paths[path_idx].points.empty())
+                    { //for model moon_city_final.stl L195 small  cone wall  litte bit bad ,   layer 204 large wall segmemt solwdowm
+                        float isdistance = 0;
+                        for (int j = 0; j < paths[path_idx].points.size() - 1; j++)
+                        {
+                            Point p0(paths[path_idx].points.at(j).X, paths[path_idx].points.at(j).Y);
+                            Point p1(paths[path_idx].points.at(j + 1).X, paths[path_idx].points.at(j + 1).Y);
+                            isdistance += vSize(p0 - p1);
+                        }
+                        if (isdistance < 2000)
+                            break;
+                        else
+                            judgeVelocityDip = true;
+                    }
 
+                    float vv = paths[path_idx - i].speedSlowDownPath;
+                    if (path_idx - i >= 0 && (vv != -111.0f) && (speed / paths[path_idx - i].speedSlowDownPath) > 3.0f)   //from   large  to  small,  Reversely  is path is Travel Path
+                    {
+                        //gcode.writeTemperatureCommand(0, 225, false);
+                        judgeVelocityDip = true;
+                        break;
+                    }
+
+                }
             }
+           
+            
 
             bool spiralize = path.spiralize;
             if (! spiralize) // normal (extrusion) move (with coasting)
@@ -2388,17 +2409,17 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         for (size_t point_index = start_index; point_index < end_index + 1; point_index++)
                                         {
                                             Point gcodePt(points[point_index].x(), points[point_index].y());
-                                            if (slow2fastSlowdown && flow_solwdown < 200.0 && wall_slow_OK == false && judgeVelocityDip && count_path_wall < 8 && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
+                                            if (slow2fastSlowdown && flow_solwdown < 200.0 && wall_slow_OK == false && judgeVelocityDip && count_path_wall < 5 && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
                                             {
                                                 count_path_wall += 1;
                                                 extrude_speed = 50;
-                                                if (count_path_wall == 7)  wall_slow_OK = true;
+                                                if (count_path_wall == 4)  wall_slow_OK = true;
                                             }
-                                            else if (slow2fastSlowdown && flow_solwdown < 200.0 && infill_slow_OK == false && judgeVelocityDip && count_path_infill < 8 && path.config->type == PrintFeatureType::Infill)
+                                            else if (slow2fastSlowdown && flow_solwdown < 200.0 && infill_slow_OK == false && judgeVelocityDip && count_path_infill < 5 && path.config->type == PrintFeatureType::Infill)
                                             {
                                                 count_path_infill += 1;
                                                 extrude_speed = 50;
-                                                if (count_path_infill == 7)  infill_slow_OK = true;
+                                                if (count_path_infill == 4)  infill_slow_OK = true;
                                             }
                                             else
                                                 extrude_speed = speed * path.speed_back_pressure_factor;
@@ -2431,17 +2452,17 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             //确保每次都在圆弧拟合的起点
                                             //gcode.writeArcSatrt(start_point);
                                         }
-                                        if (slow2fastSlowdown  && wall_slow_OK == false && judgeVelocityDip && count_path_wall < 8 && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
+                                        if (slow2fastSlowdown  && wall_slow_OK == false && judgeVelocityDip && count_path_wall < 5 && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
                                         {  //arc  maybe short  maybe long   so  this result is  gcode  maybe   1-2 lines
                                             count_path_wall += 1;
                                             extrude_speed = 50;
-                                            if (count_path_wall == 7)  wall_slow_OK = true;
+                                            if (count_path_wall == 4)  wall_slow_OK = true;
                                         }
-                                        else if (slow2fastSlowdown  && infill_slow_OK == false && judgeVelocityDip && count_path_infill < 8 && path.config->type == PrintFeatureType::Infill)
+                                        else if (slow2fastSlowdown  && infill_slow_OK == false && judgeVelocityDip && count_path_infill < 5 && path.config->type == PrintFeatureType::Infill)
                                         {
                                             count_path_infill += 1;
                                             extrude_speed = 50;
-                                            if (count_path_infill == 7)  infill_slow_OK = true;
+                                            if (count_path_infill == 4)  infill_slow_OK = true;
                                         }
                                         else
                                             extrude_speed = speed * path.speed_back_pressure_factor;
