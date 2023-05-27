@@ -440,6 +440,7 @@ protected:
      */
     size_t findStartLocation(const PathOrderPath<PathType>& path, const Point& target_pos, const int& path_idx = -1)
     {
+        constexpr float EPSILON = 25.0;
         if(!path.is_closed)
         {
             //For polylines, the seam settings are not applicable. Simply choose the position closest to target_pos then.
@@ -462,15 +463,24 @@ protected:
         {
             size_t vert = getRandomPointInPolygon(*path.converted);
             return vert;
-        }
+        } 
 
         // Don't know the path-type here, or whether it has a simplify. Also, simplification occurs in-place, which is not wanted here: Copy the polygon.
         // A course simplification is needed, since Arachne has a tendency to 'smear' corners out over multiple line segments.
         // Which in itself is a good thing, but will mess up the detection of sharp corners and such.
         Polygon simple_poly(*path.converted);
+        coord_t perimeter = simple_poly.polygonLength();
+        bool is_check_best_pt = path_idx != -1 && last_layer_start_idx[path_idx] != -1;
+        if (is_check_best_pt && seam_config.type == EZSeamType::SHARPEST_CORNER)
+        {
+            double area = std::fabs(simple_poly.area());
+            Ratio rat = std::fabs(perimeter * perimeter / (4 * M_PI * area) - 1);
+            if (rat < 0.05)
+                return last_layer_start_idx[path_idx];
+        }
         if (seam_config.simplify_curvature > 0 && simple_poly.size() > 2)
         {
-            const coord_t max_simplify_dist = seam_config.simplify_curvature;
+            const coord_t max_simplify_dist = perimeter > 10 * seam_config.simplify_curvature ? seam_config.simplify_curvature : EPSILON;
             simple_poly = Simplify(max_simplify_dist, max_simplify_dist / 2, 0).polygon(simple_poly);
         }
         if(simple_poly.empty()) //Simplify removed everything because it's all too small.
@@ -478,24 +488,7 @@ protected:
             simple_poly = Polygon(*path.converted); //Restore the original. We have to output a vertex as the seam position, so there needs to be a vertex.
         }
 
-        bool is_check_best_pt = path_idx != -1 && last_layer_start_idx[path_idx] != -1;
-        Point closest_pt;
-        size_t closest_pt_index = 0;
-        if (is_check_best_pt)
-        {   
-            closest_pt = (*path.converted)[last_layer_start_idx[path_idx]];
-            coord_t closest_dist2 = std::numeric_limits<coord_t>::max();
-            for (size_t i = 0; i < simple_poly.size(); ++i)
-            {
-                const Point& here = simple_poly[i];
-                const coord_t dist2 = vSize2(closest_pt - here);
-                if (dist2 < closest_dist2)
-                {
-                    closest_dist2 = dist2;
-                    closest_pt_index = i;
-                }
-            }
-        }
+        Point closest_pt = is_check_best_pt ? (*path.converted)[last_layer_start_idx[path_idx]] : Point();
 
         const Point focus_fixed_point = (seam_config.type == EZSeamType::USER_SPECIFIED)
             ? seam_config.pos
@@ -507,9 +500,11 @@ protected:
 
         // Find a seam position in the simple polygon:
         float best_score_corner_angle = 0;
-        float closest_pt_corner_angle = 0;
         Point best_point;
         float best_score = std::numeric_limits<float>::infinity();
+        float next_best_score_corner_angle = 0;
+        Point next_best_point;
+        float next_best_score = std::numeric_limits<float>::infinity();
         Point previous = simple_poly[(start_from_pos - 1 + simple_poly.size()) % simple_poly.size()];
         for(size_t i = start_from_pos; i < end_before_pos; ++i)
         {
@@ -537,8 +532,6 @@ protected:
                 if(corner_angle < 0) //Indeed a concave corner? Give it some advantage over other corners. More advantage for sharper corners.
                 {
                     score -= (-corner_angle + 1.0) * corner_shift;
-                    //if (is_check_best_pt)
-                    //    score += static_cast<float>(vSize2(here - closest_pt)) / 300000;
                 }
                 break;
             case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_OUTER:
@@ -575,7 +568,6 @@ protected:
                 }
             }
 
-            constexpr float EPSILON = 25.0;
             if (seam_config.type != EZSeamType::SKIRT_BRIM && fabs(best_score - score) <= EPSILON)
             {
                 // add breaker for two candidate starting location with similar score
@@ -594,16 +586,23 @@ protected:
                 best_point = here;
                 best_score = score;
                 best_score_corner_angle = corner_angle_2pi;
+            } 
+            else if (is_check_best_pt && score < next_best_score)
+            {
+                if (vSize(here - closest_pt) < 2.5 * seam_config.simplify_curvature)
+                {
+                    next_best_point = here;
+                    next_best_score = score;
+                    next_best_score_corner_angle = corner_angle_2pi;
+                }
             }
-            if (is_check_best_pt && i % simple_poly.size() == closest_pt_index)
-                closest_pt_corner_angle = corner_angle_2pi;
 
             previous = here;
         }
 
         auto nonSharpCorner = [&](float check_corner)
         {
-            float rectify_corner = 0;
+            float rectify_corner = check_corner;
             switch (seam_config.corner_pref)
             {
             case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_INNER:
@@ -621,11 +620,13 @@ protected:
             return rectify_corner > z_seam_max_angle;
         };
 
-        if (is_check_best_pt &&(
-            nonSharpCorner(best_score_corner_angle)
-            || std::fabs(best_score_corner_angle - closest_pt_corner_angle) < z_seam_min_angle_diff
-            ))
-            return last_layer_start_idx[path_idx];
+        if (is_check_best_pt)
+        {
+            if (nonSharpCorner(best_score_corner_angle))
+                return last_layer_start_idx[path_idx];
+            if (std::fabs(next_best_score_corner_angle - best_score_corner_angle) < z_seam_min_angle_diff)
+                best_point = next_best_point;
+        }
 
         // Which point in the real deal is closest to the simple polygon version?
         size_t best_index = 0;

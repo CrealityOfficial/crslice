@@ -1378,35 +1378,112 @@ void FffGcodeWriter::processSimpleRaft(const SliceDataStorage& storage)
 
 void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_layers)
 {
-    auto closestPointToIdx = [](Polygon path, Point p, float& bestDist)
+    auto getDistFromSeg = [](const Point& p, const Point& a, const Point& b)
+    {
+        float pab = LinearAlg2D::getAngleLeft(p, a, b);
+        float pba = LinearAlg2D::getAngleLeft(p, b, a);
+        if (pab > M_PI / 2 && pab < 3 * M_PI / 2){
+            return vSize(p - a);
+        } else if (pba > M_PI / 2 && pba < 3 * M_PI / 2){
+            return vSize(p - b);
+        } else{
+            return LinearAlg2D::getDistFromLine(p, a, b);
+        }
+    };
+    auto closestPointToIdx = [&](Polygon path, Point p, coord_t& bestDist)
     {
         int ret = -1;
-        bestDist = FLT_MAX;
-        for (unsigned int n = 0; n < path.size(); n++)
+        bestDist = std::numeric_limits<coord_t>::max();
+        int size = path.size();
+        for (unsigned int n = 0; n < size; n++)
         {
-            float dist = vSize2f(p - (*path)[n]);
-            if (dist < bestDist)
+            Point cur_position = (*path)[n];
+            Point next_position = (*path)[(n + 1 + size) % size];
+            coord_t v_ab_dis = getDistFromSeg(p, cur_position, next_position);
+            if (v_ab_dis < bestDist)
             {
                 ret = n;
-                bestDist = dist;
+                bestDist = v_ab_dis;
+            }
+        }      
+        return vSize2((*path)[ret] - p) < vSize2((*path)[(ret + 1 + size) % size] - p) ? ret : (ret + 1 + size) % size;
+    };
+    auto closestPtIdx = [&](Polygon path, std::vector<Point> pts, coord_t dist_limit)
+    {
+        coord_t dis_max = std::numeric_limits<coord_t>::max();
+        int closestPtIdx = -1;
+        for (const Point& pt : pts)
+        {
+            coord_t dis = std::numeric_limits<coord_t>::max();
+            int idx = closestPointToIdx(path, pt, dis);
+            if (dis < dis_max)
+            {
+                dis_max = dis;
+                closestPtIdx = idx;
             }
         }
-        return ret;
+        return dis_max < dist_limit ? closestPtIdx : -1;
+    };
+
+    auto getSupportedVertex = [](Polygons below_outline, ExtrusionLine wall, int start_idx)
+    {
+        if (below_outline.empty() || start_idx < 0)
+        {
+            return start_idx;
+        }
+
+        int curr_idx = start_idx;
+
+        while (true)
+        {
+            const Point& vertex = cura52::make_point(wall[curr_idx]);
+            if (below_outline.inside(vertex, true))
+            {
+                // vertex isn't above air so it's OK to use
+                return curr_idx;
+            }
+
+            if (++curr_idx >= wall.size())
+            {
+                curr_idx = 0;
+            }
+
+            if (curr_idx == start_idx)
+            {
+                // no vertices are supported so just return the original index
+                return start_idx;
+            }
+        }
     };
 
     Scene& scene = application->current_slice->scene;
     AngleDegrees z_seam_min_angle_diff = scene.current_mesh_group->settings.get<AngleDegrees>("z_seam_min_angle_diff");
     AngleDegrees z_seam_max_angle = scene.current_mesh_group->settings.get<AngleDegrees>("z_seam_max_angle");
+    coord_t wall_line_width_0 = scene.current_mesh_group->settings.get<coord_t>("wall_line_width_0");
+    coord_t wall_line_count = scene.current_mesh_group->settings.get<coord_t>("wall_line_count");
+    coord_t layer_height = scene.current_mesh_group->settings.get<coord_t>("layer_height");
+    
     std::vector<Point> last_layer_start_pt;
     for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
     {
         std::vector<Point> current_layer_start_pt;
+        Polygons mesh_last_layer_outline;
         for (SliceMeshStorage& mesh : storage.meshes)
         {
+            if (layer_nr > 0)
+            {
+                for (SliceLayerPart part : mesh.layers[layer_nr - 1].parts)
+                {
+                    mesh_last_layer_outline.add(part.outline);
+                }
+                //¼ÆËãÐü´¹ÇøÓò
+                coord_t overhang_width = layer_height * std::tan(20 / (180 / M_PI));
+                mesh_last_layer_outline = mesh_last_layer_outline.offset(overhang_width - 0.5 * wall_line_width_0);
+            }
             ZSeamConfig z_seam_config;
             if (mesh.isPrinted()) //"normal" meshes with walls, skin, infill, etc. get the traditional part ordering based on the z-seam settings.
             {
-                z_seam_config = ZSeamConfig(mesh.settings.get<EZSeamType>("z_seam_type"), mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), mesh.settings.get<coord_t>("wall_line_width_0") * 2);
+                z_seam_config = ZSeamConfig(mesh.settings.get<EZSeamType>("z_seam_type"), mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), wall_line_width_0 * 2);
             }
             for (SliceLayerPart& part : mesh.layers[layer_nr].parts)
             {
@@ -1415,22 +1492,10 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                     PathOrderOptimizer<const ExtrusionLine*> part_order_optimizer(Point(), z_seam_config);
                     for (const ExtrusionLine& line : path)
                     {
-                        //if (line.is_closed && line.inset_idx == 0)
+                        if (line.inset_idx == 0 && line.is_closed)
                         {
                             part_order_optimizer.addPolygon(&line);
-                            float dis_max = FLT_MAX;
-                            int closestPtIdx = -1;
-                            for (const Point& pt : last_layer_start_pt)
-                            {
-                                float dis = FLT_MAX;
-                                int idx = closestPointToIdx(line.toPolygon(), pt, dis);
-                                if (dis < dis_max)
-                                {
-                                    dis_max = dis;
-                                    closestPtIdx = idx;
-                                }
-                            }
-                            part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx);
+                            part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toPolygon(), last_layer_start_pt, z_seam_config.simplify_curvature));
                         }
                     }
                     part_order_optimizer.z_seam_max_angle = z_seam_max_angle * M_PI / 180;
@@ -1441,11 +1506,15 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                     int idx = 0;
                     for (ExtrusionLine& line : path)
                     {
-                        //if (line.is_closed && line.inset_idx == 0)
-                        {
-                            line.start_idx = start_idx[idx];
+                        if (line.inset_idx == 0 && line.is_closed)
+                        {  
+                            line.start_idx = getSupportedVertex(mesh_last_layer_outline, line, start_idx[idx]);
                             current_layer_start_pt.push_back(line.junctions[line.start_idx].p);
                             idx++;
+                        }
+                        else
+                        {
+                            line.start_idx = closestPtIdx(line.toPolygon(), current_layer_start_pt, wall_line_width_0 * (wall_line_count + 1));
                         }
                     }
                 }
@@ -2838,6 +2907,11 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
             }
             processEstimatePoints(outlines_below, toolpaths, 2 * half_outer_wall_width, extendedPoints);
 
+
+            auto bSamePoint = [](Point p0, Point p1)
+            {
+                return std::abs(p0.X - p1.X) < 2 && std::abs(p0.Y - p1.Y) < 2;
+            };
             int extendedPoints_idx = 0;
             for (VariableWidthLines path : part.wall_toolpaths)
             {
@@ -2845,23 +2919,19 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                 {
                     std::vector<ExtrusionJunction> new_junctions;
                     std::vector<ExtrusionJunction>& junctions = line.junctions;
+                    Point pt_z_seam = junctions[(line.start_idx > -1 ? line.start_idx : 0)].p;
                     int junctions_idx = 0;
                     for (int i = 0; i < extendedPoints[extendedPoints_idx].size(); i++)
                     {
                         Point pt = Point(extendedPoints[extendedPoints_idx][i].position.x(), extendedPoints[extendedPoints_idx][i].position.y());
                         if (junctions_idx < junctions.size())
                         {
-                            if (pt == junctions[junctions_idx].p)
-                            {
-                                junctions[junctions_idx].overhang_distance = extendedPoints[extendedPoints_idx][i].distance;
-                                new_junctions.push_back(junctions[junctions_idx]);
-                                junctions_idx++;  
-                            }
-                            else
-                            {
-                                ExtrusionJunction new_pt = ExtrusionJunction(pt, junctions[junctions_idx].w, junctions[junctions_idx].perimeter_index, extendedPoints[extendedPoints_idx][i].distance);
-                                new_junctions.push_back(new_pt);                                  
-                            }      
+                            ExtrusionJunction new_pt = ExtrusionJunction(pt, junctions[junctions_idx].w, junctions[junctions_idx].perimeter_index, extendedPoints[extendedPoints_idx][i].distance);
+                            new_junctions.push_back(new_pt); 
+                            if (bSamePoint(pt, pt_z_seam) && line.start_idx > -1)
+                                line.start_idx = i;
+                            if (bSamePoint(pt, junctions[junctions_idx].p))
+                                junctions_idx++;
                         }
                     }
                     line.junctions.swap(new_junctions);
