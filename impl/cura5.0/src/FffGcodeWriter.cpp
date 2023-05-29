@@ -2826,11 +2826,11 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
             if (mesh.settings.get<bool>("set_wall_overhang_grading"))
             {
                 Polygons overhang_region_last, _overhang_region, outlines_below_offset;
-                AngleDegrees overhang_angle_level[5] = { 0, 20, 45, 60, 75 };
+                AngleDegrees overhang_angle_level[5] = { 0, 10, 25, 50, 75 };
                 const coord_t offset_rectify = mesh.settings.get<bool>("special_exact_flow_enable") ? 0.5 * layer_height * float(1. - 0.25 * M_PI) + 0.5 : 0;
                 for (int i = 1; i < 5; i++)
                 {
-                    const coord_t _overhang_width = layer_height * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
+                    const coord_t _overhang_width = 2 * half_outer_wall_width * overhang_angle_level[i] / 100;
                     outlines_below_offset = outlines_below.offset(10 + _overhang_width - half_outer_wall_width + offset_rectify);
                     _overhang_region = part.outline.offset(-half_outer_wall_width + offset_rectify).difference(outlines_below_offset).offset(10);
                     if (overhang_region_last.empty())
@@ -2874,12 +2874,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                             level_speed = wall_speed;
                         level_speeds.push_back(Ratio(level_speed / wall_speed * 100.));
                     }
-                    AngleDegrees overhang_angle_level[4] = { 20, 45, 60, 75 };
-                    for (int i = 0; i < 4; i++)
-                    {
-                        coord_t _overhang_width = layer_height * std::tan((overhang_angle_level[i] - AngleDegrees(1)) / (180 / M_PI));
-                        overlaps.push_back(_overhang_width * 100.0 / outer_wall_width);
-                    }
+                    overlaps = { 10, 25, 50, 75 };
                 }
                 else
                 {

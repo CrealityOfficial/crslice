@@ -731,7 +731,7 @@ void LayerPlan::addWallLine(const Point& p0,
     auto getSpeedFactor = [&, this](const Point& _p0, const Point& _p1)
     {
 #if 1
-        if(speed_sections.empty()) 
+        if(overhang_distance < 0 || speed_sections.empty())
             return speed_factor;
         Ratio result_factor = getSpeedFactorP(_p1, overhang_distance, non_bridge_config.getSpeed(), speed_sections);
         return result_factor;
