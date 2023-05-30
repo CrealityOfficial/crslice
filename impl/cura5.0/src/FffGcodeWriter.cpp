@@ -663,7 +663,10 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         processInitialLayerTemperature(storage, start_extruder_nr);
     }
 
-    const Scene& scene = application->current_slice->scene;
+    gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
+	gcode.writeCode(strTemp.c_str());
+
+	const Scene& scene = application->current_slice->scene;
 	const ExtruderTrain& train = scene.extruders[start_extruder_nr];
 	bool pressure_enable = train.settings.get<bool>("material_pressure_advance");//Ñ¹Á¦ÍÆ½ø
 	if (pressure_enable)
@@ -671,8 +674,6 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
 		double  length = train.settings.get<double>("material_advance_length");
 		gcode.writePressureComment(length);
 	}
-    gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
-	gcode.writeCode(strTemp.c_str());
     bool used_Zoffset = mesh_group_settings.get<bool>("zadjust_enable");//Z Æ«ÒÆ
     if (used_Zoffset)
     {
