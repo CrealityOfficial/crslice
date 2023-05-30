@@ -49,6 +49,18 @@ namespace crslice
 		group->setObjectMesh(objectID, mesh);
 	}
 
+	void CrScene::setGroupOffset(int groupID, trimesh::vec3 offset)
+	{
+		if (groupID < 0 || groupID >= (int)m_groups.size())
+		{
+			LOGE("CrScene::setOjbectMesh [%d] not exist.", groupID);
+			return;
+		}
+
+		CrGroup* group = m_groups.at(groupID);
+		group->setOffset(offset);
+	}
+
 	void CrScene::setObjectSettings(int groupID, int objectID, SettingsPtr settings)
 	{
 		if (groupID < 0 || groupID >= (int)m_groups.size())

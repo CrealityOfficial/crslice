@@ -22,6 +22,7 @@ class MeshGroup : public NoCopy
 {
 public:
     std::vector<Mesh> meshes;
+    FPoint3 m_offset;
     Settings settings;
 
     Point3 min() const; //! minimal corner of bounding box

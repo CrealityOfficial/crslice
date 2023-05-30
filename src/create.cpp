@@ -177,6 +177,7 @@ namespace crslice
                         sliceValible = true;
                     }
                 }
+                slice->scene.mesh_groups[i].m_offset = cura52::FPoint3(crGroup->m_offset.x, crGroup->m_offset.y, crGroup->m_offset.z);
             }
 
             INTERRUPT_BREAK("CRSliceFromScene::sliceNext");

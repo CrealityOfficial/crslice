@@ -969,13 +969,65 @@ void GCodeExport::writeDelay(const Duration& time_amount)
     estimateCalculator.addTime(time_amount);
 }
 
+Point3 RotateByVector(Point3 old_pt, Point3 axit, Point3 offset, double theta)
+{
+    old_pt -= offset;
+    double r = theta * M_PI / 180;
+    double c = cos(r);
+    double s = sin(r);
+    double new_x = (axit.x * axit.x * (1 - c) + c) * old_pt.x + (axit.x * axit.y * (1 - c) - axit.z * s) * old_pt.y + (axit.x * axit.z * (1 - c) + axit.y * s) * old_pt.z;
+    double new_y = (axit.y * axit.x * (1 - c) + axit.z * s) * old_pt.x + (axit.y * axit.y * (1 - c) + c) * old_pt.y + (axit.y * axit.z * (1 - c) - axit.x * s) * old_pt.z;
+    double new_z = (axit.x * axit.z * (1 - c) - axit.y * s) * old_pt.x + (axit.y * axit.z * (1 - c) + axit.x * s) * old_pt.y + (axit.z * axit.z * (1 - c) + c) * old_pt.z;
+    if (new_z < 0 && new_z > -100) new_z = 0;
+    Point3 output = Point3(new_x, new_y, new_z);
+    return output;
+}
+
 void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 {
-    writeTravel(Point3(p.X, p.Y, current_layer_z), speed);
+    Scene* scene = &application->current_slice->scene;
+    float angle = scene->settings.get<coord_t>("special_slope_slice_angle") / 1000.;
+    std::string Axis = scene->settings.get<std::string>("special_slope_slice_axis");
+    if (angle != 0. && layer_nr >= 0)
+    {
+        FPoint3 offset = scene->mesh_groups.back().m_offset;
+        Point3 axis = Point3(0, 1, 0);
+        if (Axis == "X") axis = Point3(1, 0, 0);
+        Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
+        writeTravel(input_pt, speed);
+    }
+    else
+    {
+        writeTravel(Point3(p.X, p.Y, current_layer_z), speed);
+    }
 }
 void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset)
 {
-    writeExtrusion(Point3(p.X, p.Y, current_layer_z), speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
+    Scene* scene = &application->current_slice->scene;
+    float angle = scene->settings.get<coord_t>("special_slope_slice_angle") / 1000.;
+    std::string Axis = scene->settings.get<std::string>("special_slope_slice_axis");
+    if (angle != 0. && layer_nr >= 0)
+    {
+        FPoint3 offset = scene->mesh_groups.back().m_offset;
+        Point3 axis = Point3(0, 1, 0);
+        if (Axis == "X") axis = Point3(1, 0, 0);
+        Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
+        //if (z_offset > 0)
+        //{
+        //    float layer_height_0 = scene->settings.get<coord_t>("layer_height_0") / 2.0;
+        //    double s = sin(angle * M_PI / 180);
+        //    double c = cos(angle * M_PI / 180);
+        //    Point3 offsetPt = Axis == "X" ? Point3(0, z_offset * s, z_offset * c) : Point3(-z_offset * s, 0, z_offset * c);
+        //    if (input_pt.z <= layer_height_0) input_pt += offsetPt;
+        //    else input_pt += (offsetPt - Point3(0, 0, offsetPt.z));
+        //    if (input_pt.z < layer_height_0) input_pt.z = layer_height_0;
+        //}
+        writeExtrusion(input_pt, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
+    }
+    else
+    {
+        writeExtrusion(Point3(p.X, p.Y, current_layer_z), speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
+    }
 }
 void GCodeExport::writeExtrusionG2G3(const Point& pointend, const Point& center_offset, double arc_length,const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, bool is_ccw)
 {

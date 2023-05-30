@@ -50,6 +50,11 @@ namespace crslice
 		m_settings = settings;
 	}
 
+	void CrGroup::setOffset(trimesh::vec3 offset)
+	{
+		m_offset = offset;
+	}
+
 	void CrGroup::load(std::ifstream& in)
 	{
 		m_settings->load(in);

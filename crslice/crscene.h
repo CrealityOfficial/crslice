@@ -19,6 +19,7 @@ namespace crslice
 		int addOneGroup();
 		int addObject2Group(int groupID);
 		void setOjbectMesh(int groupID, int objectID, TriMeshPtr mesh);
+		void setGroupOffset(int groupID, trimesh::vec3 offset);
 
 		void setObjectSettings(int groupID, int objectID, SettingsPtr settings);
 		void setGroupSettings(int groupID, SettingsPtr settings);
