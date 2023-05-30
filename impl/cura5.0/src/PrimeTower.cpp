@@ -172,7 +172,7 @@ void PrimeTower::generatePaths_denseInfill()
             // the infill pattern because the infill pattern tries to connect polygons in different insets which causes the
             // first layer of the prime tower to not stick well.
             Polygons inset = outer_poly.offset(-line_width_layer0 / 2);
-            while (/*!inset.empty()*/inset.area() >5000000.0)
+            while (/*!inset.empty()*/inset.area() >20000000.0)
             {
                 pattern_layer0.polygons.add(inset);
                 inset = inset.offset(-line_width_layer0);
