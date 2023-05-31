@@ -116,6 +116,21 @@ std::vector<ExtendedPoint> estimate_points_properties(const std::vector<P>      
         start_point.nearest_prev_layer_line = nearest_line;
         points.push_back(start_point);
     }
+
+    auto checkMidPt = [&](ExtendedPoint p0, ExtendedPoint p1)
+    {
+        double line_len = (p0.position - p1.position).norm();
+        if (line_len < 4.0f) return false;
+        float rand_radio1 = (std::rand() % 60 + 20) / 100.;
+        ExtendedPoint checkPt1{ p0.position + rand_radio1 * (p1.position - p0.position) };
+        auto [distance1, nearest_line1, x1] = unscaled_prev_layer.template distance_from_lines_extra<SIGNED_DISTANCE>(checkPt1.position.cast<AABBScalar>());
+        return distance1 > 0.25 * flow_width + EPSILON;
+        float rand_radio2 = (std::rand() % 60 + 20) / 100.;
+        ExtendedPoint checkPt2{ p0.position + rand_radio2 * (p1.position - p0.position) };
+        auto [distance2, nearest_line2, x2] = unscaled_prev_layer.template distance_from_lines_extra<SIGNED_DISTANCE>(checkPt2.position.cast<AABBScalar>());
+        return distance2 > 0.25 * flow_width + EPSILON;
+    };
+
     for (size_t i = 1; i < input_points.size(); i++) {
         ExtendedPoint next_point{maybe_unscale(input_points[i])};
         auto [distance, nearest_line, x]   = unscaled_prev_layer.template distance_from_lines_extra<SIGNED_DISTANCE>(next_point.position.cast<AABBScalar>());
@@ -123,7 +138,8 @@ std::vector<ExtendedPoint> estimate_points_properties(const std::vector<P>      
         next_point.nearest_prev_layer_line = nearest_line;
 
         if (ADD_INTERSECTIONS &&
-            ((points.back().distance > boundary_offset + EPSILON) != (next_point.distance > boundary_offset + EPSILON))) {
+            (((points.back().distance > boundary_offset + EPSILON) != (next_point.distance > boundary_offset + EPSILON))
+                || checkMidPt(points.back(), next_point))) {
             const ExtendedPoint &prev_point = points.back();
             auto intersections = unscaled_prev_layer.template intersections_with_line<true>(L{prev_point.position.cast<AABBScalar>(), next_point.position.cast<AABBScalar>()});
             for (const auto &intersection : intersections) {
