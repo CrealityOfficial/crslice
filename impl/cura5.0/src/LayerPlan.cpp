@@ -2389,7 +2389,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 }
 
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
-                                bool arcFittingValiable = Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
+                                /*bool arcFittingValiable = */Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
                                 int count_path_wall = 0;
                                 int count_path_infill = 0;
                                 float flow_solwdown = 0;
