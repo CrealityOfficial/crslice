@@ -90,7 +90,7 @@ public:
      */
     void setFirmwareDefaults(const Settings& settings);
     void setPosition(Position newPos);
-    void plan(Position newPos, Velocity feedRate, PrintFeatureType feature);
+    virtual void plan(Position newPos, Velocity feedRate, PrintFeatureType feature);
     void addTime(const Duration& time);
     void setAcceleration(const Acceleration& acc); //!< Set the default acceleration to \p acc
     void setMaxXyJerk(const Velocity& jerk); //!< Set the max xy jerk to \p jerk

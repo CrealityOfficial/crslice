@@ -36,6 +36,8 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/slicer.cpp
         ${PREFIX5.2}src/support.cpp
         ${PREFIX5.2}src/timeEstimate.cpp
+		${PREFIX5.2}src/timeestimateklipper.cpp
+		${PREFIX5.2}src/timeestimatemarlin.cpp
         ${PREFIX5.2}src/TopSurface.cpp
 		${PREFIX5.2}src/TreeModelVolumes.cpp
         ${PREFIX5.2}src/TreeSupport.cpp

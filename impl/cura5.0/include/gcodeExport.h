@@ -146,7 +146,7 @@ private:
     EGCodeFlavor flavor;
 
     std::vector<Duration> total_print_times; //!< The total estimated print time in seconds for each feature
-    TimeEstimateCalculator estimateCalculator;
+    TimeEstimateCalculator* estimateCalculator;
 
     unsigned int layer_nr; //!< for sending travel data
 
