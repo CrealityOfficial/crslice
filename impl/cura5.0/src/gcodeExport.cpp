@@ -1766,7 +1766,7 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
 {
     if (std::abs(current_fan_speed - speed) < 0.1)
     {
-        writeCdsFanCommand(speed / 100 * cds_speed);
+        writeCdsFanCommand(cds_speed);
         return;
     }
     if (flavor == EGCodeFlavor::MAKERBOT)

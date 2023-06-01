@@ -2011,9 +2011,17 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
         }
 
-        gcode.writeFanCommand(extruder_plan.getFanSpeed(), cds_fan_speed);
-   
         std::vector<GCodePath>& paths = extruder_plan.paths;
+        double first_path_fan_speed = GCodePathConfig::FAN_SPEED_DEFAULT;
+        for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+        {
+            if (!paths[path_idx].isTravelPath())
+            {
+                first_path_fan_speed = paths[path_idx].getFanSpeed();
+                break;
+            }
+        }
+        gcode.writeFanCommand(first_path_fan_speed == GCodePathConfig::FAN_SPEED_DEFAULT ? extruder_plan.getFanSpeed() : first_path_fan_speed, cds_fan_speed);
 
         extruder_plan.inserts.sort([](const NozzleTempInsert& a, const NozzleTempInsert& b) -> bool { return a.path_idx < b.path_idx; });
 
