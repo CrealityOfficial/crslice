@@ -1790,7 +1790,7 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
         }
         *output_stream << new_line;
 
-        writeCdsFanCommand(speed / 100 * cds_speed);
+        writeCdsFanCommand(cds_speed);
     }
     else
     {

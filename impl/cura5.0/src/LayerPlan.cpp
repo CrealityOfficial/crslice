@@ -1949,7 +1949,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 cds_fan_speed = 0.;
             else if (print_time < 6 || low_speed_print_time > 1)
             {
-                cds_fan_speed = 100.;
+                cds_fan_speed = extruder_settings.get<double>("cool_special_cds_fan_speed");
             }
         }
 
