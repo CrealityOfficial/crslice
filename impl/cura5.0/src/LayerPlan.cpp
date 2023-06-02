@@ -2817,7 +2817,7 @@ void LayerPlan::calculateSpeedSections(const float original_speed, const float l
 
     for (size_t i = 0; i < speed_sections_count; i++) {
         float distance = line_width * (overlaps.at(i) / 100.0);
-        float speed = speeds.at(i) >= 1 ? (original_speed * speeds.at(i) / 100.0) : speeds.at(i);
+        float speed = speeds.at(i) >= 1 ? (float)(original_speed * speeds.at(i) / 100.0) : (float)speeds.at(i);
         speed_sections.push_back({ distance, speed });
     }
     std::sort(speed_sections.begin(), speed_sections.end(),

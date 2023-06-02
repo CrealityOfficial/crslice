@@ -4103,7 +4103,7 @@ bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Pol
         paths3r.push_back(Slic3r::Clipper3r::Path());
         for (auto p : path)
         {
-            paths3r.back().push_back(Slic3r::Clipper3r::IntPoint(p.X, p.Y));
+            paths3r.back().push_back(Slic3r::Clipper3r::IntPoint((int)p.X, (int)p.Y));
         }
     }
 
@@ -4125,7 +4125,7 @@ bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Pol
         points.clear();
         for (auto p : path)
         {
-            points.push_back(Slic3r::Point(p.X, p.Y));
+            points.push_back(Slic3r::Point((int)p.X, (int)p.Y));
 
             //Slic3r::Points pointsTest;
             //pointsTest.push_back(Slic3r::Point(-17156.329, -17674.819));
