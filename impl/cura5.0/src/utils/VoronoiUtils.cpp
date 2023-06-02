@@ -126,6 +126,12 @@ std::vector<Point> VoronoiUtils::discretizeParabola(const Point& p, const Segmen
     const Point as = s - a;
     const Point ae = e - a;
     const coord_t ab_size = vSize(ab);
+    if (ab_size == 0)
+    {
+        discretized.emplace_back(s);
+        discretized.emplace_back(e);
+        return discretized;
+    }
     const coord_t sx = dot(as, ab) / ab_size;
     const coord_t ex = dot(ae, ab) / ab_size;
     const coord_t sxex = ex - sx;

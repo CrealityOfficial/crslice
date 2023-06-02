@@ -73,9 +73,93 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         scaled_spacing_wall_X = getScaledSpacing(bead_width_x);        
     }
 
+    auto delete_shape_corner = [&](Polygons& polys, coord_t cut_len)
+    {
+        for (int i = 0; i < polys.size(); i++)
+        {
+            PolygonRef& poly = polys[i];
+            int pol_size = poly.size();
+            ClipperLib::Path poly_new;
+            poly_new.reserve(pol_size);
+            for (int j = 0; j < pol_size; j++)
+            {
+                Point pt = poly[j];             
+                Point before = poly[(j - 1 + pol_size) % pol_size];
+                Point after = poly[(j + 1 + pol_size) % pol_size];
+                Point pb = pt - before;
+                Point pa = pt - after;
+                coord_t length_before = vSize(pb);
+                coord_t length_after = vSize(pa);
+                float angle = LinearAlg2D::getAngleLeft(before, pt, after);
+                if (angle < M_PI / 2 || angle > 3 * M_PI / 2)
+                {
+                    poly_new.push_back(before + (1.0 - (3 * cut_len > length_before ? length_before / 3 : cut_len) / (float)length_before) * pb);
+                    poly_new.push_back(after + (1.0 - (3 * cut_len > length_after ? length_after / 3 : cut_len) / (float)length_after) * pa);
+                }
+                else
+                {
+                    poly_new.push_back(pt);
+                }
+            }
+            poly.clear();
+            poly = poly_new;
+        }
+    };
+
+    auto delete_shape_point = [&](Polygons& polys)
+    {
+        for (int i = 0; i < polys.size(); i++)
+        {
+            PolygonRef& poly = polys[i];
+            int pol_size = poly.size();
+            for (int j = 0; j < pol_size; j++)
+            {
+                Point pt = poly[j];
+                Point before = poly[(j - 1 + pol_size) % pol_size];
+                Point after = poly[(j + 1 + pol_size) % pol_size];
+                float angle = LinearAlg2D::getAngleLeft(before, pt, after);
+                if (angle < 0.5 || angle > 2 * M_PI - 0.5)
+                {
+                    coord_t length2_before = vSize2(before - pt);
+                    coord_t length2_after = vSize2(after - pt);
+                    coord_t v_ab_dis;
+                    if (length2_before < length2_after)
+                    {
+                        v_ab_dis = LinearAlg2D::getDistFromLine(before, pt, after);
+                    }
+                    else
+                    {
+                        v_ab_dis = LinearAlg2D::getDistFromLine(after, pt, before);
+                    }
+                    if (v_ab_dis < epsilon_offset)
+                    {
+                        poly.remove(j);
+                        j--;
+                        pol_size--;
+                    }
+                }
+            }
+        }
+    };
+
+    auto delete_mini_poly = [&](Polygons& polys)
+    {
+        Polygons new_polys;
+        for (int i = 0; i < polys.size(); i++)
+        {
+            if (std::fabs(polys[i].area()) > allowed_distance * allowed_distance)
+            {
+                new_polys.add(polys[i]);
+            }
+        }
+        polys.clear();
+        polys = new_polys;
+    };
+
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
-    Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);
+    Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);    
+    delete_shape_corner(prepared_outline, allowed_distance);
     prepared_outline = Simplify(settings).polygon(prepared_outline);
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
     prepared_outline.removeDegenerateVerts();
@@ -84,13 +168,38 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
     prepared_outline.removeDegenerateVerts();
     prepared_outline.removeSmallAreas(small_area_length * small_area_length, false);
-    prepared_outline = prepared_outline.unionPolygons();
+    prepared_outline = prepared_outline.unionPolygons();   
+    delete_mini_poly(prepared_outline);
+    delete_shape_point(prepared_outline);
+    delete_shape_point(prepared_outline);
 
     if (prepared_outline.area() <= 0)
     {
         assert(toolpaths.empty());
         return toolpaths;
     }
+
+    //Polygons poltoWrite;
+    //{
+    //    Point error_point = Point(93339, 101352);
+    //    Polygon error_area;
+    //    error_area.add(Point(error_point.X + 50, error_point.Y + 50));
+    //    error_area.add(Point(error_point.X + 50, error_point.Y - 50));
+    //    error_area.add(Point(error_point.X - 50, error_point.Y - 50));
+    //    error_area.add(Point(error_point.X - 50, error_point.Y + 50));
+    //    for (Polygon pol : prepared_outline)
+    //    {
+    //        Polygons error_areas = pol.intersection(error_area);
+    //        if (!error_areas.empty())
+    //        {
+    //            poltoWrite.add(pol.intersection(error_area));
+    //        }
+    //    }
+    //    AABB aabb(poltoWrite);
+    //    SVG svg("D://outline.svg", aabb);
+    //    svg.writePolygons(poltoWrite, SVG::Color::BLACK, 0.1);
+    //    svg.writePoint(error_point, false, 1);
+    //}
 
     const coord_t wall_transition_length = settings.get<coord_t>("wall_transition_length");
 
