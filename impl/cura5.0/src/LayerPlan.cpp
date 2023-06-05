@@ -2043,6 +2043,29 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         bool update_extrusion_offset = true;
 
         bool isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
+
+        if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
+        {//speedSlowDownPath 重新新建的一个变量，标识此段path是否有速度突变
+            for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+            {
+                double speed = paths[path_idx].config->getSpeed();
+                if (paths[path_idx].needSlowdown(extruder_plan.slowdown_level))
+                {
+                    speed *= extruder_plan.getExtrudeSpeedFactor();
+                }
+                speed *= paths[path_idx].speed_factor;
+
+                if (!paths[path_idx].config->isTravelPath())
+                {
+                    paths[path_idx].speedSlowDownPath = speed;
+                }
+                else
+                {
+                    paths[path_idx].speedSlowDownPath = -111.0;
+                }
+            }
+        }
+
         for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
         {
             extruder_plan.handleInserts(path_idx, gcode);
@@ -2064,24 +2087,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             else
             {
                 isAvoidPoint = true;//统计被过滤的点 用于G2G3的判断
-            }
-            for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
-            {
-                double speed = paths[path_idx].config->getSpeed();
-                if (paths[path_idx].needSlowdown(extruder_plan.slowdown_level))
-                {
-                    speed *= extruder_plan.getExtrudeSpeedFactor();
-                }
-                speed *= paths[path_idx].speed_factor;
-
-                if (!paths[path_idx].config->isTravelPath())
-                {
-                    paths[path_idx].speedSlowDownPath = speed;
-                }
-                else
-                {
-                    paths[path_idx].speedSlowDownPath = -111.0;
-                }
             }
 
             // In some cases we want to find the next non-travel move.
@@ -2392,7 +2397,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
                                 /*bool arcFittingValiable = */Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
                                 float dis = 0;
-                                float dis_threshold = 0.045;
+                                float dis_threshold = 55; //如果大于这一段距离，则是原来的速度，否则速度50
                                 bool slow2fastSlowdown = application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown");
                                 // BBS: start to generate gcode from arc fitting data which includes line and arc
                                 for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
@@ -2409,7 +2414,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         {
                                             Point gcodePt(points[point_index].x(), points[point_index].y());
                                             if (slow2fastSlowdown && !wall_slow_OK  && judgeVelocityDip && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
-                                            {
+                                            {//经过测试大部分的圆弧都是经常这个case，Arc_move_ccw和Linear_move共同组成了慢速到快速的距离计算，如果大于这一段距离，则是原来的速度，否则速度50
                                                 extrude_speed = 50;
                                                 if (dis > dis_threshold)  wall_slow_OK = true;
                                             }
@@ -2423,7 +2428,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                                             if (point_index > 0)
                                             {
-                                                dis += INT2MM2(vSize(Point(points[point_index].x(), points[point_index].y()) - Point(points[point_index - 1].x(), points[point_index - 1].y())));
+                                                dis += INT2MM(vSize(Point(points[point_index].x(), points[point_index].y()) - Point(points[point_index - 1].x(), points[point_index - 1].y())));
                                             }
                                         }
                                     }
@@ -2447,9 +2452,9 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             //gcode.writeArcSatrt(start_point);
                                         }
                                         extrude_speed = speed * path.speed_back_pressure_factor;
-                                        dis += INT2MM2(vSize(Point(arc.start_point.x(), arc.start_point.y()) - Point(arc.end_point.x(), arc.end_point.y())));
+                                        dis += INT2MM(vSize(Point(arc.start_point.x(), arc.start_point.y()) - Point(arc.end_point.x(), arc.end_point.y())));
 
-                                        if (this->layer_nr > 5 && dis < dis_threshold && judgeVelocityDip)
+                                        if (this->layer_nr > 0 && dis < dis_threshold && judgeVelocityDip)
                                         {
                                             extrude_speed = 50;
                                         }
