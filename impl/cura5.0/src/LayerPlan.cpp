@@ -2324,7 +2324,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
                     float vv = paths[path_idx - i].speedSlowDownPath;
                     if (path_idx - i >= 0 && (vv != -111.0f) &&
-                        ((speed / paths[path_idx - i].speedSlowDownPath) > 3.0f || (paths[path_idx - i].speedSlowDownPath / speed) > 3.0f))     //from   large  to  small,  Reversely  is path is Travel Path
+                        ((speed / paths[path_idx - i].speedSlowDownPath) > 3.0f ))     //from   large  to  small,  Reversely  is path is Travel Path
                     {
                         gcode.writeTemperatureCommand(0, extruder_plan.required_start_temperature + application->current_slice->scene.settings.get<Temperature>("speed_slowtofast_slowdown_revise_temp"), false);
                         judgeVelocityDip = true;
