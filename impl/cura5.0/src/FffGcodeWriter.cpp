@@ -2366,7 +2366,6 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
                            skip_some_zags,
                            zag_skip_count,
                            pocket_size);
-        infill_comp.previous_position = gcode_layer.getLastPlannedPositionOrStartingPosition();
         infill_comp.generate(wall_tool_paths.back(), infill_polygons, infill_lines, mesh.settings, mesh.cross_fill_provider, lightning_layer, &mesh);
         if (density_idx < last_idx)
         {

@@ -874,27 +874,6 @@ void Infill::connectLines(Polygons& result_lines)
         }
     }
 
-    auto findClosestSegmentToPoint = [](const std::vector<std::vector<InfillLineSegment*>>& crossings_on_polygon, Point vertex_before)
-    {
-        size_t best_idx = 0;
-        coord_t bestDist = ULONG_MAX;
-        for (size_t i = 0; i < crossings_on_polygon.size(); i++)
-        {
-            for (size_t j = 0; j < crossings_on_polygon[i].size(); j++)
-            {
-                coord_t dist = vSize2(crossings_on_polygon[i][j]->start - vertex_before);
-                if (dist < bestDist)
-                {
-                    bestDist = dist;
-                    best_idx = crossings_on_polygon[i][j]->start_segment;
-                    if(dist < 1000)
-                        return best_idx;
-                }
-            }
-        }
-        return best_idx;
-    };
-
     for (size_t polygon_index = 0; polygon_index < inner_contour.size(); polygon_index++)
     {
         ConstPolygonRef inner_contour_polygon = inner_contour[polygon_index];
@@ -907,16 +886,8 @@ void Infill::connectLines(Polygons& result_lines)
         InfillLineSegment* previous_crossing = nullptr; // The crossing that we should connect to. If nullptr, we have been skipping until we find the next crossing.
         InfillLineSegment* previous_segment = nullptr; // The last segment we were connecting while drawing a line along the border.
         Point vertex_before = inner_contour_polygon.back();
-        size_t start_index = 0;
-        if (previous_position != Point(0, 0))
+        for (size_t vertex_index = 0; vertex_index < inner_contour_polygon.size(); vertex_index++)
         {
-            vertex_before = inner_contour_polygon.closestPointTo(previous_position);
-            start_index = findClosestSegmentToPoint(crossings_on_polygon, vertex_before);
-        }
-        size_t end_index = inner_contour_polygon.size() + start_index;
-        for (size_t i = start_index; i < end_index; i++)
-        {
-            size_t vertex_index = i % inner_contour_polygon.size();
             assert(crossings_on_polygon.size() > vertex_index && "crossings on line for the current polygon should be bigger then vertex index");
             std::vector<InfillLineSegment*>& crossings_on_polygon_segment = crossings_on_polygon[vertex_index];
             Point vertex_after = inner_contour_polygon[vertex_index];
