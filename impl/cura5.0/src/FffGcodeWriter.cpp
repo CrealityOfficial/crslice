@@ -1410,19 +1410,19 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
     };
     auto closestPtIdx = [&](Polygon path, std::vector<Point> pts, coord_t dist_limit)
     {
-        coord_t dis_max = std::numeric_limits<coord_t>::max();
+        coord_t dis_min = std::numeric_limits<coord_t>::max();
         int closestPtIdx = -1;
         for (const Point& pt : pts)
         {
             coord_t dis = std::numeric_limits<coord_t>::max();
             int idx = closestPointToIdx(path, pt, dis);
-            if (dis < dis_max)
+            if (dis < dis_min)
             {
-                dis_max = dis;
+                dis_min = dis;
                 closestPtIdx = idx;
             }
         }
-        return dis_max < dist_limit ? closestPtIdx : -1;
+        return dis_min < dist_limit ? closestPtIdx : -1;
     };
 
     auto getSupportedVertex = [](Polygons below_outline, ExtrusionLine wall, int start_idx)
@@ -1461,7 +1461,6 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
     AngleDegrees z_seam_max_angle = scene.current_mesh_group->settings.get<AngleDegrees>("z_seam_max_angle");
     coord_t wall_line_width_0 = scene.current_mesh_group->settings.get<coord_t>("wall_line_width_0");
     coord_t wall_line_count = scene.current_mesh_group->settings.get<coord_t>("wall_line_count");
-    coord_t layer_height = scene.current_mesh_group->settings.get<coord_t>("layer_height");
     
     std::vector<Point> last_layer_start_pt;
     for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
@@ -1476,9 +1475,8 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                 {
                     mesh_last_layer_outline.add(part.outline);
                 }
-                //¼ÆËãÐü´¹ÇøÓò
-                coord_t overhang_width = layer_height * std::tan(20 / (180 / M_PI));
-                mesh_last_layer_outline = mesh_last_layer_outline.offset(overhang_width - 0.5 * wall_line_width_0);
+                //¼ÆËã·ÇÐü¿ÕÇøÓò
+                mesh_last_layer_outline = mesh_last_layer_outline.offset(0.5 * wall_line_width_0);
             }
             ZSeamConfig z_seam_config;
             if (mesh.isPrinted()) //"normal" meshes with walls, skin, infill, etc. get the traditional part ordering based on the z-seam settings.
@@ -1495,7 +1493,7 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                         if (line.inset_idx == 0 && line.is_closed)
                         {
                             part_order_optimizer.addPolygon(&line);
-                            part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toPolygon(), last_layer_start_pt, z_seam_config.simplify_curvature));
+                            part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toPolygon(), last_layer_start_pt, 5000));
                         }
                     }
                     part_order_optimizer.z_seam_max_angle = z_seam_max_angle * M_PI / 180;
@@ -2823,41 +2821,41 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
             // the supported region is made up of those areas that really are supported by either model or support on the layer below
             // expanded to take into account the overhang angle, the greater the overhang angle, the larger the supported area is
             // considered to be
-            if (mesh.settings.get<bool>("set_wall_overhang_grading"))
-            {
-                Polygons overhang_region_last, _overhang_region, outlines_below_offset;
-                AngleDegrees overhang_angle_level[5] = { 0, 10, 25, 50, 75 };
-                const coord_t offset_rectify = mesh.settings.get<bool>("special_exact_flow_enable") ? 0.5 * layer_height * float(1. - 0.25 * M_PI) + 0.5 : 0;
-                for (int i = 1; i < 5; i++)
-                {
-                    const coord_t _overhang_width = 2 * half_outer_wall_width * overhang_angle_level[i] / 100;
-                    outlines_below_offset = outlines_below.offset(10 + _overhang_width - half_outer_wall_width + offset_rectify);
-                    _overhang_region = part.outline.offset(-half_outer_wall_width + offset_rectify).difference(outlines_below_offset).offset(10);
-                    if (overhang_region_last.empty())
-                    {
-                        overhang_region_last = _overhang_region;
-                        continue;
-                    }
-                    overhang_region_last = overhang_region_last.difference(_overhang_region);
-                    gcode_layer.setOverhangMask(overhang_region_last, i - 2);
-                    overhang_region_last = _overhang_region;
-                }
-                Polygon aabb;
-                aabb.add(Point(boundaryBox.min.X, boundaryBox.min.Y));
-                aabb.add(Point(boundaryBox.min.X, boundaryBox.max.Y));
-                aabb.add(Point(boundaryBox.max.X, boundaryBox.max.Y));
-                aabb.add(Point(boundaryBox.max.X, boundaryBox.min.Y));
-                Polygons aabbs;
-                aabbs.add(aabb);
-                overhang_region_last = overhang_region_last.unionPolygons((aabbs.offset(2 * half_outer_wall_width).difference(outlines_below_offset)));
-                gcode_layer.setOverhangMask(overhang_region_last, 3);
-            }
-            else
-            {
-                const coord_t _overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
-                Polygons _overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width)).offset(10);
-                gcode_layer.setOverhangMask(_overhang_region, 0);
-            }
+            //if (mesh.settings.get<bool>("set_wall_overhang_grading"))
+            //{
+            //    Polygons overhang_region_last, _overhang_region, outlines_below_offset;
+            //    AngleDegrees overhang_angle_level[5] = { 0, 10, 25, 50, 75 };
+            //    const coord_t offset_rectify = mesh.settings.get<bool>("special_exact_flow_enable") ? 0.5 * layer_height * float(1. - 0.25 * M_PI) + 0.5 : 0;
+            //    for (int i = 1; i < 5; i++)
+            //    {
+            //        const coord_t _overhang_width = 2 * half_outer_wall_width * overhang_angle_level[i] / 100;
+            //        outlines_below_offset = outlines_below.offset(10 + _overhang_width - half_outer_wall_width + offset_rectify);
+            //        _overhang_region = part.outline.offset(-half_outer_wall_width + offset_rectify).difference(outlines_below_offset).offset(10);
+            //        if (overhang_region_last.empty())
+            //        {
+            //            overhang_region_last = _overhang_region;
+            //            continue;
+            //        }
+            //        overhang_region_last = overhang_region_last.difference(_overhang_region);
+            //        gcode_layer.setOverhangMask(overhang_region_last, i - 2);
+            //        overhang_region_last = _overhang_region;
+            //    }
+            //    Polygon aabb;
+            //    aabb.add(Point(boundaryBox.min.X, boundaryBox.min.Y));
+            //    aabb.add(Point(boundaryBox.min.X, boundaryBox.max.Y));
+            //    aabb.add(Point(boundaryBox.max.X, boundaryBox.max.Y));
+            //    aabb.add(Point(boundaryBox.max.X, boundaryBox.min.Y));
+            //    Polygons aabbs;
+            //    aabbs.add(aabb);
+            //    overhang_region_last = overhang_region_last.unionPolygons((aabbs.offset(2 * half_outer_wall_width).difference(outlines_below_offset)));
+            //    gcode_layer.setOverhangMask(overhang_region_last, 3);
+            //}
+            //else
+            //{
+            //    const coord_t _overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
+            //    Polygons _overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width)).offset(10);
+            //    gcode_layer.setOverhangMask(_overhang_region, 0);
+            //}
 
             auto getWallSpeedSections = [&](const GCodePathConfig& inset_config)
             {

@@ -478,6 +478,27 @@ protected:
             if (rat < 0.05)
                 return last_layer_start_idx[path_idx];
         }
+
+        auto nonSharpCorner = [&](float check_corner)
+        {
+            float rectify_corner = check_corner;
+            switch (seam_config.corner_pref)
+            {
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_INNER:
+                break;
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_OUTER:
+                rectify_corner = 2 * M_PI - check_corner;
+                break;
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_ANY:
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_NONE:
+            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_WEIGHTED:
+                rectify_corner = check_corner < M_PI ? check_corner : 2 * M_PI - check_corner;
+                break;
+            default:;
+            }
+            return rectify_corner > z_seam_max_angle;
+        };
+
         if (seam_config.simplify_curvature > 0 && simple_poly.size() > 2)
         {
             const coord_t max_simplify_dist = perimeter > 10 * seam_config.simplify_curvature ? seam_config.simplify_curvature : EPSILON;
@@ -505,6 +526,7 @@ protected:
         float next_best_score_corner_angle = 0;
         Point next_best_point;
         float next_best_score = std::numeric_limits<float>::infinity();
+        int shortLineNum = 0;
         Point previous = simple_poly[(start_from_pos - 1 + simple_poly.size()) % simple_poly.size()];
         for(size_t i = start_from_pos; i < end_before_pos; ++i)
         {
@@ -521,6 +543,12 @@ protected:
             const float corner_angle = corner_angle_2pi / M_PI - 1; //Between -1 and 1.
             // angles < 0 are concave (left turning)
             // angles > 0 are convex (right turning)
+
+            if (vSize2(here - next) < 1000000 || vSize2(here - previous) < 1000000)
+            {
+                shortLineNum++;
+                continue;
+            }
 
             float score;
             const float corner_shift = seam_config.type != EZSeamType::USER_SPECIFIED ? 10000 : 0; //Allow up to 20mm shifting of the seam to find a good location. For SHARPEST_CORNER, this shift is the only factor. For USER_SPECIFIED, don't allow shifting.
@@ -589,7 +617,7 @@ protected:
             } 
             else if (is_check_best_pt && score < next_best_score)
             {
-                if (vSize(here - closest_pt) < 2.5 * seam_config.simplify_curvature)
+                if (vSize(here - closest_pt) < 2.5 * seam_config.simplify_curvature && !nonSharpCorner(corner_angle_2pi))
                 {
                     next_best_point = here;
                     next_best_score = score;
@@ -600,29 +628,9 @@ protected:
             previous = here;
         }
 
-        auto nonSharpCorner = [&](float check_corner)
-        {
-            float rectify_corner = check_corner;
-            switch (seam_config.corner_pref)
-            {
-            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_INNER:
-                break;
-            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_OUTER:
-                rectify_corner = 2 * M_PI - check_corner;
-                break;
-            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_ANY:
-            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_NONE:
-            case EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_WEIGHTED: 
-                rectify_corner = check_corner < M_PI ? check_corner : 2 * M_PI - check_corner;
-                break;
-            default:;
-            }
-            return rectify_corner > z_seam_max_angle;
-        };
-
         if (is_check_best_pt)
         {
-            if (nonSharpCorner(best_score_corner_angle))
+            if (shortLineNum == simple_poly.size() || nonSharpCorner(best_score_corner_angle))
                 return last_layer_start_idx[path_idx];
             if (std::fabs(next_best_score_corner_angle - best_score_corner_angle) < z_seam_min_angle_diff)
                 best_point = next_best_point;
