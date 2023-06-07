@@ -33,7 +33,6 @@ void TimeEstimateCalculator::setFirmwareDefaults(const Settings& settings)
     acceleration = settings.get<Acceleration>("machine_acceleration");
 }
 
-
 void TimeEstimateCalculator::setPosition(Position newPos)
 {
     currentPosition = newPos;
@@ -67,13 +66,17 @@ void TimeEstimateCalculator::reset()
 
 // Calculates the maximum allowable speed at this point when you must be able to reach target_velocity using the 
 // acceleration within the allotted distance.
-static inline Velocity maxAllowableSpeed(const Acceleration& acceleration, const Velocity& target_velocity, double distance)
+static inline Velocity maxAllowableSpeed(const Acceleration& acceleration, 
+										 const Velocity& target_velocity, 
+										 double distance)
 {
     return sqrt(target_velocity * target_velocity - 2 * acceleration * distance);
 }
 
 // Calculates the distance (not time) it takes to accelerate from initial_rate to target_rate using the given acceleration:
-static inline float estimateAccelerationDistance(const Velocity& initial_rate, const Velocity& target_rate, const Acceleration& acceleration)
+static inline float estimateAccelerationDistance(const Velocity& initial_rate, 
+												 const Velocity& target_rate, 
+												 const Acceleration& acceleration)
 {
     if (acceleration == 0)
     {
@@ -86,7 +89,8 @@ static inline float estimateAccelerationDistance(const Velocity& initial_rate, c
 // you started at speed initial_rate and accelerated until this point and want to end at the final_rate after
 // a total travel of distance. This can be used to compute the intersection point between acceleration and
 // deceleration in the cases where the trapezoid has no plateau (i.e. never reaches maximum speed)
-static inline double intersectionDistance(const Velocity& initial_rate, const Velocity& final_rate, const Acceleration& acceleration, double distance)
+static inline double intersectionDistance(const Velocity& initial_rate, const Velocity& final_rate, 
+										  const Acceleration& acceleration, double distance)
 {
     if (acceleration == 0.0)
     {
@@ -125,7 +129,9 @@ static inline double intersectionDistance(const Velocity& initial_rate, const Ve
 }
 
 // This function gives the time it needs to accelerate from an initial speed to reach a final distance.
-static inline double accelerationTimeFromDistance(const Velocity& initial_feedrate, const Velocity& distance, const Acceleration& acceleration)
+static inline double accelerationTimeFromDistance(const Velocity& initial_feedrate, 
+												  const Velocity& distance, 
+												  const Acceleration& acceleration)
 {
     double discriminant = square(initial_feedrate) - 2 * acceleration * -distance;
     //If discriminant is negative, we're moving in the wrong direction.
@@ -159,22 +165,101 @@ void TimeEstimateCalculator::calculateTrapezoidForBlock(Block *block, const Rati
     block->accelerate_until = accelerate_distance;
     block->decelerate_after = accelerate_distance + plateau_distance;
     block->initial_feedrate = initial_feedrate;
-    block->final_feedrate = final_feedrate;
+    block->final_feedrate   = final_feedrate;
 }
+
+
+static inline double min(double x, double y)
+{
+	return (x < y) ? x : y;
+}
+static inline double min(double a, double b, double c)
+{
+	double d = min(a, b);
+	return min(d, c);
+}
+static inline double max(double x, double y)
+{
+	return (x > y) ? x : y;
+}
+
+//void TimeEstimateCalculator::setAccel(const Acceleration& acc)   
+//{
+//	this->max_accel = acc;
+//}
+//====================================
 
 void TimeEstimateCalculator::plan(Position newPos, Velocity feedrate, PrintFeatureType feature)
 {
     Block block;
-    memset(&block, 0, sizeof(block));
+	memset(&block, 0, sizeof(block));
+
+	/*
+	block.theF = feedrate;    
+	double square_corner_velocity = 5.0;
+	double scv2 = square_corner_velocity * square_corner_velocity;
+	block.junction_deviation = scv2 * (sqrt(2.) - 1.) / max_accel;
+	block.accel = max_accel;
+	block.max_velocity = 1000.0;
+
+	for (size_t n = 0; n < NUM_AXIS; n++)
+	{
+		block.axes_d[n] = newPos[n] - currentPosition[n];
+	}
+	block.move_d = 0.0;
+	for (size_t n = 0; n < 3; n++)
+	{
+		block.move_d += (block.axes_d[n] * block.axes_d[n]);
+	}
+	block.move_d = sqrt(block.move_d);      //dL = sqrt(dX*dX + dY*dY + dZ*dZ)
+
+	double velocity = min(feedrate, block.max_velocity);
+	block.is_kinematic_move = true;
+
+	double inv_move_d = 0.;
+	if (block.move_d < .000000001)
+	{
+		block.move_d = abs(block.axes_d[3]);
+		inv_move_d = 0.;
+		if (block.move_d)
+		{
+			inv_move_d = 1.0 / block.move_d;
+		}
+		block.accel = 99999999.9;
+		velocity = feedrate;
+		block.is_kinematic_move = false;
+	}
+	else
+	{
+		inv_move_d = 1.0 / block.move_d;
+	}
+
+	for (size_t n = 0; n < NUM_AXIS; n++)
+	{
+		block.axes_r[n] = inv_move_d * block.axes_d[n];  //[dX/dL, dY/dL, dZ/dL, dE/dL]
+	}
+	block.min_move_t = block.move_d / velocity;
+
+	double max_accel_to_decel = 0.0;
+	double requested_accel_to_decel = 10000.0;
+	max_accel_to_decel = min(requested_accel_to_decel, block.accel);
+
+	block.max_start_v2 = 0.;
+	block.max_cruise_v2 = velocity * velocity;
+	block.delta_v2 = 2.0 * block.move_d * block.accel;
+	block.max_smoothed_v2 = 0.;
+	block.smooth_delta_v2 = 2.0 * block.move_d * max_accel_to_decel;
+	*/
+	//=====================================================
+
 
     block.feature = feature;
 
-    //block.maxTravel = 0; //Done by memset.
     for(size_t n = 0; n < NUM_AXIS; n++)
     {
-        block.delta[n] = newPos[n] - currentPosition[n];
+        block.delta[n]    = newPos[n] - currentPosition[n];
         block.absDelta[n] = std::abs(block.delta[n]);
-        block.maxTravel = std::max(block.maxTravel, block.absDelta[n]);
+        block.maxTravel   = std::max(block.maxTravel, block.absDelta[n]);
     }
     if (block.maxTravel <= 0)
     {
@@ -267,6 +352,7 @@ void TimeEstimateCalculator::plan(Position newPos, Velocity feedrate, PrintFeatu
 
     previous_feedrate = current_feedrate;
     previous_nominal_feedrate = block.nominal_feedrate;
+	
 
     currentPosition = newPos;
 
@@ -280,7 +366,140 @@ std::vector<Duration> TimeEstimateCalculator::calculate()
     reversePass();
     forwardPass();
     recalculateTrapezoids();
-    
+
+	/*
+	for (unsigned int n = 1; n < blocks.size(); n++)
+	{
+		Block& pre = blocks[n - 1];
+		Block& block = blocks[n];
+		if (block.is_kinematic_move && pre.is_kinematic_move)
+		{
+			double junction_cos_theta = -(block.axes_r[0] * pre.axes_r[0] + block.axes_r[1] * pre.axes_r[1] + block.axes_r[2] * pre.axes_r[2]);
+			if (!(junction_cos_theta > 0.999999))
+			{
+				junction_cos_theta = max(junction_cos_theta, -0.999999);
+				double sin_theta_d2 = sqrt(0.5 * (1.0 - junction_cos_theta));
+				double R_jd = sin_theta_d2 / (1. - sin_theta_d2);
+				double tan_theta_d2 = sin_theta_d2 / sqrt(0.5 * (1.0 + junction_cos_theta));
+				double move_centripetal_v2 = .5 * block.move_d * tan_theta_d2 * block.accel;
+				double prev_move_centripetal_v2 = (.5 * pre.move_d * tan_theta_d2 * pre.accel);
+				double a1 = min(R_jd * block.junction_deviation * block.accel, R_jd * pre.junction_deviation * pre.accel);
+				double a2 = min(move_centripetal_v2, prev_move_centripetal_v2, pre.max_start_v2 + pre.delta_v2);
+				double a3 = min(block.max_cruise_v2, pre.max_cruise_v2);
+				block.max_start_v2 = min(a1, a2, a3);
+				block.max_smoothed_v2 = min(block.max_start_v2, pre.max_smoothed_v2 + pre.smooth_delta_v2);
+			}
+		}
+	}
+
+	unsigned int i0 = 0, i1 = 0;
+	while (true)
+	{
+		double flushtime = 0.0;
+		while (true)
+		{
+			if (i1 >= blocks.size() - 1) { break; }
+			Block a = blocks[i1];
+			flushtime += a.min_move_t;
+			if (flushtime > 2.0) { break; }
+			else { i1++; }
+		}
+
+		if (i1 >= blocks.size() - 1) { break; }
+		size_t flush_count = i1 - i0 + (size_t)1;
+		std::vector<MyStruct> delayed;
+		double next_end_v2 = 0.0;
+		double next_smoothed_v2 = 0.0;
+		double peak_cruise_v2 = 0.;
+		for (unsigned int i = i1; i > i0; i--)
+		{
+			Block& move = blocks[i];
+			double reachable_start_v2 = next_end_v2 + move.delta_v2;
+			double start_v2 = min(move.max_start_v2, reachable_start_v2);
+			double reachable_smoothed_v2 = next_smoothed_v2 + move.smooth_delta_v2;
+			double smoothed_v2 = min(move.max_smoothed_v2, reachable_smoothed_v2);
+			if (smoothed_v2 < reachable_smoothed_v2)
+			{
+				if (smoothed_v2 + move.smooth_delta_v2 > next_smoothed_v2 || !delayed.empty())
+				{
+					if (update_flush_count && peak_cruise_v2)
+					{
+						flush_count = i;
+						update_flush_count = false;
+					}
+					peak_cruise_v2 = min(move.max_cruise_v2, (smoothed_v2 + reachable_smoothed_v2) * .5);
+					if (!delayed.empty())
+					{
+						if (!update_flush_count && i < flush_count)
+						{
+							double mc_v2 = peak_cruise_v2;
+							for (MyStruct a : delayed)
+							{
+								Block& m = a.myblock;
+								double ms_v2 = a.mystart;
+								double me_v2 = a.myend;
+								mc_v2 = min(mc_v2, ms_v2);
+								double initial_feedrate = min(ms_v2, mc_v2);
+								double nominal_feedrate = mc_v2;
+								double final_feedrate = min(me_v2, mc_v2);
+								double half_inv_accel = .5 / m.accel;
+
+								initial_feedrate = min(initial_feedrate, square(m.initial_feedrate));
+								nominal_feedrate = min(nominal_feedrate, square(m.nominal_feedrate));
+								final_feedrate = min(final_feedrate, square(m.final_feedrate));
+
+								m.accel_d = (nominal_feedrate - initial_feedrate) * half_inv_accel;
+								m.decel_d = (nominal_feedrate - final_feedrate) * half_inv_accel;
+								m.cruise_d = m.move_d - m.accel_d - m.decel_d;
+
+								m.initial_feedrate = sqrt(initial_feedrate);
+								m.nominal_feedrate = sqrt(nominal_feedrate);
+								m.final_feedrate = sqrt(final_feedrate);
+								m.accelerate_until = m.accel_d;
+								m.decelerate_after = m.accel_d + m.cruise_d;
+							}
+						}
+						delayed.clear();
+					}
+				}
+				if (!update_flush_count && i < flush_count)
+				{
+					double cruise_v2 = min((start_v2 + reachable_start_v2) * 0.5, move.max_cruise_v2, peak_cruise_v2);
+					double initial_feedrate = min(start_v2, cruise_v2);
+					double nominal_feedrate = cruise_v2;
+					double final_feedrate = min(next_end_v2, cruise_v2);
+					double half_inv_accel = .5 / move.accel;
+
+					initial_feedrate = min(initial_feedrate, square(move.initial_feedrate));
+					nominal_feedrate = min(nominal_feedrate, square(move.nominal_feedrate));
+					final_feedrate = min(final_feedrate, square(move.final_feedrate));
+
+					move.accel_d = (nominal_feedrate - initial_feedrate) * half_inv_accel;
+					move.decel_d = (nominal_feedrate - final_feedrate) * half_inv_accel;
+					move.cruise_d = move.move_d - move.accel_d - move.decel_d;
+
+					move.initial_feedrate = sqrt(initial_feedrate);
+					move.nominal_feedrate = sqrt(nominal_feedrate);
+					move.final_feedrate = sqrt(final_feedrate);
+					move.accelerate_until = move.accel_d;
+					move.decelerate_after = move.accel_d + move.cruise_d;
+				}
+			}
+			else
+			{
+				MyStruct aa(move, start_v2, next_end_v2);
+				delayed.push_back(aa);
+			}
+			next_end_v2 = start_v2;
+			next_smoothed_v2 = smoothed_v2;
+		}
+
+		i1++;
+		if (i1 >= blocks.size() - 1) { break; }
+		i0 = i1;
+	}
+    */
+
     std::vector<Duration> totals(static_cast<unsigned char>(PrintFeatureType::NumPrintFeatureTypes), 0.0);
     totals[static_cast<unsigned char>(PrintFeatureType::NoneType)] = extra_time; // Extra time (pause for minimum layer time, etc) is marked as NoneType
     for(unsigned int n = 0; n < blocks.size(); n++)

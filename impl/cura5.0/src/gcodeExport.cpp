@@ -22,6 +22,7 @@
 #include "settings/types/Ratio.h"
 
 #include "crsliceinfo.h"
+#include "timeestimateklipper.h"
 namespace cura52
 {
     bool SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
@@ -59,16 +60,19 @@ std::string transliterate(const std::string& text)
 }
 
 GCodeExport::GCodeExport() 
-    : output_stream(&std::cout), currentPosition(0, 0, MM2INT(20)), layer_nr(0), relative_extrusion(false)
+    : output_stream(&std::cout)
+	, currentPosition(0, 0, MM2INT(20))
+	, layer_nr(0)
+	, relative_extrusion(false)
     , estimateCalculator(nullptr)
 {
     *output_stream << std::fixed;
 
-    current_e_value = 0;
-    current_extruder = 0;
+    current_e_value		  = 0;
+    current_extruder      = 0;
     current_cds_fan_speed = -1;
-    current_fan_speed = -1;
-    current_e_offset = 0;
+    current_fan_speed     = -1;
+    current_e_offset      = 0;
 
     total_print_times = std::vector<Duration>(static_cast<unsigned char>(PrintFeatureType::NumPrintFeatureTypes), 0.0);
 
@@ -100,7 +104,8 @@ GCodeExport::~GCodeExport()
 
 void GCodeExport::preSetup(const size_t start_extruder)
 {
-    estimateCalculator = new TimeEstimateCalculator();
+    //estimateCalculator = new TimeEstimateCalculator();   //
+	estimateCalculator = new TimeEstimateKlipper();         //新的打印时间估算方法
 
     current_extruder = start_extruder;
 
@@ -320,8 +325,6 @@ void GCodeExport::writeShellConfig()
     *output_stream << tmp.str();
 }
 
-
-
 void GCodeExport::writeSupportConfig()
 {
     Scene* scene = &application->current_slice->scene;
@@ -533,10 +536,10 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 }
 
 void GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
-    SliceResult& sliceResult,
-    const Duration* print_time,
-    const std::vector<double>& filament_used,
-    const std::vector<std::string>& mat_ids)
+							     SliceResult& sliceResult,
+							     const Duration* print_time,
+							     const std::vector<double>& filament_used,
+							     const std::vector<std::string>& mat_ids)
 {
     sliceResult.layer_count = layer_nr;
 
@@ -632,7 +635,8 @@ Point GCodeExport::getGcodePos(const coord_t x, const coord_t y, const int extru
     if (use_extruder_offset_to_offset_coords)
     {
         const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_train].settings;
-        return Point(x - extruder_settings.get<coord_t>("machine_nozzle_offset_x"), y - extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
+        return Point(x - extruder_settings.get<coord_t>("machine_nozzle_offset_x"), 
+					 y - extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
     }
     else
     {
@@ -1074,10 +1078,13 @@ void GCodeExport::writeExtrusionG2G3(const Point3& p, const Point& center_offset
     //    writeMoveBFB(p.x, p.y, p.z, speed, extrusion_mm3_per_mm, feature);
     //    return;
     //}
-    writeExtrusionG2G3(p.x, p.y, p.z, center_offset.X, center_offset.Y , arc_length, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset, is_ccw);
+    writeExtrusionG2G3(p.x, p.y, p.z, center_offset.X, center_offset.Y, 
+					   arc_length, speed, extrusion_mm3_per_mm, 
+					   feature, update_extrusion_offset, is_ccw);
 }
 
-void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature)
+void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velocity& speed, 
+							   double extrusion_mm3_per_mm, PrintFeatureType feature)
 {
     if (std::isinf(extrusion_mm3_per_mm))
     {
@@ -1138,7 +1145,8 @@ void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velo
     *output_stream << " F" << PrecisionedDouble{ 1, fspeed } << new_line;
 
     currentPosition = Point3(x, y, z);
-    estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), eToMm(current_e_value)), speed, feature);
+    estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), 
+		                     eToMm(current_e_value)), speed, feature);
 }
 
 void GCodeExport::writeTravel(const coord_t x, const coord_t y, const coord_t z, const Velocity& speed)
@@ -1315,7 +1323,6 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     case false:
     *output_stream << "G2";
     break;
-
     }
     Velocity speed_e = speed;
     if (diff_length)
@@ -1324,8 +1331,9 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
         Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
         speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
     }
-    writeFXYZIJE(speed_e, x, y, z,i,j, new_e_value, feature);
+	writeFXYZIJE(speed_e, x, y, z, i, j, new_e_value, feature);
 }
+
 void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const PrintFeatureType& feature)
 {
     if (currentSpeed != speed)
@@ -1539,7 +1547,8 @@ void GCodeExport::writeRetraction(const RetractionConfig& config, bool force, bo
         }
         *output_stream << new_line;
         // Assume default UM2 retraction settings.
-        estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), eToMm(current_e_value + retraction_diff_e_amount)),
+        estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), 
+								eToMm(current_e_value + retraction_diff_e_amount)),
                                 25,
                                 PrintFeatureType::MoveRetraction); // TODO: hardcoded values!
     }
@@ -2031,6 +2040,8 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
     }
     current_print_acceleration = acceleration;
     estimateCalculator->setAcceleration(acceleration);
+
+	//estimateCalculator->setAccel(acceleration);  
 }
 
 void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
@@ -2056,6 +2067,8 @@ void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool
     }
     current_travel_acceleration = acceleration;
     estimateCalculator->setAcceleration(acceleration);
+
+	//estimateCalculator->setAccel(acceleration);  
 }
 
 void GCodeExport::writeJerk(const Velocity& jerk)

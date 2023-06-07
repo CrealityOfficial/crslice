@@ -22,14 +22,14 @@
 
 namespace cura52
 {
-
 struct LayerIndex;
 class RetractionConfig;
 struct WipeScriptConfig;
 class Application;
 struct SliceResult;
+
 //The GCodeExport class writes the actual GCode. This is the only class that knows how GCode looks and feels.
-//  Any customizations on GCodes flavors are done in this class.
+//Any customizations on GCodes flavors are done in this class.
 class GCodeExport
 {
 #ifdef BUILD_TESTS
@@ -101,17 +101,21 @@ private:
         , currentTemperature(0)
         , waited_for_temperature(false)
         , initial_temp(0)
-        , retraction_e_amount_current(0.0), retraction_e_amount_at_e_start(0.0),
-            prime_volume(0.0), last_retraction_prime_speed(0.0), fan_number(0)
+        , retraction_e_amount_current(0.0)
+		, retraction_e_amount_at_e_start(0.0)
+		, prime_volume(0.0)
+		, last_retraction_prime_speed(0.0)
+		, fan_number(0)
         {
         }
     };
+
     ExtruderTrainAttributes extruder_attr[MAX_EXTRUDERS];
     bool use_extruder_offset_to_offset_coords;
     std::string machine_name;
     std::string slice_uuid_; //!< The UUID of the current slice.
 
-    std::ostream* output_stream;
+	std::ostream* output_stream;
     std::string new_line;
 
     double current_e_value; //!< The last E value written to gcode (in mm or mm^3)
@@ -206,8 +210,7 @@ protected:
      */
     double eToMm3(double e, size_t extruder);
 
-public:
-    
+public:  
     Application* application = nullptr;
 
     GCodeExport();
@@ -237,10 +240,10 @@ public:
 
     //for cloud result
     void getFileHeaderC(const std::vector<bool>& extruder_is_used,
-        SliceResult& sliceResult,
-        const Duration* print_time = nullptr,
-        const std::vector<double>& filament_used = std::vector<double>(),
-        const std::vector<std::string>& mat_ids = std::vector<std::string>());
+						SliceResult& sliceResult,
+						const Duration* print_time = nullptr,
+						const std::vector<double>& filament_used = std::vector<double>(),
+						const std::vector<std::string>& mat_ids = std::vector<std::string>());
 
     void setSliceUUID(const std::string& slice_uuid);
 
@@ -430,9 +433,15 @@ private:
      * \param feature the print feature that's currently printing
      * \param update_extrusion_offset whether to update the extrusion offset to match the current flow rate
      */
-    void writeExtrusion(const coord_t x, const coord_t y, const coord_t z, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset = false);
+    void writeExtrusion(const coord_t x, const coord_t y, const coord_t z, 
+						const Velocity& speed, const double extrusion_mm3_per_mm, 
+						const PrintFeatureType& feature, const bool update_extrusion_offset = false);
 
-    void writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j, double arc_length, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset = false, const bool is_ccw=true);
+    void writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, 
+							const coord_t i, const coord_t j, double arc_length, 
+							const Velocity& speed, const double extrusion_mm3_per_mm, 
+							const PrintFeatureType& feature, 
+							const bool update_extrusion_offset = false, const bool is_ccw=true);
     /*!
      * Write the F, X, Y, Z and E value (if they are not different from the last)
      * 

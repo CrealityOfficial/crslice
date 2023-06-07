@@ -23,23 +23,21 @@ class Settings;
  *  Some of this code has been adapted from the Marlin sources.
  */
 
-class TimeEstimateCalculator
+class TimeEstimateCalculator 
 {
 public:
     constexpr static unsigned int NUM_AXIS = 4;
-    constexpr static unsigned int X_AXIS = 0;
-    constexpr static unsigned int Y_AXIS = 1;
-    constexpr static unsigned int Z_AXIS = 2;
-    constexpr static unsigned int E_AXIS = 3;
-
+    constexpr static unsigned int X_AXIS   = 0;
+    constexpr static unsigned int Y_AXIS   = 1;
+    constexpr static unsigned int Z_AXIS   = 2;
+    constexpr static unsigned int E_AXIS   = 3;
 
     class Position
     {
     public:
-        Position() {for(unsigned int n=0;n<NUM_AXIS;n++) axis[n] = 0;}
-        Position(double x, double y, double z, double e) {axis[0] = x;axis[1] = y;axis[2] = z;axis[3] = e;}
-        double axis[NUM_AXIS];
-        
+		Position() { for (unsigned int n = 0; n < NUM_AXIS; n++) axis[n] = 0; }
+		Position(double x, double y, double z, double e) { axis[0] = x; axis[1] = y; axis[2] = z; axis[3] = e; }
+		double axis[NUM_AXIS] = { 0 };
         double& operator[](const int n) { return axis[n]; }
     };
 
@@ -65,24 +63,68 @@ public:
         Position absDelta;
 
         PrintFeatureType feature;
+
+	//public:                          
+	//	double delta_v2;
+	//	double max_start_v2;
+	//	double smooth_delta_v2;
+	//	double max_smoothed_v2;
+	//	double max_cruise_v2;
+	//	double accel;
+	//	double start_v;
+	//	double cruise_v;
+	//	double end_v;
+	//	double accel_t;
+	//	double cruise_t;
+	//	double decel_t;
+	//	Velocity theF;
+	//	double junction_deviation;
+	//	double max_velocity;
+	//	double axes_d[NUM_AXIS];
+	//	double move_d;
+	//	bool   is_kinematic_move;
+	//	double axes_r[NUM_AXIS];
+	//	double min_move_t;
+	//	double accel_d;
+	//	double decel_d;
+	//	double cruise_d;
     };
 
-private:
-    Velocity max_feedrate[NUM_AXIS] = {600, 600, 40, 25}; // mm/s
+	//Acceleration max_accel = 20000.0;      
+	//std::vector<Block> blocksflush;
+	//double junction_flush = 2.0;
+	//bool update_flush_count = false;
+
+	//virtual void setAccel(const Acceleration& acc);
+
+	//struct MyStruct             
+	//{
+	//	Block myblock;
+	//	double mystart;
+	//	double myend;
+	//	MyStruct(Block a, double b, double c)
+	//	{
+	//		myblock = a;
+	//		mystart = b;
+	//		myend = c;
+	//	}
+	//};
+
+private:  
+public:
+    Velocity max_feedrate[NUM_AXIS] = {600, 600, 40, 25}; 
     Velocity minimumfeedrate = 0.01;
     Acceleration acceleration = 3000;
-    Acceleration max_acceleration[NUM_AXIS] = {9000, 9000, 100, 10000};
+    Acceleration max_acceleration[NUM_AXIS] = {9000, 9000, 100, 10000};   
     Velocity max_xy_jerk = 20.0;
     Velocity max_z_jerk = 0.4;
     Velocity max_e_jerk = 5.0;
     Duration extra_time = 0.0;
-    
     Position previous_feedrate;
     Velocity previous_nominal_feedrate;
-
     Position currentPosition;
-
     std::vector<Block> blocks;
+
 public:
     /*!
      * \brief Set the movement configuration of the firmware.
@@ -92,13 +134,14 @@ public:
     void setPosition(Position newPos);
     virtual void plan(Position newPos, Velocity feedRate, PrintFeatureType feature);
     void addTime(const Duration& time);
-    void setAcceleration(const Acceleration& acc); //!< Set the default acceleration to \p acc
+	void setAcceleration(const Acceleration& acc); //!< Set the default acceleration to \p acc
     void setMaxXyJerk(const Velocity& jerk); //!< Set the max xy jerk to \p jerk
     Velocity* maxFeedrate();
-    void reset();
-    
-    std::vector<Duration> calculate();
+    virtual void reset();   
+	virtual std::vector<Duration> calculate();
+
 private:
+public:
     void reversePass();
     void forwardPass();
 
