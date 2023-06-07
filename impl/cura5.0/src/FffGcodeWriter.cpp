@@ -515,6 +515,18 @@ void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
         storage.support.support_infill_angles_layer_0.push_back(0);
     }
 
+    if (mesh_group_settings.get<coord_t>("special_slope_slice_angle") != 0)
+    {
+        std::vector<AngleDegrees> support_infill_angles;
+        std::string Axis = mesh_group_settings.get<std::string>("special_slope_slice_axis");
+        if (Axis == "X")
+            support_infill_angles.push_back(0);
+        else
+            support_infill_angles.push_back(90);
+        storage.support.support_infill_angles = support_infill_angles;
+        storage.support.support_infill_angles_layer_0 = support_infill_angles;
+    }
+
     auto getInterfaceAngles = [this, &storage](const ExtruderTrain& extruder, const std::string& interface_angles_setting, const EFillMethod pattern, const std::string& interface_height_setting)
     {
         std::vector<AngleDegrees> angles = extruder.settings.get<std::vector<AngleDegrees>>(interface_angles_setting);

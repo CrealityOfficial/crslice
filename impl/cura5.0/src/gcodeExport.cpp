@@ -678,6 +678,11 @@ void GCodeExport::setZ(int z)
     current_layer_z = z;
 }
 
+void GCodeExport::setZOffset(int zf)
+{
+    z_offset = zf;
+}
+
 void GCodeExport::addExtraPrimeAmount(double extra_prime_volume)
 {
     extruder_attr[current_extruder].prime_volume += extra_prime_volume;
@@ -1016,16 +1021,16 @@ void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double e
         Point3 axis = Point3(0, 1, 0);
         if (Axis == "X") axis = Point3(1, 0, 0);
         Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
-        //if (z_offset > 0)
-        //{
-        //    float layer_height_0 = scene->settings.get<coord_t>("layer_height_0") / 2.0;
-        //    double s = sin(angle * M_PI / 180);
-        //    double c = cos(angle * M_PI / 180);
-        //    Point3 offsetPt = Axis == "X" ? Point3(0, z_offset * s, z_offset * c) : Point3(-z_offset * s, 0, z_offset * c);
-        //    if (input_pt.z <= layer_height_0) input_pt += offsetPt;
-        //    else input_pt += (offsetPt - Point3(0, 0, offsetPt.z));
-        //    if (input_pt.z < layer_height_0) input_pt.z = layer_height_0;
-        //}
+        if (z_offset > 0)
+        {
+            float layer_height_0 = scene->settings.get<coord_t>("layer_height_0") / 2.0;
+            double s = sin(angle * M_PI / 180);
+            double c = cos(angle * M_PI / 180);
+            Point3 offsetPt = Axis == "X" ? Point3(0, z_offset * s, z_offset * c) : Point3(-z_offset * s, 0, z_offset * c);
+            if (input_pt.z <= layer_height_0) input_pt += offsetPt;
+            else input_pt += (offsetPt - Point3(0, 0, offsetPt.z));
+            if (input_pt.z < layer_height_0) input_pt.z = layer_height_0;
+        }
         writeExtrusion(input_pt, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
     }
     else

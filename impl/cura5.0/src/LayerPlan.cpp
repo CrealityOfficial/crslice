@@ -1507,6 +1507,7 @@ void LayerPlan::addLinesMonotonic(const Polygons& area,
 void LayerPlan::spiralizeWallSlice(const GCodePathConfig& config, ConstPolygonRef wall, ConstPolygonRef last_wall, const int seam_vertex_idx, const int last_seam_vertex_idx, const bool is_top_layer, const bool is_bottom_layer)
 {
     const bool smooth_contours = application->current_slice->scene.current_mesh_group->settings.get<bool>("smooth_spiralized_contours");
+    const bool slope_slice = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("special_slope_slice_angle") != 0;
     constexpr bool spiralize = true; // In addExtrusionMove calls, enable spiralize and use nominal line width.
     constexpr Ratio width_factor = 1.0_r;
 
@@ -1516,7 +1517,7 @@ void LayerPlan::spiralizeWallSlice(const GCodePathConfig& config, ConstPolygonRe
     // the nozzle crossing the model on its return from printing the support.
     addTravel(origin);
 
-    if (! smooth_contours && last_seam_vertex_idx >= 0)
+    if ((!smooth_contours || slope_slice) && last_seam_vertex_idx >= 0)
     {
         // when not smoothing, we get to the (unchanged) outline for this layer as quickly as possible so that the remainder of the
         // outline wall has the correct direction - although this creates a little step, the end result is generally better because when the first
@@ -1603,7 +1604,7 @@ void LayerPlan::spiralizeWallSlice(const GCodePathConfig& config, ConstPolygonRe
         // if required, use interpolation to smooth the x/y coordinates between layers but not for the first spiralized layer
         // as that lies directly on top of a non-spiralized wall with exactly the same outline and not for the last point in each layer
         // because we want that to be numerically exactly the same as the starting point on the next layer (not subject to any rounding)
-        if (smooth_contours && ! is_bottom_layer && wall_point_idx < n_points)
+        if ((smooth_contours && !slope_slice) && ! is_bottom_layer && wall_point_idx < n_points)
         {
             // now find the point on the last wall that is closest to p
             ClosestPolygonPoint cpp = PolygonUtils::findClosest(p, last_wall_polygons);
@@ -2356,7 +2357,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if (! coasting) // not same as 'else', cause we might have changed [coasting] in the line above...
                 { // normal path to gcode algorithm
                     bool arc_configure_enable = application->current_slice->scene.settings.get<bool>("arc_configure_enable");
-                    if (arc_configure_enable)
+                    bool slope_slice_enable = application->current_slice->scene.settings.get<coord_t>("special_slope_slice_angle") != 0;
+                    if (arc_configure_enable && !slope_slice_enable)
                     {
                         if (1)
                         {
@@ -2532,7 +2534,15 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         const Point p1 = path.points[point_idx];
                         length += vSizeMM(p0 - p1);
                         p0 = p1;
-                        gcode.setZ(std::round(z + layer_thickness * length / totalLength));
+                        if (application->current_slice->scene.settings.get<coord_t>("special_slope_slice_angle") == 0)
+                        {
+                            gcode.setZ(std::round(z + layer_thickness * length / totalLength));
+                        }
+                        else
+                        {
+                            gcode.setZ(z);
+                            gcode.setZOffset(std::round(layer_thickness * length / totalLength));
+                        }
 
                         const double extrude_speed = speed * path.speed_back_pressure_factor;
                         gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
