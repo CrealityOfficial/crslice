@@ -172,10 +172,10 @@ void PrimeTower::generatePaths_denseInfill()
             // the infill pattern because the infill pattern tries to connect polygons in different insets which causes the
             // first layer of the prime tower to not stick well.
             Polygons inset = outer_poly.offset(-line_width_layer0 / 2);
-            while (!inset.empty())
+            while (/*!inset.empty()*/inset.area() >20000000.0)
             {
                 pattern_layer0.polygons.add(inset);
-                inset = inset.offset(-line_width_layer0*1.4);
+                inset = inset.offset(-line_width_layer0);
             }
         }
     }
@@ -258,7 +258,15 @@ void PrimeTower::addToGcode_denseInfill(LayerPlan& gcode_layer, const size_t ext
 
 	const GCodePathConfig& config = gcode_layer.configs_storage.prime_tower_config_per_extruder[extruder_nr];
 	const auto tower_zseam_config = ZSeamConfig(EZSeamType::SKIRT_BRIM);
-	gcode_layer.addPolygonsByOptimizer(pattern.polygons, config, tower_zseam_config, 0, false, 1.0_r, false, true);
+
+	if (gcode_layer.getLayerNr() == -static_cast<LayerIndex>(Raft::getFillerLayerCount(application)))
+	{
+		gcode_layer.addPolygonsByOptimizer(pattern.polygons, config, tower_zseam_config, 0, false, 1.0_r, false, false);
+	} 
+	else
+	{
+		gcode_layer.addPolygonsByOptimizer(pattern.polygons, config, tower_zseam_config, 0, false, 1.0_r, false, true);
+	}
 	gcode_layer.addLinesByOptimizer(pattern.lines, config, SpaceFillType::Lines);
 }
 
