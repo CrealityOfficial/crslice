@@ -306,6 +306,10 @@ EGCodeFlavor Settings::get<EGCodeFlavor>(const std::string& key) const
     {
         return EGCodeFlavor::REPRAP;
     }
+	else if (value == "Plc")
+	{
+		return EGCodeFlavor::PLC;
+	}
     // Default:
     return EGCodeFlavor::MARLIN;
 }

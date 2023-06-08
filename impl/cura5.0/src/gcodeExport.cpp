@@ -655,6 +655,13 @@ void GCodeExport::setFlavor(EGCodeFlavor flavor)
             extruder_attr[n].extruderCharacter = 'A' + n;
         }
     }
+	else if (flavor == EGCodeFlavor::PLC)
+	{
+		for (int n = 0; n < MAX_EXTRUDERS; n++)
+		{
+			extruder_attr[n].extruderCharacter = 'P' + n;
+		}
+	}
     else
     {
         for (int n = 0; n < MAX_EXTRUDERS; n++)
@@ -1083,6 +1090,26 @@ void GCodeExport::writeExtrusionG2G3(const Point3& p, const Point& center_offset
 					   feature, update_extrusion_offset, is_ccw);
 }
 
+
+float getAngelOfTwoVector(const Point& pt1, const Point& pt2)
+{
+	Point c(pt2.X+1000,pt2.Y);
+	float theta = atan2(pt1.X - c.Y, pt1.X - c.X) - atan2(pt2.Y - c.Y, pt2.X - c.X);
+	if (theta > PI)
+		theta -= 2 * PI;
+	if (theta < -PI)
+		theta += 2 * PI;
+
+	theta = theta * 180.0 / PI;
+	if (theta < 0)
+	{
+		theta = 360 + theta;
+	}
+	return theta;
+}
+
+
+
 void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velocity& speed, 
 							   double extrusion_mm3_per_mm, PrintFeatureType feature)
 {
@@ -1215,6 +1242,11 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
 
     const Point3 diff = Point3(x, y, z) - currentPosition;
     const double diff_length = diff.vSizeMM();
+	if (this->flavor == EGCodeFlavor::PLC)
+	{
+		float iDegree = getAngelOfTwoVector(Point(x,y), Point(currentPosition.x, currentPosition.y));
+		*output_stream << "G90 E" << iDegree << new_line;
+	}
 
     writeUnretractionAndPrime();
 
