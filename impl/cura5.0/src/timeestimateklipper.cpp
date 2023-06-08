@@ -303,6 +303,7 @@ namespace cura52
 		forwardPass();
 		recalculateTrapezoids();
 
+		
 		for (unsigned int n = 1; n < moves.size(); n++)
 		{
 			Move& pre = moves[n - 1];
@@ -436,6 +437,7 @@ namespace cura52
 			if (i1 >= blocks.size() - 1) { break; }
 			i0 = i1;
 		}
+		
 
 		std::vector<Duration> totals(static_cast<unsigned char>(PrintFeatureType::NumPrintFeatureTypes), 0.0);
 		totals[static_cast<unsigned char>(PrintFeatureType::NoneType)] = extra_time; // Extra time (pause for minimum layer time, etc) is marked as NoneType

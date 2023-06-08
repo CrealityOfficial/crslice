@@ -104,8 +104,8 @@ GCodeExport::~GCodeExport()
 
 void GCodeExport::preSetup(const size_t start_extruder)
 {
-    //estimateCalculator = new TimeEstimateCalculator();   //
-	estimateCalculator = new TimeEstimateKlipper();         //新的打印时间估算方法
+    estimateCalculator = new TimeEstimateCalculator();   //
+	//estimateCalculator = new TimeEstimateKlipper();         //新的打印时间估算方法
 
     current_extruder = start_extruder;
 
