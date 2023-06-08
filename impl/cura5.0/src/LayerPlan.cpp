@@ -2306,41 +2306,44 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             //if (paths[path_idx].config->type == PrintFeatureType::OuterWall)
             //    speed = 10;
             bool judgeVelocityDip = false;
+            float speed_quarter;
             if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
             {
                 for (int i = 1; i <= path_idx; i++)
-                {   //avoid  line  was splited by algo, same line  slowdown such as circle split into arc
-                    //if (paths[path_idx - i].config->type == PrintFeatureType::Infill && speed == paths[path_idx - i].speedSlowDownPath)
-                    //    break;
-                    //if ((paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall) &&
-                    //    speed == paths[path_idx - i].speedSlowDownPath && !paths[path_idx].points.empty())
-                    //{ //for model moon_city_final.stl L195 small  cone wall  litte bit bad ,   layer 204 large wall segmemt solwdowm
-                    //    float isdistance = 0;
-                    //    for (int j = 0; j < paths[path_idx].points.size() - 1; j++)
-                    //    {
-                    //        Point p0(paths[path_idx].points.at(j).X, paths[path_idx].points.at(j).Y);
-                    //        Point p1(paths[path_idx].points.at(j + 1).X, paths[path_idx].points.at(j + 1).Y);
-                    //        isdistance += vSize(p0 - p1);
-                    //    }
-                    //    if (isdistance < 2000)
-                    //        break;
-                    //    else
-                    //        judgeVelocityDip = true;
-                    //}
-
-                    float vv = paths[path_idx - i].speedSlowDownPath;
-                    if (path_idx - i >= 0 && (vv != -111.0f) &&
-                        ((speed / paths[path_idx - i].speedSlowDownPath) > 3.0f ))     //from   large  to  small,  Reversely  is path is Travel Path
+                {   
+                    float v_previous = paths[path_idx - i].speedSlowDownPath;
+                    if (path_idx - i >= 0 && (v_previous != -111.0f) &&
+                        ((speed / paths[path_idx - i].speedSlowDownPath) > 1.1f ))     //from   large  to  small,  Reversely  is path is Travel Path
                     {
                         gcode.writeTemperatureCommand(0, extruder_plan.required_start_temperature + application->current_slice->scene.settings.get<Temperature>("speed_slowtofast_slowdown_revise_temp"), false);
-                        judgeVelocityDip = true;
-                        break;
+                        if ((path.config->type == PrintFeatureType::Infill || path.config->type == PrintFeatureType::InnerWall ||
+                            path.config->type == PrintFeatureType::OuterWall) &&( paths[path_idx - i].config->type == PrintFeatureType::Infill ||
+                            paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall)
+                            && v_previous < 50.0)
+                        {
+
+                            float speed_span_quarter = (abs(speed  - v_previous ))/3.0f;
+
+                            speed_quarter = v_previous + speed_span_quarter;
+                            //if (this->layer_nr > 5 && path.config->type == PrintFeatureType::InnerWall)
+                            //{
+                            //    std::cout << "  speed =  " << speed;
+                            //    std::cout << "  speed * path.speed_back_pressure_factor =  " << speed;
+                            //    std::cout << "  v_previous =  " << v_previous;
+                            //    std::cout << "   vv * paths[path_idx - i].speed_back_pressure_factor) =  " << v_previous;
+                            //    std::cout << "   speed_span_quarter =  " << speed_span_quarter << std::endl;
+                            //    std::cout << "   speed_quarter =  " << speed_quarter << std::endl;
+                            //}
+                            judgeVelocityDip = true;
+                            break;
+                        }
+
                     }
 
                 }
             }
            
-            
+           
 
             bool spiralize = path.spiralize;
             if (! spiralize) // normal (extrusion) move (with coasting)
@@ -2417,16 +2420,18 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             Point gcodePt(points[point_index].x(), points[point_index].y());
                                             if (slow2fastSlowdown && !wall_slow_OK  && judgeVelocityDip && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
                                             {//经过测试大部分的圆弧都是经常这个case，Arc_move_ccw和Linear_move共同组成了慢速到快速的距离计算，如果大于这一段距离，则是原来的速度，否则速度50
-                                                extrude_speed = 50;
+                                                extrude_speed = speed_quarter;
                                                 if (dis > dis_threshold)  wall_slow_OK = true;
                                             }
                                             else if (slow2fastSlowdown && !infill_slow_OK  && judgeVelocityDip && path.config->type == PrintFeatureType::Infill)
                                             {
-                                                extrude_speed = 50;
+                                                extrude_speed = speed_quarter;
                                                 if (dis > dis_threshold)  infill_slow_OK = true;
                                             }
                                             else
                                                 extrude_speed = speed * path.speed_back_pressure_factor;
+                                            //if (this->layer_nr == 50 && path.config->type == PrintFeatureType::InnerWall)
+                                            //    std::cout << "  Linear_move  extrude_speed =  " << extrude_speed  << std ::endl; 
                                             gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                                             if (point_index > 0)
                                             {
@@ -2454,11 +2459,13 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             //gcode.writeArcSatrt(start_point);
                                         }
                                         extrude_speed = speed * path.speed_back_pressure_factor;
+                                        //if (this->layer_nr == 50 && path.config->type == PrintFeatureType::InnerWall)
+                                        //    std::cout << " Arc_move_ccw extrude_speed =  " << extrude_speed;
                                         dis += INT2MM(vSize(Point(arc.start_point.x(), arc.start_point.y()) - Point(arc.end_point.x(), arc.end_point.y())));
 
                                         if (this->layer_nr > 0 && dis < dis_threshold && judgeVelocityDip)
                                         {
-                                            extrude_speed = 50;
+                                            extrude_speed = speed_quarter;
                                         }
                                         gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == Slic3r::ArcDirection::Arc_Dir_CCW);
                                     }
