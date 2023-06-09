@@ -152,6 +152,67 @@ void LayerPlanBuffer::insertPreheatCommand(ExtruderPlan& extruder_plan_before, c
     extruder_plan_before.insertCommand(path_idx, extruder_nr, temp, wait); // insert at start of extruder plan if time_after_extruder_plan_start > extruder_plan.time
 }
 
+void LayerPlanBuffer::insertFanCommand(ExtruderPlan& extruder_plan_before, const Duration time_after_extruder_plan_start, const size_t fan_idx, const double fan_speed)
+{
+    Duration acc_time = 0.0;
+    for (unsigned int path_idx = extruder_plan_before.paths.size() - 1; int(path_idx) != -1; path_idx--)
+    {
+        GCodePath& path = extruder_plan_before.paths[path_idx];
+        const Duration time_this_path = path.estimates.getTotalTime();
+        acc_time += time_this_path;
+        if (acc_time > time_after_extruder_plan_start)
+        {
+            const Duration time_before_path_end = acc_time - time_after_extruder_plan_start;
+            extruder_plan_before.insertFanCommand(path_idx, fan_idx, fan_speed, time_this_path - time_before_path_end);
+            return;
+        }
+    }
+    constexpr size_t path_idx = 0;
+    extruder_plan_before.insertFanCommand(path_idx, fan_idx, fan_speed); // insert at start of extruder plan if time_after_extruder_plan_start > extruder_plan.time
+}
+
+void LayerPlanBuffer::insertFanCommandCurrentPlan(ExtruderPlan& extruder_plan, const Duration time_before_fan_speed_change, const size_t fan_idx)
+{
+    double current_fan_speed = extruder_plan.fan_speed;
+    for (int i = 1; i < extruder_plan.paths.size(); i++)
+    {
+        GCodePath& path = extruder_plan.paths[i];
+        if (path.fan_speed != GCodePathConfig::FAN_SPEED_DEFAULT)
+        {
+            if (path.fan_speed > current_fan_speed)
+            {
+                bool success = false;
+                Duration acc_time = 0.0;
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    GCodePath& path_pre = extruder_plan.paths[j];
+                    const Duration time_this_path = path_pre.estimates.getTotalTime();
+                    acc_time += time_this_path;
+                    path_pre.fan_speed = path.fan_speed;
+                    if (acc_time > time_before_fan_speed_change)
+                    {
+                        const Duration time_before_path_end = acc_time - time_before_fan_speed_change;
+                        extruder_plan.insertFanCommand(j, fan_idx, path.fan_speed, time_this_path - time_before_path_end);
+                        success = true;
+                        break;
+                    }
+                }
+                if (!success)
+                {
+                    constexpr size_t path_idx = 0;
+                    extruder_plan.paths[path_idx].fan_speed = path.fan_speed;
+                    extruder_plan.insertFanCommand(path_idx, fan_idx, path.fan_speed);
+                }
+            }
+            current_fan_speed = path.fan_speed;
+        }
+        else
+        {
+            current_fan_speed = extruder_plan.fan_speed;
+        }
+    }
+}
+
 Preheat::WarmUpResult LayerPlanBuffer::computeStandbyTempPlan(std::vector<ExtruderPlan*>& extruder_plans, unsigned int extruder_plan_idx)
 {
     ExtruderPlan& extruder_plan = *extruder_plans[extruder_plan_idx];
@@ -303,6 +364,31 @@ void LayerPlanBuffer::insertTempCommands(std::vector<ExtruderPlan*>& extruder_pl
         insertFinalPrintTempCommand(extruder_plans, extruder_plan_idx - 1);
         insertPrintTempCommand(extruder_plan);
     }
+}
+
+void LayerPlanBuffer::insertFanCommands(std::vector<ExtruderPlan*>& extruder_plans, unsigned int extruder_plan_idx)
+{
+    ExtruderPlan& extruder_plan = *extruder_plans[extruder_plan_idx];
+    ExtruderPlan* prev_extruder_plan = extruder_plans[extruder_plan_idx - 1];
+    const Settings& previous_extruder_settings = application->current_slice->scene.extruders[prev_extruder_plan->extruder_nr].settings;
+    Duration time_before_extruder_plan_end_of_fan = previous_extruder_settings.get<Duration>("machine_fan_speed_up_time");
+    if (time_before_extruder_plan_end_of_fan != 0)
+    {
+        size_t fan_idx = 0;
+        insertFanCommandCurrentPlan(extruder_plan, time_before_extruder_plan_end_of_fan, fan_idx);
+        double fan_speed = extruder_plan.getFirstPrintPathFanSpeed();
+        if (fan_speed == GCodePathConfig::FAN_SPEED_DEFAULT)
+            fan_speed = extruder_plan.fan_speed;
+        insertFanCommand(*prev_extruder_plan, time_before_extruder_plan_end_of_fan, fan_idx, fan_speed);
+    }
+    Duration time_before_extruder_plan_end_of_cds_fan = previous_extruder_settings.get<Duration>("machine_cds_fan_speed_up_time");
+    if (time_before_extruder_plan_end_of_cds_fan != 0)
+    {
+        size_t fan_idx = 1;
+        double fan_speed = extruder_plan.cds_fan_speed;
+        insertFanCommand(*prev_extruder_plan, time_before_extruder_plan_end_of_cds_fan, fan_idx, fan_speed);
+    }
+
 }
 
 void LayerPlanBuffer::insertPrintTempCommand(ExtruderPlan& extruder_plan)
@@ -560,6 +646,7 @@ void LayerPlanBuffer::insertTempCommands()
         }
 
         insertTempCommands(extruder_plans, overall_extruder_plan_idx);
+        insertFanCommands(extruder_plans, overall_extruder_plan_idx);
     }
 }
 

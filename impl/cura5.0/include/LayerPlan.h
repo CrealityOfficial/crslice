@@ -51,6 +51,7 @@ class ExtruderPlan
 protected:
     std::vector<GCodePath> paths; //!< The paths planned for this extruder
     std::list<NozzleTempInsert> inserts; //!< The nozzle temperature command inserts, to be inserted in between paths
+    std::list<FanInsert> fan_inserts; //!< The fan speed command inserts, to be inserted in between paths
 
     double heated_pre_travel_time; //!< The time at the start of this ExtruderPlan during which the head travels and has a temperature of initial_print_temperature
 
@@ -102,6 +103,12 @@ public:
         inserts.emplace_back(contructor_args...);
     }
 
+    template<typename... Args>
+    void insertFanCommand(Args&&... contructor_args)
+    {
+        fan_inserts.emplace_back(contructor_args...);
+    }
+
     /*!
      * Insert the inserts into gcode which should be inserted before \p path_idx
      * 
@@ -127,7 +134,7 @@ public:
      * \param force_minimal_layer_time Whether we should apply speed changes and perhaps a head lift in order to meet the minimal layer time
      * \param starting_position The position the head was before starting this extruder plan
      */
-    void processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position);
+    void processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed);
 
     /*!
      * Set the extrude speed factor. This is used for printing slower than normal.
@@ -166,6 +173,8 @@ public:
     void applyBackPressureCompensation(const Ratio back_pressure_compensation, const Velocity max_feed_speed);
 
     double getTotalPrintTime();
+
+    double getFirstPrintPathFanSpeed();
 
 protected:
     LayerIndex layer_nr; //!< The layer number at which we are currently printing.

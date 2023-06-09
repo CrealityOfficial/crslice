@@ -280,6 +280,9 @@ public:
     int getPositionZ() const;
 
     int getExtruderNr() const;
+
+    double getCurrentFanSpeed();
+    double getCurrentCdsFanSpeed();
     
     void setFilamentDiameter(size_t extruder, const coord_t diameter);
     

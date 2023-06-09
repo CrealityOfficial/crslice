@@ -111,6 +111,14 @@ private:
      * \param temp The temperature of the preheat command
      */
     void insertPreheatCommand(ExtruderPlan& extruder_plan_before, const Duration time_before_extruder_plan_end, const size_t extruder_nr, const Temperature temp);
+    
+    /*!
+        * Insert a fan command for @p extruder into @p extruder_plan_before
+        * 
+    */
+    void insertFanCommand(ExtruderPlan& extruder_plan_before, const Duration time_after_extruder_plan_start, const size_t fan_idx, const double fan_speed);
+
+    void insertFanCommandCurrentPlan(ExtruderPlan& extruder_plan_before, const Duration time_after_extruder_plan_start, const size_t fan_idx);
 
     /*!
      * Compute the time needed to preheat from standby to required (initial) printing temperature at the start of an extruder plan,
@@ -163,6 +171,8 @@ private:
      * \param extruder_plan_idx The index of the extruder plan in \p extruder_plans for which to generate the preheat command
      */
     void insertTempCommands(std::vector<ExtruderPlan*>& extruder_plans, unsigned int extruder_plan_idx);
+
+    void insertFanCommands(std::vector<ExtruderPlan*>& extruder_plans, unsigned int extruder_plan_idx);
 
     /*!
      * Insert the temperature command to heat from the initial print temperature to the printing temperature

@@ -58,6 +58,11 @@ void ExtruderPlan::handleInserts(unsigned int& path_idx, GCodeExport& gcode)
         inserts.front().write(gcode);
         inserts.pop_front();
     }
+    while (!fan_inserts.empty() && path_idx >= fan_inserts.front().path_idx)
+    { // handle the Insert to be inserted before this path_idx (and all inserts not handled yet)
+        fan_inserts.front().write(gcode);
+        fan_inserts.pop_front();
+    }
 }
 
 void ExtruderPlan::handleAllRemainingInserts(GCodeExport& gcode)
@@ -93,6 +98,20 @@ double ExtruderPlan::getFanSpeed()
 double ExtruderPlan::getTotalPrintTime()
 {
     return totalPrintTime;
+}
+
+double ExtruderPlan::getFirstPrintPathFanSpeed()
+{
+    double first_Print_path_fan_speed = GCodePathConfig::FAN_SPEED_DEFAULT;
+    for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+    {
+        if (!paths[path_idx].isTravelPath())
+        {
+            first_Print_path_fan_speed = paths[path_idx].getFanSpeed();
+            break;
+        }
+    }
+    return first_Print_path_fan_speed;
 }
 
 void ExtruderPlan::applyBackPressureCompensation(const Ratio back_pressure_compensation, const Velocity max_feed_speed)
@@ -701,6 +720,9 @@ void LayerPlan::addWallLine(const Point& p0,
     const coord_t min_bridge_line_len = settings.get<coord_t>("bridge_wall_min_length");
     const Ratio bridge_wall_coast = settings.get<Ratio>("bridge_wall_coast");
     const Ratio overhang_speed_factor = settings.get<Ratio>("wall_overhang_speed_factor");
+    const bool overhang_bridge_force_cooling = settings.get<bool>("cool_overhang_bridge_force_cooling");
+    const Ratio overhang_threshold = settings.get<Ratio>("cool_overhang_threshold");
+    const Ratio overhang_fan_speed = settings.get<Ratio>("cool_overhang_fan_speed");
     const bool set_wall_overhang_grading = settings.get<bool>("set_wall_overhang_grading");
     std::vector<Ratio> overhang_speed_factor_vec;
     if (set_wall_overhang_grading)
@@ -728,69 +750,21 @@ void LayerPlan::addWallLine(const Point& p0,
 
     // alternatively, if the line follows a bridge line, it may be segmented and the print speed gradually increased to reduce under-extrusion
 
-    auto getSpeedFactor = [&, this](const Point& _p0, const Point& _p1)
+    auto getSpeedFactor = [&](const Point& _p1)
     {
-#if 1
         if(overhang_distance < 0 || speed_sections.empty())
             return speed_factor;
         Ratio result_factor = getSpeedFactorP(_p1, overhang_distance, non_bridge_config.getSpeed(), speed_sections);
         return result_factor;
-#else
-        if (overhang_mask.empty()) return speed_factor;
-        Ratio sf0 = speed_factor, sf1 = speed_factor;
-        int level_min = -1;
-        for (int i = 0; i < overhang_mask.size(); i++)
-        {
-            if (overhang_mask[i].empty()) continue;
-            if (level_min == -1) level_min = i;
-            if (overhang_mask[i].inside(p0, true))
-                sf0 = overhang_speed_factor_vec[i];
-            if (overhang_mask[i].inside(p1, true))
-                sf1 = overhang_speed_factor_vec[i];
-        }
-        if (sf0 < speed_factor && sf1 < speed_factor)
-        {
-            return Ratio((sf0 + sf1) / 2);
-        }
-        else if (sf0 < speed_factor || sf1 < speed_factor)
-        {
-            //计算出p0p1中的悬空段，仅悬空段降速
-            Polygons pline;
-            pline.addLine(p0, p1);
-            coord_t offsetVal = 0;
-            if (sf0 == speed_factor) offsetVal = (level_min + 1) * non_bridge_config.getLineWidth() / 2.0;
-            Polygons result = overhang_mask[level_min].offset(offsetVal).intersectionPolyLines(pline);
-            if (result.polyLineLength() > 100)
-            {
-                Point point_mid = Point();
-                bool p0clocer = vSize2(result.back()[0] - p0) < vSize2(result.back()[1] - p0);
-                if ((sf0 == speed_factor && p0clocer)
-                    || (sf1 == speed_factor && !p0clocer))
-                    point_mid = result.back()[0];
-                else
-                    point_mid = result.back()[1];
+    };
 
-                if (point_mid != Point())
-                {
-                    GCodePath path = extruder_plans.back().paths.back();
-                    addExtrusionMove(point_mid, non_bridge_config, SpaceFillType::Polygons, flow,  path.width_factor, spiralize, path.speed_factor);
-                    if (sf0 == speed_factor) return sf1;
-                }
-            }
-        }
-        else {
-            for (int i = 0; i < overhang_mask.size(); i++)
-            {
-                float rand_radio_1 = (std::rand() % 60 + 20) / 100.;
-                float rand_radio_2 = (std::rand() % 60 + 20) / 100.;
-                if (overhang_mask[i].inside(p0 + rand_radio_1 * (p1 - p0), true) && overhang_mask[i].inside(p0 + rand_radio_2 * (p1 - p0), true))
-                {
-                    return overhang_speed_factor_vec[i];
-                }
-            }
-        }
-        return speed_factor;
-#endif
+    auto getFanSpeed = [&](const GCodePathConfig& config)
+    {
+        if (!overhang_bridge_force_cooling)
+            return GCodePathConfig::FAN_SPEED_DEFAULT;
+        if (config.isBridgePath() || overhang_distance > overhang_threshold * config.getLineWidth())
+            return double(overhang_fan_speed * 100.);
+        return GCodePathConfig::FAN_SPEED_DEFAULT;;
     };
 
     auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true)
@@ -844,7 +818,8 @@ void LayerPlan::addWallLine(const Point& p0,
                                      segment_flow,
                                      width_factor,
                                      spiralize,
-                                     std::min(getSpeedFactor(cur_point, segment_end), speed_factor));
+                                     std::min(getSpeedFactor(segment_end), speed_factor),
+                                     getFanSpeed(non_bridge_config));
                 }
 
                 distance_to_bridge_start -= len;
@@ -858,7 +833,8 @@ void LayerPlan::addWallLine(const Point& p0,
                                  segment_flow,
                                  width_factor,
                                  spiralize,
-                                 std::min(getSpeedFactor(cur_point, segment_end), speed_factor));
+                                 std::min(getSpeedFactor(segment_end), speed_factor),
+                                 getFanSpeed(non_bridge_config));
             }
             non_bridge_line_volume += vSize(cur_point - segment_end) * segment_flow * width_factor * speed_factor * non_bridge_config.getSpeed();
             cur_point = segment_end;
@@ -874,7 +850,14 @@ void LayerPlan::addWallLine(const Point& p0,
     if (bridge_wall_mask.empty())
     {
         // no bridges required
-        addExtrusionMove(p1, non_bridge_config, SpaceFillType::Polygons, flow, width_factor, spiralize, std::min(getSpeedFactor(p0, p1), speed_factor));
+        addExtrusionMove(p1,
+                        non_bridge_config,
+                        SpaceFillType::Polygons,
+                        flow,
+                        width_factor, 
+                        spiralize, 
+                        std::min(getSpeedFactor(p1), speed_factor),
+                        getFanSpeed(non_bridge_config));
     }
     else
     {
@@ -924,7 +907,14 @@ void LayerPlan::addWallLine(const Point& p0,
                 {
                     // treat the short bridge line just like a normal line
                     GCodePath path = extruder_plans.back().paths.back();
-                    addExtrusionMove(b1, non_bridge_config, SpaceFillType::Polygons, flow, path.width_factor, spiralize, std::min(getSpeedFactor(cur_point, b1), path.speed_factor));
+                    addExtrusionMove(b1,
+                        non_bridge_config, 
+                        SpaceFillType::Polygons,
+                        flow,
+                        path.width_factor, 
+                        spiralize, 
+                        std::min(getSpeedFactor(b1), path.speed_factor),
+                        getFanSpeed(non_bridge_config));
                     cur_point = b1;
                 }
                 else
@@ -935,7 +925,7 @@ void LayerPlan::addWallLine(const Point& p0,
                     // extrude using bridge_config to the end of the next bridge segment
                     if (bridge_line_len > min_line_len)
                     {
-                        addExtrusionMove(b1, bridge_config, SpaceFillType::Polygons, flow, width_factor);
+                        addExtrusionMove(b1, bridge_config, SpaceFillType::Polygons, flow, width_factor, false, 1.0_r, getFanSpeed(bridge_config));
                         non_bridge_line_volume = 0;
                         cur_point = b1;
                         // after a bridge segment, start slow and accelerate to avoid under-extrusion due to extruder lag
@@ -950,10 +940,10 @@ void LayerPlan::addWallLine(const Point& p0,
             // if we haven't yet reached p1, fill the gap with non_bridge_config line
             addNonBridgeLine(p1);
         }
-        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * std::min(getSpeedFactor(p0, p1), speed_factor))
+        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * std::min(getSpeedFactor(p1), speed_factor))
         {
             // both p0 and p1 must be above air (the result will be ugly!)
-            addExtrusionMove(p1, bridge_config, SpaceFillType::Polygons, flow, width_factor);
+            addExtrusionMove(p1, bridge_config, SpaceFillType::Polygons, flow, width_factor, false, 1.0_r, getFanSpeed(bridge_config));
             non_bridge_line_volume = 0;
         }
         else
@@ -1800,7 +1790,7 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
     return estimates;
 }
 
-void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position)
+void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed)
 {
     Duration cool_min_layer_time = fan_speed_layer_time_settings.cool_min_layer_time;
     if (cool_min_layer_time_correct != 0.)
@@ -1882,6 +1872,22 @@ void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_t
         // Slow down the fan on the layers below the [cool_fan_full_layer], where layer 0 is speed 0.
         fan_speed = fan_speed_layer_time_settings.cool_fan_speed_0 + (fan_speed - fan_speed_layer_time_settings.cool_fan_speed_0) * std::max(LayerIndex(0), layer_nr) / fan_speed_layer_time_settings.cool_fan_full_layer;
     }
+
+    if (cds_fan_speed > 0)
+    {
+        double low_speed_print_time = 0;
+        for (GCodePath path : paths)
+        {
+            if (path.speed_factor < 1.0 || path.config->isBridgePath())
+            {
+                low_speed_print_time += path.estimates.getTotalTime();
+            }
+        }
+        if (totalLayerTime < 6 || low_speed_print_time > 1)
+        {
+            cds_fan_speed = max_cds_fan_speed;
+        }
+    }
 }
 
 void LayerPlan::processFanSpeedAndMinimalLayerTime(Point starting_position)
@@ -1889,8 +1895,10 @@ void LayerPlan::processFanSpeedAndMinimalLayerTime(Point starting_position)
     for (unsigned int extr_plan_idx = 0; extr_plan_idx < extruder_plans.size(); extr_plan_idx++)
     {
         ExtruderPlan& extruder_plan = extruder_plans[extr_plan_idx];
+        const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_plan.extruder_nr].settings;
+        double max_cds_fan_speed = extruder_settings.get<double>("cool_special_cds_fan_speed");
         bool force_minimal_layer_time = extr_plan_idx == extruder_plans.size() - 1;
-        extruder_plan.processFanSpeedAndMinimalLayerTime(force_minimal_layer_time, starting_position);
+        extruder_plan.processFanSpeedAndMinimalLayerTime(force_minimal_layer_time, starting_position, max_cds_fan_speed);
         if (! extruder_plan.paths.empty() && ! extruder_plan.paths.back().points.empty())
         {
             starting_position = extruder_plan.paths.back().points.back();
@@ -1927,19 +1935,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
 
     coord_t cds_fan_start_layer = extruder_settings.get<coord_t>("cool_cds_fan_start_at_height") / layer_thickness;
-    double print_time = 0;
-    double low_speed_print_time = 0;
-    for (ExtruderPlan extruder_plan : extruder_plans)
-    {
-        print_time += extruder_plan.getTotalPrintTime();
-        for (GCodePath path : extruder_plan.paths)
-        {
-            if (path.speed_factor < 1.0 || path.config->isBridgePath())
-            {
-                low_speed_print_time += path.estimates.getTotalTime();
-            }
-        }
-    }
 
     static LayerIndex layer_1{ 1 - static_cast<LayerIndex>(Raft::getTotalExtraLayers(gcode.application)) };
     if (layer_nr == layer_1 && mesh_group_settings.get<bool>("machine_heated_bed") && mesh_group_settings.get<Temperature>("material_bed_temperature") != mesh_group_settings.get<Temperature>("material_bed_temperature_layer_0"))
@@ -1965,15 +1960,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         coord_t z_hop_height = retraction_config.zHop;
 
         double cds_fan_speed = extruder_plan.cds_fan_speed;
-        if (cds_fan_speed > 0)
-        {
-            if (layer_nr < cds_fan_start_layer)
-                cds_fan_speed = 0.;
-            else if (print_time < 6 || low_speed_print_time > 1)
-            {
-                cds_fan_speed = 100.;
-            }
-        }
+        if (cds_fan_speed > 0 && layer_nr < cds_fan_start_layer)
+            cds_fan_speed = 0.;
 
         if (extruder_nr != extruder_plan.extruder_nr)
         {

@@ -232,7 +232,8 @@ void GCodeExport::writeMashineConfig()
     tmp << ";Machine Height:" << (float)groupSettings->get<coord_t>("machine_height") / 1000.0f << new_line;
     tmp << ";Machine Width:" << (float)groupSettings->get<coord_t>("machine_width") / 1000.0f << new_line;
     tmp << ";Machine Depth:" << (float)groupSettings->get<coord_t>("machine_depth") / 1000.0f << new_line;
-    tmp << ";Material name:" << groupSettings->get<std::string>("material_type") << new_line;
+    tmp << ";Material Type:" << extruderSettings->get<std::string>("material_type") << new_line;
+    tmp << ";Material Name:" << extruderSettings->get<std::string>("material_name") << new_line;
     int exsize = scene->extruders.size();
     tmp << ";Number of Extruders:" << exsize << new_line;
     tmp << ";ExtruderParams[0] Nozzle Diameter:" << extruderSettings->get<coord_t>("machine_nozzle_tip_outer_diameter") << new_line;
@@ -733,6 +734,16 @@ int GCodeExport::getPositionZ() const
 int GCodeExport::getExtruderNr() const
 {
     return current_extruder;
+}
+
+double GCodeExport::getCurrentFanSpeed()
+{
+    return current_fan_speed;
+}
+
+double GCodeExport::getCurrentCdsFanSpeed()
+{
+    return current_cds_fan_speed;
 }
 
 void GCodeExport::setFilamentDiameter(const size_t extruder, const coord_t diameter)
