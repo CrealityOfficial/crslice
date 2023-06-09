@@ -23,6 +23,9 @@
 
 #include "crsliceinfo.h"
 #include "timeestimateklipper.h"
+
+#define OUTPUT_KLIPPER_TIME 1
+
 namespace cura52
 {
     bool SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
@@ -104,12 +107,15 @@ GCodeExport::~GCodeExport()
 
 void GCodeExport::preSetup(const size_t start_extruder)
 {
-    estimateCalculator = new TimeEstimateCalculator();   //
-	//estimateCalculator = new TimeEstimateKlipper();         //新的打印时间估算方法
+    const Scene& scene = application->current_slice->scene;
+
+    if(scene.settings.get<bool>("klipper_time_estimate_enable"))
+        estimateCalculator = new TimeEstimateKlipper(); //新的打印时间估算方法
+    else
+        estimateCalculator = new TimeEstimateCalculator();   //
 
     current_extruder = start_extruder;
 
-    const Scene& scene = application->current_slice->scene;
     std::vector<MeshGroup>::iterator mesh_group = scene.current_mesh_group;
     setFlavor(mesh_group->settings.get<EGCodeFlavor>("machine_gcode_flavor"));
     use_extruder_offset_to_offset_coords = mesh_group->settings.get<bool>("machine_use_extruder_offset_to_offset_coords");
