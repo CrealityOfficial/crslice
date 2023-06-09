@@ -1630,18 +1630,21 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 		if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
 		{
 			gcode_layer.layerTemp = mesh.settings.get<Temperature>("calibration_temperature");
+			break;
 		}
 		else if (mesh.settings.has("pressure_step"))
 		{
 			float pressureStep = mesh.settings.get<Temperature>("pressureStep");
 			int currentZ = INT2MM(mesh.layers[layer_nr].printZ);
 			gcode_layer.pressureValue = currentZ * pressureStep;
+			break;
 		}
 		else if (mesh.settings.has("maxvolumetricspeed_step"))
 		{
 			float maxvolumetricspeed_step = mesh.settings.get<Temperature>("maxvolumetricspeed_step");
 			int addSpeed = maxvolumetricspeed_step*(layer_nr / 3);
 			gcode_layer.maxvolumetricspeed += addSpeed;
+			break;
 		}
 	}
 
