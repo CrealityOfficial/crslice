@@ -110,7 +110,7 @@ void GCodeExport::preSetup(const size_t start_extruder)
     const Scene& scene = application->current_slice->scene;
 
     if(scene.settings.get<bool>("klipper_time_estimate_enable"))
-        estimateCalculator = new TimeEstimateKlipper(); //ÐÂµÄ´òÓ¡Ê±¼ä¹ÀËã·½·¨
+        estimateCalculator = new TimeEstimateKlipper(); //ï¿½ÂµÄ´ï¿½Ó¡Ê±ï¿½ï¿½ï¿½ï¿½ã·½ï¿½ï¿½
     else
         estimateCalculator = new TimeEstimateCalculator();   //
 
@@ -299,6 +299,7 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Wait Heatup Sync:" << (groupSettings->get<bool>("bed_print_temp_wait_sync") ? "true" : "false") << new_line;
     tmp << ";Enable Ironing:" << (groupSettings->get<bool>("ironing_enabled") ? "true" : "false") << new_line;
     tmp << ";Material Type:" << extruderSettings->get<std::string>("material_type") << new_line;
+    tmp << ";Max volumetric speed:" << extruderSettings->get<std::string>("material_max_volumetric_speed") << new_line;
     *output_stream << tmp.str();
 }
 
@@ -599,7 +600,7 @@ void GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
         sliceResult.z = INT2MM(total_bounding_box.max.z) - INT2MM(total_bounding_box.min.z);
     }
 
-    //PLA  Density:1.24g/cm3    DIameter:1.75mm  ¦°:3.14159
+    //PLA  Density:1.24g/cm3    DIameter:1.75mm  ï¿½ï¿½:3.14159
     const double PI = 3.14159;
     float radius = 1.75 / 2.0;
     float density = 1.24;
@@ -1517,7 +1518,7 @@ coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t 
     double radius = is_z_hopped / (2 * M_PI * atan(3 * M_PI / 180));
     Point ij_offset = Point(radius * (delta_no_z.Y / len), -radius * (delta_no_z.X / len));
     Point O = Point(source.X + ij_offset.X, source.Y + ij_offset.Y);
-    //ÂÝÐýÌ§ÉýÂ·¾¶²»¿É³¬³öÆ½Ì¨·¶Î§
+    //ï¿½ï¿½ï¿½ï¿½Ì§ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½É³ï¿½ï¿½ï¿½Æ½Ì¨ï¿½ï¿½Î§
     if (O.X > radius && O.X < machine_width - radius - 1 && O.Y > radius && O.Y < machine_depth - radius - 1)
     {
         *output_stream << "G17\n";
