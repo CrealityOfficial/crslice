@@ -49,6 +49,7 @@ public:
 
     TimeMaterialEstimates estimates; //!< Naive time and material estimates
     Velocity speedSlowDownPath;
+    bool entireLayerSlowdown;
     /*!
      * \brief Creates a new g-code path.
      *

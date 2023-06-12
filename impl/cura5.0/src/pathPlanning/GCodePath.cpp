@@ -26,6 +26,7 @@ fan_speed(GCodePathConfig::FAN_SPEED_DEFAULT),
 estimates(TimeMaterialEstimates())
 {
     speedSlowDownPath = 0.0;
+    entireLayerSlowdown = false;
 }
 
 bool GCodePath::isTravelPath() const

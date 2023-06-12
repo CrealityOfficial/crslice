@@ -2032,7 +2032,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         bool update_extrusion_offset = true;
 
         bool isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
-
+        bool  entireLayerSlowdown = false;
         if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
         {//speedSlowDownPath 重新新建的一个变量，标识此段path是否有速度突变
             for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
@@ -2053,6 +2053,25 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     paths[path_idx].speedSlowDownPath = -111.0;
                 }
             }
+            for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
+            {
+                for (int i = 1; i <= path_idx; i++)
+                {
+                    if (path_idx - i >= 0 && 
+                        (paths[path_idx].config->type == PrintFeatureType::Infill || paths[path_idx].config->type == PrintFeatureType::InnerWall ||
+                            paths[path_idx].config->type == PrintFeatureType::OuterWall)
+                        && (paths[path_idx - i].config->type == PrintFeatureType::Infill ||
+                            paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall)
+                        &&(paths[path_idx].speedSlowDownPath / paths[path_idx - i].speedSlowDownPath) > 1.1f
+                        && paths[path_idx - i].speedSlowDownPath < 50.0 && this->layer_nr > 0)
+                    {
+                        entireLayerSlowdown = true;
+                        break;
+                        break;
+                    }
+                }
+            }
+
         }
 
         for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
@@ -2094,7 +2113,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 {
                     if (acceleration_travel_enabled)
                     {
-                        gcode.writeTravelAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
+                        if (entireLayerSlowdown)
+                            gcode.writeTravelAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                        else
+                            gcode.writeTravelAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                     }
                     else
                     {
@@ -2103,18 +2125,27 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         {
                             if (static_cast<bool>(next_layer_acc_jerk))
                             {
-                                gcode.writeTravelAcceleration(next_layer_acc_jerk->first, acceleration_breaking_enabled, acceleration_breaking);
+                                if (entireLayerSlowdown)
+                                    gcode.writeTravelAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                                else
+                                    gcode.writeTravelAcceleration(next_layer_acc_jerk->first, acceleration_breaking_enabled, acceleration_breaking);
                             } // If the next layer has no extruded move, just keep the old acceleration. Should be very rare to have an empty layer.
                         }
                         else
                         {
-                            gcode.writeTravelAcceleration(paths[next_extrusion_idx].config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
+                            if (entireLayerSlowdown)
+                                gcode.writeTravelAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                            else
+                                gcode.writeTravelAcceleration(paths[next_extrusion_idx].config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                         }
                     }
                 }
                 else
                 {
-                    gcode.writePrintAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
+                    if (entireLayerSlowdown)
+                        gcode.writePrintAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                    else
+                        gcode.writePrintAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                 }
             }
             if (jerk_enabled)
@@ -2291,8 +2322,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 gcode.writeTravel(path.points.back(), speed);
                 continue;
             }
-            //if (paths[path_idx].config->type == PrintFeatureType::OuterWall)
-            //    speed = 10;
+
             bool judgeVelocityDip = false;
             float speed_quarter;
             if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
@@ -2303,31 +2333,37 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     if (path_idx - i >= 0 && (v_previous != -111.0f) &&
                         ((speed / paths[path_idx - i].speedSlowDownPath) > 1.1f ))     //from   large  to  small,  Reversely  is path is Travel Path
                     {
-                        gcode.writeTemperatureCommand(0, extruder_plan.required_start_temperature + application->current_slice->scene.settings.get<Temperature>("speed_slowtofast_slowdown_revise_temp"), false);
                         if ((path.config->type == PrintFeatureType::Infill || path.config->type == PrintFeatureType::InnerWall ||
                             path.config->type == PrintFeatureType::OuterWall) &&( paths[path_idx - i].config->type == PrintFeatureType::Infill ||
                             paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall)
-                            && v_previous < 50.0)
-                        {
+                            && v_previous < 50.0 && this->layer_nr > 0)
+                        {   //outwall   force  to  slowdown else  front line all no slow  ,   small  circle   also  faster
+                            //if (path.config->type == PrintFeatureType::OuterWall && application->current_slice->scene.settings.get<bool>("optimize_wall_printing_order"))
+                            //    break;
+                            //if (path.config->type == PrintFeatureType::InnerWall && !application->current_slice->scene.settings.get<bool>("optimize_wall_printing_order"))
+                            //    break;
 
-                            float speed_span_quarter = (abs(speed  - v_previous ))/3.0f;
+                            float speed_slowdown_factor = application->current_slice->scene.settings.get<Ratio>("speed_slowtofast_slowdown_revise_speed_factor");
+                            float speed_span_quarter = (abs(speed  - v_previous )) * speed_slowdown_factor;
 
                             speed_quarter = v_previous + speed_span_quarter;
-                            //if (this->layer_nr > 5 && path.config->type == PrintFeatureType::InnerWall)
+                            judgeVelocityDip = true;
+                            break;
+                            //if (this->layer_nr > 14 && path.config->type == PrintFeatureType::OuterWall)
                             //{
+                            //    std::cout << "  this->layer_nr =  " << this->layer_nr;
+                            //    std::cout << "  path_idx =  " << path_idx;
+                            //    std::cout << "  i =  " << i;
                             //    std::cout << "  speed =  " << speed;
-                            //    std::cout << "  speed * path.speed_back_pressure_factor =  " << speed;
+                            //    std::cout << "  path.config->type =  " << speed;
                             //    std::cout << "  v_previous =  " << v_previous;
                             //    std::cout << "   vv * paths[path_idx - i].speed_back_pressure_factor) =  " << v_previous;
                             //    std::cout << "   speed_span_quarter =  " << speed_span_quarter << std::endl;
                             //    std::cout << "   speed_quarter =  " << speed_quarter << std::endl;
                             //}
-                            judgeVelocityDip = true;
-                            break;
+                              
                         }
-
                     }
-
                 }
             }
            
@@ -2390,7 +2426,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
                                 /*bool arcFittingValiable = */Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
                                 float dis = 0;
-                                float dis_threshold = 55; //如果大于这一段距离，则是原来的速度，否则速度50
+                                float dis_threshold = application->current_slice->scene.settings.get<coord_t>("speed_slowtofast_slowdown_revise_distance"); //如果大于这一段距离，则是原来的速度，否则速度50
                                 bool slow2fastSlowdown = application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown");
                                 // BBS: start to generate gcode from arc fitting data which includes line and arc
                                 for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
@@ -2423,7 +2459,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                                             if (point_index > 0)
                                             {
-                                                dis += INT2MM(vSize(Point(points[point_index].x(), points[point_index].y()) - Point(points[point_index - 1].x(), points[point_index - 1].y())));
+                                                dis += vSize(Point(points[point_index].x(), points[point_index].y()) - Point(points[point_index - 1].x(), points[point_index - 1].y()));
                                             }
                                         }
                                     }
@@ -2449,9 +2485,9 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         extrude_speed = speed * path.speed_back_pressure_factor;
                                         //if (this->layer_nr == 50 && path.config->type == PrintFeatureType::InnerWall)
                                         //    std::cout << " Arc_move_ccw extrude_speed =  " << extrude_speed;
-                                        dis += INT2MM(vSize(Point(arc.start_point.x(), arc.start_point.y()) - Point(arc.end_point.x(), arc.end_point.y())));
+                                        dis += vSize(Point(arc.start_point.x(), arc.start_point.y()) - Point(arc.end_point.x(), arc.end_point.y()));
 
-                                        if (this->layer_nr > 0 && dis < dis_threshold && judgeVelocityDip)
+                                        if ( dis < dis_threshold && judgeVelocityDip)
                                         {
                                             extrude_speed = speed_quarter;
                                         }
