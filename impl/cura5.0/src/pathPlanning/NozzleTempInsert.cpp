@@ -24,4 +24,27 @@ void NozzleTempInsert::write(GCodeExport& gcode)
     gcode.writeTemperatureCommand(extruder, temperature, wait);
 }
 
+FanInsert::FanInsert(unsigned int path_idx, int fan_idx, double fan_speed, double time_after_path_start)
+    : path_idx(path_idx)
+    , fan_speed(fan_speed)
+    , fan_idx(fan_idx)
+    , time_after_path_start(time_after_path_start)
+{
+
+}
+
+void FanInsert::write(GCodeExport& gcode)
+{
+    if (fan_idx == 0)
+    {
+        if (gcode.getCurrentFanSpeed() < fan_speed)
+            gcode.writeFanCommand(fan_speed);
+    }
+    else
+    {
+        if(gcode.getCurrentCdsFanSpeed() < fan_speed)
+            gcode.writeCdsFanCommand(fan_speed);
+    }
+}
+
 }
