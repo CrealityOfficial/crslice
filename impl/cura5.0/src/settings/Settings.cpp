@@ -436,6 +436,20 @@ ESupportType Settings::get<ESupportType>(const std::string& key) const
     }
 }
 
+template<>
+PrimeTowerType Settings::get<PrimeTowerType>(const std::string& key) const
+{
+	const std::string& value = get<std::string>(key);
+	if (value == "normal")
+	{
+		return PrimeTowerType::NORMAL;
+	}
+	else // Default.
+	{
+		return PrimeTowerType::SINGLE;
+	}
+}
+
 
 template<>
 RetractionHopType Settings::get<RetractionHopType>(const std::string& key) const

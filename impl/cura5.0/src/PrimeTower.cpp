@@ -180,17 +180,25 @@ void PrimeTower::generatePaths_denseInfill()
         }
     }
 
-    if (pattern_per_extruder.size()>1)
-    {
+	if (pattern_per_extruder.size() > 1)
+	{
+		if (scene.current_mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE)
+		{
+			pattern_per_extruder[0].polygons.add(pattern_per_extruder[1].polygons);
+			pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
+			ClipperLib::Paths& apaths = pattern_per_extruder[0].polygons.paths;
+			std::reverse(apaths.rbegin(), apaths.rend());
+			pattern_per_extruder[1].polygons = pattern_per_extruder[0].polygons;
+			pattern_per_extruder[1].lines = pattern_per_extruder[0].lines;
+		}
+		else
+		{
+			pattern_per_extruder_layer0[0].polygons.clear();
+		}
 
-		pattern_per_extruder[0].polygons.add(pattern_per_extruder[1].polygons);
-		pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
-		ClipperLib::Paths& apaths = pattern_per_extruder[0].polygons.paths;
-		std::reverse(apaths.rbegin(), apaths.rend());
-		pattern_per_extruder[1].polygons = pattern_per_extruder[0].polygons;
-		pattern_per_extruder[1].lines = pattern_per_extruder[0].lines;
 
-    }
+	}
+
 }
 
 void PrimeTower::generateStartLocations()
@@ -215,7 +223,7 @@ void PrimeTower::addToGcode(const SliceDataStorage& storage, LayerPlan& gcode_la
     }
 
     const LayerIndex layer_nr = gcode_layer.getLayerNr();
-    if (layer_nr < 0 /*|| layer_nr > storage.max_print_height_second_to_last_extruder + 1*/)
+    if (layer_nr < 0 || layer_nr > storage.max_print_height_second_to_last_extruder + 1)
     {
         return;
     }

@@ -55,6 +55,12 @@ enum class ESupportType
     EVERYWHERE
 };
 
+enum class PrimeTowerType
+{
+	NORMAL,
+	SINGLE
+};
+
 /*!
  * Structure of the support, such as Tree Support
  */
