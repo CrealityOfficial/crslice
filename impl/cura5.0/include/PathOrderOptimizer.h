@@ -74,6 +74,7 @@ public:
     ZSeamConfig seam_config;
 
     std::vector<int> last_layer_start_idx;
+    std::vector<bool> bFound;
     AngleDegrees z_seam_min_angle_diff;
     AngleDegrees z_seam_max_angle;
 
@@ -476,7 +477,10 @@ protected:
             double area = std::fabs(simple_poly.area());
             Ratio rat = std::fabs(perimeter * perimeter / (4 * M_PI * area) - 1);
             if (rat < 0.05)
+            {
+                bFound[path_idx] = false;
                 return last_layer_start_idx[path_idx];
+            }            
         }
 
         auto nonSharpCorner = [&](float check_corner)
@@ -519,6 +523,19 @@ protected:
         }) - simple_poly.begin();
         const size_t end_before_pos = simple_poly.size() + start_from_pos;
 
+        auto getNearPoint = [&](size_t here_idx, coord_t min_dist, bool get_next)
+        {
+            size_t poly_size = simple_poly.size();
+            Point here = simple_poly[here_idx % poly_size];
+            for (size_t i = 1; i < poly_size; i++)
+            {
+                const Point& next = simple_poly[(here_idx + i * (get_next ? 1 : -1) + simple_poly.size()) % simple_poly.size()];
+                if (vSize2(here - next) > min_dist * min_dist)
+                    return next;
+            }
+            return simple_poly[(here_idx + (get_next ? 1 : -1) + simple_poly.size()) % simple_poly.size()];
+        };
+
         // Find a seam position in the simple polygon:
         float best_score_corner_angle = 0;
         Point best_point;
@@ -526,12 +543,12 @@ protected:
         float next_best_score_corner_angle = 0;
         Point next_best_point;
         float next_best_score = std::numeric_limits<float>::infinity();
-        int shortLineNum = 0;
-        Point previous = simple_poly[(start_from_pos - 1 + simple_poly.size()) % simple_poly.size()];
+        coord_t quarter_poly_len = simple_poly.polygonLength() / 4;
         for(size_t i = start_from_pos; i < end_before_pos; ++i)
         {
+            const Point& previous = getNearPoint(i, quarter_poly_len < 1000 ? quarter_poly_len : 1000, false);
             const Point& here = simple_poly[i % simple_poly.size()];
-            const Point& next = simple_poly[(i + 1) % simple_poly.size()];
+            const Point& next = getNearPoint(i, quarter_poly_len < 1000 ? quarter_poly_len : 1000, true);
 
             //For most seam types, the shortest distance matters. Not for SHARPEST_CORNER though.
             //For SHARPEST_CORNER, use a fixed starting score of 0.
@@ -543,12 +560,6 @@ protected:
             const float corner_angle = corner_angle_2pi / M_PI - 1; //Between -1 and 1.
             // angles < 0 are concave (left turning)
             // angles > 0 are convex (right turning)
-
-            if (vSize2(here - next) < 1000000 || vSize2(here - previous) < 1000000)
-            {
-                shortLineNum++;
-                continue;
-            }
 
             float score;
             const float corner_shift = seam_config.type != EZSeamType::USER_SPECIFIED ? 10000 : 0; //Allow up to 20mm shifting of the seam to find a good location. For SHARPEST_CORNER, this shift is the only factor. For USER_SPECIFIED, don't allow shifting.
@@ -596,7 +607,7 @@ protected:
                 }
             }
 
-            if (seam_config.type != EZSeamType::SKIRT_BRIM && fabs(best_score - score) <= EPSILON)
+            if (!is_check_best_pt && seam_config.type != EZSeamType::SKIRT_BRIM && fabs(best_score - score) <= EPSILON)
             {
                 // add breaker for two candidate starting location with similar score
                 // if we don't do this then we (can) get an un-even seam
@@ -611,6 +622,12 @@ protected:
             }
             else if(score < best_score)
             {
+                if (is_check_best_pt && vSize(best_point - closest_pt) < 2.5 * seam_config.simplify_curvature && !nonSharpCorner(best_score_corner_angle))
+                {
+                    next_best_point = best_point;
+                    next_best_score = best_score;
+                    next_best_score_corner_angle = best_score_corner_angle;
+                }
                 best_point = here;
                 best_score = score;
                 best_score_corner_angle = corner_angle_2pi;
@@ -624,15 +641,16 @@ protected:
                     next_best_score_corner_angle = corner_angle_2pi;
                 }
             }
-
-            previous = here;
         }
 
         if (is_check_best_pt)
         {
-            if (shortLineNum == simple_poly.size() || nonSharpCorner(best_score_corner_angle))
+            if (nonSharpCorner(best_score_corner_angle))
+            {
+                bFound[path_idx] = false;
                 return last_layer_start_idx[path_idx];
-            if (std::fabs(next_best_score_corner_angle - best_score_corner_angle) < z_seam_min_angle_diff)
+            }              
+            if (next_best_score_corner_angle != 0 && std::fabs(next_best_score_corner_angle - best_score_corner_angle) < z_seam_min_angle_diff)
                 best_point = next_best_point;
         }
 
