@@ -2022,6 +2022,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         bool isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
         bool  entireLayerSlowdown = false;
+        float speed_slowtofast_slowdown_revise_acceleration = application->current_slice->scene.settings.get<Acceleration>("speed_slowtofast_slowdown_revise_acceleration");
         if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
         {//speedSlowDownPath 重新新建的一个变量，标识此段path是否有速度突变
             for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
@@ -2103,7 +2104,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     if (acceleration_travel_enabled)
                     {
                         if (entireLayerSlowdown)
-                            gcode.writeTravelAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                            gcode.writeTravelAcceleration(speed_slowtofast_slowdown_revise_acceleration, acceleration_breaking_enabled, acceleration_breaking);
                         else
                             gcode.writeTravelAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                     }
@@ -2115,7 +2116,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             if (static_cast<bool>(next_layer_acc_jerk))
                             {
                                 if (entireLayerSlowdown)
-                                    gcode.writeTravelAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                                    gcode.writeTravelAcceleration(speed_slowtofast_slowdown_revise_acceleration, acceleration_breaking_enabled, acceleration_breaking);
                                 else
                                     gcode.writeTravelAcceleration(next_layer_acc_jerk->first, acceleration_breaking_enabled, acceleration_breaking);
                             } // If the next layer has no extruded move, just keep the old acceleration. Should be very rare to have an empty layer.
@@ -2123,7 +2124,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         else
                         {
                             if (entireLayerSlowdown)
-                                gcode.writeTravelAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                                gcode.writeTravelAcceleration(speed_slowtofast_slowdown_revise_acceleration, acceleration_breaking_enabled, acceleration_breaking);
                             else
                                 gcode.writeTravelAcceleration(paths[next_extrusion_idx].config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                         }
@@ -2132,7 +2133,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 else
                 {
                     if (entireLayerSlowdown)
-                        gcode.writePrintAcceleration(1500, acceleration_breaking_enabled, acceleration_breaking);
+                        gcode.writePrintAcceleration(speed_slowtofast_slowdown_revise_acceleration, acceleration_breaking_enabled, acceleration_breaking);
                     else
                         gcode.writePrintAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                 }
