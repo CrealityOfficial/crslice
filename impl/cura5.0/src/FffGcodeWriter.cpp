@@ -1993,6 +1993,34 @@ std::vector<size_t> FffGcodeWriter::calculateMeshOrder(const SliceDataStorage& s
     std::vector<size_t> ret;
     ret.reserve(mesh_indices_order.size());
 
+    //指定模型的打印顺序
+    if (mesh_group->settings.get<bool>("mesh_order_user_specified"))
+    {
+        std::string str = mesh_group->settings.get<std::string>("mesh_order_user_specified_str");
+        //[0,1,2,3]
+        if (str.length() > 3)
+        {
+            str = str.substr(0, str.length() - 1);
+            str = str.substr(1, str.length() - 1);
+        }
+        std::list<size_t> order;
+        int findIndex = str.find(',');
+        std::string temp = "";
+        while (findIndex >= 0)
+        {
+            temp = str.substr(0, findIndex);
+            str = str.substr(findIndex + 1, str.length());
+            order.push_back(std::atoi(temp.c_str()));
+            findIndex = str.find(',');
+        }
+        order.push_back(std::atoi(str.c_str()));
+
+        if (order.size() == mesh_indices_order.size())
+        {
+            mesh_indices_order.swap(order);
+        }
+    }
+
     for (size_t i : mesh_indices_order)
     {
         const size_t mesh_idx = mesh_idx_order_optimizer.items[i].second;
