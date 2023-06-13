@@ -213,21 +213,10 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     { // Skirt and brim.
         skirt_brim_is_processed[extruder_nr] = false;
     }
+
     layerTemp = 0;
+	maxvolumetricspeed = 0.0;
 	pressureValue = 0.0;
-	for (const SliceMeshStorage& mesh : storage.meshes)
-	{
-		if (mesh.settings.has("maxvolumetricspeed_step"))
-		{
-			maxvolumetricspeed = mesh.settings.get<Temperature>("maxvolumetricspeed_start");
-			break;
-		}
-		else
-		{
-			maxvolumetricspeed = 0;
-			break;
-		}
-	}
 }
 
 LayerPlan::~LayerPlan()

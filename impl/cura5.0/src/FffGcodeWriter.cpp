@@ -1634,16 +1634,27 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 		}
 		else if (mesh.settings.has("pressure_step"))
 		{
-			float pressureStep = mesh.settings.get<Temperature>("pressureStep");
+			float pressureStart = mesh.settings.get<double>("pressure_start");
+			float pressureStep = mesh.settings.get<double>("pressure_step");
+			float PressureEnd = mesh.settings.get<double>("pressure_end");
 			int currentZ = INT2MM(mesh.layers[layer_nr].printZ);
-			gcode_layer.pressureValue = currentZ * pressureStep;
+			gcode_layer.pressureValue = pressureStart + currentZ * pressureStep;
+			if (gcode_layer.pressureValue > PressureEnd)
+			{
+				gcode_layer.pressureValue = PressureEnd;
+			}
 			break;
 		}
 		else if (mesh.settings.has("maxvolumetricspeed_step"))
 		{
-			float maxvolumetricspeed_step = mesh.settings.get<Temperature>("maxvolumetricspeed_step");
-			int addSpeed = maxvolumetricspeed_step*(layer_nr / 3);
-			gcode_layer.maxvolumetricspeed += addSpeed;
+			float maxvolumetricspeedStart = mesh.settings.get<double>("maxvolumetricspeed_start");
+			float maxvolumetricspeedStep = mesh.settings.get<double>("maxvolumetricspeed_step");
+			float maxvolumetricspeedEnd = mesh.settings.get<double>("maxvolumetricspeed_end");
+			gcode_layer.maxvolumetricspeed += maxvolumetricspeedStart + maxvolumetricspeedStep * (layer_nr / 3);
+			if (gcode_layer.pressureValue > maxvolumetricspeedEnd)
+			{
+				gcode_layer.pressureValue = maxvolumetricspeedEnd;
+			}
 			break;
 		}
 	}
