@@ -1659,8 +1659,13 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 		{
 			float VFA_step = mesh.settings.get<double>("VFA_step");
 			float VFA_start = mesh.settings.get<double>("VFA_start");
+			float VFA_end = mesh.settings.get<double>("VFA_end");
 			int currentZ = INT2MM(mesh.layers[layer_nr].printZ);
 			int  speed_wall_0 = VFA_start + currentZ / 5 * VFA_step;
+			if (speed_wall_0 > VFA_end)
+			{
+				speed_wall_0 = VFA_end;
+			}
 			mesh.settings.add("speed_wall_0", std::to_string(speed_wall_0));
 		}
 	}
@@ -1695,9 +1700,9 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 			float maxvolumetricspeedStep = mesh.settings.get<double>("maxvolumetricspeed_step");
 			float maxvolumetricspeedEnd = mesh.settings.get<double>("maxvolumetricspeed_end");
 			gcode_layer.maxvolumetricspeed += maxvolumetricspeedStart + maxvolumetricspeedStep * (layer_nr / 3);
-			if (gcode_layer.pressureValue > maxvolumetricspeedEnd)
+			if (gcode_layer.maxvolumetricspeed > maxvolumetricspeedEnd)
 			{
-				gcode_layer.pressureValue = maxvolumetricspeedEnd;
+				gcode_layer.maxvolumetricspeed = maxvolumetricspeedEnd;
 			}
 			break;
 		}
