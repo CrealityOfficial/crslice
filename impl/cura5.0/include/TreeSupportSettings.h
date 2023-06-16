@@ -24,7 +24,7 @@ struct TreeSupportSettings
 
     TreeSupportSettings(const Settings& mesh_group_settings)
         : angle(mesh_group_settings.get<AngleRadians>("support_tree_angle")),
-		angle_slow(mesh_group_settings.get<AngleRadians>("support_tree_angle_slow")),
+		angle_slow(0.7 * angle),//(mesh_group_settings.get<AngleRadians>("support_tree_angle_slow")),
 		support_line_width(mesh_group_settings.get<coord_t>("support_line_width")),
 		layer_height(mesh_group_settings.get<coord_t>("layer_height")),
 		branch_radius(mesh_group_settings.get<coord_t>("support_tree_branch_diameter") / 2),

@@ -1080,7 +1080,7 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
     const Velocity min_speed = fan_speed_layer_time_settings_per_extruder[getLastPlannedExtruderTrain()->extruder_nr].cool_min_speed;
     const coord_t max_area_deviation = std::max(settings.get<int>("meshfix_maximum_extrusion_area_deviation"), 1); // Square micrometres!
     const coord_t max_resolution = std::max(settings.get<coord_t>("meshfix_maximum_resolution"), coord_t(1));
-    const double small_feature_fan_speed = settings.get<double>("small_feature_fan_speed_factor");
+    const double small_feature_fan_speed = settings.get<double>("cool_small_feature_fan_speed_factor");
 
     Ratio small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "small_feature_speed_factor_0" : "small_feature_speed_factor");
     Ratio smaller_level_factor = 0;

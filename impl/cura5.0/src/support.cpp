@@ -178,6 +178,8 @@ void AreaSupport::generateGradualSupport(SliceDataStorage& storage)
     const coord_t wall_count = infill_extruder.settings.get<size_t>("support_wall_count");
     const coord_t wall_width = infill_extruder.settings.get<coord_t>("support_line_width");
     const coord_t overlap = infill_extruder.settings.get<coord_t>("infill_overlap_mm");
+    const coord_t small_feature_max_length = infill_extruder.settings.get<coord_t>("small_feature_max_length");
+    const ESupportStructure support_structure = infill_extruder.settings.get<ESupportStructure>("support_structure");
 
     // no early-out for this function; it needs to initialize the [infill_area_per_combine_per_density]
     float layer_skip_count = 8; // skip every so many layers as to ignore small gaps in the model making computation more easy
@@ -210,7 +212,38 @@ void AreaSupport::generateGradualSupport(SliceDataStorage& storage)
                 continue;
             }
             // NOTE: This both generates the walls _and_ returns the _actual_ infill area (the one _without_ walls) for use in the rest of the method.
-            const Polygons infill_area = Infill::generateWallToolPaths(support_infill_part.wall_toolpaths, original_area, wall_count, wall_width, overlap, infill_extruder.settings);
+            Polygons infill_area;
+            if (support_structure == ESupportStructure::THOMASTREE)
+            {
+                Polygons smaller_area, larger_area, infill_area;
+                for (Polygon poly : original_area)
+                {
+                    double area = std::fabs(poly.area());
+                    coord_t perimeter = poly.polygonLength();
+                    Ratio rat = std::fabs(perimeter * perimeter / (4 * M_PI * area) - 1);
+                    if (rat < 1 && perimeter > small_feature_max_length)
+                        larger_area.add(poly);
+                    else
+                        smaller_area.add(poly);
+                }       
+                if (!smaller_area.empty())
+                {
+                    std::vector<VariableWidthLines> smaller_area_wall_toolpaths;
+                    infill_area.add(Infill::generateWallToolPaths(smaller_area_wall_toolpaths, smaller_area, std::min(coord_t(1), wall_count), wall_width, overlap, infill_extruder.settings));
+                    support_infill_part.wall_toolpaths.insert(support_infill_part.wall_toolpaths.end(), smaller_area_wall_toolpaths.begin(), smaller_area_wall_toolpaths.end());
+                }
+                if (!larger_area.empty())
+                {
+                    std::vector<VariableWidthLines> larger_area_wall_toolpaths;
+                    infill_area.add(Infill::generateWallToolPaths(larger_area_wall_toolpaths, larger_area, wall_count, wall_width, overlap, infill_extruder.settings));
+                    support_infill_part.wall_toolpaths.insert(support_infill_part.wall_toolpaths.end(), larger_area_wall_toolpaths.begin(), larger_area_wall_toolpaths.end());
+                }
+            }
+            else
+            {
+                infill_area = Infill::generateWallToolPaths(support_infill_part.wall_toolpaths, original_area, wall_count, wall_width, overlap, infill_extruder.settings);
+            }
+
             const AABB& this_part_boundary_box = support_infill_part.outline_boundary_box;
 
             // calculate density areas for this island

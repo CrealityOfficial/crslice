@@ -2512,6 +2512,7 @@ void ThomasTreeSupport::finalizeInterfaceAndSupportAreas(std::vector<Polygons>& 
 
         for (PolygonsPart part : support_layer_storage[layer_idx].splitIntoParts(true)) // Convert every part into a PolygonsPart for the support.
         {
+            if (part.outerPolygon().area() < 1000000) continue;
             storage.support.supportLayers[layer_idx].support_infill_parts.emplace_back(part, config.support_line_width, config.support_wall_count);
         }
 
