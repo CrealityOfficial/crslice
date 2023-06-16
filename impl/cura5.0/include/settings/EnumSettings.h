@@ -61,6 +61,12 @@ enum class PrimeTowerType
 	SINGLE
 };
 
+enum class RoutePlanning
+{
+	TOANDFRO,
+	NONE
+};
+
 /*!
  * Structure of the support, such as Tree Support
  */

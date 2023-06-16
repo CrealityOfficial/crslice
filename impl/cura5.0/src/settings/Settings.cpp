@@ -452,6 +452,21 @@ PrimeTowerType Settings::get<PrimeTowerType>(const std::string& key) const
 
 
 template<>
+RoutePlanning Settings::get<RoutePlanning>(const std::string& key) const
+{
+	const std::string& value = get<std::string>(key);
+	if(value == "to_and_fro")
+	{
+		return RoutePlanning::TOANDFRO;
+	}
+	else // Default.
+	{
+		return RoutePlanning::NONE;
+	}
+}
+
+
+template<>
 RetractionHopType Settings::get<RetractionHopType>(const std::string& key) const
 {
 	const std::string& value = get<std::string>(key);

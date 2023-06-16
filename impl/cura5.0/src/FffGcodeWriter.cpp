@@ -178,24 +178,36 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
-//引擎调试多线程
-#ifdef _DEBUG
-		for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
+		//引擎调试多线程
+		if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
 		{
-			application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
-            layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers), gcode);
-		}
-#else
-		run_multiple_producers_ordered_consumer(application,
-			process_layer_starting_layer_nr,
-			total_layers,
-			[&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
-			[this, total_layers](LayerPlan* gcode_layer)
+			std::optional<Point> last_planned_position;
+			for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
 			{
-				application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
-				layer_plan_buffer.handle(*gcode_layer, gcode);
-			});
-#endif
+				application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
+				//layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers,last_planned_position), gcode);
+				LayerPlan& gcode_layer = processLayer(storage, layer_nr, total_layers, last_planned_position);
+				last_planned_position = gcode_layer.getLastPosition();
+				layer_plan_buffer.handle(gcode_layer, gcode);
+			}
+		} 
+		else
+		{
+			std::optional<Point> last_planned_position;
+			run_multiple_producers_ordered_consumer(application,
+				process_layer_starting_layer_nr,
+				total_layers,
+				[&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
+				[this, total_layers](LayerPlan* gcode_layer)
+				{
+					application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
+					layer_plan_buffer.handle(*gcode_layer, gcode);
+				});
+		}
+
+
+
+
 
     layer_plan_buffer.flush();
 
@@ -1579,7 +1591,7 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
     }
 }
 
-LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIndex layer_nr, const size_t total_layers) const
+LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIndex layer_nr, const size_t total_layers, std::optional<Point> last_position) const
 {
     //LOGD("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
@@ -1674,6 +1686,12 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
     const coord_t first_outer_wall_line_width = scene.extruders[extruder_order.front()].settings.get<coord_t>("wall_line_width_0");
     LayerPlan& gcode_layer = *new LayerPlan(storage, layer_nr, z, layer_thickness, extruder_order.front(), fan_speed_layer_time_settings_per_extruder, comb_offset_from_outlines, first_outer_wall_line_width, avoid_distance);
 	
+	//keliji 
+	if (mesh_group_settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
+	{
+		gcode_layer.setLastPosition(last_position);
+	}
+
 	for (const SliceMeshStorage& mesh : storage.meshes)
 	{
 		if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
