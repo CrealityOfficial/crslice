@@ -675,7 +675,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
 
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
 	std::string strTemp = mesh_group_settings.get<std::string>("machine_start_gcode");
-	bool hasParm = gcode.substitution(strTemp, start_extruder_nr);
+	gcode.substitution(strTemp, start_extruder_nr);
 
     if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
     {
@@ -683,7 +683,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         tmp << "T" << start_extruder_nr;
         gcode.writeLine(tmp.str().c_str());
     }
-    else if (!hasParm)//start_gcode中手动填写温度参数，则不自动生成温度指令了
+    else
     {
         processInitialLayerTemperature(storage, start_extruder_nr);
     }
