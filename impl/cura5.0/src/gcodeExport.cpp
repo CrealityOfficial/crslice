@@ -1890,11 +1890,24 @@ void GCodeExport::writeCdsFanCommand(double cds_speed)
     current_cds_fan_speed = cds_speed;
 }
 
+void GCodeExport::writeChamberFanCommand(double chamber_speed)
+{
+    if (std::abs(current_chamber_speed - chamber_speed) < 0.1)
+    {
+        return;
+    }
+
+    const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
+    *output_stream << "M106 P1 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? chamber_speed : chamber_speed * 255) / 100 } << new_line;
+
+    current_chamber_speed = chamber_speed;
+}
+
 void GCodeExport::writeFanCommand(double speed, double cds_speed)
 {
     if (std::abs(current_fan_speed - speed) < 0.1)
     {
-        writeCdsFanCommand(speed / 100 * cds_speed);
+        writeCdsFanCommand(cds_speed);
         return;
     }
     if (flavor == EGCodeFlavor::MAKERBOT)
@@ -1918,7 +1931,7 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
         }
         *output_stream << new_line;
 
-        writeCdsFanCommand(speed / 100 * cds_speed);
+        writeCdsFanCommand(cds_speed);
     }
     else
     {
@@ -1930,7 +1943,7 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
         //*output_stream << new_line;
         *output_stream << "M106 S0" << new_line;
         
-        writeCdsFanCommand(0);
+        writeCdsFanCommand(cds_speed);
     }
 
     current_fan_speed = speed;
@@ -2148,6 +2161,7 @@ void GCodeExport::writeJerk(const Velocity& jerk)
 void GCodeExport::finalize(const std::string& endCode)
 {
     writeFanCommand(0);
+    writeChamberFanCommand(0);
     writeCode(endCode.c_str());
     int64_t print_time = getSumTotalPrintTimes();
     int mat_0 = getTotalFilamentUsed(0);

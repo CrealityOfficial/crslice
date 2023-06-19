@@ -2010,8 +2010,13 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
         }
 
-        gcode.writeFanCommand(extruder_plan.getFanSpeed(), cds_fan_speed);
-   
+        double first_fan_speed = extruder_plan.getFirstPrintPathFanSpeed();
+        gcode.writeFanCommand(first_fan_speed == GCodePathConfig::FAN_SPEED_DEFAULT ? extruder_plan.getFanSpeed() : first_fan_speed, cds_fan_speed);
+        if (extruder_settings.get<bool>("cool_chamber_fan_enable"))
+        {
+            gcode.writeChamberFanCommand();
+        }
+
         std::vector<GCodePath>& paths = extruder_plan.paths;
 
         extruder_plan.inserts.sort([](const NozzleTempInsert& a, const NozzleTempInsert& b) -> bool { return a.path_idx < b.path_idx; });
