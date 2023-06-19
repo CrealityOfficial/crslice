@@ -1042,6 +1042,7 @@ void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset)
 {
     Scene* scene = &application->current_slice->scene;
+    Ratio flow_ratio = scene->settings.get<Ratio>("material_flow_ratio") ;
     float angle = scene->settings.get<coord_t>("special_slope_slice_angle") / 1000.;
     std::string Axis = scene->settings.get<std::string>("special_slope_slice_axis");
     if (angle != 0. && layer_nr >= 0)
@@ -1060,16 +1061,18 @@ void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double e
             else input_pt += (offsetPt - Point3(0, 0, offsetPt.z));
             if (input_pt.z < layer_height_0) input_pt.z = layer_height_0;
         }
-        writeExtrusion(input_pt, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
+        writeExtrusion(input_pt, speed, extrusion_mm3_per_mm * flow_ratio, feature, update_extrusion_offset);
     }
     else
     {
-        writeExtrusion(Point3(p.X, p.Y, current_layer_z), speed, extrusion_mm3_per_mm, feature, update_extrusion_offset);
+        writeExtrusion(Point3(p.X, p.Y, current_layer_z), speed, extrusion_mm3_per_mm * flow_ratio, feature, update_extrusion_offset);
     }
 }
 void GCodeExport::writeExtrusionG2G3(const Point& pointend, const Point& center_offset, double arc_length,const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, bool is_ccw)
 {
-    writeExtrusionG2G3(Point3(pointend.X, pointend.Y, current_layer_z), center_offset, arc_length, speed, extrusion_mm3_per_mm, feature, update_extrusion_offset, is_ccw);
+    Scene* scene = &application->current_slice->scene;
+    Ratio flow_ratio = scene->settings.get<Ratio>("material_flow_ratio");
+    writeExtrusionG2G3(Point3(pointend.X, pointend.Y, current_layer_z), center_offset, arc_length, speed, extrusion_mm3_per_mm * flow_ratio, feature, update_extrusion_offset, is_ccw);
 }
 
 void GCodeExport::writeArcSatrt(const Point& p)
