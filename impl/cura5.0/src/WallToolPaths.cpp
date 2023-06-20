@@ -75,11 +75,12 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     auto delete_shape_corner = [&](Polygons& polys, coord_t cut_len)
     {
+        Polygons polys_result;
         for (int i = 0; i < polys.size(); i++)
         {
-            PolygonRef& poly = polys[i];
+            Polygon poly(polys[i]);
             int pol_size = poly.size();
-            ClipperLib::Path poly_new;
+            Polygon poly_new;
             poly_new.reserve(pol_size);
             for (int j = 0; j < pol_size; j++)
             {
@@ -93,30 +94,30 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
                 float angle = LinearAlg2D::getAngleLeft(before, pt, after);
                 if (angle < M_PI / 2 || angle > 3 * M_PI / 2)
                 {
-                    poly_new.push_back(before + (1.0 - (3 * cut_len > length_before ? length_before / 3 : cut_len) / (float)length_before) * pb);
-                    poly_new.push_back(after + (1.0 - (3 * cut_len > length_after ? length_after / 3 : cut_len) / (float)length_after) * pa);
+                    poly_new.add(before + (1.0 - (3 * cut_len > length_before ? length_before / 3 : cut_len) / (float)length_before) * pb);
+                    poly_new.add(after + (1.0 - (3 * cut_len > length_after ? length_after / 3 : cut_len) / (float)length_after) * pa);
                 }
                 else
                 {
-                    poly_new.push_back(pt);
+                    poly_new.add(pt);
                 }
             }
-            poly.clear();
-            poly = poly_new;
+            polys_result.add(poly_new);
         }
+        polys.clear();
+        polys = polys_result;
     };
 
     auto delete_shape_point = [&](Polygons& polys)
     {
         for (int i = 0; i < polys.size(); i++)
         {
-            PolygonRef& poly = polys[i];
-            int pol_size = poly.size();
+            int pol_size = polys[i].size();
             for (int j = 0; j < pol_size; j++)
             {
-                Point pt = poly[j];
-                Point before = poly[(j - 1 + pol_size) % pol_size];
-                Point after = poly[(j + 1 + pol_size) % pol_size];
+                Point pt = polys[i][j];
+                Point before = polys[i][(j - 1 + pol_size) % pol_size];
+                Point after = polys[i][(j + 1 + pol_size) % pol_size];
                 float angle = LinearAlg2D::getAngleLeft(before, pt, after);
                 if (angle < 0.5 || angle > 2 * M_PI - 0.5)
                 {
@@ -133,7 +134,7 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
                     }
                     if (v_ab_dis < epsilon_offset)
                     {
-                        poly.remove(j);
+                        polys[i].remove(j);
                         j--;
                         pol_size--;
                     }

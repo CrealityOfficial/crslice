@@ -216,8 +216,9 @@ void AreaSupport::generateGradualSupport(SliceDataStorage& storage)
             if (support_structure == ESupportStructure::THOMASTREE)
             {
                 Polygons smaller_area, larger_area, infill_area;
-                for (Polygon poly : original_area)
+                for (auto path : original_area)
                 {
+                    Polygon poly(path);
                     double area = std::fabs(poly.area());
                     coord_t perimeter = poly.polygonLength();
                     Ratio rat = std::fabs(perimeter * perimeter / (4 * M_PI * area) - 1);
