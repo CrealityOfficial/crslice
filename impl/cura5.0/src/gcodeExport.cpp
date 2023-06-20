@@ -2158,8 +2158,25 @@ void GCodeExport::writeJerk(const Velocity& jerk)
     }
 }
 
+void GCodeExport::travelToSafePosition()
+{
+    const ExtruderTrain& extruder = application->current_slice->scene.extruders[current_extruder];
+    const Settings& groupSettings = application->current_slice->scene.current_mesh_group->settings;
+    bool machine_center_is_zero = application->current_slice->scene.machine_center_is_zero;
+    Velocity speed_travel = extruder.settings.get<Velocity>("speed_travel");
+    coord_t machine_width = groupSettings.get<coord_t>("machine_width");
+    coord_t machine_depth = groupSettings.get<coord_t>("machine_depth");
+    Point3 safe_position = Point3(std::max(std::min(machine_width - 50000, machine_width), coord_t(0)), std::max(std::min(machine_depth - 20000, machine_depth), coord_t(0)), currentPosition.z);
+    if (application->current_slice->scene.machine_center_is_zero)
+        safe_position -= Point3(machine_width / 2, machine_depth / 2, 0);
+   
+    writeZhopStart(std::max(extruder.settings.get<coord_t>("retraction_hop"), coord_t(300)));
+    writeTravel(safe_position, speed_travel);
+}
+
 void GCodeExport::finalize(const std::string& endCode)
 {
+    travelToSafePosition();
     writeFanCommand(0);
     writeChamberFanCommand(0);
     writeCode(endCode.c_str());

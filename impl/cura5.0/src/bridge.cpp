@@ -121,7 +121,8 @@ int bridgeAngle(const Settings& settings, const Polygons& skin_outline, const Sl
 
         Polygons skin_perimeter_lines_over_air(air_below.intersectionPolyLines(skin_perimeter_lines));
 
-        if (skin_perimeter_lines_over_air.size())
+        coord_t double_bridge_wall_min_length = 2 * settings.get<coord_t>("bridge_wall_min_length");
+        if (skin_perimeter_lines_over_air.size() && skin_perimeter_lines_over_air.polygonLength() > double_bridge_wall_min_length)
         {
             // one or more edges of the skin region are unsupported, determine the longest
             double max_dist2 = 0;

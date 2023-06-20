@@ -627,6 +627,7 @@ public:
     void writeSupportConfig();
     void writeSpeedAndTravelConfig();
     void writeSpecialModelAndMeshConfig();
+    void travelToSafePosition();
 };
 
 }
