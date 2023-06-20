@@ -1892,7 +1892,7 @@ void GCodeExport::writeCdsFanCommand(double cds_speed)
 
 void GCodeExport::writeChamberFanCommand(double chamber_speed)
 {
-    if (std::abs(current_chamber_speed - chamber_speed) < 0.1)
+    if (std::abs(current_chamber_fan_speed - chamber_speed) < 0.1)
     {
         return;
     }
@@ -1900,7 +1900,7 @@ void GCodeExport::writeChamberFanCommand(double chamber_speed)
     const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
     *output_stream << "M106 P1 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? chamber_speed : chamber_speed * 255) / 100 } << new_line;
 
-    current_chamber_speed = chamber_speed;
+    current_chamber_fan_speed = chamber_speed;
 }
 
 void GCodeExport::writeFanCommand(double speed, double cds_speed)
