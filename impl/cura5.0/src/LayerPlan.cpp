@@ -216,7 +216,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
 
     layerTemp = 0;
 	maxvolumetricspeed = 0.0;
-	pressureValue = 0.0;
+	pressureValue = -1;
 }
 
 LayerPlan::~LayerPlan()
@@ -1908,7 +1908,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     {
         gcode.writeTemperatureCommand(gcode.getExtruderNr(), layerTemp);
     }
-	else if (pressureValue > 0)
+	else if (pressureValue >= 0)
 	{
 		gcode.writePressureComment(pressureValue);
 	}

@@ -1717,7 +1717,8 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 			float maxvolumetricspeedStart = mesh.settings.get<double>("maxvolumetricspeed_start");
 			float maxvolumetricspeedStep = mesh.settings.get<double>("maxvolumetricspeed_step");
 			float maxvolumetricspeedEnd = mesh.settings.get<double>("maxvolumetricspeed_end");
-			gcode_layer.maxvolumetricspeed += maxvolumetricspeedStart + maxvolumetricspeedStep * (layer_nr / 3);
+			int currentZ = INT2MM(mesh.layers[layer_nr].printZ);
+			gcode_layer.maxvolumetricspeed = maxvolumetricspeedStart + maxvolumetricspeedStep * currentZ;
 			if (gcode_layer.maxvolumetricspeed > maxvolumetricspeedEnd)
 			{
 				gcode_layer.maxvolumetricspeed = maxvolumetricspeedEnd;
