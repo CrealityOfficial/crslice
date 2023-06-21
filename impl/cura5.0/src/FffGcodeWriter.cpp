@@ -603,6 +603,13 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
             gcode.writeLine(tmp.str().c_str());
         }
 
+		if (gcode.getFlavor() == EGCodeFlavor::MACH3_Creality)
+		{
+			std::ostringstream tmp;
+			tmp << "(UAO,1" << start_extruder_nr << ")";
+			gcode.writeLine(tmp.str().c_str());
+		}
+
         if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
         {
             const Temperature bed_temp = train.settings.get<Temperature>("material_bed_temperature_layer_0");
@@ -683,12 +690,6 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         tmp << "T" << start_extruder_nr;
         gcode.writeLine(tmp.str().c_str());
     }
-	else if (gcode.getFlavor() == EGCodeFlavor::MACH3_Creality)
-	{
-		std::ostringstream tmp;
-		tmp << "(UAO,1" << start_extruder_nr << ")";
-		gcode.writeLine(tmp.str().c_str());
-	}
     else
     {
         processInitialLayerTemperature(storage, start_extruder_nr);
