@@ -43,7 +43,7 @@ void TimeEstimateCalculator::addTime(const Duration& time)
     extra_time += time;
 }
 
-void TimeEstimateCalculator::setAcceleration(const Acceleration& acc)
+void TimeEstimateCalculator::setAcceleration(const Velocity& acc)
 {
     acceleration = acc;
 }

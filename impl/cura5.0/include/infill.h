@@ -51,7 +51,6 @@ class Infill
 
     static constexpr double one_over_sqrt_2 = 0.7071067811865475244008443621048490392848359376884740; //!< 1.0 / sqrt(2.0)
 public:
-        Point previous_position;
 
     Infill(EFillMethod pattern
         , bool zig_zaggify
