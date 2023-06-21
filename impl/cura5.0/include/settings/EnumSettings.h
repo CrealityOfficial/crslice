@@ -246,6 +246,7 @@ enum class EGCodeFlavor
  **/
     REPRAP = 8,
 	PLC = 9,
+	MACH3_Creality = 10,
 };
 
 /*!

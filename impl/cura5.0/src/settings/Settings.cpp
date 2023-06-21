@@ -310,6 +310,10 @@ EGCodeFlavor Settings::get<EGCodeFlavor>(const std::string& key) const
 	{
 		return EGCodeFlavor::PLC;
 	}
+	else if (value == "MACH3(Creality)")
+	{
+		return EGCodeFlavor::MACH3_Creality;
+	}
     // Default:
     return EGCodeFlavor::MARLIN;
 }

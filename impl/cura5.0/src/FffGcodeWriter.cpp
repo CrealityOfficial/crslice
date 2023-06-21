@@ -683,6 +683,12 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         tmp << "T" << start_extruder_nr;
         gcode.writeLine(tmp.str().c_str());
     }
+	else if (gcode.getFlavor() == EGCodeFlavor::MACH3_Creality)
+	{
+		std::ostringstream tmp;
+		tmp << "(UAO,1" << start_extruder_nr << ")";
+		gcode.writeLine(tmp.str().c_str());
+	}
     else
     {
         processInitialLayerTemperature(storage, start_extruder_nr);

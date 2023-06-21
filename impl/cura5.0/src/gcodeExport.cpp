@@ -196,6 +196,8 @@ const std::string GCodeExport::flavorToString(const EGCodeFlavor& flavor) const
         return "Repetier";
     case EGCodeFlavor::REPRAP:
         return "RepRap";
+	case EGCodeFlavor::MACH3_Creality:
+		return "MACH3(Creality)";
     case EGCodeFlavor::MARLIN:
     default:
         return "Marlin";
@@ -663,7 +665,7 @@ void GCodeExport::setFlavor(EGCodeFlavor flavor)
             extruder_attr[n].extruderCharacter = 'A' + n;
         }
     }
-	else if (flavor == EGCodeFlavor::PLC)
+	else if (flavor == EGCodeFlavor::PLC || flavor == EGCodeFlavor::MACH3_Creality)
 	{
 		for (int n = 0; n < MAX_EXTRUDERS; n++)
 		{
@@ -977,11 +979,26 @@ void GCodeExport::writeExtrusionMode(bool set_relative_extrusion_mode)
 {
     if (set_relative_extrusion_mode)
     {
-        *output_stream << "M83 ;relative extrusion mode" << new_line;
+		if (flavor==EGCodeFlavor::MACH3_Creality)
+		{
+			*output_stream << "G91 ;relative extrusion mode" << new_line;
+		} 
+		else
+		{
+			*output_stream << "M83 ;relative extrusion mode" << new_line;
+		}
     }
     else
     {
-        *output_stream << "M82 ;absolute extrusion mode" << new_line;
+		if (flavor == EGCodeFlavor::MACH3_Creality)
+		{
+			*output_stream << "G90 ;relative extrusion mode" << new_line;
+		}
+		else
+		{
+			*output_stream << "M82 ;absolute extrusion mode" << new_line;
+		}
+
     }
 }
 
@@ -2006,7 +2023,14 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
     }
     if (extruder != current_extruder)
     {
-        *output_stream << " T" << extruder;
+		if (flavor == EGCodeFlavor::MACH3_Creality)
+		{
+			*output_stream << " T1" << extruder;
+		} 
+		else
+		{
+			*output_stream << " T" << extruder;
+		}
     }
 #ifdef ASSERT_INSANE_OUTPUT
     assert(temperature >= 0);
