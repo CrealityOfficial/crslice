@@ -1769,21 +1769,45 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
         if (layer_nr >= 0)
         {
             const std::vector<size_t>& mesh_order = mesh_order_per_extruder[extruder_nr];
-            for (size_t mesh_idx : mesh_order)
-            {
-                const SliceMeshStorage& mesh = storage.meshes[mesh_idx];
-                const PathConfigStorage::MeshPathConfigs& mesh_config = gcode_layer.configs_storage.mesh_configs[mesh_idx];
-                if (mesh.settings.get<ESurfaceMode>("magic_mesh_surface_mode") == ESurfaceMode::SURFACE
-                    && extruder_nr == mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr // mesh surface mode should always only be printed with the outer wall extruder!
-                )
-                {
-                    addMeshLayerToGCode_meshSurfaceMode(storage, mesh, mesh_config, gcode_layer);
-                }
-                else
-                {
-                    addMeshLayerToGCode(storage, mesh, extruder_nr, mesh_config, gcode_layer);
-                }
-            }
+			//keliji 
+			if (layer_nr%2==1 && mesh_group_settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
+			{
+				size_t icount = mesh_order.size() - 1;
+				for (int n = icount; n >=0; n--)
+				{
+					size_t mesh_idx = mesh_order[n];
+					const SliceMeshStorage& mesh = storage.meshes[mesh_idx];
+					const PathConfigStorage::MeshPathConfigs& mesh_config = gcode_layer.configs_storage.mesh_configs[mesh_idx];
+					if (mesh.settings.get<ESurfaceMode>("magic_mesh_surface_mode") == ESurfaceMode::SURFACE
+						&& extruder_nr == mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr // mesh surface mode should always only be printed with the outer wall extruder!
+						)
+					{
+						addMeshLayerToGCode_meshSurfaceMode(storage, mesh, mesh_config, gcode_layer);
+					}
+					else
+					{
+						addMeshLayerToGCode(storage, mesh, extruder_nr, mesh_config, gcode_layer);
+					}
+				}
+			} 
+			else
+			{
+				for (size_t mesh_idx : mesh_order)
+				{
+					const SliceMeshStorage& mesh = storage.meshes[mesh_idx];
+					const PathConfigStorage::MeshPathConfigs& mesh_config = gcode_layer.configs_storage.mesh_configs[mesh_idx];
+					if (mesh.settings.get<ESurfaceMode>("magic_mesh_surface_mode") == ESurfaceMode::SURFACE
+						&& extruder_nr == mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr // mesh surface mode should always only be printed with the outer wall extruder!
+						)
+					{
+						addMeshLayerToGCode_meshSurfaceMode(storage, mesh, mesh_config, gcode_layer);
+					}
+					else
+					{
+						addMeshLayerToGCode(storage, mesh, extruder_nr, mesh_config, gcode_layer);
+					}
+				}
+			}
         }
         // ensure we print the prime tower with this extruder, because the next layer begins with this extruder!
         // If this is not performed, the next layer might get two extruder switches...
