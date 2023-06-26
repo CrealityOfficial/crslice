@@ -273,7 +273,7 @@ void PrimeTower::addToGcode_denseInfill(LayerPlan& gcode_layer, const size_t ext
 	} 
 	else
 	{
-		gcode_layer.addPolygonsByOptimizer(pattern.polygons, config, tower_zseam_config, 0, false, 1.0_r, false, true);
+		gcode_layer.addPolygonsByOptimizer(pattern.polygons, config, tower_zseam_config, 0, false, 1.0_r, false, false);
 	}
 	gcode_layer.addLinesByOptimizer(pattern.lines, config, SpaceFillType::Lines);
 }
