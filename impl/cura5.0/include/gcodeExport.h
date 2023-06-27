@@ -333,6 +333,13 @@ public:
      */
     void writeTimeComment(const Duration time);
 
+    /*!
+    * Write a comment saying what (estimated) time has passed up to this point
+    *
+    * \param time The time passed up till this point
+    */
+    void writeTimePartsComment(std::ostringstream& prefix);
+
       /*!
      * Enable the offset of gcode in the z-direction.
      *
