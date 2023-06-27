@@ -494,6 +494,14 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
     default:
         prefix << ";FLAVOR:" << flavorToString(flavor) << new_line;
         prefix << ";TIME:" << ((print_time) ? static_cast<double>(*print_time) : 100000.00) << new_line;
+        
+        //各个区域的时间段
+        if (print_time != nullptr)
+        {
+            writeTimePartsComment(prefix);
+        }
+        //
+
         if (flavor == EGCodeFlavor::ULTIGCODE)
         {
             prefix << ";MATERIAL:" << ((filament_used.size() >= 1) ? static_cast<int>(filament_used[0]) : 6666) << new_line;
@@ -908,6 +916,29 @@ void GCodeExport::writeComment(const std::string& unsanitized_comment)
 void GCodeExport::writeTimeComment(const Duration time)
 {
     *output_stream << ";TIME_ELAPSED:" << time << new_line;
+}
+
+void GCodeExport::writeTimePartsComment(std::ostringstream& prefix)
+{
+    //enum class PrintFeatureType : unsigned char
+    std::vector<std::string> printFeature;
+    printFeature.push_back(";NoneType:");
+    printFeature.push_back(";OuterWall Time:");
+    printFeature.push_back(";InnerWall Time:");
+    printFeature.push_back(";Skin Time:");
+    printFeature.push_back(";Support Time:");
+    printFeature.push_back(";SkirtBrim Time:");
+    printFeature.push_back(";Infill Time:");
+    printFeature.push_back(";InfillSupport Time:");
+    printFeature.push_back(";Combing Time:");
+    printFeature.push_back(";Retraction Time:");
+    printFeature.push_back(";PrimeTower Time:");
+    printFeature.push_back(";NumPrintFeatureTypes:");
+
+    for (size_t i = 1; i < total_print_times.size()-1; i++)
+    {
+        prefix << printFeature[i %printFeature.size()] << total_print_times[i] << new_line;
+    }
 }
 
 void GCodeExport::writeZoffsetComment(const double zOffset)
