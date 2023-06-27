@@ -768,7 +768,7 @@ void SkirtBrim::generate(SliceDataStorage& storage, Polygons first_layer_outline
             last_width = width;
             while (storage.skirt_brim[extruder_nr].polygonLength() < minimal_length)
             {
-                storage.skirt_brim[extruder_nr].add(first_layer_outline.offset(offset_distance, ClipperLib::jtRound));
+                storage.skirt_brim[extruder_nr].add(first_layer_outline.offset(gap-offset_distance, ClipperLib::jtRound));
                 offset_distance += width;
             }
         }
