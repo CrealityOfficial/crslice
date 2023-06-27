@@ -2014,7 +2014,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         gcode.writeFanCommand(first_fan_speed == GCodePathConfig::FAN_SPEED_DEFAULT ? extruder_plan.getFanSpeed() : first_fan_speed, cds_fan_speed);
         if (extruder_settings.get<bool>("cool_chamber_fan_enable"))
         {
-            gcode.writeChamberFanCommand();
+            gcode.writeChamberFanCommand(100.);
+        }
+        else
+        {
+            gcode.writeChamberFanCommand(0);
         }
 
         std::vector<GCodePath>& paths = extruder_plan.paths;

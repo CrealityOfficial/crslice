@@ -543,7 +543,7 @@ public:
     
     void writeFanCommand(double speed, double cds_speed = 0.0);
     void writeCdsFanCommand(double cds_speed);
-    void writeChamberFanCommand(double chamber_speed = 100.);
+    void writeChamberFanCommand(double chamber_speed = 0.0);
     
     void writeTemperatureCommand(const size_t extruder, const Temperature& temperature, const bool wait = false);
     void writeBedTemperatureCommand(const Temperature& temperature, const bool wait = false);

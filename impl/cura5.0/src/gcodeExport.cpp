@@ -73,8 +73,9 @@ GCodeExport::GCodeExport()
 
     current_e_value		  = 0;
     current_extruder      = 0;
-    current_cds_fan_speed = -1;
     current_fan_speed     = -1;
+    current_cds_fan_speed = -1;
+    current_chamber_fan_speed = -1;
     current_e_offset      = 0;
 
     total_print_times = std::vector<Duration>(static_cast<unsigned char>(PrintFeatureType::NumPrintFeatureTypes), 0.0);
@@ -1909,7 +1910,8 @@ void GCodeExport::writeCdsFanCommand(double cds_speed)
 
 void GCodeExport::writeChamberFanCommand(double chamber_speed)
 {
-    if (std::abs(current_chamber_fan_speed - chamber_speed) < 0.1)
+    if (!application->current_slice->scene.settings.get<bool>("machine_chamber_fan_exist")
+        || std::abs(current_chamber_fan_speed - chamber_speed) < 0.1)
     {
         return;
     }
