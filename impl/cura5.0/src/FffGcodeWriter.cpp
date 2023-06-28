@@ -1407,11 +1407,15 @@ void FffGcodeWriter::processSimpleRaft(const SliceDataStorage& storage)
     }
 }
 
-
 void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_layers)
 {
     auto getProjection = [](const Point& p, const Point& a, const Point& b, Point& result)
     {
+        Point base = b - a;
+        if (vSize2(base) == 0)
+        {
+            return false;
+        }
         float pab = LinearAlg2D::getAngleLeft(p, a, b);
         float pba = LinearAlg2D::getAngleLeft(p, b, a);
         if (pab > M_PI / 2 && pab < 3 * M_PI / 2) {
@@ -1421,7 +1425,6 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
             return false;
         }
         else {
-            Point base = b - a;
             double r = dot(p - a, base) / (float)vSize2(base);
             result = a + base * r;
             return true;
