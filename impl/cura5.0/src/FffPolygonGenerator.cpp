@@ -1140,6 +1140,14 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
     for (Polygons& polygons : storage.skirt_brim)
     {
         polygons = simplifier.polygon(polygons.intersection(machine_rects));
+		std::reverse(polygons.begin(), polygons.end());
+		for (auto& aPolygon : polygons)
+		{
+			if (ClipperLib::Orientation(aPolygon))
+			{
+				ClipperLib::ReversePath(aPolygon);
+			}
+		}
     }
 }
 
