@@ -288,11 +288,15 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     removeEmptyToolPaths(toolpaths);
 
     for (VariableWidthLines& path : toolpaths)
-    {
+    {        
+        VariableWidthLines path_new;
         for (ExtrusionLine& line : path)
         {
+            if (line.getLength() < allowed_distance) continue;
             line.start_idx = -1;
+            path_new.push_back(line);
         }
+        path.swap(path_new);
     }
     assert(std::is_sorted(toolpaths.cbegin(), toolpaths.cend(),
                           [](const VariableWidthLines& l, const VariableWidthLines& r)
