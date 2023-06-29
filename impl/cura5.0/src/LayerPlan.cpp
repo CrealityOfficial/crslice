@@ -1926,11 +1926,28 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     coord_t cds_fan_start_layer = extruder_settings.get<coord_t>("cool_cds_fan_start_at_height") / layer_thickness;
 
     static LayerIndex layer_1{ 1 - static_cast<LayerIndex>(Raft::getTotalExtraLayers(gcode.application)) };
-    if (layer_nr == layer_1 && mesh_group_settings.get<bool>("machine_heated_bed") && mesh_group_settings.get<Temperature>("material_bed_temperature") != mesh_group_settings.get<Temperature>("material_bed_temperature_layer_0"))
+    if (layer_nr == layer_1 && mesh_group_settings.get<bool>("machine_heated_bed"))
     {
-        constexpr bool wait = false;
-        gcode.writeBedTemperatureCommand(mesh_group_settings.get<Temperature>("material_bed_temperature"), wait);
+		Temperature max_bed_temperature;
+		Temperature max_bed_temperature_layer_0;
+		for (ExtruderTrain& aTrain : application->current_slice->scene.extruders)
+		{
+			if (max_bed_temperature < aTrain.settings.get<Temperature>("material_bed_temperature"))
+			{
+				max_bed_temperature = aTrain.settings.get<Temperature>("material_bed_temperature");
+			}
+			if (max_bed_temperature_layer_0 < aTrain.settings.get<Temperature>("material_bed_temperature_layer_0"))
+			{
+				max_bed_temperature_layer_0 = aTrain.settings.get<Temperature>("material_bed_temperature_layer_0");
+			}
+		}
+		if (max_bed_temperature != max_bed_temperature_layer_0)
+		{
+			constexpr bool wait = false;
+			gcode.writeBedTemperatureCommand(max_bed_temperature, wait);
+		}
     }
+
     gcode.setZ(z);
 
     const GCodePathConfig* last_extrusion_config = nullptr; // used to check whether we need to insert a TYPE comment in the gcode.

@@ -612,15 +612,25 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
 
         if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
         {
-            const Temperature bed_temp = train.settings.get<Temperature>("material_bed_temperature_layer_0");
-            if (scene.current_mesh_group == scene.mesh_groups.begin() // Always write bed temperature for first mesh group.
-                || bed_temp != train.settings.get<Temperature>("material_bed_temperature")) // Don't write bed temperature if identical to temperature of previous group.
-            {
-                if (bed_temp != 0)
+			Temperature max_bed_temperature;
+			for (const ExtruderTrain& train : application->current_slice->scene.extruders)
+			{
+				Temperature current_bed_temperature = train.settings.get<double>("material_bed_temperature_layer_0");
+				if (max_bed_temperature < current_bed_temperature)
+				{
+					max_bed_temperature = current_bed_temperature;
+				}
+			}
+
+            //const Temperature bed_temp = train.settings.get<Temperature>("material_bed_temperature_layer_0");
+            //if (scene.current_mesh_group == scene.mesh_groups.begin() // Always write bed temperature for first mesh group.
+            //    || bed_temp != train.settings.get<Temperature>("material_bed_temperature")) // Don't write bed temperature if identical to temperature of previous group.
+            //{
+                if (max_bed_temperature != 0)
                 {
-                    gcode.writeBedTemperatureCommand(bed_temp, train.settings.get<bool>("material_bed_temp_wait"));
+                    gcode.writeBedTemperatureCommand(max_bed_temperature, train.settings.get<bool>("material_bed_temp_wait"));
                 }
-            }
+            //}
         }
 
         if (train.settings.get<bool>("material_print_temp_prepend"))
@@ -722,9 +732,19 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         }
     }
 
+
     if (mesh_group_settings.get<bool>("machine_heated_build_volume"))
     {
-        gcode.writeBuildVolumeTemperatureCommand(mesh_group_settings.get<Temperature>("build_volume_temperature"));
+		Temperature max_build_volume_temperature;
+		for (const ExtruderTrain& train : application->current_slice->scene.extruders)
+		{
+			Temperature current_extruder_temperature = train.settings.get<double>("build_volume_temperature");
+			if (max_build_volume_temperature < current_extruder_temperature)
+			{
+				max_build_volume_temperature = current_extruder_temperature;
+			}
+		}
+		gcode.writeBuildVolumeTemperatureCommand(max_build_volume_temperature);
     }
 
     gcode.startExtruder(start_extruder_nr);

@@ -163,7 +163,15 @@ void GCodeExport::setInitialAndBuildVolumeTemps(const unsigned int start_extrude
         setInitialTemp(extruder_nr, temp);
     }
 
-    initial_bed_temp = scene.current_mesh_group->settings.get<Temperature>("material_bed_temperature_layer_0");
+    //initial_bed_temp = scene.current_mesh_group->settings.get<Temperature>("material_bed_temperature_layer_0");
+	for (const ExtruderTrain& train : application->current_slice->scene.extruders)
+	{
+		Temperature current_bed_temperature = train.settings.get<Temperature>("material_bed_temperature_layer_0");
+		if (initial_bed_temp < current_bed_temperature)
+		{
+			initial_bed_temp = current_bed_temperature;
+		}
+	}
     machine_heated_build_volume = scene.current_mesh_group->settings.get<bool>("machine_heated_build_volume");
     build_volume_temperature = machine_heated_build_volume ? scene.current_mesh_group->settings.get<Temperature>("build_volume_temperature") : Temperature(0);
 }
