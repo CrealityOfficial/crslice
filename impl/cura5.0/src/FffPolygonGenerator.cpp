@@ -550,8 +550,8 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 
 
 
-#ifdef _DEBUG
-    for (size_t layer_number=0;layer_number<mesh_layer_count;layer_number++)
+#if 0
+    for (size_t layer_number = 0; layer_number < mesh_layer_count; layer_number++)
     {
         processWalls(mesh, layer_number);
     }
