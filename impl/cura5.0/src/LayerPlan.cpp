@@ -1969,7 +1969,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         if (cds_fan_speed > 0 && layer_nr < cds_fan_start_layer)
             cds_fan_speed = 0.;
 
-        if (extruder_nr != extruder_plan.extruder_nr)
+        if (extruder_nr != extruder_plan.extruder_nr && (layer_nr < storage.max_print_height_second_to_last_extruder || mesh_group_settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE) )
         {
             int prev_extruder = extruder_nr;
             extruder_nr = extruder_plan.extruder_nr;

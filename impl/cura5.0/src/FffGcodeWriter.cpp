@@ -193,7 +193,6 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 		} 
 		else
 		{
-			std::optional<Point> last_planned_position;
 			run_multiple_producers_ordered_consumer(application,
 				process_layer_starting_layer_nr,
 				total_layers,
@@ -4187,6 +4186,10 @@ void FffGcodeWriter::addPrimeTower(const SliceDataStorage& storage, LayerPlan& g
     {
         return;
     }
+	if (application->current_slice->scene.current_mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::NORMAL && gcode_layer.getLayerNr() >= storage.max_print_height_second_to_last_extruder)
+	{
+		return;
+	}
 
     storage.primeTower.addToGcode(storage, gcode_layer, prev_extruder, gcode_layer.getExtruder());
 }
