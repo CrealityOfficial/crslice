@@ -2176,6 +2176,7 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
 {
     if (gcode_layer.getLayerNr() > mesh.layer_nr_max_filled_layer)
     {
+		gcode_layer.setPrimeTowerIsPlanned(extruder_nr);
         return;
     }
 
@@ -4128,6 +4129,11 @@ void FffGcodeWriter::setExtruder_addPrime(const SliceDataStorage& storage, Layer
 		//{
 		//	return;
 		//}
+
+		if (gcode_layer.getPrimeTowerIsPlanned(extruder_nr))
+		{ // don't print the prime tower if it has been printed already with this extruder.
+			return;
+		}
 	} 
 	else
 	{
@@ -4182,10 +4188,6 @@ void FffGcodeWriter::addPrimeTower(const SliceDataStorage& storage, LayerPlan& g
     {
         return;
     }
-	if (application->current_slice->scene.current_mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::NORMAL && gcode_layer.getLayerNr() >= storage.max_print_height_second_to_last_extruder)
-	{
-		return;
-	}
 
     storage.primeTower.addToGcode(storage, gcode_layer, prev_extruder, gcode_layer.getExtruder());
 }
