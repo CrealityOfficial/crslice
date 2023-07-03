@@ -204,10 +204,6 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 				});
 		}
 
-
-
-
-
     layer_plan_buffer.flush();
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");

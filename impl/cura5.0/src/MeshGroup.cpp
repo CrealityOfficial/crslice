@@ -98,7 +98,7 @@ void MeshGroup::finalize()
 #define SKIP_OFFSET_Z 1
 
     coord_t zOffset = 0;
-
+    bool mesh_surpport_exist = false;
 
     // If a mesh position was given, put the mesh at this position in 3D space.
     for (Mesh& mesh : meshes)
@@ -116,8 +116,23 @@ void MeshGroup::finalize()
             mesh_offset += Point3(-object_min.x - object_size.x / 2, -object_min.y - object_size.y / 2, zOffset);
         }
         mesh.offset(mesh_offset + meshgroup_offset);
+
+        if (mesh.settings.get<bool>("support_mesh"))
+            mesh_surpport_exist = true;
     }
     scaleFromBottom(settings.get<Ratio>("material_shrinkage_percentage_xy"), settings.get<Ratio>("material_shrinkage_percentage_z")); // Compensate for the shrinkage of the material.
+  
+    if (mesh_surpport_exist)
+    {
+        for (Mesh& mesh : meshes)
+        {
+            if (!mesh.settings.get<bool>("support_mesh"))
+            {
+                mesh.settings.add("support_enable", "false");
+                mesh.settings.add("support_mesh_drop_down", "false");
+            }
+        }
+    }
 }
 
 void MeshGroup::scaleFromBottom(const Ratio factor_xy, const Ratio factor_z)
