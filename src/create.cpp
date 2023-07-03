@@ -162,6 +162,7 @@ namespace crslice
             if (crGroup)
             {
                 crSetting2CuraSettings(*(crGroup->m_settings), &(slice->scene.mesh_groups[i].settings));
+                int index = 0;
                 for (const CrObject& object : crGroup->m_objects)
                 {
                     if (object.m_mesh.get() != nullptr)
@@ -170,11 +171,15 @@ namespace crslice
 
                         slice->scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
                         cura52::Mesh& mesh = slice->scene.mesh_groups[i].meshes.back();
+                        std::string name = std::to_string(i) + "_" + std::to_string(index);
+                        mesh.mesh_name = name;
                         trimesh2CuraMesh(object.m_mesh.get(), mesh, application);
 
                         INTERRUPT_BREAK("CRSliceFromScene::sliceNext  trimesh2CuraMesh.");
                         crSetting2CuraSettings(*(object.m_settings), &(mesh.settings));
                         sliceValible = true;
+
+                        ++index;
                     }
                 }
                 slice->scene.mesh_groups[i].m_offset = cura52::FPoint3(crGroup->m_offset.x, crGroup->m_offset.y, crGroup->m_offset.z);
