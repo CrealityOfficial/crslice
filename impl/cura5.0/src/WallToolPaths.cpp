@@ -115,20 +115,6 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
             }
         } while (delete_point_num > 0 && check_time < 3);
     };
-
-    auto delete_mini_poly = [&](Polygons& polys)
-    {
-        Polygons new_polys;
-        for (int i = 0; i < polys.size(); i++)
-        {
-            if (std::fabs(polys[i].area()) > allowed_distance * allowed_distance)
-            {
-                new_polys.add(polys[i]);
-            }
-        }
-        polys.clear();
-        polys = new_polys;
-    };
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
     Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);    
