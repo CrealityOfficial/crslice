@@ -348,10 +348,17 @@ void LayerPlanBuffer::insertTempCommands(std::vector<ExtruderPlan*>& extruder_pl
         extruder_plan.prev_extruder_standby_temp = previous_extruder_settings.get<Temperature>("material_standby_temperature");
     }
 
-    if (prev_extruder == extruder)
+    int extruder_used_num = 0;
+    for (bool used : extruder_used_in_meshgroup)
     {
-        //insertPreheatCommand_singleExtrusion(*prev_extruder_plan, extruder, extruder_plan.required_start_temperature);
-        //prev_extruder_plan->extrusion_temperature_command = --prev_extruder_plan->inserts.end();
+        if (used)
+            extruder_used_num++;
+    }
+
+    if (extruder_used_num == 1 && prev_extruder == extruder)
+    {
+        insertPreheatCommand_singleExtrusion(*prev_extruder_plan, extruder, extruder_plan.required_start_temperature);
+        prev_extruder_plan->extrusion_temperature_command = --prev_extruder_plan->inserts.end();
     }
     else if (application->current_slice->scene.extruders[extruder].settings.get<bool>("machine_extruders_share_heater"))
     {
