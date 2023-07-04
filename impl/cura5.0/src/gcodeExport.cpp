@@ -951,7 +951,7 @@ void GCodeExport::writeTimePartsComment(std::ostringstream& prefix)
 
 void GCodeExport::writeZoffsetComment(const double zOffset)
 {
-    *output_stream << "SET_GCODE_OFFSET Z_ADJUST=" << zOffset << new_line;
+    *output_stream << "SET_GCODE_OFFSET Z=" << zOffset << new_line;
 }
 
 void GCodeExport::writePressureComment(const double length)
