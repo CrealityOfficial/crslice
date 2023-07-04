@@ -27,7 +27,6 @@
 #include "utils/linearAlg2D.h"
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
-#include "trimesh2/Vec.h"
 #include "Slice3rBase/overhangquality/extrusionerocessor.hpp"
 
 namespace cura52
@@ -714,9 +713,8 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         for (int i = 0; i < sizes; i++)
         {
             AABB3D box = storage.meshes.at(i).bounding_box;
-            trimesh::vec2 centers;
-            centers.x = INT2MM((box.max.x + box.min.x) / 2.0f);
-            centers.y = INT2MM((box.max.y + box.min.y) / 2.0f);
+            float x = INT2MM((box.max.x + box.min.x) / 2.0f);
+            float y = INT2MM((box.max.y + box.min.y) / 2.0f);
             std::string p0 = std::to_string(INT2MM(box.min.x));
             std::string p1 = std::to_string(INT2MM(box.max.x));
             std::string p2 = std::to_string(INT2MM(box.min.y));
@@ -727,7 +725,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
                                   "[" + p1 + "," + p2 + "],"+
                                   "[" + p0 + "," + p2 + "]]";
             std::ostringstream tmp3;
-            tmp3 << "EXCLUDE_OBJECT_DEFINE NAME=" << storage.meshes.at(i).mesh_name << " CENTER=" << centers.x << "," << centers.y
+            tmp3 << "EXCLUDE_OBJECT_DEFINE NAME=" << storage.meshes.at(i).mesh_name << " CENTER=" << x << "," << y
                 << " POLYGON=" << polygon;
             gcode.writeLine(tmp3.str().c_str());
         }
