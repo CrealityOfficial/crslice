@@ -27,7 +27,7 @@
 #include "utils/linearAlg2D.h"
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
-
+#include "trimesh2/Vec.h"
 #include "Slice3rBase/overhangquality/extrusionerocessor.hpp"
 
 namespace cura52
@@ -701,8 +701,40 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     }
 
     gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
-	gcode.writeCode(strTemp.c_str());
+    if (application->current_slice->scene.settings.get<bool>("special_object_cancel"))
+    {
+        std::ostringstream tmp ;
+        tmp << "; Pre-Processed for Cancel-Object support by preprocess_cancellation v0.2.0" ;
+        gcode.writeLine(tmp.str().c_str());
+        std::ostringstream tmp2;
+        tmp2 << "; " << storage.meshes.size() << " known objects";
+        gcode.writeLine(tmp2.str().c_str());
+        
+        int sizes = storage.meshes.size();
+        for (int i = 0; i < sizes; i++)
+        {
+            AABB3D box = storage.meshes.at(i).bounding_box;
+            trimesh::vec2 centers;
+            centers.x = INT2MM((box.max.x + box.min.x) / 2.0f);
+            centers.y = INT2MM((box.max.y + box.min.y) / 2.0f);
+            std::string p0 = std::to_string(INT2MM(box.min.x));
+            std::string p1 = std::to_string(INT2MM(box.max.x));
+            std::string p2 = std::to_string(INT2MM(box.min.y));
+            std::string p3 = std::to_string(INT2MM(box.max.y));
+            std::string polygon= "[[" + p0 + "," + p2 + "]," +
+                                  "[" + p0 + "," + p3 + "],"+ 
+                                  "[" + p1 + "," + p3 + "],"+
+                                  "[" + p1 + "," + p2 + "],"+
+                                  "[" + p0 + "," + p2 + "]]";
+            std::ostringstream tmp3;
+            tmp3 << "EXCLUDE_OBJECT_DEFINE NAME=" << storage.meshes.at(i).mesh_name << " CENTER=" << centers.x << "," << centers.y
+                << " POLYGON=" << polygon;
+            gcode.writeLine(tmp3.str().c_str());
+        }
+    }
 
+
+    gcode.writeCode(strTemp.c_str());
 	const Scene& scene = application->current_slice->scene;
 	const ExtruderTrain& train = scene.extruders[start_extruder_nr];
 	bool pressure_enable = train.settings.get<bool>("material_pressure_advance");//Ñ¹Á¦ÍÆ½ø
@@ -2223,7 +2255,8 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
         addMeshOpenPolyLinesToGCode(mesh, mesh_config, gcode_layer);
     }
     INTERRUPT_RETURN("addMeshOpenPolyLinesToGCode");
-    gcode_layer.setMesh("NONMESH");
+    gcode_layer.setMesh2(mesh.mesh_name);
+    gcode_layer.setMesh("");
 }
 
 void FffGcodeWriter::addMeshPartToGCode(const SliceDataStorage& storage, const SliceMeshStorage& mesh, const size_t extruder_nr, const PathConfigStorage::MeshPathConfigs& mesh_config, const SliceLayerPart& part, LayerPlan& gcode_layer)

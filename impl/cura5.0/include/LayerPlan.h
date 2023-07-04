@@ -243,6 +243,8 @@ public:
     Temperature layerTemp;
 	float pressureValue;
 	float maxvolumetricspeed;
+    int tmp_is_change_layer;
+    bool first_mesh_cancel;
 private:
     Application* application = nullptr;
     const SliceDataStorage& storage; //!< The polygon data obtained from FffPolygonProcessor
@@ -256,6 +258,7 @@ private:
     std::optional<Point> last_planned_position; //!< The last planned XY position of the print head (if known)
 
     std::string current_mesh; //<! A unique ID for the mesh of the last planned move.
+    std::string tmp_mesh_name;
     /*!
      * Whether the skirt or brim polygons have been processed into planned paths
      * for each extruder train.
@@ -422,7 +425,7 @@ public:
      * \param mesh_id A unique ID indicating the current mesh.
      */
     void setMesh(const std::string mesh_id);
-
+    void setMesh2(const std::string mesh_id);
     /*!
      * Set bridge_wall_mask.
      *

@@ -317,6 +317,7 @@ public:
     void resetTotalPrintTimeAndFilament();
     
     void writeComment(const std::string& comment);
+    void writeComment2(const std::string& comment);
     void writeTypeComment(const PrintFeatureType& type);
 
     /*!

@@ -921,6 +921,23 @@ void GCodeExport::writeComment(const std::string& unsanitized_comment)
     *output_stream << new_line;
 }
 
+void GCodeExport::writeComment2(const std::string& unsanitized_comment)
+{
+    const std::string comment = transliterate(unsanitized_comment);
+    for (unsigned int i = 0; i < comment.length(); i++)
+    {
+        if (comment[i] == '\n')
+        {
+            *output_stream << new_line << ";";
+        }
+        else
+        {
+            *output_stream << comment[i];
+        }
+    }
+    *output_stream << new_line;
+}
+
 void GCodeExport::writeTimeComment(const Duration time)
 {
     *output_stream << ";TIME_ELAPSED:" << time << new_line;

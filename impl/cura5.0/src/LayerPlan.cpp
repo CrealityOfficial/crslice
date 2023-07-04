@@ -180,7 +180,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     , is_raft_layer(layer_nr < 0 - static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)))
     , layer_thickness(layer_thickness)
     , has_prime_tower_planned_per_extruder(application->current_slice->scene.extruders.size(), false)
-    , current_mesh("NONMESH")
+    , current_mesh("")
     , last_extruder_previous_layer(start_extruder)
     , last_planned_extruder(&application->current_slice->scene.extruders[start_extruder])
     , first_travel_destination_is_inside(false) // set properly when addTravel is called for the first time (otherwise not set properly)
@@ -217,6 +217,9 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     layerTemp = 0;
 	maxvolumetricspeed = 0.0;
 	pressureValue = -1;
+    tmp_mesh_name = "";
+    first_mesh_cancel = false;
+    tmp_is_change_layer = 0;
 }
 
 LayerPlan::~LayerPlan()
@@ -363,7 +366,10 @@ void LayerPlan::setMesh(const std::string mesh_id)
 {
     current_mesh = mesh_id;
 }
-
+void LayerPlan::setMesh2(const std::string mesh_id)
+{
+    tmp_mesh_name = mesh_id;
+}
 void LayerPlan::moveInsideCombBoundary(const coord_t distance, const std::optional<SliceLayerPart>& part)
 {
     constexpr coord_t max_dist2 = MM2INT(2.0) * MM2INT(2.0); // if we are further than this distance, we conclude we are not inside even though we thought we were.
@@ -1957,7 +1963,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     const float acceleration_breaking = mesh_group_settings.get<double>("acceleration_breaking");
     const bool jerk_enabled = mesh_group_settings.get<bool>("jerk_enabled");
     const bool jerk_travel_enabled = mesh_group_settings.get<bool>("jerk_travel_enabled");
-    std::string current_mesh = "NONMESH";
+    std::string current_mesh = "";
 
     for (size_t extruder_plan_idx = 0; extruder_plan_idx < extruder_plans.size(); extruder_plan_idx++)
     {
@@ -2306,10 +2312,52 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             {
                 speed *= extruder_plan.getExtrudeSpeedFactor();
             }
+
             // This seems to be the best location to place this, but still not ideal.
+            if (path.mesh_id != current_mesh &&  (application->current_slice->scene.settings.get<bool>("special_object_cancel")))
+            {
+                current_mesh = path.mesh_id;
+                std::stringstream ss;
+                if (current_mesh == "")
+                    current_mesh = "NONMESH";
+                std::stringstream ss_exclude_end;
+                std::stringstream ss_exclude_start;
+                //change layer cura  only start 
+                if (tmp_is_change_layer == 0 && !first_mesh_cancel && path.config->type != PrintFeatureType::SkirtBrim)
+                {
+                    ss << "MESH:" << current_mesh;
+                    gcode.writeComment(ss.str());
+                    ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+                    gcode.writeComment2(ss_exclude_start.str());
+                    first_mesh_cancel = true;
+                }
+                else if (tmp_is_change_layer != this->layer_nr)
+                {
+                    ss << "MESH:" << current_mesh;
+                    gcode.writeComment(ss.str());
+                    ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+                    gcode.writeComment2(ss_exclude_start.str());
+                }
+                else 
+                {
+                    ss << "MESH:" << current_mesh;
+                    gcode.writeComment(ss.str());
+                    ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+                    gcode.writeComment2(ss_exclude_end.str());
+                    if (current_mesh != "NONMESH")
+                    {
+                        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+                        gcode.writeComment2(ss_exclude_start.str());
+                    }
+
+                }
+                tmp_mesh_name = path.mesh_id;
+                tmp_is_change_layer = this->layer_nr;
+            }
             if (path.mesh_id != current_mesh)
             {
                 current_mesh = path.mesh_id;
+                if (current_mesh == "") current_mesh = "NONMESH";
                 std::stringstream ss;
                 ss << "MESH:" << current_mesh;
                 gcode.writeComment(ss.str());
