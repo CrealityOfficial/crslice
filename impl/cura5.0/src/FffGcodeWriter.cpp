@@ -1747,12 +1747,13 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 		gcode_layer.setLastPosition(last_position);
 	}
 
-	for (const SliceMeshStorage& mesh : storage.meshes)
+	//for (const SliceMeshStorage& mesh : storage.meshes)
+	if (storage.meshes.size()>0 && layer_nr >=0)
 	{
+		const SliceMeshStorage& mesh = storage.meshes[0];
 		if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
 		{
 			gcode_layer.layerTemp = mesh.settings.get<Temperature>("calibration_temperature");
-			break;
 		}
 		else if (mesh.settings.has("pressure_step"))
 		{
@@ -1765,7 +1766,6 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 			{
 				gcode_layer.pressureValue = PressureEnd;
 			}
-			break;
 		}
 		else if (mesh.settings.has("maxvolumetricspeed_step"))
 		{
@@ -1778,7 +1778,6 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 			{
 				gcode_layer.maxvolumetricspeed = maxvolumetricspeedEnd;
 			}
-			break;
 		}
 	}
 

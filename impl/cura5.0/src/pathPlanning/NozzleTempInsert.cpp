@@ -21,7 +21,7 @@ NozzleTempInsert::NozzleTempInsert(unsigned int path_idx, int extruder, double t
 void NozzleTempInsert::write(GCodeExport& gcode)
 {
     //屏蔽喷嘴切换时的提前加热，保留单喷嘴自动调温预热功能
-    if (gcode.getExtruderNum() == 1 )
+    //if (gcode.getExtruderNum() == 1 )
     {
         gcode.writeTemperatureCommand(extruder, temperature, wait);
     }
