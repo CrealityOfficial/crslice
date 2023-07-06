@@ -326,6 +326,10 @@ EFillMethod Settings::get<EFillMethod>(const std::string& key) const
     {
         return EFillMethod::LINES;
     }
+	if (value == "aligned_rectilinear")
+	{
+		return EFillMethod::ALIGNLINES;
+	}
     else if (value == "grid")
     {
         return EFillMethod::GRID;

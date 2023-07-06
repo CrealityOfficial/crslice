@@ -306,7 +306,7 @@ namespace cura52
 				else { i1++; }
 			}
 
-			if (i1 >= moves.size() - 1) { break; }
+			if (i1 >= moves.size() - 1 || i1 >= blocks.size()-1) { break; }
 			size_t flush_count = i1 - i0 + (size_t)1;
 			std::vector<MyStruct> delayed;
 			double next_end_v2 = 0.0;

@@ -2333,7 +2333,7 @@ bool FffGcodeWriter::processMultiLayerInfill(const SliceDataStorage& storage, La
     {
         const coord_t infill_line_width = mesh_config.infill_config[combine_idx].getLineWidth();
         const EFillMethod infill_pattern = mesh.settings.get<EFillMethod>("infill_pattern");
-        const bool zig_zaggify_infill = mesh.settings.get<bool>("zig_zaggify_infill") || infill_pattern == EFillMethod::ZIG_ZAG;
+        const bool zig_zaggify_infill = mesh.settings.get<bool>("zig_zaggify_infill") || infill_pattern == EFillMethod::ZIG_ZAG || infill_pattern == EFillMethod::ALIGNLINES;
         const bool connect_polygons = mesh.settings.get<bool>("connect_infill_polygons");
         const size_t infill_multiplier = mesh.settings.get<size_t>("infill_multiplier");
         Polygons infill_polygons;
@@ -2450,7 +2450,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
     Polygons infill_lines;
 
     const auto pattern = mesh.settings.get<EFillMethod>("infill_pattern");
-    const bool zig_zaggify_infill = mesh.settings.get<bool>("zig_zaggify_infill") || pattern == EFillMethod::ZIG_ZAG;
+    const bool zig_zaggify_infill = mesh.settings.get<bool>("zig_zaggify_infill") || pattern == EFillMethod::ZIG_ZAG || pattern == EFillMethod::ALIGNLINES;
     const bool connect_polygons = mesh.settings.get<bool>("connect_infill_polygons");
     const auto infill_overlap = mesh.settings.get<coord_t>("infill_overlap_mm");
     const auto infill_multiplier = mesh.settings.get<size_t>("infill_multiplier");

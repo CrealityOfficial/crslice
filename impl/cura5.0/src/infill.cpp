@@ -88,6 +88,7 @@ void Infill::generate(std::vector<VariableWidthLines>& toolpaths,
     // The lines along the edge must lie next to the border, not on it.
     // This makes those algorithms a lot simpler.
     if (pattern == EFillMethod::ZIG_ZAG // Zig-zag prints the zags along the walls.
+		|| pattern == EFillMethod::ALIGNLINES
         || (zig_zaggify
             && (pattern == EFillMethod::LINES // Zig-zaggified infill patterns print their zags along the walls.
                 || pattern == EFillMethod::TRIANGLES || pattern == EFillMethod::GRID || pattern == EFillMethod::CUBIC || pattern == EFillMethod::TETRAHEDRAL || pattern == EFillMethod::QUARTER_CUBIC || pattern == EFillMethod::TRIHEXAGON
@@ -227,6 +228,9 @@ void Infill::_generate(std::vector<VariableWidthLines>& toolpaths,
     case EFillMethod::ZIG_ZAG:
         generateZigZagInfill(result_lines, line_distance, fill_angle);
         break;
+	case EFillMethod::ALIGNLINES:
+		generateZigZagInfill(result_lines, line_distance, 45.0);
+		break;
     case EFillMethod::CUBICSUBDIV:
         if (! mesh)
         {

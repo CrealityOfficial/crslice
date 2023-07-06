@@ -14,6 +14,7 @@ namespace cura52
 enum class EFillMethod
 {
     LINES,
+	ALIGNLINES,
     GRID,
     CUBIC,
     CUBICSUBDIV,
