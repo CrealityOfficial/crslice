@@ -1708,17 +1708,6 @@ bool ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
         }
         totalPrintTime = estimates.getExtrudeTime() + estimates.getTravelTime();
     }
-    else
-    {
-        for (GCodePath& path : paths)
-        {
-            if (path.isTravelPath())
-                continue;
-            double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor;
-            if (speed < minimalSpeed)
-                path.speed_factor = minimalSpeed / path.config->getSpeed() / path.speed_back_pressure_factor;
-        }
-    }
     return true;
 }
 
