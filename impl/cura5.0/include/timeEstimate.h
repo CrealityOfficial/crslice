@@ -23,7 +23,7 @@ class Settings;
  *  Some of this code has been adapted from the Marlin sources.
  */
 
-class TimeEstimateCalculator 
+class TimeEstimateCalculator  
 {
 public:
     constexpr static unsigned int NUM_AXIS = 4;

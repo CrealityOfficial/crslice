@@ -1456,12 +1456,10 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     {
     case true:
     *output_stream << "G3";
-	//printf("G3\n");
 	estimateCalculator->is_ccw = false;
     break;
     case false:
     *output_stream << "G2";
-	//printf("G2\n");
 	estimateCalculator->is_ccw = true;
     break;
     }
@@ -2258,8 +2256,6 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
     }
     current_print_acceleration = acceleration;
     estimateCalculator->setAcceleration(acceleration);
-
-	//estimateCalculator->setAccel(acceleration);  
 }
 
 void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
@@ -2285,8 +2281,6 @@ void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool
     }
     current_travel_acceleration = acceleration;
     estimateCalculator->setAcceleration(acceleration);
-
-	//estimateCalculator->setAccel(acceleration);  
 }
 
 void GCodeExport::writeJerk(const Velocity& jerk)

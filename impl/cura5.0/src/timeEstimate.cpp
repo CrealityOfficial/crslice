@@ -27,10 +27,10 @@ void TimeEstimateCalculator::setFirmwareDefaults(const Settings& settings)
     max_acceleration[Z_AXIS] = settings.get<Acceleration>("machine_max_acceleration_z");
     max_acceleration[E_AXIS] = settings.get<Acceleration>("machine_max_acceleration_e");
     max_xy_jerk = settings.get<Velocity>("machine_max_jerk_xy");
-    max_z_jerk = settings.get<Velocity>("machine_max_jerk_z");
-    max_e_jerk = settings.get<Velocity>("machine_max_jerk_e");
+    max_z_jerk  = settings.get<Velocity>("machine_max_jerk_z");
+    max_e_jerk  = settings.get<Velocity>("machine_max_jerk_e");
     minimumfeedrate = settings.get<Velocity>("machine_minimum_feedrate");
-    acceleration = settings.get<Acceleration>("machine_acceleration");
+    acceleration    = settings.get<Acceleration>("machine_acceleration");
 }
 
 void TimeEstimateCalculator::setPosition(Position newPos)
@@ -43,7 +43,7 @@ void TimeEstimateCalculator::addTime(const Duration& time)
     extra_time += time;
 }
 
-void TimeEstimateCalculator::setAcceleration(const Velocity& acc)
+void TimeEstimateCalculator::setAcceleration(const Acceleration& acc)
 {
     acceleration = acc;
 }
@@ -182,12 +182,6 @@ static inline double max(double x, double y)
 {
 	return (x > y) ? x : y;
 }
-
-//void TimeEstimateCalculator::setAccel(const Acceleration& acc)   
-//{
-//	this->max_accel = acc;
-//}
-//====================================
 
 void TimeEstimateCalculator::plan(Position newPos, Velocity feedrate, PrintFeatureType feature)
 {
