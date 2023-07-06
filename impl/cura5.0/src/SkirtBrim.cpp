@@ -764,13 +764,14 @@ void SkirtBrim::generate(SliceDataStorage& storage, Polygons first_layer_outline
             const ExtruderTrain& train = storage.application->current_slice->scene.extruders[extruder_nr];
             const coord_t width = train.settings.get<coord_t>("skirt_brim_line_width") * train.settings.get<Ratio>("initial_layer_line_width_factor");
             const coord_t minimal_length = train.settings.get<coord_t>("skirt_brim_minimal_length");
-            offset_distance += last_width / 2 + width / 2;
+            //offset_distance += last_width / 2 + width / 2;
+			gap += primary_line_count* width+ width / 2;
             last_width = width;
             //while (storage.skirt_brim[extruder_nr].polygonLength() < minimal_length)
 			for (int n=0;n< primary_line_count;n++)
             {
-                storage.skirt_brim[extruder_nr].add(first_layer_outline.offset(gap-offset_distance, ClipperLib::jtRound));
-                offset_distance += width;
+                storage.skirt_brim[extruder_nr].add(first_layer_outline.offset(gap, ClipperLib::jtRound));
+				gap += width;
             }
         }
     }

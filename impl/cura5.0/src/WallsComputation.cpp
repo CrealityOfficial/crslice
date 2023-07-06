@@ -26,7 +26,7 @@ WallsComputation::WallsComputation(const Settings& settings, const LayerIndex la
  *
  * generateWalls only reads and writes data for the current layer
  */
-void WallsComputation::generateWalls(SliceLayerPart* part)
+void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upper)
 {
     size_t wall_count = settings.get<size_t>("wall_line_count");
     if (wall_count == 0) // Early out if no walls are to be generated
@@ -71,9 +71,49 @@ void WallsComputation::generateWalls(SliceLayerPart* part)
     }
     else
     {
-        WallToolPaths wall_tool_paths(part->outline, line_width_0, line_width_x, wall_count, wall_0_inset, settings);
-        part->wall_toolpaths = wall_tool_paths.getToolPaths();
-        part->inner_area = wall_tool_paths.getInnerContour();
+        const bool roofing_only_one_wall = settings.get<bool>("roofing_only_one_wall");
+        Polygons upLayerPart;
+        if (roofing_only_one_wall && layer_upper != nullptr)
+        {
+            for (const SliceLayerPart& part2 : layer_upper->parts)
+            {
+                if (part->boundaryBox.hit(part2.boundaryBox))
+                {
+                    upLayerPart.add(part2.outline);
+                }
+            }
+        }
+        Polygons layer_different_area = part->outline.difference(upLayerPart);
+        if (roofing_only_one_wall && layer_different_area.area() > line_width_0 * line_width_0)
+        {
+            WallToolPaths OuterWall_tool_paths(part->outline, line_width_0, line_width_x, 1, wall_0_inset, settings);
+            part->wall_toolpaths = OuterWall_tool_paths.getToolPaths();
+            Polygons non_OuterWall_area = OuterWall_tool_paths.getInnerContour();
+            Polygons roof_area = non_OuterWall_area.difference(upLayerPart);
+            coord_t half_min_roof_width = (line_width_0 + (wall_count - 1) * line_width_x) / 2;
+            roof_area = roof_area.offset(-half_min_roof_width).offset(half_min_roof_width + line_width_0).intersection(non_OuterWall_area);
+            non_OuterWall_area = non_OuterWall_area.difference(roof_area);
+
+            if (!non_OuterWall_area.empty())
+            {
+                WallToolPaths innerWall_tool_paths(non_OuterWall_area, line_width_x, line_width_x, wall_count - 1, 0, settings);
+                std::vector<VariableWidthLines> innerWall_toolpaths = innerWall_tool_paths.getToolPaths();
+                for (VariableWidthLines& paths : innerWall_toolpaths)
+                {
+                    for (ExtrusionLine& path : paths)
+                        path.inset_idx++;
+                }
+                part->wall_toolpaths.insert(part->wall_toolpaths.end(), innerWall_toolpaths.begin(), innerWall_toolpaths.end());
+                part->inner_area = innerWall_tool_paths.getInnerContour();
+            }
+            part->inner_area.add(roof_area);
+        }
+        else
+        {
+            WallToolPaths wall_tool_paths(part->outline, line_width_0, line_width_x, wall_count, wall_0_inset, settings);
+            part->wall_toolpaths = wall_tool_paths.getToolPaths();
+            part->inner_area = wall_tool_paths.getInnerContour();
+        }
     }
     part->print_outline = part->outline;
 }
@@ -84,12 +124,12 @@ void WallsComputation::generateWalls(SliceLayerPart* part)
  *
  * generateWalls only reads and writes data for the current layer
  */
-void WallsComputation::generateWalls(SliceLayer* layer)
+void WallsComputation::generateWalls(SliceLayer* layer, SliceLayer* layer_upper)
 {
     for(SliceLayerPart& part : layer->parts)
     {
         INTERRUPT_BREAK("WallsComputation::generateWalls. ");
-        generateWalls(&part);
+        generateWalls(&part, layer_upper);
     }
 
     //Remove the parts which did not generate a wall. As these parts are too small to print,

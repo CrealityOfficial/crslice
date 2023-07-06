@@ -787,8 +787,11 @@ void FffPolygonGenerator::processDerivedWallsSkinInfill(SliceMeshStorage& mesh)
 void FffPolygonGenerator::processWalls(SliceMeshStorage& mesh, size_t layer_nr)
 {
     SliceLayer* layer = &mesh.layers[layer_nr];
+    SliceLayer* layer_upper = nullptr;
+    if (layer_nr + 1 < mesh.layers.size())
+        layer_upper = &mesh.layers[layer_nr + 1];
     WallsComputation walls_computation(mesh.settings, layer_nr, mesh.appliction);
-    walls_computation.generateWalls(layer);
+    walls_computation.generateWalls(layer, layer_upper);
 }
 
 bool FffPolygonGenerator::isEmptyLayer(SliceDataStorage& storage, const unsigned int layer_idx)

@@ -3269,7 +3269,7 @@ void FffGcodeWriter::processRoofing(const SliceDataStorage& storage,
     const Ratio skin_density = 1.0;
     const coord_t skin_overlap = 0; // skinfill already expanded over the roofing areas; don't overlap with perimeters
     const bool monotonic = mesh.settings.get<bool>("roofing_monotonic");
-    processSkinPrintFeature(storage, gcode_layer, mesh, mesh_config, extruder_nr, skin_part.roofing_fill, mesh_config.roofing_config, pattern, roofing_angle, skin_overlap, skin_density, monotonic, added_something);
+    processSkinPrintFeature(storage, gcode_layer, mesh, mesh_config, extruder_nr, skin_part.roofing_fill, mesh_config.roofing_config, pattern, roofing_angle, skin_overlap, skin_density, monotonic, added_something, GCodePathConfig::FAN_SPEED_DEFAULT, true);
 }
 
 void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage,
@@ -3460,7 +3460,8 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
                                              const Ratio skin_density,
                                              const bool monotonic,
                                              bool& added_something,
-                                             double fan_speed) const
+                                             double fan_speed,
+                                             bool roofing) const
 {
     Polygons upper_polygons;
     bool is_top;
@@ -3496,7 +3497,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
 
     constexpr int infill_multiplier = 1;
     constexpr int extra_infill_shift = 0;
-    const size_t wall_line_count = mesh.settings.get<size_t>("skin_outline_count");
+    const size_t wall_line_count = (roofing && mesh.settings.get<bool>("roofing_only_one_wall")) ? 0 : mesh.settings.get<size_t>("skin_outline_count");
     const bool zig_zaggify_infill = pattern == EFillMethod::ZIG_ZAG;
     const bool connect_polygons = pattern == EFillMethod::CONCENTRIC ? false : mesh.settings.get<bool>("connect_skin_polygons");
     coord_t max_resolution = mesh.settings.get<coord_t>("meshfix_maximum_resolution");
