@@ -813,6 +813,7 @@ double GCodeExport::mm3ToE(double mm3)
     else
     {
         return mm3 / extruder_attr[current_extruder].filament_area;
+		//extruder_attr[current_extruder].filament_area = 0.25*pi*D^2, D = 1.75
     }
 }
 
@@ -1136,10 +1137,12 @@ void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double e
             if (input_pt.z < layer_height_0) input_pt.z = layer_height_0;
         }
         writeExtrusion(input_pt, speed, extrusion_mm3_per_mm * flow_ratio, feature, update_extrusion_offset);
+		//printf("flow_ratio = %lf\n", flow_ratio);
     }
     else
     {
         writeExtrusion(Point3(p.X, p.Y, current_layer_z), speed, extrusion_mm3_per_mm * flow_ratio, feature, update_extrusion_offset);
+		//printf("flow_ratio = %lf\n", flow_ratio);
     }
 }
 void GCodeExport::writeExtrusionG2G3(const Point& pointend, const Point& center_offset, double arc_length,const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, bool is_ccw)
@@ -1329,6 +1332,8 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
 #endif
 
     const double extrusion_per_mm = mm3ToE(extrusion_mm3_per_mm);
+	//printf("extrusion_mm3_per_mm = %lf\n", extrusion_mm3_per_mm);
+	//printf("extruder_attr[current_extruder].filament_area = %lf\n", extruder_attr[current_extruder].filament_area);
 
     if (is_z_hopped > 0)
     {
@@ -1365,6 +1370,8 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     extruder_attr[current_extruder].last_e_value_after_wipe += extrusion_per_mm * diff_length;
     const double new_e_value = current_e_value + extrusion_per_mm * diff_length;
 
+	//printf("extrusion_per_mm = %lf\n", extrusion_per_mm);
+
     *output_stream << "G1";
     Velocity speed_e = speed;
     if (diff_length)
@@ -1375,7 +1382,11 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     }
     writeFXYZE(speed_e, x, y, z, new_e_value, feature);
 }
-void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j, double arc_length, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset,const bool is_ccw)
+void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, 
+									 const coord_t i, const coord_t j, double arc_length, 
+	                                 const Velocity& speed, const double extrusion_mm3_per_mm, 
+									 const PrintFeatureType& feature, const bool update_extrusion_offset,
+									 const bool is_ccw)
 {
     if (currentPosition.x == x && currentPosition.y == y && currentPosition.z == z)
     {
@@ -1417,8 +1428,6 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
         writeZhopEnd();
     }
 
-    //const Point3 diff = Point3(x, y, z) - currentPosition;
-    //const double diff_length = diff.vSizeMM();
     const double diff_length = INT2MM(arc_length);
 
     writeUnretractionAndPrime();
@@ -1442,15 +1451,21 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
 
     extruder_attr[current_extruder].last_e_value_after_wipe += extrusion_per_mm * diff_length;
     const double new_e_value = current_e_value + extrusion_per_mm * diff_length;
+
     switch (is_ccw)
     {
     case true:
     *output_stream << "G3";
+	//printf("G3\n");
+	estimateCalculator->is_ccw = false;
     break;
     case false:
     *output_stream << "G2";
+	//printf("G2\n");
+	estimateCalculator->is_ccw = true;
     break;
     }
+
     Velocity speed_e = speed;
     if (diff_length)
     {
@@ -1458,6 +1473,7 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
         Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
         speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
     }
+
 	writeFXYZIJE(speed_e, x, y, z, i, j, new_e_value, feature);
 }
 
@@ -1488,6 +1504,29 @@ void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord
     current_e_value = e;
     estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
 }
+
+namespace cx
+{
+	double f(double t)
+	{
+		return t - sin(t);
+	}
+	double solvef(double y, double x0, double x1)
+	{
+		//x - sin(x) - y = 0;
+		//x0 <= x <= x1;
+		double a = x0, b = x1;
+		while (true)
+		{
+			if (abs(b - a) < 0.00001) { break; }
+			double c = 0.5 * (a + b);
+			if (f(c) < y) { a = c; }
+			else { b = c; }
+		}
+		return 0.5* (a + b);
+	}
+}
+
 void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j,const double e,  const PrintFeatureType& feature)
 {
     if (currentSpeed != speed)
@@ -1516,9 +1555,40 @@ void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coo
 
     *output_stream << new_line;
 
+	Point3 A0 = currentPosition;
+	Point3 A1 = Point3(x, y, z);
+	Point3 A2 = Point3(A0.x + i, A0.y + j, A0.z);
+	Point3 V1 = A0 - A2;
+	Point3 V2 = A1 - A2;
+	double dot = INT2MM(V1.x) * INT2MM(V2.x) + INT2MM(V1.y) * INT2MM(V2.y);
+	double Radius = sqrt(INT2MM(i) * INT2MM(i) + INT2MM(j) * INT2MM(j));
+	double theta = acos(dot / (Radius * Radius));  //
+	double delta = 0.01;
+	
+	int lambda = 1.0;
+	if (estimateCalculator->is_ccw) { lambda = -1.0; }
+	if (2.0 * Radius * cx::f(0.5*theta) > delta)
+	{
+		double eta = 2.0 * cx::solvef(delta / (2.0 * Radius), 0.0, 0.5 * theta);
+		int num = (int)(theta / eta);
+		eta *= lambda;
+		for (int i = 0; i < num - 1; i++)
+		{
+			double Vix = INT2MM(V1.x) * cos((i + 1) * eta) - INT2MM(V1.y) * sin((i + 1) * eta);
+			double Viy = INT2MM(V1.x) * sin((i + 1) * eta) + INT2MM(V1.y) * cos((i + 1) * eta);
+			Vix += INT2MM(A2.x);
+			Viy += INT2MM(A2.y);
+			double de = e - current_e_value;
+			double G2G3_e = abs((i + 1) * eta / theta) * de + current_e_value;
+			estimateCalculator->plan(TimeEstimateCalculator::Position(Vix, Viy, INT2MM(z), eToMm(G2G3_e)), speed, feature);
+		}
+	}
+	estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
+
     currentPosition = Point3(x, y, z);
     current_e_value = e;
-    estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
+
+    //estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
 }
 void GCodeExport::writeUnretractionAndPrime()
 {

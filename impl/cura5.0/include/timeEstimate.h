@@ -30,7 +30,7 @@ public:
     constexpr static unsigned int X_AXIS   = 0;
     constexpr static unsigned int Y_AXIS   = 1;
     constexpr static unsigned int Z_AXIS   = 2;
-    constexpr static unsigned int E_AXIS   = 3;
+    constexpr static unsigned int E_AXIS   = 3; 
 
     class Position
     {
@@ -63,52 +63,7 @@ public:
         Position absDelta;
 
         PrintFeatureType feature;
-
-	//public:                          
-	//	double delta_v2;
-	//	double max_start_v2;
-	//	double smooth_delta_v2;
-	//	double max_smoothed_v2;
-	//	double max_cruise_v2;
-	//	double accel;
-	//	double start_v;
-	//	double cruise_v;
-	//	double end_v;
-	//	double accel_t;
-	//	double cruise_t;
-	//	double decel_t;
-	//	Velocity theF;
-	//	double junction_deviation;
-	//	double max_velocity;
-	//	double axes_d[NUM_AXIS];
-	//	double move_d;
-	//	bool   is_kinematic_move;
-	//	double axes_r[NUM_AXIS];
-	//	double min_move_t;
-	//	double accel_d;
-	//	double decel_d;
-	//	double cruise_d;
     };
-
-	//Acceleration max_accel = 20000.0;      
-	//std::vector<Block> blocksflush;
-	//double junction_flush = 2.0;
-	//bool update_flush_count = false;
-
-	//virtual void setAccel(const Acceleration& acc);
-
-	//struct MyStruct             
-	//{
-	//	Block myblock;
-	//	double mystart;
-	//	double myend;
-	//	MyStruct(Block a, double b, double c)
-	//	{
-	//		myblock = a;
-	//		mystart = b;
-	//		myend = c;
-	//	}
-	//};
 
 private:  
 public:
@@ -124,6 +79,8 @@ public:
     Velocity previous_nominal_feedrate;
     Position currentPosition;
     std::vector<Block> blocks;
+
+	bool is_ccw = true;    //G2
 
 public:
     /*!
