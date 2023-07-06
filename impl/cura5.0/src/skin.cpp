@@ -312,13 +312,26 @@ void SkinInfillAreaComputation::generateInfill(SliceLayerPart& part, const Polyg
 void SkinInfillAreaComputation::generateRoofing(SliceLayerPart& part)
 {
     const size_t roofing_layer_count = std::min(mesh.settings.get<size_t>("roofing_layer_count"), mesh.settings.get<size_t>("top_layers"));
+    const bool roofing_only_one_wall = mesh.settings.get<bool>("roofing_only_one_wall");
+    const bool first_layer = layer_nr == 0;
+    const Ratio line_width_0_factor = first_layer ? mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").settings.get<Ratio>("initial_layer_line_width_factor") : 1.0_r;
+    const coord_t line_width_0 = mesh.settings.get<coord_t>("wall_line_width_0") * line_width_0_factor;
 
     for(SkinPart& skin_part : part.skin_parts)
     {
         Polygons no_air_above = generateNoAirAbove(part, roofing_layer_count);
 
-        skin_part.roofing_fill = skin_part.outline.difference(no_air_above);
-        skin_part.skin_fill = skin_part.outline.intersection(no_air_above);
+        if (roofing_only_one_wall)
+        {
+            skin_part.roofing_fill = skin_part.outline.difference(no_air_above).offset(line_width_0).intersection(skin_part.outline);
+            skin_part.skin_fill = skin_part.outline.difference(skin_part.roofing_fill);
+        }
+        else
+        {
+            skin_part.roofing_fill = skin_part.outline.difference(no_air_above);
+            skin_part.skin_fill = skin_part.outline.intersection(no_air_above);
+        }
+
         // Insets are NOT generated for any layer if the top/bottom pattern is concentric.
         // In this case, we still want to generate insets for the roofing layers based on the extra skin wall count,
         // if the roofing pattern is not concentric.

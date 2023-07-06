@@ -36,7 +36,7 @@ namespace cura52
          *
          * \param layer The layer for which to generate the walls and inner area.
          */
-        void generateWalls(SliceLayer* layer);
+        void generateWalls(SliceLayer* layer, SliceLayer* layer_upper = nullptr);
 
     private:
         /*!
@@ -56,7 +56,7 @@ namespace cura52
          *
          * \param part The part for which to generate the insets.
          */
-        void generateWalls(SliceLayerPart* part);
+        void generateWalls(SliceLayerPart* part, SliceLayer* layer_upper = nullptr);
 
         /*!
          * Generates the outer inset / perimeter used in spiralize mode for a single layer part. The spiral inset is
