@@ -504,7 +504,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";TIME:" << ((print_time) ? static_cast<double>(*print_time) : 100000.00) << new_line;
         
         //各个区域的时间段
-        if (print_time != nullptr)
+        //if (print_time != nullptr)
         {
             writeTimePartsComment(prefix);
         }
@@ -554,8 +554,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 
         if (!print_time)
         {
-            for (int i = 0; i < 100; i++) prefix << " ";
-            prefix << new_line;
+            for (int i = 0; i < 50; i++) prefix << ";" << new_line;
         }
     }
 
@@ -895,9 +894,18 @@ void GCodeExport::reWritePreFixStr(std::string preFix)
     output_stream->seekp(0, std::ios::beg);
     *output_stream << preFix;
     size_t len = preFix.length();
+    int i = 0;
     while (len < m_preFixLen)
     {
-        *output_stream << " ";
+        if (i%2 == 0)
+        {
+            *output_stream << new_line;
+        }
+        else
+        {
+            *output_stream << ";";
+        }
+        i++;
         len++;
     }
     output_stream->seekp(0, std::ios::end);
