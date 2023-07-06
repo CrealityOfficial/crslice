@@ -2489,6 +2489,27 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
                                 //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
                                 /*bool arcFittingValiable = */Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
+                                bool Large_arc_exist = false;
+                                for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
+                                {
+                                    if (fitting_result[fitting_index].path_type == Slic3r::EMovePathType::Arc_move_cw
+                                        || fitting_result[fitting_index].path_type == Slic3r::EMovePathType::Arc_move_ccw)
+                                    {
+                                        const double arc_length = fitting_result[fitting_index].arc_data.length;
+                                        if (arc_length > 5000)
+                                        {
+                                            Large_arc_exist = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (Large_arc_exist)
+                                {//大圆弧拟合需缩小公差
+                                    fitting_result.clear();
+                                    tolerance = 1;
+                                    Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
+                                }
+
                                 float dis = 0;
                                 float dis_threshold = application->current_slice->scene.settings.get<coord_t>("speed_slowtofast_slowdown_revise_distance"); //如果大于这一段距离，则是原来的速度，否则速度50
                                 bool slow2fastSlowdown = application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown");
