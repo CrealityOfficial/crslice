@@ -503,13 +503,6 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";FLAVOR:" << flavorToString(flavor) << new_line;
         prefix << ";TIME:" << ((print_time) ? static_cast<double>(*print_time) : 100000.00) << new_line;
         
-        //各个区域的时间段
-        //if (print_time != nullptr)
-        {
-            writeTimePartsComment(prefix);
-        }
-        //
-
         if (flavor == EGCodeFlavor::ULTIGCODE)
         {
             prefix << ";MATERIAL:" << ((filament_used.size() >= 1) ? static_cast<int>(filament_used[0]) : 6666) << new_line;
@@ -551,6 +544,13 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";MAXX:" << INT2MM(total_bounding_box.max.x) << new_line;
         prefix << ";MAXY:" << INT2MM(total_bounding_box.max.y) << new_line;
         prefix << ";MAXZ:" << INT2MM(total_bounding_box.max.z) << new_line;
+
+        //各个区域的时间段
+        //if (print_time != nullptr)
+        {
+            writeTimePartsComment(prefix);
+        }
+        //
 
         if (!print_time)
         {
