@@ -109,7 +109,7 @@ int bridgeAngle(const Settings& settings, const Polygons& skin_outline, const Sl
         // the air boundary do appear to be supported
 
         const int bb_max_dim = std::max(boundary_box.max.X - boundary_box.min.X, boundary_box.max.Y - boundary_box.min.Y);
-        const Polygons air_below(bb_poly.offset(bb_max_dim).difference(prev_layer_outline).offset(-10));
+        const Polygons air_below(bb_poly.offset(bb_max_dim).difference(prev_layer_outline).offset(-50));
 
         Polygons skin_perimeter_lines;
         for (ConstPolygonRef poly : skin_outline)
@@ -121,8 +121,7 @@ int bridgeAngle(const Settings& settings, const Polygons& skin_outline, const Sl
 
         Polygons skin_perimeter_lines_over_air(air_below.intersectionPolyLines(skin_perimeter_lines));
 
-        coord_t double_bridge_wall_min_length = 2 * settings.get<coord_t>("bridge_wall_min_length");
-        if (skin_perimeter_lines_over_air.size() && skin_perimeter_lines_over_air.polygonLength() > double_bridge_wall_min_length)
+        if (skin_perimeter_lines_over_air.size())
         {
             // one or more edges of the skin region are unsupported, determine the longest
             double max_dist2 = 0;

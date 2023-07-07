@@ -178,7 +178,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
 		//引擎调试多线程
-		if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
+		if (1/*scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO*/)
 		{
 			std::optional<Point> last_planned_position;
 			for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
