@@ -602,6 +602,46 @@ Polygons AreaSupport::join(const SliceDataStorage& storage, const Polygons& supp
     return joined;
 }
 
+bool AreaSupport::isSupportNecessary(SliceDataStorage& storage)
+{
+    const coord_t layer_height = storage.meshes.back().settings.get<coord_t>("layer_height");
+    const AngleRadians support_angle = storage.meshes.back().settings.get<AngleRadians>("support_angle");
+    const double tan_angle = tan(support_angle) - 0.01;
+    const coord_t max_dist_from_lower_layer = tan_angle * layer_height;
+    const double minimum_support_area = storage.meshes.back().settings.get<double>("minimum_support_area");
+    
+    for (size_t layer_idx = 1; layer_idx < storage.print_layer_count; layer_idx++)
+    {
+        Polygons current_layer_mesh_area;
+        Polygons lower_layer_mesh_area;
+        Polygons lower_layer_support_area;
+        for (SliceMeshStorage& mesh : storage.meshes)
+        {
+            if (mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("anti_overhang_mesh"))
+            {
+                continue;
+            }
+            if (mesh.settings.get<bool>("support_mesh"))
+            { 
+                SupportLayer& support_layer = storage.support.supportLayers[layer_idx - 1];
+                lower_layer_support_area.add(support_layer.anti_overhang.unionPolygons(support_layer.support_mesh_drop_down).unionPolygons(support_layer.support_mesh));
+            }
+            else
+            {
+                current_layer_mesh_area.add(mesh.layers[layer_idx].getOutlines());
+                lower_layer_mesh_area.add(mesh.layers[layer_idx - 1].getOutlines());
+            }
+        }
+        Polygons overhang_area = current_layer_mesh_area.difference(lower_layer_mesh_area.unionPolygons(lower_layer_support_area.offset(max_dist_from_lower_layer))).offset(-max_dist_from_lower_layer);
+        overhang_area.removeSmallAreas(minimum_support_area);
+        if (!overhang_area.empty())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
 {
     for (SliceMeshStorage& mesh : storage.meshes)

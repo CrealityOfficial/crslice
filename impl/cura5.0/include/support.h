@@ -29,6 +29,7 @@ public:
      */
     static bool handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const Slicer* slicer);
 
+    static bool isSupportNecessary(SliceDataStorage& storage);
     /*!
      * \brief Generate the overhang areas for all models.
      * \param storage Data storage containing the input layer data and
