@@ -16,7 +16,7 @@
 #include "utils/SparsePointGridInclusive.h"
 #include "utils/ThreadPool.h"
 #include "utils/gettime.h"
-#include "trimesh2/vec.h"
+#include "trimesh2/Vec.h"
 
 
 namespace cura52
