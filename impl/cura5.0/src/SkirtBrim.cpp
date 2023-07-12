@@ -296,7 +296,7 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 
 			for (ClipperLib::Paths::iterator it=allExpolys.begin();it!=allExpolys.end();it++)
 			{
-				double polygonArea = INT2MM2(ClipperLib::Area(*it));
+				double polygonArea = abs(INT2MM2(ClipperLib::Area(*it))) ;
 				Polygons aExpolys;
 				AABB box(*it);
 				ClipperLib::IntPoint center= box.getMiddle();
@@ -340,7 +340,7 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 					double height_to_area = std::max(height / Ixx * (bboxY * SCALING_FACTOR), height / Iyy * (bboxX * SCALING_FACTOR)) * height / 1920;
 					double brim_width = 1.0 * std::min(std::min(std::max(height_to_area * maxSpeed / 24, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
 					// small brims are omitted
-					if (brim_width < 3 && brim_width < 1.5 * thermalLength)
+					if (brim_width < 5 && brim_width < 1.5 * thermalLength)
 						brim_width = 0;
 					// large brims are omitted
 					if (brim_width > 10) brim_width = 10.;
