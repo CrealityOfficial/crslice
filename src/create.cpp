@@ -70,6 +70,7 @@ namespace crslice
 
         slice->scene.machine_center_is_zero = scene->machine_center_is_zero;
         slice->gcodeFile = outputFile;
+        slice->ploygonFile = scene->m_ploygonFileName;
 
         bool sliceValible = false;
 
