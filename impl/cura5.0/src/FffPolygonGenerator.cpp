@@ -423,7 +423,9 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     // layerparts2HTML(storage, "output/output.html");
 
     application->progressor.messageProgressStage(Progress::Stage::SUPPORT);
-
+#if 0
+    bool is_support_necessary = AreaSupport::isSupportNecessary(storage);
+#endif
     AreaSupport::generateOverhangAreas(storage);
     
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");

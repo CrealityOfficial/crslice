@@ -2999,46 +2999,6 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
         }
         else
         {
-            // the overhang mask is set to the area of the current part's outline minus the region that is considered to be supported
-            // the supported region is made up of those areas that really are supported by either model or support on the layer below
-            // expanded to take into account the overhang angle, the greater the overhang angle, the larger the supported area is
-            // considered to be
-            //if (mesh.settings.get<bool>("set_wall_overhang_grading"))
-            //{
-            //    Polygons overhang_region_last, _overhang_region, outlines_below_offset;
-            //    AngleDegrees overhang_angle_level[5] = { 0, 10, 25, 50, 75 };
-            //    const coord_t offset_rectify = mesh.settings.get<bool>("special_exact_flow_enable") ? 0.5 * layer_height * float(1. - 0.25 * M_PI) + 0.5 : 0;
-            //    for (int i = 1; i < 5; i++)
-            //    {
-            //        const coord_t _overhang_width = 2 * half_outer_wall_width * overhang_angle_level[i] / 100;
-            //        outlines_below_offset = outlines_below.offset(10 + _overhang_width - half_outer_wall_width + offset_rectify);
-            //        _overhang_region = part.outline.offset(-half_outer_wall_width + offset_rectify).difference(outlines_below_offset).offset(10);
-            //        if (overhang_region_last.empty())
-            //        {
-            //            overhang_region_last = _overhang_region;
-            //            continue;
-            //        }
-            //        overhang_region_last = overhang_region_last.difference(_overhang_region);
-            //        gcode_layer.setOverhangMask(overhang_region_last, i - 2);
-            //        overhang_region_last = _overhang_region;
-            //    }
-            //    Polygon aabb;
-            //    aabb.add(Point(boundaryBox.min.X, boundaryBox.min.Y));
-            //    aabb.add(Point(boundaryBox.min.X, boundaryBox.max.Y));
-            //    aabb.add(Point(boundaryBox.max.X, boundaryBox.max.Y));
-            //    aabb.add(Point(boundaryBox.max.X, boundaryBox.min.Y));
-            //    Polygons aabbs;
-            //    aabbs.add(aabb);
-            //    overhang_region_last = overhang_region_last.unionPolygons((aabbs.offset(2 * half_outer_wall_width).difference(outlines_below_offset)));
-            //    gcode_layer.setOverhangMask(overhang_region_last, 3);
-            //}
-            //else
-            //{
-            //    const coord_t _overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
-            //    Polygons _overhang_region = part.outline.offset(-half_outer_wall_width).difference(outlines_below.offset(10 + _overhang_width - half_outer_wall_width)).offset(10);
-            //    gcode_layer.setOverhangMask(_overhang_region, 0);
-            //}
-
             auto getWallSpeedSections = [&](const GCodePathConfig& inset_config)
             {
                 const Velocity wall_speed = inset_config.getSpeed();
@@ -3145,6 +3105,26 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
     }
     else
     {
+        const bool unify_walls_print_direction = mesh.settings.get<bool>("unify_walls_print_direction");
+        if (new_wall_toolpaths.empty())
+            new_wall_toolpaths = part.wall_toolpaths;
+        std::vector<VariableWidthLines> wall_toolpaths_input;
+        for (VariableWidthLines path : new_wall_toolpaths)
+        {
+            for (ExtrusionLine& line : path)
+            {
+                if (unify_walls_print_direction && line.is_closed && !line.toPolygon().orientation())
+                {
+                    line.reverse();
+                    if (line.start_idx > -1)
+                    {
+                        line.start_idx = line.size() - 1 - line.start_idx;
+                    }
+                }
+            }
+            wall_toolpaths_input.push_back(path);
+        }
+
         // Main case: Optimize the insets with the InsetOrderOptimizer.
         const coord_t wall_x_wipe_dist = 0;
         const ZSeamConfig z_seam_config(mesh.settings.get<EZSeamType>("z_seam_type"), mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), mesh.settings.get<coord_t>("wall_line_width_0") * 2);
@@ -3163,7 +3143,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                                          mesh.settings.get<ExtruderTrain&>("wall_0_extruder_nr").extruder_nr,
                                          mesh.settings.get<ExtruderTrain&>("wall_x_extruder_nr").extruder_nr,
                                          z_seam_config,
-                                         new_wall_toolpaths.empty() ? part.wall_toolpaths : new_wall_toolpaths);
+                                         wall_toolpaths_input);
         added_something |= wall_orderer.addToLayer();
     }
     return added_something;
