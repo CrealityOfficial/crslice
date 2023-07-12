@@ -31,10 +31,14 @@ namespace crslice
 		CrGroup* getGroupsIndex(int groupID);
 
 		void setOutputGCodeFileName(const std::string& fileName);
+		void setPloygonFileName(const std::string& fileName);
 		bool valid();
 
 		void save(const std::string& fileName);
 		void load(const std::string& fileName);
+
+		//save ploygon
+		void savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys);
 	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;
@@ -42,6 +46,7 @@ namespace crslice
 		bool machine_center_is_zero;
 
 		std::string m_gcodeFileName;
+		std::string m_ploygonFileName;
 		std::string m_tempDirectory;
 	};
 

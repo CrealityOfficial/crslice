@@ -124,6 +124,11 @@ namespace crslice
 		m_gcodeFileName = fileName;
 	}
 
+	void CrScene::setPloygonFileName(const std::string& fileName)
+	{
+		m_ploygonFileName = fileName;
+	}
+
 	bool CrScene::valid()
 	{
 		return true;
@@ -147,6 +152,29 @@ namespace crslice
 				m_groups.at(i)->save(out);
 		}
 		out.close();
+	}
+
+	void CrScene::savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys)
+	{
+		int pNum = polys.size();
+		std::fstream in(m_ploygonFileName, std::ios::out | std::ios::binary);
+		if (in.is_open() && pNum> 0)
+		{
+			in.write((char*)&pNum, sizeof(int));
+			if (pNum > 0)
+			{
+				for (int i = 0; i < pNum; ++i)
+				{
+					int num = polys.at(i).size();
+					in.write((char*)&num, sizeof(int));
+					for (int j = 0; j < num; j++)
+					{
+						in.write((char*)&polys[i][j].x, sizeof(float));
+						in.write((char*)&polys[i][j].y, sizeof(float));
+					}
+				}
+			}
+		}
 	}
 
 	void CrScene::load(const std::string& fileName)

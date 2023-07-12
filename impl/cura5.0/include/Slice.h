@@ -28,6 +28,7 @@ public:
      */
     Scene scene;
     std::string gcodeFile;
+    std::string ploygonFile;
     /*
      * \brief Slice the scene, producing g-code output.
      *

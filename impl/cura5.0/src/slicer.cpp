@@ -16,6 +16,7 @@
 #include "utils/SparsePointGridInclusive.h"
 #include "utils/ThreadPool.h"
 #include "utils/gettime.h"
+#include "trimesh2/vec.h"
 
 
 namespace cura52
@@ -802,6 +803,9 @@ Slicer::Slicer(Application* _application, Mesh* i_mesh, const coord_t thickness,
 
     makePolygons(application, *i_mesh, slicing_tolerance, layers);
     LOGI("Make polygons took { %f } seconds", slice_timer.restart());
+
+    //切片轮廓预处理
+    processPolygons(application ,*mesh, layers);
 }
 
 void Slicer::buildSegments(Application* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
@@ -1022,6 +1026,115 @@ void Slicer::makePolygons(Application* application, Mesh& mesh, SlicingTolerance
     mesh.expandXY(xy_offset);
 }
 
+void Slicer::processPolygons(Application* application,const Mesh& mesh, std::vector<SlicerLayer>& layers)
+{
+    std::string ploygonFile = application->current_slice->ploygonFile;
+
+    std::vector<std::vector<trimesh::vec2>> ploys;
+    auto readPloygon = [](const std::string& ploygonFile, std::vector<std::vector<trimesh::vec2>>& ploys)
+    {
+        std::fstream in(ploygonFile, std::ios::in | std::ios::binary);
+        if (in.is_open())
+        {
+            int pNum = 0;
+            in.read((char*)&pNum, sizeof(int));
+            if (pNum > 0)
+            {
+                ploys.resize(pNum);
+                for (int i = 0; i < pNum; ++i)
+                {
+                    int num = 0;
+                    in.read((char*)&num, sizeof(int));
+                    ploys[i].resize(num);
+                    //in.read((char*)&ploys.at(i), sizeof(trimesh::vec2) * num);
+                    for (int j = 0; j < num; j++)
+                    {
+                        in.read((char*)&ploys[i][j].x, sizeof(float));
+                        in.read((char*)&ploys[i][j].y, sizeof(float));
+                    }
+                }
+            }
+        }
+    };
+
+    readPloygon(ploygonFile, ploys);
+    if (ploys.empty())
+    {
+        return;
+    }
+    Polygons ploygon;
+    for (auto& ploy :  ploys)
+    {
+        ClipperLib::Path path;
+        for (auto& point : ploy)
+        {
+            path.push_back(ClipperLib::IntPoint(MM2INT(point.x), MM2INT(point.y)));
+        }
+        if (!path.empty())
+        {
+            ploygon.add(path);
+        }
+    }
+
+    //double c_gap = mesh.settings.get<double>("c_gap");
+    //test 
+    //c_gap = 0.5f;
+    //[0] = { X = 157479 Y = 25005 }
+    //[0] = {X=77500 Y=29979 }
+    //aabb = {min={x=57500 y=15000 z=0 } max={x=162500 y=205000 z=20000 } }
+
+    double c_gap = 500;
+
+    auto getPloygons = [&c_gap](std::vector<std::vector<trimesh::vec2>> ploys, ClipperLib::IntPoint endSeg, Polygons& ploygon)
+    {
+        ClipperLib::ClipperOffset clipper;
+        clipper.AddPaths(ploygon.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
+        clipper.Execute(ploygon.paths, c_gap);
+    };
+
+    //auto getPloygons = [&c_gap](ClipperLib::IntPoint& startSeg, ClipperLib::IntPoint endSeg, Polygons& segment)
+    //{
+    //    ClipperLib::Path segPath;
+    //    segPath.push_back(startSeg);
+    //    segPath.push_back(endSeg);
+    //    segment.add(segPath);
+
+    //    ClipperLib::ClipperOffset clipper;
+    //    clipper.AddPaths(segment.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
+    //    clipper.Execute(segment.paths, c_gap);
+    //};
+
+    ////上中
+    //ClipperLib::IntPoint startSeg(52500 + 57500, 205000 + 10000);
+    //ClipperLib::IntPoint endSeg(52500 + 57500, 205000 - 50000);
+    //Polygons segment;
+    //getPloygons(startSeg, endSeg, segment);
+
+    ////下中
+    //ClipperLib::IntPoint startSeg0(52500 + 87500, 15000 + 50000);
+    //ClipperLib::IntPoint endSeg0(52500 + 87500, 15000 - 10000);
+    //Polygons segment0;
+    //getPloygons(startSeg0, endSeg0, segment0);
+
+    ////左中
+    //ClipperLib::IntPoint startSeg1(57500 + 50000, 15000 + 110000);
+    //ClipperLib::IntPoint endSeg1(57500 - 10000, 15000 + 110000);
+    //Polygons segment1;
+    //getPloygons(startSeg1, endSeg1, segment1);
+
+
+    ////右中
+    //ClipperLib::IntPoint startSeg2(162500 + 10000, 15000 + 130000);
+    //ClipperLib::IntPoint endSeg2(162500 - 50000, 15000 + 130000);
+    //Polygons segment2;
+    //getPloygons(startSeg2, endSeg2, segment2);
+
+    for (SlicerLayer& layer : layers)
+    {
+        layer.polygons = layer.polygons.difference(ploygon);
+    }
+
+}
 
 std::vector<std::pair<int32_t, int32_t>> Slicer::buildZHeightsForFaces(const Mesh& mesh)
 {
