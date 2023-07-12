@@ -544,8 +544,8 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
     }
 
     // no combing? retract only when path is not shorter than minimum travel distance
-    if (! combed && ! is_first_travel_of_layer && last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
-    {
+    if (/*! combed &&*/ ! is_first_travel_of_layer && last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
+    {//! combed 移出滑行对回抽抬升的影响
         if (was_inside) // when the previous location was from printing something which is considered inside (not support or prime tower etc)
         { // then move inside the printed part, so that we don't ooze on the outer wall while retraction, but on the inside of the print.
             assert(extruder != nullptr);
