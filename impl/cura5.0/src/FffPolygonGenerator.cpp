@@ -423,11 +423,13 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     // layerparts2HTML(storage, "output/output.html");
 
     application->progressor.messageProgressStage(Progress::Stage::SUPPORT);
-#if 0
-    bool is_support_necessary = AreaSupport::isSupportNecessary(storage);
-#endif
+
+    if (AreaSupport::isSupportNecessary(storage)) {
+        application->tracer->message("need_support_structure");
+    }
+
     AreaSupport::generateOverhangAreas(storage);
-    
+
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
 
     AreaSupport::generateSupportAreas(storage);
@@ -847,13 +849,13 @@ void FffPolygonGenerator::removeEmptyFirstLayers(SliceDataStorage& storage, size
     {
         LOGI("Removing {} layers because they are empty", n_empty_first_layers);
         const coord_t layer_height = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("layer_height");
-        
-        //belt ²¹³¥Öµ
+
+        //belt ï¿½ï¿½ï¿½ï¿½Öµ
         //QString str = QString::number(-minZ.y, 'f', 2);
         //float num = layer_height * n_empty_first_layers / 1000.0f;
         //std::string str = std::to_string(num);
         //application->current_slice->scene.current_mesh_group->settings.add("machine_belt_offset_Y", str);
-        
+
         for (SliceMeshStorage& mesh : storage.meshes)
         {
             std::vector<SliceLayer>& layers = mesh.layers;
@@ -1133,7 +1135,7 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
         break;
     }
 
-    Polygon machine_rect; 
+    Polygon machine_rect;
     machine_rect.add(Point(storage.machine_size.min.x, storage.machine_size.min.y));
     machine_rect.add(Point(storage.machine_size.min.x, storage.machine_size.max.y));
     machine_rect.add(Point(storage.machine_size.max.x, storage.machine_size.max.y));
