@@ -75,11 +75,9 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     auto delete_shape_point = [&](Polygons& polys)
     {
-        int check_time = 0;
         int delete_point_num = 0;
         do
         {
-            check_time++;
             delete_point_num = 0;
             for (int i = 0; i < polys.size(); i++)
             {
@@ -113,7 +111,31 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
                     }
                 }
             }
-        } while (delete_point_num > 0 && check_time < 3);
+        } while (delete_point_num > 0);
+    };
+
+    auto cut_hole = [&](Polygons& polys, coord_t cut_len)
+    {
+        Polygons polys_a;
+        Polygons polys_n;
+        for (Polygon poly : polys)
+        {
+            if (poly.orientation())
+                polys_a.add(poly);
+            else
+            {
+                poly.reverse();
+                polys_n.add(poly);
+            }
+        }
+        polys_n = polys_n.intersection(polys_a.offset(-cut_len));
+        for (Polygon poly : polys_n)
+        {
+            poly.reverse();
+            polys_a.add(poly);
+        }
+
+        polys = polys_a;
     };
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
@@ -126,10 +148,9 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
     prepared_outline.removeDegenerateVerts();
     prepared_outline.removeSmallAreas(small_area_length * small_area_length, false);
-    prepared_outline = prepared_outline.unionPolygons(); 
     delete_shape_point(prepared_outline);
-    prepared_outline.removeColinearEdges(AngleRadians(0.005));
-    PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
+    cut_hole(prepared_outline, 3);
+    prepared_outline = prepared_outline.unionPolygons();
 
     if (prepared_outline.area() <= 0)
     {
@@ -139,24 +160,26 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     //Polygons poltoWrite;
     //{
-    //    Point error_point = Point(145405, 126218);
+    //    Point error_point = Point(117607, 141474);
     //    Polygon error_area;
-    //    error_area.add(Point(error_point.X + 150, error_point.Y + 150));
-    //    error_area.add(Point(error_point.X + 150, error_point.Y - 150));
-    //    error_area.add(Point(error_point.X - 150, error_point.Y - 150));
-    //    error_area.add(Point(error_point.X - 150, error_point.Y + 150));
-    //    for (Polygon pol : prepared_outline)
+    //    error_area.add(Point(error_point.X + 50, error_point.Y + 50));
+    //    error_area.add(Point(error_point.X + 50, error_point.Y - 50));
+    //    error_area.add(Point(error_point.X - 50, error_point.Y - 50));
+    //    error_area.add(Point(error_point.X - 50, error_point.Y + 50));
+    //    Polygons error_areas;
+    //    error_areas.add(error_area);
+    //    Polygons intersection_polys = prepared_outline.intersection(error_areas);
+    //    if (!intersection_polys.empty())
     //    {
-    //        Polygons error_areas = pol.intersection(error_area);
-    //        if (!error_areas.empty())
-    //        {
-    //            poltoWrite.add(error_areas);
-    //        }
+    //        poltoWrite.add(intersection_polys);
     //    }
-    //    AABB aabb(poltoWrite);
-    //    SVG svg("D://outline.svg", aabb);
-    //    svg.writePolygons(poltoWrite, SVG::Color::BLACK, 0.1);
-    //    svg.writePoint(error_point, false, 1);
+    //    if (!poltoWrite.empty() && std::fabs(poltoWrite.area()) != std::fabs(error_area.area()))
+    //    {
+    //        AABB aabb(poltoWrite);
+    //        SVG svg("D://outline.svg", aabb);
+    //        svg.writePolygons(poltoWrite, SVG::Color::BLACK, 0.1);
+    //        svg.writePoint(error_point, false, 1);
+    //    }
     //}
 
     const coord_t wall_transition_length = settings.get<coord_t>("wall_transition_length");
