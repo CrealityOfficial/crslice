@@ -1077,58 +1077,16 @@ void Slicer::processPolygons(Application* application,const Mesh& mesh, std::vec
         }
     }
 
-    //double c_gap = mesh.settings.get<double>("c_gap");
-    //test 
-    //c_gap = 0.5f;
-    //[0] = { X = 157479 Y = 25005 }
-    //[0] = {X=77500 Y=29979 }
-    //aabb = {min={x=57500 y=15000 z=0 } max={x=162500 y=205000 z=20000 } }
+    //double c_gap = 500;
+    const coord_t c_gap = mesh.settings.get<coord_t>("mesh_split_gap");
 
-    double c_gap = 500;
-
-    auto getPloygons = [&c_gap](std::vector<std::vector<trimesh::vec2>> ploys, ClipperLib::IntPoint endSeg, Polygons& ploygon)
+    auto getPloygons = [&c_gap](Polygons& ploygon)
     {
         ClipperLib::ClipperOffset clipper;
         clipper.AddPaths(ploygon.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
         clipper.Execute(ploygon.paths, c_gap);
     };
-
-    //auto getPloygons = [&c_gap](ClipperLib::IntPoint& startSeg, ClipperLib::IntPoint endSeg, Polygons& segment)
-    //{
-    //    ClipperLib::Path segPath;
-    //    segPath.push_back(startSeg);
-    //    segPath.push_back(endSeg);
-    //    segment.add(segPath);
-
-    //    ClipperLib::ClipperOffset clipper;
-    //    clipper.AddPaths(segment.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
-    //    clipper.Execute(segment.paths, c_gap);
-    //};
-
-    ////上中
-    //ClipperLib::IntPoint startSeg(52500 + 57500, 205000 + 10000);
-    //ClipperLib::IntPoint endSeg(52500 + 57500, 205000 - 50000);
-    //Polygons segment;
-    //getPloygons(startSeg, endSeg, segment);
-
-    ////下中
-    //ClipperLib::IntPoint startSeg0(52500 + 87500, 15000 + 50000);
-    //ClipperLib::IntPoint endSeg0(52500 + 87500, 15000 - 10000);
-    //Polygons segment0;
-    //getPloygons(startSeg0, endSeg0, segment0);
-
-    ////左中
-    //ClipperLib::IntPoint startSeg1(57500 + 50000, 15000 + 110000);
-    //ClipperLib::IntPoint endSeg1(57500 - 10000, 15000 + 110000);
-    //Polygons segment1;
-    //getPloygons(startSeg1, endSeg1, segment1);
-
-
-    ////右中
-    //ClipperLib::IntPoint startSeg2(162500 + 10000, 15000 + 130000);
-    //ClipperLib::IntPoint endSeg2(162500 - 50000, 15000 + 130000);
-    //Polygons segment2;
-    //getPloygons(startSeg2, endSeg2, segment2);
+    getPloygons(ploygon);
 
     for (SlicerLayer& layer : layers)
     {
