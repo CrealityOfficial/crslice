@@ -118,8 +118,10 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     {
         Polygons polys_a;
         Polygons polys_n;
-        for (Polygon poly : polys)
+
+        for (auto path : polys)
         {
+            Polygon poly(path);
             if (poly.orientation())
                 polys_a.add(poly);
             else
@@ -129,8 +131,10 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
             }
         }
         polys_n = polys_n.intersection(polys_a.offset(-cut_len));
-        for (Polygon poly : polys_n)
+
+        for (auto path : polys_n)
         {
+            Polygon poly(path);
             poly.reverse();
             polys_a.add(poly);
         }
