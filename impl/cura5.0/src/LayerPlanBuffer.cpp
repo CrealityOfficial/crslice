@@ -363,11 +363,11 @@ void LayerPlanBuffer::insertTempCommands(std::vector<ExtruderPlan*>& extruder_pl
     else if (application->current_slice->scene.extruders[extruder].settings.get<bool>("machine_extruders_share_heater"))
     {
         // extruders share a heater so command the previous extruder to change to the temperature required for this extruder
-        //insertPreheatCommand_singleExtrusion(*prev_extruder_plan, prev_extruder, extruder_plan.required_start_temperature);
+        insertPreheatCommand_singleExtrusion(*prev_extruder_plan, prev_extruder, extruder_plan.required_start_temperature);
     }
     else
     {
-        //insertPreheatCommand_multiExtrusion(extruder_plans, extruder_plan_idx);
+        insertPreheatCommand_multiExtrusion(extruder_plans, extruder_plan_idx);
         insertFinalPrintTempCommand(extruder_plans, extruder_plan_idx - 1);
         insertPrintTempCommand(extruder_plan);
     }
