@@ -309,6 +309,11 @@ void LayerPlan::setIsInside(bool _is_inside)
     is_inside = _is_inside;
 }
 
+bool LayerPlan::bLayerBegin()
+{
+    return extruder_plans.back().paths.empty();
+}
+
 bool LayerPlan::setExtruder(const size_t extruder_nr)
 {
     //if (extruder_nr == getExtruder())
@@ -449,8 +454,8 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
         }
         forceNewPathStart(); // force a new travel path after this first bogus move
     }
-    else if (force_retract && last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
-    {
+    else if (force_retract /*&& last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance)*/)
+    {//force retract is not limited to retraction_min_travel_distance
         // path is not shorter than min travel distance, force a retraction
         path->retract = true;
         if (comb == nullptr)
@@ -537,7 +542,7 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
     // CURA-6675:
     // Retraction Minimal Travel Distance should work for all travel moves. If the travel move is shorter than the
     // Retraction Minimal Travel Distance, retraction should be disabled.
-    if (! is_first_travel_of_layer && last_planned_position && shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
+    if (!force_retract && ! is_first_travel_of_layer && last_planned_position && shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
     {
         path->retract = false;
         path->perform_z_hop = false;

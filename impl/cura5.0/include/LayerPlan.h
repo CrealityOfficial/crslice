@@ -837,6 +837,8 @@ public:
 
     void setFillLineWidthDiff(coord_t diff);
 
+    bool bLayerBegin();
+
 private:
 
     /*!

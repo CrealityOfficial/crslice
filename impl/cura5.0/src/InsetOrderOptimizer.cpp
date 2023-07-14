@@ -143,7 +143,7 @@ bool InsetOrderOptimizer::addToLayer()
         const GCodePathConfig& non_bridge_config = is_outer_wall ? inset_0_non_bridge_config : inset_X_non_bridge_config;
         const GCodePathConfig& bridge_config = is_outer_wall ? inset_0_bridge_config : inset_X_bridge_config;
         const coord_t wipe_dist = is_outer_wall && ! is_gap_filler ? wall_0_wipe_dist : wall_x_wipe_dist;
-        const bool retract_before = is_outer_wall ? retract_before_outer_wall : false;
+        const bool retract_before = (i == 0 && !gcode_layer.bLayerBegin()) ? true : (is_outer_wall ? retract_before_outer_wall : false);
 
         const bool revert_inset = alternate_walls && (path.vertices->inset_idx % 2);
         const bool revert_layer = alternate_walls && (layer_nr % 2);

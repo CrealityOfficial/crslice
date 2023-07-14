@@ -131,15 +131,7 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
             }
         }
         polys_n = polys_n.intersection(polys_a.offset(-cut_len));
-
-        for (auto path : polys_n)
-        {
-            Polygon poly(path);
-            poly.reverse();
-            polys_a.add(poly);
-        }
-
-        polys = polys_a;
+        polys = polys_a.difference(polys_n);
     };
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
