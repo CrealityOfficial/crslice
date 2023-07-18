@@ -278,7 +278,8 @@ enum class InsetDirection
 enum class RetractionHopType
 {
     DIRECTLIFT,
-    SPIRALLIFT
+    SPIRALLIFT,
+    TRAPEZOIDALLEFT
 };
 
 } //Cura namespace.

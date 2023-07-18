@@ -490,6 +490,7 @@ public:
     void writeRetraction(const RetractionConfig& config, bool force = false, bool extruder_switch = false);
     void writeExtrusionG1(const Velocity& speed, Point point, const double e, const PrintFeatureType& feature);
     coord_t writeCircle(const Velocity& speed, Point endPoint, coord_t z_hop_height = 0);
+    coord_t writeTrapezoidalLeft(const Velocity& speed, Point endPoint, coord_t z_hop_height);
     /*!
      * Start a z hop with the given \p hop_height.
      * 

@@ -482,10 +482,14 @@ RetractionHopType Settings::get<RetractionHopType>(const std::string& key) const
 	{
 		return RetractionHopType::DIRECTLIFT;
 	}
-	else // spirallift.
+	else if(value == "spirallift")
 	{
 		return RetractionHopType::SPIRALLIFT;
 	}
+    else//trapezoidalleft
+    {
+        return RetractionHopType::TRAPEZOIDALLEFT;
+    }
 }
 
 

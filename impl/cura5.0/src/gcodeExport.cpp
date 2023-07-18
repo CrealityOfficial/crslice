@@ -1688,6 +1688,32 @@ coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t 
     return is_z_hopped;
 }
 
+coord_t GCodeExport::writeTrapezoidalLeft(const Velocity& speed, Point endPoint, coord_t z_hop_height)
+{
+    is_z_hopped = z_hop_height;
+    const Settings& extruder_settings = application->current_slice->scene.extruders[current_extruder].settings;
+    coord_t retraction_min_travel = extruder_settings.get<coord_t>("retraction_min_travel");
+    float zHopTravelDistance = 8000;
+    Point source = Point(currentPosition.x, currentPosition.y);
+    Point Travel = endPoint - source;
+    float len = (float)vSize(Travel);
+    if (len < retraction_min_travel)
+    {
+        return 0;
+    }
+    else if (len < zHopTravelDistance)
+    {
+        writeTravel(Point3(endPoint.X, endPoint.Y, currentPosition.z), speed);
+    }
+    else
+    {
+        Point HopTravel = source + Travel * (zHopTravelDistance / len);
+        writeTravel(Point3(HopTravel.X, HopTravel.Y, currentPosition.z), speed);
+    }
+
+    return is_z_hopped;
+}
+
 void GCodeExport::writeRetraction(const RetractionConfig& config, bool force, bool extruder_switch)
 {
     ExtruderTrainAttributes& extr_attr = extruder_attr[current_extruder];

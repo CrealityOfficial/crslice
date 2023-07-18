@@ -2274,16 +2274,31 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     gcode.writeRetraction(retraction_config);
                     if (path.perform_z_hop)
                     {
-                        if (extruder.settings.get<RetractionHopType>("retraction_hop_type") == RetractionHopType::SPIRALLIFT)
+                        RetractionHopType hop_type = extruder.settings.get<RetractionHopType>("retraction_hop_type");
+                        switch (hop_type)
+                        {
+                        case cura52::RetractionHopType::DIRECTLIFT:
+                        {
+                            gcode.writeZhopStart(z_hop_height);
+                            z_hop_height = retraction_config.zHop; // back to normal z hop
+                            break;
+                        }
+                        case cura52::RetractionHopType::SPIRALLIFT:
                         {
                             double speed = path.config->getSpeed() * path.speed_factor;
-						    gcode.writeCircle(speed, path.points[0], z_hop_height);
+                            gcode.writeCircle(speed, path.points[0], z_hop_height);
                             z_hop_height = retraction_config.zHop; // back to normal z hop
-                        } 
-                        else
+                            break;
+                        }
+                        case cura52::RetractionHopType::TRAPEZOIDALLEFT:
                         {
-							gcode.writeZhopStart(z_hop_height);
-							z_hop_height = retraction_config.zHop; // back to normal z hop
+                            double speed = path.config->getSpeed() * path.speed_factor;
+                            gcode.writeTrapezoidalLeft(speed, path.points[0], z_hop_height);
+                            z_hop_height = retraction_config.zHop;
+                            break;
+                        }
+                        default:
+                            break;
                         }
                     }
                     else

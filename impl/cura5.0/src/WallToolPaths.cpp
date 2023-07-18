@@ -146,6 +146,7 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     prepared_outline.removeSmallAreas(small_area_length * small_area_length, false);
     delete_shape_point(prepared_outline);
     cut_hole(prepared_outline, 3);
+    PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
     prepared_outline = prepared_outline.unionPolygons();
 
     if (prepared_outline.area() <= 0)
@@ -156,7 +157,7 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     //Polygons poltoWrite;
     //{
-    //    Point error_point = Point(117607, 141474);
+    //    Point error_point = Point(71242, 125723);
     //    Polygon error_area;
     //    error_area.add(Point(error_point.X + 50, error_point.Y + 50));
     //    error_area.add(Point(error_point.X + 50, error_point.Y - 50));
