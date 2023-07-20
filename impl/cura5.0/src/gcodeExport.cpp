@@ -618,11 +618,23 @@ void GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
         sliceResult.z = INT2MM(total_bounding_box.max.z) - INT2MM(total_bounding_box.min.z);
     }
 
-    //PLA  Density:1.24g/cm3    DIameter:1.75mm  ��:3.14159
-    const double PI = 3.14159;
-    float radius = 1.75 / 2.0;
-    float density = 1.24;
-    sliceResult.filament_volume = PI * radius * radius * density * sliceResult.filament_len;
+    if (extruder_count)
+    {
+        const Settings& settings = application->current_slice->scene.extruders[0].settings;
+        const double PI = 3.14159;
+        float radius = settings.get<double>("material_diameter") / 2.0;
+        float density = settings.get<double>("material_density");
+        sliceResult.filament_volume = PI * radius * radius * density * sliceResult.filament_len;
+    }
+    else
+    {
+        //PLA  Density:1.24g/cm3    DIameter:1.75mm  ��:3.14159
+        const double PI = 3.14159;
+        float radius = 1.75 / 2.0;
+        float density = 1.24;
+        sliceResult.filament_volume = PI * radius * radius * density * sliceResult.filament_len;
+    }
+
 }
 
 void GCodeExport::setLayerNr(unsigned int layer_nr_)
