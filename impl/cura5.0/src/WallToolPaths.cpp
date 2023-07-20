@@ -51,6 +51,7 @@ WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0
 
 const std::vector<VariableWidthLines>& WallToolPaths::generate()
 {
+    const double scale_factor = 1000;
     const coord_t allowed_distance = settings.get<coord_t>("meshfix_maximum_deviation");
     const coord_t epsilon_offset = (allowed_distance / 2) - 1;
     const AngleRadians transitioning_angle = settings.get<AngleRadians>("wall_transition_angle");
@@ -73,66 +74,20 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         scaled_spacing_wall_X = getScaledSpacing(bead_width_x);        
     }
 
-    auto delete_shape_point = [&](Polygons& polys)
+    auto scale = [&](Polygons& polys)
     {
-        int delete_point_num = 0;
-        do
+        for (int i = 0; i < polys.size(); i++)
         {
-            delete_point_num = 0;
-            for (int i = 0; i < polys.size(); i++)
+            Polygon poly(polys[i]);
+            int pol_size = poly.size();
+            for (int j = 0; j < pol_size; j++)
             {
-                int pol_size = polys[i].size();
-                for (int j = 0; j < pol_size; j++)
-                {
-                    Point pt = polys[i][j];
-                    Point before = polys[i][(j - 1 + pol_size) % pol_size];
-                    Point after = polys[i][(j + 1 + pol_size) % pol_size];
-                    float angle = LinearAlg2D::getAngleLeft(before, pt, after);
-                    if (angle < 0.5 || angle > 2 * M_PI - 0.5)
-                    {
-                        coord_t length2_before = vSize2(before - pt);
-                        coord_t length2_after = vSize2(after - pt);
-                        coord_t v_ab_dis;
-                        if (length2_before < length2_after)
-                        {
-                            v_ab_dis = LinearAlg2D::getDistFromLine(before, pt, after);
-                        }
-                        else
-                        {
-                            v_ab_dis = LinearAlg2D::getDistFromLine(after, pt, before);
-                        }
-                        if (v_ab_dis < epsilon_offset)
-                        {
-                            polys[i].remove(j);
-                            j--;
-                            pol_size--;
-                            delete_point_num++;
-                        }
-                    }
-                }
-            }
-        } while (delete_point_num > 0);
-    };
-
-    auto cut_hole = [&](Polygons& polys, coord_t cut_len)
-    {
-        Polygons polys_a;
-        Polygons polys_n;
-
-        for (auto path : polys)
-        {
-            Polygon poly(path);
-            if (poly.orientation())
-                polys_a.add(poly);
-            else
-            {
-                poly.reverse();
-                polys_n.add(poly);
+                polys[i][j].X *= scale_factor;
+                polys[i][j].Y *= scale_factor;
             }
         }
-        polys_n = polys_n.intersection(polys_a.offset(-cut_len));
-        polys = polys_a.difference(polys_n);
     };
+
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
     // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
     Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);    
@@ -144,10 +99,9 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
     prepared_outline.removeDegenerateVerts();
     prepared_outline.removeSmallAreas(small_area_length * small_area_length, false);
-    delete_shape_point(prepared_outline);
-    cut_hole(prepared_outline, 3);
-    PolygonUtils::fixSelfIntersections(epsilon_offset, prepared_outline);
     prepared_outline = prepared_outline.unionPolygons();
+
+    scale(prepared_outline);
 
     if (prepared_outline.area() <= 0)
     {
@@ -155,29 +109,42 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         return toolpaths;
     }
 
-    //Polygons poltoWrite;
-    //{
-    //    Point error_point = Point(71242, 125723);
-    //    Polygon error_area;
-    //    error_area.add(Point(error_point.X + 50, error_point.Y + 50));
-    //    error_area.add(Point(error_point.X + 50, error_point.Y - 50));
-    //    error_area.add(Point(error_point.X - 50, error_point.Y - 50));
-    //    error_area.add(Point(error_point.X - 50, error_point.Y + 50));
-    //    Polygons error_areas;
-    //    error_areas.add(error_area);
-    //    Polygons intersection_polys = prepared_outline.intersection(error_areas);
-    //    if (!intersection_polys.empty())
-    //    {
-    //        poltoWrite.add(intersection_polys);
-    //    }
-    //    if (!poltoWrite.empty() && std::fabs(poltoWrite.area()) != std::fabs(error_area.area()))
-    //    {
-    //        AABB aabb(poltoWrite);
-    //        SVG svg("D://outline.svg", aabb);
-    //        svg.writePolygons(poltoWrite, SVG::Color::BLACK, 0.1);
-    //        svg.writePoint(error_point, false, 1);
-    //    }
-    //}
+#if 0
+    Polygons poltoWrite;
+    {
+        Point error_point = Point(181749, 102662);
+        Polygon error_area;
+        error_area.add(Point(error_point.X + 50, error_point.Y + 50));
+        error_area.add(Point(error_point.X + 50, error_point.Y - 50));
+        error_area.add(Point(error_point.X - 50, error_point.Y - 50));
+        error_area.add(Point(error_point.X - 50, error_point.Y + 50));
+        Polygons error_areas;
+        error_areas.add(error_area);
+
+        ////prepared_outline.clear();
+        ////Polygon test_area;
+        ////test_area.add(Point(106379, 101871));
+        ////test_area.add(Point(104606, 105108));
+        ////test_area.add(Point(104604, 105096));
+        ////test_area.add(Point(101785, 103780));
+        ////prepared_outline.add(test_area);
+
+        Polygons intersection_polys = prepared_outline.intersection(error_areas);
+        if (!intersection_polys.empty())
+        {
+            poltoWrite.add(intersection_polys);
+        }
+        if (!poltoWrite.empty() && std::fabs(poltoWrite.area()) != std::fabs(error_area.area()))
+        {
+            AABB aabb(poltoWrite);
+            SVG svg("D://outline.svg", aabb);
+            svg.writePolygons(poltoWrite, SVG::Color::BLACK, 0.1);
+            svg.writePoint(error_point, false, 1);
+        }
+    }
+#endif // 0
+
+
 
     const coord_t wall_transition_length = settings.get<coord_t>("wall_transition_length");
 
@@ -195,17 +162,17 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     const size_t max_bead_count = (inset_count < std::numeric_limits<coord_t>::max() / 2) ? 2 * inset_count : std::numeric_limits<coord_t>::max();
     const auto beading_strat = BeadingStrategyFactory::makeStrategy
         (
-            scaled_spacing_wall_0,
-            scaled_spacing_wall_X,
-            wall_transition_length,
+            scaled_spacing_wall_0 * scale_factor,
+            scaled_spacing_wall_X * scale_factor,
+            wall_transition_length * scale_factor,
             transitioning_angle,
             print_thin_walls,
-            min_bead_width,
-            min_feature_size,
+            min_bead_width * scale_factor,
+            min_feature_size * scale_factor,
             wall_split_middle_threshold,
             wall_add_middle_threshold,
             max_bead_count,
-            wall_0_inset,
+            wall_0_inset * scale_factor,
             wall_distribution_count
         );
     const coord_t transition_filter_dist = settings.get<coord_t>("wall_transition_filter_distance");
@@ -216,10 +183,10 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         prepared_outline,
         *beading_strat,
         beading_strat->getTransitioningAngle(),
-        discretization_step_size,
-        transition_filter_dist,
-        allowed_filter_deviation,
-        wall_transition_length
+        discretization_step_size * scale_factor,
+        transition_filter_dist * scale_factor,
+        allowed_filter_deviation * scale_factor,
+        wall_transition_length * scale_factor
     );
 
 #if CURA_SERIAL_DATA
@@ -269,12 +236,33 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         VariableWidthLines path_new;
         for (ExtrusionLine& line : path)
         {
+            for (ExtrusionJunction& pt : line.junctions)
+            {
+                pt.p.X = pt.p.X / scale_factor + 0.5;
+                pt.p.Y = pt.p.Y / scale_factor + 0.5;
+                pt.w = pt.w / scale_factor + 0.5;
+                if (pt.w > 1000)
+                {
+                    int aaa = 0;
+                }
+            }
+            Simplify(settings).polygon(line);
             if (line.getLength() < allowed_distance) continue;
             line.start_idx = -1;
             path_new.push_back(line);
         }
         path.swap(path_new);
     }
+    for (int i = 0; i < inner_contour.size(); i++)
+    {
+        Polygon poly(inner_contour[i]);
+        for (int j = 0; j < poly.size(); j++)
+        {
+            inner_contour[i][j].X = inner_contour[i][j].X / scale_factor + 0.5;
+            inner_contour[i][j].Y = inner_contour[i][j].Y / scale_factor + 0.5;
+        }
+    }
+
     assert(std::is_sorted(toolpaths.cbegin(), toolpaths.cend(),
                           [](const VariableWidthLines& l, const VariableWidthLines& r)
                           {
