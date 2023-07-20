@@ -1747,15 +1747,20 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 		gcode_layer.setLastPosition(last_position);
 	}
 
-	//for (const SliceMeshStorage& mesh : storage.meshes)
-	if (storage.meshes.size()>0 && layer_nr >=0)
+	for (const SliceMeshStorage& mesh : storage.meshes)
 	{
-		const SliceMeshStorage& mesh = storage.meshes[0];
 		if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
 		{
 			gcode_layer.layerTemp = mesh.settings.get<Temperature>("calibration_temperature");
+			ExtruderTrain& train = application->current_slice->scene.extruders[extruder_order.front()];
+			train.settings.add("material_print_temperature", std::to_string(gcode_layer.layerTemp.value));
+			break;
 		}
-		else if (mesh.settings.has("pressure_step"))
+	}
+	if (storage.meshes.size()>0 && layer_nr >=0)
+	{
+		const SliceMeshStorage& mesh = storage.meshes[0];
+		if (mesh.settings.has("pressure_step"))
 		{
 			float pressureStart = mesh.settings.get<double>("pressure_start");
 			float pressureStep = mesh.settings.get<double>("pressure_step");
