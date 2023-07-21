@@ -51,7 +51,7 @@ WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0
 
 const std::vector<VariableWidthLines>& WallToolPaths::generate()
 {
-    const double scale_factor = 1000;
+    const double scale_factor = 10;
     const coord_t allowed_distance = settings.get<coord_t>("meshfix_maximum_deviation");
     const coord_t epsilon_offset = (allowed_distance / 2) - 1;
     const AngleRadians transitioning_angle = settings.get<AngleRadians>("wall_transition_angle");
@@ -221,6 +221,25 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     wall_maker.generateToolpaths(toolpaths);
 
+    for (VariableWidthLines& path : toolpaths)
+    {
+        VariableWidthLines path_new;
+        for (ExtrusionLine& line : path)
+        {
+            for (ExtrusionJunction& pt : line.junctions)
+            {
+                pt.p.X = pt.p.X / scale_factor + 0.5;
+                pt.p.Y = pt.p.Y / scale_factor + 0.5;
+                pt.w = pt.w / scale_factor + 0.5;
+            }
+            Simplify(settings).polygon(line);
+            if (line.getLength() < allowed_distance) continue;
+            line.start_idx = -1;
+            path_new.push_back(line);
+        }
+        path.swap(path_new);
+    }
+
     stitchToolPaths(toolpaths, settings);
     
     removeSmallLines(toolpaths);
@@ -230,39 +249,6 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
     simplifyToolPaths(toolpaths, settings);
 
     removeEmptyToolPaths(toolpaths);
-
-    coord_t max_wall_width = MM2INT(std::max(min_even_wall_line_width, min_odd_wall_line_width) * 2);
-    for (VariableWidthLines& path : toolpaths)
-    {        
-        VariableWidthLines path_new;
-        for (ExtrusionLine& line : path)
-        {
-            for (ExtrusionJunction& pt : line.junctions)
-            {
-                pt.p.X = pt.p.X / scale_factor + 0.5;
-                pt.p.Y = pt.p.Y / scale_factor + 0.5;
-                pt.w = pt.w / scale_factor + 0.5;
-                if (pt.w > max_wall_width)
-                {
-                    pt.w = max_wall_width;
-                }
-            }
-            Simplify(settings).polygon(line);
-            if (line.getLength() < allowed_distance) continue;
-            line.start_idx = -1;
-            path_new.push_back(line);
-        }
-        path.swap(path_new);
-    }
-    for (int i = 0; i < inner_contour.size(); i++)
-    {
-        Polygon poly(inner_contour[i]);
-        for (int j = 0; j < poly.size(); j++)
-        {
-            inner_contour[i][j].X = inner_contour[i][j].X / scale_factor + 0.5;
-            inner_contour[i][j].Y = inner_contour[i][j].Y / scale_factor + 0.5;
-        }
-    }
 
     assert(std::is_sorted(toolpaths.cbegin(), toolpaths.cend(),
                           [](const VariableWidthLines& l, const VariableWidthLines& r)
