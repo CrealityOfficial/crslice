@@ -2041,7 +2041,7 @@ void GCodeExport::setExtruderFanNumber(int extruder)
 
 void GCodeExport::writeCdsFanCommand(double cds_speed)
 {
-    if (std::abs(current_cds_fan_speed - cds_speed) < 0.1)
+    if (std::abs(current_cds_fan_speed - cds_speed) < 0.1 || cds_speed < 0.0)
     {
         return;
     }

@@ -342,7 +342,7 @@ void FffGcodeWriter::setConfigFanSpeedLayerTime()
         fan_speed_layer_time_settings.cds_fan_speed = train.settings.get<Ratio>("cool_cds_fan_speed") * 100.0;
         if (!train.settings.get<bool>("cool_cds_fan_enable"))
         {
-            fan_speed_layer_time_settings.cds_fan_speed = 0;
+            fan_speed_layer_time_settings.cds_fan_speed = -1;
         }
         if (! train.settings.get<bool>("cool_fan_enabled"))
         {

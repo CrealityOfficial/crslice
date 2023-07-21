@@ -1962,7 +1962,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         double cds_fan_speed = extruder_plan.cds_fan_speed;
         if (cds_fan_speed > 0 && layer_nr < cds_fan_start_layer)
-            cds_fan_speed = 0.;
+            cds_fan_speed = -1;
 
         if (extruder_nr != extruder_plan.extruder_nr)
         {
