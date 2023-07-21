@@ -231,6 +231,7 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     removeEmptyToolPaths(toolpaths);
 
+    coord_t max_wall_width = MM2INT(std::max(min_even_wall_line_width, min_odd_wall_line_width) * 2);
     for (VariableWidthLines& path : toolpaths)
     {        
         VariableWidthLines path_new;
@@ -241,6 +242,10 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
                 pt.p.X = pt.p.X / scale_factor + 0.5;
                 pt.p.Y = pt.p.Y / scale_factor + 0.5;
                 pt.w = pt.w / scale_factor + 0.5;
+                if (pt.w > max_wall_width)
+                {
+                    pt.w = max_wall_width;
+                }
             }
             Simplify(settings).polygon(line);
             if (line.getLength() < allowed_distance) continue;
