@@ -975,7 +975,7 @@ void GCodeExport::writeTimePartsComment(std::ostringstream& prefix)
     printFeature.push_back(";Support Time:");
     printFeature.push_back(";SkirtBrim Time:");
     printFeature.push_back(";Infill Time:");
-    printFeature.push_back(";InfillSupport Time:");
+    printFeature.push_back(";Support Infills Time:");
     printFeature.push_back(";Combing Time:");
     printFeature.push_back(";Retraction Time:");
     printFeature.push_back(";PrimeTower Time:");
