@@ -20,6 +20,8 @@
 #include "utils/IntPoint.h"
 #include "utils/NoCopy.h"
 
+#include "settings/FlowTempGraph.h"
+
 namespace cura52
 {
 struct LayerIndex;
@@ -76,7 +78,7 @@ private:
         Velocity max_volumetric_spped;
 
         double totalFilament; //!< total filament used per extruder in mm^3
-        Temperature currentTemperature;
+        Temperature currentTemperature; 
         bool waited_for_temperature; //!< Whether the most recent temperature command has been a heat-and-wait command (M109) or not (M104).
         Temperature initial_temp; //!< Temperature this nozzle needs to be at the start of the print.
 
@@ -119,6 +121,11 @@ private:
     std::string new_line;
 
     double current_e_value; //!< The last E value written to gcode (in mm or mm^3)
+	double material_diameter;
+	double material_density;
+	double acceleration_limit_mess;
+	std::map <float,float> acceleration_limit_mass;
+	bool acceleration_limit_mess_enable;
 
     // flow-rate compensation
     double current_e_offset; //!< Offset to compensate for flow rate (mm or mm^3)
@@ -420,6 +427,19 @@ public:
     void writeExtrusion(const Point3& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset = false);
     
     void writeExtrusionG2G3(const Point3& p, const Point& center_offset, double arc_length, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset=false, bool is_ccw=true);
+	
+	double getDensity();
+	double getDiameter();
+	double getEvalue();
+	void   setDensity(double density);
+	void   setDiameter(double diameter);
+	Acceleration get_current_travel_acceleration();
+	Acceleration get_current_print_acceleration();
+	bool getEnable();
+	void setEnable(bool a);
+	double getAcc_Limit_mass();
+	//void setAcc_Limit_mass(double a);
+	void setAcc_Limit_mass(std::map <float, float>& acceleration_limit_mass);
 private:
     /*!
      * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.
@@ -561,12 +581,12 @@ public:
     /*!
      * Write the command for setting the acceleration for print moves to a specific value
      */
-    void writePrintAcceleration(const Acceleration& acceleration,bool acceleration_breaking_enable,float acceleration_percent);
+    void writePrintAcceleration(/*const*/ Acceleration& acceleration,bool acceleration_breaking_enable,float acceleration_percent);
 
     /*!
      * Write the command for setting the acceleration for travel moves to a specific value
      */
-    void writeTravelAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent);
+    void writeTravelAcceleration(/*const*/ Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent);
 
     /*!
      * Write the command for setting the jerk to a specific value
@@ -619,7 +639,7 @@ public:
      *
      * \param extruder Extruder number which last_e_value_after_wipe value to reset.
      */
-     void ResetLastEValueAfterWipe(size_t extruder);
+     void ResetLastEValueAfterWipe(size_t extruder); 
 
     /*!
      *  Generate g-code for wiping current nozzle using provided config.

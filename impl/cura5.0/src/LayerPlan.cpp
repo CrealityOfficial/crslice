@@ -21,6 +21,9 @@
 #include "utils/linearAlg2D.h"
 #include "utils/polygonUtils.h"
 #include "Slice3rBase/ArcFitter.hpp"
+
+#include "settings/FlowTempGraph.h"
+
 namespace cura52
 {
 
@@ -550,7 +553,7 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
 
     // no combing? retract only when path is not shorter than minimum travel distance
     if (/*! combed &&*/ ! is_first_travel_of_layer && last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
-    {//! combed 移出滑行对回抽抬升的影响
+    {//! combed ??????ж???????????
         if (was_inside) // when the previous location was from printing something which is considered inside (not support or prime tower etc)
         { // then move inside the printed part, so that we don't ooze on the outer wall while retraction, but on the inside of the print.
             assert(extruder != nullptr);
@@ -1934,6 +1937,36 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_nr].settings;
     gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
 
+
+	double material_diameter = mesh_group_settings.get<double>("material_diameter");   
+	//float acceleration_limit_mess = mesh_group_settings.get<double>("acceleration_limit_mess"); 
+	double material_density = mesh_group_settings.get<double>("material_density");
+	gcode.setDensity(material_density);
+	gcode.setDiameter(material_diameter);
+	//std::string machine_name = mesh_group_settings.get<std::string>("machine_name");
+
+	bool acceleration_limit_mess_enable = mesh_group_settings.get<bool>("acceleration_limit_mess_enable");
+	//std::string acceleration_limit_mess = mesh_group_settings.get<std::string>("acceleration_limit_mess");
+	FlowTempGraph acceleration_limit_mess = mesh_group_settings.get<FlowTempGraph>("acceleration_limit_mess");
+
+	//acceleration_limit_mess.data.size();
+	//double mass = acceleration_limit_mess.data[0].flow;
+	//Temperature acc_limit = acceleration_limit_mess.data[0].temp;
+	//double aa = acc_limit.operator double();
+
+	if (acceleration_limit_mess_enable)
+	{
+		gcode.setEnable(acceleration_limit_mess_enable);
+		//gcode.setAcc_Limit_mass(acceleration_limit_mess);
+		std::map <float, float> _acceleration_limit_mass_;
+		for (int i = 0; i < acceleration_limit_mess.data.size(); i++)
+		{
+			_acceleration_limit_mass_.insert(std::pair(acceleration_limit_mess.data[i].flow, acceleration_limit_mess.data[i].temp));
+		}
+		gcode.setAcc_Limit_mass(_acceleration_limit_mass_);
+	}
+
+
     coord_t cds_fan_start_layer = extruder_settings.get<coord_t>("cool_cds_fan_start_at_height") / layer_thickness;
 
     static LayerIndex layer_1{ 1 - static_cast<LayerIndex>(Raft::getTotalExtraLayers(gcode.application)) };
@@ -2057,11 +2090,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         bool update_extrusion_offset = true;
 
-        bool isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
+        bool isAvoidPoint = false;//?????????? ????G2G3???ж?
         bool  entireLayerSlowdown = false;
-        float speed_slowtofast_slowdown_revise_acceleration = application->current_slice->scene.settings.get<Acceleration>("speed_slowtofast_slowdown_revise_acceleration");
+        /*float*/Acceleration speed_slowtofast_slowdown_revise_acceleration = application->current_slice->scene.settings.get<Acceleration>("speed_slowtofast_slowdown_revise_acceleration");
         if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
-        {//speedSlowDownPath 重新新建的一个变量，标识此段path是否有速度突变
+        {//speedSlowDownPath ????????????????????????path???????????
             for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
             {
                 double speed = paths[path_idx].config->getSpeed();
@@ -2116,12 +2149,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             if (! path.retract && path.config->isTravelPath() && path.points.size() == 1 && path.points[0] == gcode.getPositionXY() && z == gcode.getPositionZ())
             {
                 // ignore travel moves to the current location to avoid needless change of acceleration/jerk
-                isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
+                isAvoidPoint = false;//?????????? ????G2G3???ж?
                 continue;
             }
             else
             {
-                isAvoidPoint = true;//统计被过滤的点 用于G2G3的判断
+                isAvoidPoint = true;//?????????? ????G2G3???ж?
             }
 
             // In some cases we want to find the next non-travel move.
@@ -2486,7 +2519,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 }
                                 double tolerance = application->current_slice->scene.settings.get<double>("arc_tolerance");
 
-                                //填充模式下加大偏差值
+                                //?????????????
                                 if (PrintFeatureType::Infill == path.config->type)
                                     tolerance *= 2.0;
 
@@ -2494,7 +2527,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 Slic3r::Points points;
                                 std::vector<Slic3r::PathFittingData> fitting_result;
 
-                                if(isAvoidPoint && !path.points.empty())//统计被过滤的点 用于G2G3的判断
+                                if(isAvoidPoint && !path.points.empty())//?????????? ????G2G3???ж?
                                 {
                                     if (path.points[0] != gcode.getPositionXY())
                                     {
@@ -2524,14 +2557,14 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                     }
                                 }
                                 if (Large_arc_exist)
-                                {//大圆弧拟合需缩小公差
+                                {//????????????С????
                                     fitting_result.clear();
                                     tolerance = 1;
                                     Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
                                 }
 
                                 float dis = 0;
-                                float dis_threshold = application->current_slice->scene.settings.get<coord_t>("speed_slowtofast_slowdown_revise_distance"); //如果大于这一段距离，则是原来的速度，否则速度50
+                                float dis_threshold = application->current_slice->scene.settings.get<coord_t>("speed_slowtofast_slowdown_revise_distance"); //???????????ξ???????????????????????50
                                 bool slow2fastSlowdown = application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown");
                                 // BBS: start to generate gcode from arc fitting data which includes line and arc
                                 for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
@@ -2548,7 +2581,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         {
                                             Point gcodePt(points[point_index].x(), points[point_index].y());
                                             if (slow2fastSlowdown && !wall_slow_OK  && judgeVelocityDip && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
-                                            {//经过测试大部分的圆弧都是经常这个case，Arc_move_ccw和Linear_move共同组成了慢速到快速的距离计算，如果大于这一段距离，则是原来的速度，否则速度50
+                                            {//?????????????????????????case??Arc_move_ccw??Linear_move???????????????????????????????????ξ???????????????????????50
                                                 extrude_speed = speed_quarter;
                                                 if (dis > dis_threshold)  wall_slow_OK = true;
                                             }
@@ -2580,11 +2613,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
                                         double extrude_speed;// = speed * path.speed_back_pressure_factor;
                                         {
-                                            //屏蔽说明信息
+                                            //??????????
                                             //std::stringstream ss;
                                             //ss << "do_arc_fitting start pos=" << INT2MM(start_point.X) << " " << INT2MM(start_point.Y) << " " << INT2MM(arc_length);
                                             //gcode.writeComment(ss.str());
-                                            //确保每次都在圆弧拟合的起点
+                                            //?????ζ?????????????
                                             //gcode.writeArcSatrt(start_point);
                                         }
                                         extrude_speed = speed * path.speed_back_pressure_factor;

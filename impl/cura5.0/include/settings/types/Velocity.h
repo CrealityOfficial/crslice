@@ -72,6 +72,13 @@ struct Velocity
         return *this;
     }
 
+	Velocity& operator =(const Velocity& other)
+	{
+		value = other.value;
+		return *this;
+	}
+
+
     /*
      * \brief The actual temperature, as a double.
      */

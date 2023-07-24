@@ -1157,12 +1157,10 @@ void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double e
             if (input_pt.z < layer_height_0) input_pt.z = layer_height_0;
         }
         writeExtrusion(input_pt, speed, extrusion_mm3_per_mm * flow_ratio, feature, update_extrusion_offset);
-		//printf("flow_ratio = %lf\n", flow_ratio);
     }
     else
     {
         writeExtrusion(Point3(p.X, p.Y, current_layer_z), speed, extrusion_mm3_per_mm * flow_ratio, feature, update_extrusion_offset);
-		//printf("flow_ratio = %lf\n", flow_ratio);
     }
 }
 void GCodeExport::writeExtrusionG2G3(const Point& pointend, const Point& center_offset, double arc_length,const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset, bool is_ccw)
@@ -1390,8 +1388,6 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     extruder_attr[current_extruder].last_e_value_after_wipe += extrusion_per_mm * diff_length;
     const double new_e_value = current_e_value + extrusion_per_mm * diff_length;
 
-	//printf("extrusion_per_mm = %lf\n", extrusion_per_mm);
-
     *output_stream << "G1";
     Velocity speed_e = speed;
     if (diff_length)
@@ -1476,12 +1472,10 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     {
     case true:
     *output_stream << "G3";
-	//printf("G3\n");
 	estimateCalculator->is_ccw = false;
     break;
     case false:
     *output_stream << "G2";
-	//printf("G2\n");
 	estimateCalculator->is_ccw = true;
     break;
     }
@@ -1499,6 +1493,9 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
 
 void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const PrintFeatureType& feature)
 {
+	//double mass = e * (0.25 * 1.75 * 1.75 * 3.1415926) * (1.24 / 1000.0);
+	//if (mass > 1.73) { speed.operator double = 0.5*speed.operator double(); }
+
     if (currentSpeed != speed)
     {
         *output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
@@ -1522,6 +1519,7 @@ void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord
 
     currentPosition = Point3(x, y, z);
     current_e_value = e;
+	//std::cout << "current_e_value = " << current_e_value << std::endl;
     estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
 }
 
@@ -2274,8 +2272,25 @@ void GCodeExport::writeBuildVolumeTemperatureCommand(const Temperature& temperat
     *output_stream << PrecisionedDouble{ 1, temperature } << new_line;
 }
 
-void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
+void GCodeExport::writePrintAcceleration(/*const*/ Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
+	double mass = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926) * (getDensity() / 1000.0);
+
+	if (acceleration_limit_mess_enable)
+	{
+		auto iter = acceleration_limit_mass.begin();
+		while (iter != acceleration_limit_mass.end())
+		{
+			if (mass >= iter->first * 1000.0f && (acceleration.operator double() >= iter->second || current_print_acceleration >= iter->second))
+			{
+				const Acceleration acc(iter->second);
+				acceleration = acc;
+				break;
+			}
+			iter++;
+		}
+	}
+
     switch (getFlavor())
     {
     case EGCodeFlavor::REPETIER:
@@ -2304,11 +2319,9 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
     }
     current_print_acceleration = acceleration;
     estimateCalculator->setAcceleration(acceleration);
-
-	//estimateCalculator->setAccel(acceleration);  
 }
 
-void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
+void GCodeExport::writeTravelAcceleration(/*const*/ Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
     switch (getFlavor())
     {
@@ -2326,13 +2339,12 @@ void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool
         break;
     default:
         // MARLIN, etc. only have one acceleration for both print and travel
+
         writePrintAcceleration(acceleration, acceleration_breaking_enable, acceleration_percent);
         break;
     }
     current_travel_acceleration = acceleration;
     estimateCalculator->setAcceleration(acceleration);
-
-	//estimateCalculator->setAccel(acceleration);  
 }
 
 void GCodeExport::writeJerk(const Velocity& jerk)
@@ -2450,6 +2462,55 @@ void GCodeExport::insertWipeScript(const WipeScriptConfig& wipe_config)
 void GCodeExport::setSliceUUID(const std::string& slice_uuid)
 {
     slice_uuid_ = slice_uuid;
+}
+
+double GCodeExport::getDensity()
+{
+	return material_density;
+}
+double GCodeExport::getDiameter()
+{
+	return material_diameter;
+}
+double GCodeExport::getEvalue()
+{
+	return current_e_value;
+}
+void GCodeExport::setDensity(double density)
+{
+	this->material_density = density;
+}
+void GCodeExport::setDiameter(double diameter)
+{
+	this->material_diameter = diameter;
+}
+Acceleration GCodeExport::get_current_travel_acceleration()
+{
+	return current_travel_acceleration;
+}
+Acceleration GCodeExport::get_current_print_acceleration()
+{
+	return current_print_acceleration;
+}
+bool GCodeExport::getEnable()
+{
+	return acceleration_limit_mess_enable;
+}
+void GCodeExport::setEnable(bool a)
+{
+	acceleration_limit_mess_enable = a;
+}
+double GCodeExport::getAcc_Limit_mass()
+{
+	return acceleration_limit_mess;
+}
+//void GCodeExport::setAcc_Limit_mass(double a)
+//{
+//	acceleration_limit_mess = a;
+//}
+void GCodeExport::setAcc_Limit_mass(std::map <float, float>& _acceleration_limit_mass)
+{
+	acceleration_limit_mass = _acceleration_limit_mass;
 }
 
 } // namespace cura52
