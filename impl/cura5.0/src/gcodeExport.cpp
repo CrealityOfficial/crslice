@@ -2272,9 +2272,12 @@ void GCodeExport::writeBuildVolumeTemperatureCommand(const Temperature& temperat
     *output_stream << PrecisionedDouble{ 1, temperature } << new_line;
 }
 
-void GCodeExport::writePrintAcceleration(/*const*/ Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
+void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
-	double mass = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926) * (getDensity() / 1000.0);
+	double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
+	double mass = volume * (getDensity() / 1000.0);
+
+	Acceleration acc = acceleration;
 
 	if (acceleration_limit_mess_enable)
 	{
@@ -2283,8 +2286,9 @@ void GCodeExport::writePrintAcceleration(/*const*/ Acceleration& acceleration, b
 		{
 			if (mass >= iter->first * 1000.0f && (acceleration.operator double() >= iter->second || current_print_acceleration >= iter->second))
 			{
-				const Acceleration acc(iter->second);
-				acceleration = acc;
+				//Acceleration acc(iter->second);
+				//acceleration = acc;
+				acc.value = iter->second;
 				break;
 			}
 			iter++;
@@ -2294,34 +2298,34 @@ void GCodeExport::writePrintAcceleration(/*const*/ Acceleration& acceleration, b
     switch (getFlavor())
     {
     case EGCodeFlavor::REPETIER:
-        if (current_print_acceleration != acceleration)
+        if (current_print_acceleration != acc)
         {
-            *output_stream << "M201 X" << PrecisionedDouble{ 0, acceleration } << " Y" << PrecisionedDouble{ 0, acceleration } << new_line;
+            *output_stream << "M201 X" << PrecisionedDouble{ 0, acc } << " Y" << PrecisionedDouble{ 0, acc } << new_line;
         }
         break;
     case EGCodeFlavor::REPRAP:
-        if (current_print_acceleration != acceleration)
+        if (current_print_acceleration != acc)
         {
-            *output_stream << "M204 P" << PrecisionedDouble{ 0, acceleration } << new_line;
+            *output_stream << "M204 P" << PrecisionedDouble{ 0, acc } << new_line;
         }
         break;
     default:
         // MARLIN, etc. only have one acceleration for both print and travel
-        if (current_print_acceleration != acceleration)
+        if (current_print_acceleration != acc)
         {
-            *output_stream << "M204 S" << PrecisionedDouble{ 0, acceleration } << new_line;
+            *output_stream << "M204 S" << PrecisionedDouble{ 0, acc } << new_line;
             if (acceleration_breaking_enable)
             {
-                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acceleration* acceleration_percent/100 } << new_line;
+                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc* acceleration_percent/100 } << new_line;
             }
         }
         break;
     }
-    current_print_acceleration = acceleration;
-    estimateCalculator->setAcceleration(acceleration);
+    current_print_acceleration = acc;
+    estimateCalculator->setAcceleration(acc);
 }
 
-void GCodeExport::writeTravelAcceleration(/*const*/ Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
+void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
     switch (getFlavor())
     {
