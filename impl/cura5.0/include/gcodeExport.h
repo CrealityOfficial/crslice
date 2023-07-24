@@ -121,6 +121,7 @@ private:
     std::string new_line;
 
     double current_e_value; //!< The last E value written to gcode (in mm or mm^3)
+    double e_value_cleaned; //E celaned
 	double material_diameter;
 	double material_density;
 	double acceleration_limit_mess;

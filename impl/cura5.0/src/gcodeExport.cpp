@@ -71,6 +71,7 @@ GCodeExport::GCodeExport()
 {
     *output_stream << std::fixed;
 
+    e_value_cleaned       = 0;
     current_e_value		  = 0;
     current_extruder      = 0;
     current_fan_speed     = -1;
@@ -886,6 +887,7 @@ void GCodeExport::resetTotalPrintTimeAndFilament()
         extruder_attr[e].currentTemperature = 0;
         extruder_attr[e].waited_for_temperature = false;
     }
+    e_value_cleaned += current_e_value;//save clean E
     current_e_value = 0.0;
     estimateCalculator->reset();
 }
@@ -1092,6 +1094,7 @@ void GCodeExport::resetExtrusionValue()
     { // update the extruded_volume_at_previous_n_retractions only of the current extruder, since other extruders don't extrude the current volume
         extruded_volume_at_retraction -= current_extruded_volume;
     }
+    e_value_cleaned += current_e_value;//save clean E
     current_e_value = 0.0;
     extruder_attr[current_extruder].retraction_e_amount_at_e_start = extruder_attr[current_extruder].retraction_e_amount_current;
 }
@@ -2478,7 +2481,7 @@ double GCodeExport::getDiameter()
 }
 double GCodeExport::getEvalue()
 {
-	return current_e_value;
+	return current_e_value + e_value_cleaned;
 }
 void GCodeExport::setDensity(double density)
 {
