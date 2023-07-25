@@ -48,6 +48,8 @@ namespace crslice
 		std::string m_gcodeFileName;
 		std::string m_ploygonFileName;
 		std::string m_tempDirectory;
+
+		FDMDebugger* m_debugger;
 	};
 
 	class SceneCreator

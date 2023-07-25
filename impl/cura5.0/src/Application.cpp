@@ -68,6 +68,12 @@ namespace cura52
         return rupt;
     }
 
+    void Application::tick(const std::string& tag)
+    {
+        if (fDebugger)
+            fDebugger->tick(tag);
+    }
+
     void Application::runCommulication(Communication* _communication)
     {
         if (!_communication)

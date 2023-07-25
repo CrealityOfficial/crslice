@@ -8,6 +8,7 @@
 namespace crslice
 {
 	CrScene::CrScene()
+		:m_debugger(nullptr)
 	{
 		m_settings.reset(new crcommon::Settings());
 		machine_center_is_zero = false;

@@ -13,6 +13,7 @@
 #include "FffProcessor.h"
 #include "progress/Progress.h"
 #include "debugger.h"
+#include "crslice/header.h"
 
 #include "ccglobal/tracer.h"
 
@@ -73,6 +74,7 @@ namespace cura52
         std::string tempDirectory;
         ccglobal::Tracer* tracer = nullptr;
         Debugger* debugger = nullptr;
+        crslice::FDMDebugger* fDebugger = nullptr;
         /*
          * \brief The slice that is currently ongoing.
          *
@@ -100,6 +102,7 @@ namespace cura52
 
         void sendProgress(float r);
         bool checkInterrupt(const std::string& message = "");
+        void tick(const std::string& tag);
 
         SliceResult sliceResult;
     private:
@@ -116,6 +119,12 @@ namespace cura52
 #define INTERRUPT_RETURN(x) 	(void)0
 #define INTERRUPT_RETURN_FALSE(x)  (void)0
 #define INTERRUPT_BREAK(x) (void)0
+#endif
+
+#if 1
+#define CALLTICK(x) application->tick(x) 
+#else
+#define CALLTICK(x) (void)0
 #endif
 
 #endif //APPLICATION_H
