@@ -312,6 +312,14 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Enable Ironing:" << (groupSettings->get<bool>("ironing_enabled") ? "true" : "false") << new_line;
     tmp << ";Material Type:" << extruderSettings->get<std::string>("material_type") << new_line;
     tmp << ";Max volumetric speed:" << extruderSettings->get<std::string>("material_max_volumetric_speed") << new_line;
+
+
+	tmp << ";material_diameter:" << extruderSettings->get<std::string>("material_diameter") << new_line;
+	tmp << ";material_density:" << extruderSettings->get<std::string>("material_density") << new_line;
+	tmp << ";filament_cost:" << extruderSettings->get<std::string>("filament_cost") << new_line; 
+	tmp << ";filament_weight:" << extruderSettings->get<std::string>("filament_weight") << new_line;
+	tmp << ";preview_img_type:" << groupSettings->get<std::string>("preview_img_type") << new_line;
+	tmp << ";screen_size:" << groupSettings->get<std::string>("screen_size") << new_line;
     *output_stream << tmp.str();
 }
 
