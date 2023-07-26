@@ -36,7 +36,10 @@ namespace cura52
                 scene.application->debugger->groupBox(mesh_group->min(), mesh_group->max());
             }
 
+            CALLTICK("mesh 0");
             scene.processMeshGroup(*mesh_group);
+            CALLTICK("mesh 1");
+
             ++index;
         }
     }

@@ -27,6 +27,7 @@ namespace crslice
 
 		cura52::Application app(tracer);
 		app.tempDirectory = scene->m_tempDirectory;
+		app.fDebugger = scene->m_debugger;
 
 		CRSliceFromScene crScene(&app, scene);
 		app.runCommulication(&crScene);

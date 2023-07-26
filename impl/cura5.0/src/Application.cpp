@@ -33,6 +33,8 @@ namespace cura52
         processor.gcode_writer.gcode.application = this;
         processor.gcode_writer.layer_plan_buffer.application = this;
         processor.gcode_writer.layer_plan_buffer.preheat_config.application = this;
+
+        application = this;
     }
 
     Application::~Application()
@@ -79,27 +81,39 @@ namespace cura52
         if (!_communication)
             return;
 
+        CALLTICK("start");
         progressor.init();
+        CALLTICK("progress init");
         startThreadPool(); // Start the thread pool
-
+        CALLTICK("thread pool");
         if (_communication->hasSlice())
         {
+            CALLTICK("start create slice");
             std::shared_ptr<Slice> slice(_communication->createSlice());
+            CALLTICK("end create slice");
             if (slice)
             {
                 processor.time_keeper.restart();
 
                 current_slice = slice.get();
                 current_slice->scene.application = this;
+                current_slice->application = this;
 
                 processor.setTargetFile(current_slice->gcodeFile.c_str());
 
+                CALLTICK("finalize 0");
                 current_slice->finalize();
+                CALLTICK("finalize 1");
+                CALLTICK("compute 0");
                 current_slice->compute();
+                CALLTICK("compute 1");
                 // Finalize the processor. This adds the end g-code and reports statistics.
                 processor.finalize();
+
+                CALLTICK("finalize");
             }
         }
+        CALLTICK("slice over");
     }
 
     void Application::startThreadPool(int nworkers)

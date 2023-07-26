@@ -87,7 +87,9 @@ namespace crslice
         if (slice->scene.extruders.size() == 0)
             slice->scene.extruders.emplace_back(0, &slice->scene.settings); // Always have one extruder.
 
+        CALLTICK("setting 0");
         crSetting2CuraSettings(*(scene->m_settings), &(slice->scene.settings));
+        CALLTICK("setting 1");
 
         //CR30 
         {
@@ -159,6 +161,7 @@ namespace crslice
 
         for (size_t i = 0; i < numGroup; i++)
         {
+            CALLTICK("group 0");
             CrGroup* crGroup = scene->getGroupsIndex(i);
             if (crGroup)
             {
@@ -174,7 +177,10 @@ namespace crslice
                         cura52::Mesh& mesh = slice->scene.mesh_groups[i].meshes.back();
                         std::string name = std::to_string(i) + "_" + std::to_string(index);
                         mesh.mesh_name = name;
+
+                        CALLTICK("mesh 0");
                         trimesh2CuraMesh(object.m_mesh.get(), mesh, application);
+                        CALLTICK("mesh 1");
 
                         INTERRUPT_BREAK("CRSliceFromScene::sliceNext  trimesh2CuraMesh.");
                         crSetting2CuraSettings(*(object.m_settings), &(mesh.settings));
@@ -185,6 +191,7 @@ namespace crslice
                 }
                 slice->scene.mesh_groups[i].m_offset = cura52::FPoint3(crGroup->m_offset.x, crGroup->m_offset.y, crGroup->m_offset.z);
             }
+            CALLTICK("group 1");
 
             INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
         }

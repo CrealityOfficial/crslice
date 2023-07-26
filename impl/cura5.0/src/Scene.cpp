@@ -100,14 +100,19 @@ namespace cura52
         else // Normal operation (not wireframe).
         {
             SliceDataStorage storage(application);
-
+            
+            CALLTICK("generate 0");
             if (!fff_processor.polygon_generator.generateAreas(storage, &mesh_group))
             {
                 return;
             }
+            CALLTICK("generate 1");
 
             application->progressor.messageProgressStage(Progress::Stage::EXPORT);
+
+            CALLTICK("gcode 0");
             fff_processor.gcode_writer.writeGCode(storage);
+            CALLTICK("gcode 1");
         }
 
         application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup

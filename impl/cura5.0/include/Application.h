@@ -69,6 +69,7 @@ namespace cura52
          */
         ~Application();
 
+        Application* application = nullptr;
         FffProcessor processor;
         Progress progressor;
         std::string tempDirectory;

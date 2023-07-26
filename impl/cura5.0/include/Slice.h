@@ -8,7 +8,7 @@
 
 namespace cura52
 {
-
+    class Application;
 /*
  * \brief Represents a command to slice something.
  *
@@ -26,6 +26,7 @@ public:
     /*
      * \brief The scene that must be sliced.
      */
+    Application* application = nullptr;
     Scene scene;
     std::string gcodeFile;
     std::string ploygonFile;
