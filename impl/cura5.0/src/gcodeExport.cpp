@@ -284,12 +284,11 @@ void GCodeExport::writeProfileConfig()
     //{
     //    tmp << ";Engine Release Time:" << engine_release_time << new_line;
     //}
-    tmp << ";Layer Height:" << (float)groupSettings->get<coord_t>("layer_height") / 1000.0f << new_line;
     tmp << ";Wall Thickness:" << (float)groupSettings->get<coord_t>("wall_thickness") / 1000.0f << new_line;
     tmp << ";Top/Bottom Thickness:" << (float)groupSettings->get<coord_t>("top_bottom_thickness") / 1000.0f << new_line;
     tmp << ";Out Wall Line Width:" << (float)groupSettings->get<coord_t>("wall_line_width_0") / 1000.0f << new_line;
     tmp << ";Inner Wall Line Width:" << (float)groupSettings->get<coord_t>("wall_line_width_x") / 1000.0f << new_line;
-    tmp << ";Inital Layer Height:" << groupSettings->get<coord_t>("layer_height_0") << new_line;
+    tmp << ";Inital Height:" << groupSettings->get<coord_t>("layer_height_0") << new_line;
     tmp << ";Wall Line Count:" << groupSettings->get<size_t>("wall_line_count") << new_line;
     tmp << ";Infill Line Distance:" << (float)groupSettings->get<coord_t>("infill_line_distance") / 1000.0f << new_line;
     tmp << ";Infill Pattern:" << groupSettings->get<std::string>("infill_pattern") << new_line;
@@ -314,12 +313,12 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Max volumetric speed:" << extruderSettings->get<std::string>("material_max_volumetric_speed") << new_line;
 
 
-	tmp << ";material_diameter:" << extruderSettings->get<std::string>("material_diameter") << new_line;
-	tmp << ";material_density:" << extruderSettings->get<std::string>("material_density") << new_line;
-	tmp << ";filament_cost:" << extruderSettings->get<std::string>("filament_cost") << new_line; 
-	tmp << ";filament_weight:" << extruderSettings->get<std::string>("filament_weight") << new_line;
-	tmp << ";preview_img_type:" << groupSettings->get<std::string>("preview_img_type") << new_line;
-	tmp << ";screen_size:" << groupSettings->get<std::string>("screen_size") << new_line;
+	tmp << ";Material Diameter:" << extruderSettings->get<std::string>("material_diameter") << new_line;
+	tmp << ";Material Density:" << extruderSettings->get<std::string>("material_density") << new_line;
+	tmp << ";Filament Cost:" << extruderSettings->get<std::string>("filament_cost") << new_line; 
+	tmp << ";Filament Weight:" << extruderSettings->get<std::string>("filament_weight") << new_line;
+	tmp << ";Preview Img Type:" << groupSettings->get<std::string>("preview_img_type") << new_line;
+	tmp << ";Screen Size:" << groupSettings->get<std::string>("screen_size") << new_line;
     *output_stream << tmp.str();
 }
 
@@ -555,16 +554,8 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";MAXZ:" << INT2MM(total_bounding_box.max.z) << new_line;
 
         //各个区域的时间段
-        //if (print_time != nullptr)
-        {
-            writeTimePartsComment(prefix);
-        }
+        writeTimePartsComment(prefix);
         //
-
-        if (!print_time)
-        {
-            for (int i = 0; i < 50; i++) prefix << ";" << new_line;
-        }
     }
 
     return prefix.str();

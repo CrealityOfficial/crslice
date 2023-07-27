@@ -122,8 +122,8 @@ private:
 
     double current_e_value; //!< The last E value written to gcode (in mm or mm^3)
     double e_value_cleaned; //E celaned
-	double material_diameter;
-	double material_density;
+    double material_diameter = { 1.75 };
+    double material_density = { 1.24 };
 	double acceleration_limit_mess;
 	std::map <float,float> acceleration_limit_mass;
 	bool acceleration_limit_mess_enable;
