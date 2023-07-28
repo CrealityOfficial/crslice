@@ -25,14 +25,13 @@
 #include "utils/ThreadPool.h"
 #include "utils/math.h"
 
-
-#include <range/v3/numeric/accumulate.hpp>
-#include <range/v3/view/drop.hpp>
-#include <range/v3/view/drop_last.hpp>
-#include <range/v3/view/enumerate.hpp>
-#include <range/v3/view/filter.hpp>
-#include <range/v3/view/slice.hpp>
-#include <range/v3/view/zip.hpp>
+//#include <range/v3/numeric/accumulate.hpp>
+//#include <range/v3/view/drop.hpp>
+//#include <range/v3/view/drop_last.hpp>
+//#include <range/v3/view/enumerate.hpp>
+//#include <range/v3/view/filter.hpp>
+//#include <range/v3/view/slice.hpp>
+//#include <range/v3/view/zip.hpp>
 #include "SkeletalTrapezoidation.h"
 #include "utils/Simplify.h"
 #include "utils/VoronoiUtils.h"
@@ -158,7 +157,7 @@ namespace cura52
             }
 
             boost::polygon::voronoi_diagram<double> vonoroi_diagram;
-            boost::polygon::construct_voronoi(segments.begin(), segments.end(), &vonoroi_diagram);
+            //boost::polygon::construct_voronoi(segments.begin(), segments.end(), &vonoroi_diagram);
 
             for (const auto& edge : vonoroi_diagram.edges())
             {
@@ -189,6 +188,7 @@ namespace cura52
                 auto dist_to_boundary = 2. * dist_to_center_edge;
                 auto slope = dist_to_boundary / delta_z;
 
+#if 0
                 auto nearby_vals = slope_at_point.getNearbyVals(p0, search_radius);
                 auto n = ranges::accumulate(nearby_vals | views::get(&point_pair_t::first), 0);
                 auto cumulative_slope = ranges::accumulate(nearby_vals | views::get(&point_pair_t::second), 0.);
@@ -198,12 +198,14 @@ namespace cura52
 
                 // update cumulative_slope in sparse grid
                 slope_at_point.insert(p0, { n, cumulative_slope });
+#endif
             }
 
             for (const auto& poly : layer_current)
             {
                 for (const auto& point : poly)
                 {
+#if 0
                     auto nearby_vals = slope_at_point.getNearbyVals(point, search_radius);
                     auto n = ranges::accumulate(nearby_vals | views::get(&point_pair_t::first), 0);
                     auto cumulative_slope = ranges::accumulate(nearby_vals | views::get(&point_pair_t::second), 0.);
@@ -224,6 +226,7 @@ namespace cura52
                                                            ranges::accumulate(nearby_vals_offset_dist | views::get(&point_pair_t::second), 0.) + xy_distance_varying
                             });
                     }
+#endif
                 }
             }
         }
@@ -234,7 +237,7 @@ namespace cura52
             for (const auto& point : poly)
             {
                 auto nearby_vals = offset_dist_at_point.getNearbyVals(point, search_radius);
-
+#if 0
                 auto n = ranges::accumulate(nearby_vals | views::get(&point_pair_t::first), 0);
                 auto cumulative_offset_dist = ranges::accumulate(nearby_vals | views::get(&point_pair_t::second), 0.);
 
@@ -254,13 +257,16 @@ namespace cura52
                 }
 
                 varying_offsets.push_back(static_cast<coord_t>(offset_dist));
+#endif 
             }
         }
 
         const auto smooth_dist = xy_distance / 2.0;
         Polygons varying_xy_disallowed_areas = layer_current
             // offset using the varying offset distances we calculated previously
+#if 0
             .offset(varying_offsets)
+#endif
             // close operation to smooth the x/y disallowed area boundary. With varying xy distances we see some jumps in the boundary.
             // As the x/y disallowed areas "cut in" to support the xy-disallowed area may propagate through the support area. If the
             // x/y disallowed area is not smoothed boost has trouble generating a voronoi diagram.
