@@ -25,8 +25,239 @@
 #include "utils/ThreadPool.h"
 #include "utils/math.h"
 
+
+#include <range/v3/numeric/accumulate.hpp>
+#include <range/v3/view/drop.hpp>
+#include <range/v3/view/drop_last.hpp>
+#include <range/v3/view/enumerate.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/slice.hpp>
+#include <range/v3/view/zip.hpp>
+#include "SkeletalTrapezoidation.h"
+#include "utils/Simplify.h"
+
+
 namespace cura52
 {
+
+    Polygons AreaSupport::generateVaryingXYDisallowedArea(const SliceMeshStorage& storage, const Settings& infill_settings, const LayerIndex layer_idx)
+    {
+        const auto& mesh_group_settings = storage.settings;
+        const Simplify simplify{ mesh_group_settings };
+        const auto layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
+        const auto support_distance_top = static_cast<double>(mesh_group_settings.get<coord_t>("support_top_distance"));
+        const auto support_distance_bot = static_cast<double>(mesh_group_settings.get<coord_t>("support_bottom_distance"));
+        const auto overhang_angle = mesh_group_settings.get<AngleRadians>("support_angle");
+        const auto xy_distance = static_cast<double>(mesh_group_settings.get<coord_t>("support_xy_distance"));
+        const auto xy_distance_overhang = infill_settings.get<coord_t>("support_xy_distance_overhang");
+
+        constexpr coord_t snap_radius = 10;
+        constexpr coord_t close_dist = snap_radius + 5; // needs to be larger than the snap radius!
+        constexpr coord_t search_radius = 0;
+
+        auto layer_current = simplify.polygon(storage.layers[layer_idx].getOutlines()
+            .offset(-close_dist)
+            .offset(close_dist));
+
+        // sparse grid for storing the offset distances at each point. For each point there can be multiple offset
+        // values as multiple may be calculated when multiple layers are used for z-smoothing of the offsets.
+        // The average of all offset dists is taken for the used varying offset. To account for this the commutative
+        // offset, and the number of offsets $n$ are stored simultaneously. The final offset used is then commutative
+        // equal to commutative_offset / n.
+        using point_pair_t = std::pair<size_t, double>;
+        using grid_t = SparsePointGridInclusive<point_pair_t>;
+        grid_t offset_dist_at_point{ snap_radius };
+
+        // Collection of the various areas we used to calculate the areas for. This is a combination
+        //  - the support distance (this is the support top distance for overhang areas, and support
+        //    bottom thickness for sloped areas)
+        //  - of the delta z between the current layer and layer below (this can vary between the areas
+        //    when we use multiple layers for z-smoothing)
+        //  - the polygon delta; the xy-distance is calculated separately for overhang and sloped areas.
+        //    here either the slope or overhang area is stored
+        std::vector<std::tuple<double, double, Polygons>> z_distances_layer_deltas;
+
+        constexpr LayerIndex layer_index_offset{ 1 };
+
+        const LayerIndex layer_idx_below{ std::max(layer_idx - layer_index_offset, LayerIndex { 0 }) };
+        if (layer_idx_below != layer_idx)
+        {
+            auto layer_below = simplify.polygon(storage.layers[layer_idx_below].getOutlines()
+                .offset(-close_dist)
+                .offset(close_dist));
+
+            z_distances_layer_deltas.emplace_back(
+                support_distance_top,
+                static_cast<double>(layer_index_offset * layer_thickness),
+                layer_current.difference(layer_below)
+            );
+
+            z_distances_layer_deltas.emplace_back(
+                support_distance_bot,
+                static_cast<double>(layer_index_offset * layer_thickness),
+                layer_below.difference(layer_current)
+            );
+        }
+
+        const LayerIndex layer_idx_above{ std::min(layer_idx + layer_index_offset, LayerIndex(static_cast<int>(storage.layers.size()) - 1)) };
+        if (layer_idx_above != layer_idx)
+        {
+            auto layer_above = simplify.polygon(storage.layers[layer_idx_below].getOutlines()
+                .offset(-close_dist)
+                .offset(close_dist));
+
+            z_distances_layer_deltas.emplace_back(
+                support_distance_bot,
+                static_cast<double>(layer_index_offset * layer_thickness),
+                layer_current.difference(layer_above)
+            );
+
+            z_distances_layer_deltas.emplace_back(
+                support_distance_top,
+                static_cast<double>(layer_index_offset * layer_thickness),
+                layer_above.difference(layer_current)
+            );
+        }
+
+        for (auto& [support_distance, delta_z, layer_delta_] : z_distances_layer_deltas)
+        {
+            const auto xy_distance_natural = support_distance * std::tan(overhang_angle);
+
+            // perform a close operation to remove narrow areas; these cannot easily be turned into a voronoi diagram
+            // we might "miss" some vertices in the resulting git map, this is not a problem
+            auto layer_delta = layer_delta_.offset(-close_dist).offset(close_dist);
+
+            if (layer_delta.empty())
+            {
+                continue;
+            }
+
+            // grid for storing the "slope" (wall overhang area at that specific point in the polygon)
+            grid_t slope_at_point{ snap_radius };
+
+            // construct a voronoi diagram. The slope is calculated based
+            // on the edge length from the boundary to the center edge(s)
+            std::vector<SkeletalTrapezoidation::Segment> segments;
+            for (auto [poly_idx, poly] : layer_delta | ranges::views::enumerate)
+            {
+                for (auto [point_idx, _p] : poly | ranges::views::enumerate)
+                {
+                    segments.emplace_back(&layer_delta, poly_idx, point_idx);
+                }
+            }
+
+            boost::polygon::voronoi_diagram<double> vonoroi_diagram;
+            boost::polygon::construct_voronoi(segments.begin(), segments.end(), &vonoroi_diagram);
+
+            for (const auto& edge : vonoroi_diagram.edges())
+            {
+                if (edge.is_infinite())
+                {
+                    continue;
+                }
+
+                auto p0 = VoronoiUtils::p(edge.vertex0());
+                auto p1 = VoronoiUtils::p(edge.vertex1());
+
+                // skip edges that move "outside" the polygon;
+                // these are st edges that are inside polygon-holes
+                if (!layer_delta.inside(p0) && !layer_delta.inside(p1))
+                {
+                    continue;
+                }
+
+                auto dist_to_center_edge = static_cast<double>(cura::vSize(p0 - p1));
+
+                if (dist_to_center_edge < snap_radius)
+                {
+                    continue;
+                }
+
+                // p0 to p1 is the distance to the center between the two polygons; two times
+                // this distance is (approximately) the distance between the boundaries
+                auto dist_to_boundary = 2. * dist_to_center_edge;
+                auto slope = dist_to_boundary / delta_z;
+
+                auto nearby_vals = slope_at_point.getNearbyVals(p0, search_radius);
+                auto n = ranges::accumulate(nearby_vals | views::get(&point_pair_t::first), 0);
+                auto cumulative_slope = ranges::accumulate(nearby_vals | views::get(&point_pair_t::second), 0.);
+
+                n += 1;
+                cumulative_slope += slope;
+
+                // update cumulative_slope in sparse grid
+                slope_at_point.insert(p0, { n, cumulative_slope });
+            }
+
+            for (const auto& poly : layer_current)
+            {
+                for (const auto& point : poly)
+                {
+                    auto nearby_vals = slope_at_point.getNearbyVals(point, search_radius);
+                    auto n = ranges::accumulate(nearby_vals | views::get(&point_pair_t::first), 0);
+                    auto cumulative_slope = ranges::accumulate(nearby_vals | views::get(&point_pair_t::second), 0.);
+
+                    if (n != 0)
+                    {
+                        auto slope = cumulative_slope / static_cast<double>(n);
+                        auto wall_angle = std::atan(slope);
+                        auto ratio = std::min(wall_angle / overhang_angle, 1.);
+
+                        auto xy_distance_varying = std::lerp(xy_distance, xy_distance_natural, ratio);
+
+                        auto nearby_vals_offset_dist = offset_dist_at_point.getNearbyVals(point, search_radius);
+
+                        // update and insert cumulative varying xy distance in one go
+                        offset_dist_at_point.insert(point, {
+                                                           ranges::accumulate(nearby_vals_offset_dist | views::get(&point_pair_t::first), 0) + 1,
+                                                           ranges::accumulate(nearby_vals_offset_dist | views::get(&point_pair_t::second), 0.) + xy_distance_varying
+                            });
+                    }
+                }
+            }
+        }
+
+        std::vector<coord_t> varying_offsets;
+        for (const auto& poly : layer_current)
+        {
+            for (const auto& point : poly)
+            {
+                auto nearby_vals = offset_dist_at_point.getNearbyVals(point, search_radius);
+
+                auto n = ranges::accumulate(nearby_vals | views::get(&point_pair_t::first), 0);
+                auto cumulative_offset_dist = ranges::accumulate(nearby_vals | views::get(&point_pair_t::second), 0.);
+
+                double offset_dist{};
+                if (n == 0)
+                {
+                    // if there are no offset dists generated for a vertex $p$ this must mean that vertex $p$ was not
+                    // present in any of the delta areas. This can only happen if the areas for the current layer and
+                    // the layer(s) below are perfectly aligned at vertex $p$; the walls at vertex $p$ are vertical.
+                    // As the wall is vertical the xy_distance is taken at vertex $p$.
+                    offset_dist = xy_distance;
+                }
+                else
+                {
+                    auto avg_offset_dist = cumulative_offset_dist / static_cast<double>(n);
+                    offset_dist = avg_offset_dist;
+                }
+
+                varying_offsets.push_back(static_cast<coord_t>(offset_dist));
+            }
+        }
+
+        const auto smooth_dist = xy_distance / 2.0;
+        Polygons varying_xy_disallowed_areas = layer_current
+            // offset using the varying offset distances we calculated previously
+            .offset(varying_offsets)
+            // close operation to smooth the x/y disallowed area boundary. With varying xy distances we see some jumps in the boundary.
+            // As the x/y disallowed areas "cut in" to support the xy-disallowed area may propagate through the support area. If the
+            // x/y disallowed area is not smoothed boost has trouble generating a voronoi diagram.
+            .offset(smooth_dist).offset(-smooth_dist);
+        //scripta::log("support_varying_xy_disallowed_areas", varying_xy_disallowed_areas, SectionType::SUPPORT, layer_idx);
+        return varying_xy_disallowed_areas;
+    }
+
 
 bool AreaSupport::handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const Slicer* slicer)
 {

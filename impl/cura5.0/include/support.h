@@ -28,7 +28,7 @@ public:
      * processing is needed.
      */
     static bool handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const Slicer* slicer);
-
+    Polygons generateVaryingXYDisallowedArea(const SliceMeshStorage& storage, const Settings& infill_settings, const LayerIndex layer_idx);
     static bool isSupportNecessary(SliceDataStorage& storage);
     /*!
      * \brief Generate the overhang areas for all models.
