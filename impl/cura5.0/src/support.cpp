@@ -35,7 +35,7 @@
 #include <range/v3/view/zip.hpp>
 #include "SkeletalTrapezoidation.h"
 #include "utils/Simplify.h"
-
+#include "utils/VoronoiUtils.h"
 
 namespace cura52
 {
@@ -138,12 +138,23 @@ namespace cura52
             // construct a voronoi diagram. The slope is calculated based
             // on the edge length from the boundary to the center edge(s)
             std::vector<SkeletalTrapezoidation::Segment> segments;
-            for (auto [poly_idx, poly] : layer_delta | ranges::views::enumerate)
+            //for (auto [poly_idx, poly] : layer_delta | ranges::views::enumerate)
+            //{
+            //    for (auto [point_idx, _p] : poly | ranges::views::enumerate)
+            //    {
+            //        segments.emplace_back(&layer_delta, poly_idx, point_idx);
+            //    }
+            //}
+            int poly_idx = 0;
+            for (auto poly : layer_delta)
             {
-                for (auto [point_idx, _p] : poly | ranges::views::enumerate)
+                int point_idx = 0;
+                for (auto _p : poly)
                 {
                     segments.emplace_back(&layer_delta, poly_idx, point_idx);
+                    ++point_idx;
                 }
+                ++poly_idx;
             }
 
             boost::polygon::voronoi_diagram<double> vonoroi_diagram;
@@ -166,7 +177,7 @@ namespace cura52
                     continue;
                 }
 
-                auto dist_to_center_edge = static_cast<double>(cura::vSize(p0 - p1));
+                auto dist_to_center_edge = static_cast<double>(cura52::vSize(p0 - p1));
 
                 if (dist_to_center_edge < snap_radius)
                 {
@@ -200,7 +211,7 @@ namespace cura52
                     if (n != 0)
                     {
                         auto slope = cumulative_slope / static_cast<double>(n);
-                        auto wall_angle = std::atan(slope);
+                        double wall_angle = std::atan(slope);
                         auto ratio = std::min(wall_angle / overhang_angle, 1.);
 
                         auto xy_distance_varying = std::lerp(xy_distance, xy_distance_natural, ratio);
