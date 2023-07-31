@@ -1740,7 +1740,7 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 
     const coord_t first_outer_wall_line_width = scene.extruders[extruder_order.front()].settings.get<coord_t>("wall_line_width_0");
     LayerPlan& gcode_layer = *new LayerPlan(storage, layer_nr, z, layer_thickness, extruder_order.front(), fan_speed_layer_time_settings_per_extruder, comb_offset_from_outlines, first_outer_wall_line_width, avoid_distance);
-	
+
 	//keliji 
 	if (mesh_group_settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
 	{
@@ -2854,7 +2854,11 @@ void FffGcodeWriter::processSpiralizedWall(const SliceDataStorage& storage, Laye
         }
     }
     const bool is_bottom_layer = (layer_nr == mesh.settings.get<LayerIndex>("bottom_layers"));
-    const bool is_top_layer = ((size_t)layer_nr == (storage.spiralize_wall_outlines.size() - 1) || storage.spiralize_wall_outlines[layer_nr + 1] == nullptr);
+    bool is_top_layer = ((size_t)layer_nr == (storage.spiralize_wall_outlines.size() - 1) || storage.spiralize_wall_outlines[layer_nr + 1] == nullptr);
+	if (mesh.settings.has("maxvolumetricspeed_start"))
+	{
+		is_top_layer = false;
+	}
     const int seam_vertex_idx = storage.spiralize_seam_vertex_indices[layer_nr]; // use pre-computed seam vertex index for current layer
     // output a wall slice that is interpolated between the last and current walls
     for (const ConstPolygonRef& wall_outline : part.spiral_wall)
