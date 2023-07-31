@@ -38,6 +38,7 @@ static inline int stringcasecompare(const char* a, const char* b)
  */
 static inline void writeInt2mm(const int32_t coord, std::ostream& ss)
 {
+    int mag = std::log10(MM2INT(1.));
     constexpr size_t buffer_size = 24;
     char buffer[buffer_size];
     int char_count = sprintf(buffer, "%d", coord); // we haven't found any way for the windows compiler to accept formatting of a coord_t, so it has to be int32_t instead
@@ -53,19 +54,19 @@ static inline void writeInt2mm(const int32_t coord, std::ostream& ss)
 #endif // DEBUG
     int end_pos = char_count; // the first character not to write any more
     int trailing_zeros = 1;
-    while (trailing_zeros < 4 && buffer[char_count - trailing_zeros] == '0')
+    while (trailing_zeros < mag + 1 && buffer[char_count - trailing_zeros] == '0')
     {
         trailing_zeros++;
     }
     trailing_zeros--;
     end_pos = char_count - trailing_zeros;
-    if (trailing_zeros == 3)
+    if (trailing_zeros == mag)
     { // no need to write the decimal dot
         buffer[char_count - trailing_zeros] = '\0';
         ss << buffer;
         return;
     }
-    if (char_count <= 3)
+    if (char_count <= mag)
     {
         int start = 0; // where to start writing from the buffer
         if (coord < 0)
@@ -74,7 +75,7 @@ static inline void writeInt2mm(const int32_t coord, std::ostream& ss)
             start = 1;
         }
         ss << "0.";
-        for (int nulls = char_count - start; nulls < 3; nulls++)
+        for (int nulls = char_count - start; nulls < mag; nulls++)
         { // fill up to 3 decimals with zeros
             ss << '0';
         }
@@ -85,7 +86,7 @@ static inline void writeInt2mm(const int32_t coord, std::ostream& ss)
     {
         char prev = '.';
         int pos;
-        for (pos = char_count - 3; pos <= end_pos; pos++)
+        for (pos = char_count - mag; pos <= end_pos; pos++)
         { // shift all characters and insert the decimal dot
             char next_prev = buffer[pos];
             buffer[pos] = prev;

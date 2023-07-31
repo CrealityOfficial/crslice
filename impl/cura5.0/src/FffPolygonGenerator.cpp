@@ -852,7 +852,7 @@ void FffPolygonGenerator::removeEmptyFirstLayers(SliceDataStorage& storage, size
 
         //belt ����ֵ
         //QString str = QString::number(-minZ.y, 'f', 2);
-        //float num = layer_height * n_empty_first_layers / 1000.0f;
+        //float num = layer_height * n_empty_first_layers / (double)MM2INT(1.);
         //std::string str = std::to_string(num);
         //application->current_slice->scene.current_mesh_group->settings.add("machine_belt_offset_Y", str);
 

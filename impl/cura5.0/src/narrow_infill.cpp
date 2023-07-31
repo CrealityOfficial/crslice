@@ -16,8 +16,8 @@ Slic3r::ExPolygon convert(const cura52::Polygons& polygons)
         ClipperLib::Path path = *(polygons.begin() + i);
         for (ClipperLib::IntPoint p : path)
         {
-            point_in.x() = p.X * 1000;
-            point_in.y() = p.Y * 1000;
+            point_in.x() = p.X;
+            point_in.y() = p.Y;
             points_in.emplace_back(point_in);
         }
     }
@@ -75,10 +75,10 @@ static bool is_narrow_infill_area(const cura52::Polygons& polygons)
     Slic3r::ExPolygon expolygon;
     expolygon = convert(polygons);
 
-    const float delta = -3000000.0;
+    const float delta = MM2INT(-3.);
     double miterLimit = 3.000;
  
-    Slic3r::Clipper3r::JoinType joinType = Slic3r::Clipper3r::JoinType::jtMiter;;
+    Slic3r::Clipper3r::JoinType joinType = Slic3r::Clipper3r::JoinType::jtMiter;
     Slic3r::Polygons  out;
     out =  Slic3r::offset(expolygon, delta, joinType, miterLimit);
 

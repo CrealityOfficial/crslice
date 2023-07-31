@@ -613,7 +613,7 @@ void Wireframe2gcode::processStartingCode()
     {
         gcode.writeComment("enable auto-retraction");
         std::ostringstream tmp;
-        tmp << "M227 S" << (start_extruder_settings.get<coord_t>("retraction_amount") * 2560 / 1000) << " P" << (start_extruder_settings.get<coord_t>("retraction_amount") * 2560 / 1000);
+        tmp << "M227 S" << (start_extruder_settings.get<double>("retraction_amount") * 2560) << " P" << (start_extruder_settings.get<double>("retraction_amount") * 2560);
         gcode.writeLine(tmp.str().c_str());
     }
     else if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)

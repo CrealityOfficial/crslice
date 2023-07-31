@@ -922,7 +922,7 @@ void ConstPolygonRef::smooth_corner_simple(const Point p0, const Point p1, const
     //  0
     // ideally a1_size == b1_size
     if (vSize2(v02) <= shortcut_length * (shortcut_length + 10) // v02 is approximately shortcut length
-        || (cos_angle > 0.9999 && LinearAlg2D::getDist2FromLine(p2, p0, p1) < 20 * 20)) // p1 is degenerate
+        || (cos_angle > 0.9999 && LinearAlg2D::getDist2FromLine(p2, p0, p1) < MM2_2INT(0.0004))) // p1 is degenerate
     {
         // handle this separately to avoid rounding problems below in the getPointOnLineWithDist function
         p1_it.remove();
@@ -1029,7 +1029,7 @@ void ConstPolygonRef::smooth_outward(const AngleDegrees min_angle, int shortcut_
         do
         {
             ListPolyIt next = p1_it.next();
-            if (vSize2(p1_it.p() - next.p()) < 10 * 10)
+            if (vSize2(p1_it.p() - next.p()) < MM2_2INT(0.0001))
             {
                 p1_it.remove();
             }
@@ -1448,10 +1448,10 @@ void Polygons::ensureManifold()
     for (Point p : duplicate_locations)
     {
         PolygonRef dot = removal_dots.newPoly();
-        dot.add(p + Point(0,5));
-        dot.add(p + Point(5,0));
-        dot.add(p + Point(0,-5));
-        dot.add(p + Point(-5,0));
+        dot.add(p + Point(0, MM2INT(0.005)));
+        dot.add(p + Point(MM2INT(0.005),0));
+        dot.add(p + Point(0,-MM2INT(0.005)));
+        dot.add(p + Point(-MM2INT(0.005),0));
     }
     if ( ! removal_dots.empty())
     {

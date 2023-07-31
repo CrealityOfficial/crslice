@@ -474,7 +474,7 @@ std::shared_ptr<std::pair<ClosestPolygonPoint, ClosestPolygonPoint>> Comb::Cross
         const coord_t dist_to_start = vSize(crossing_candidate.second.location - estimated_start); // use outside location, so that the crossing direction is taken into account
         const coord_t dist_to_end = vSize(crossing_candidate.second.location - estimated_end);
         const coord_t detour_dist = dist_to_start + dist_to_end;
-        const coord_t detour_score = crossing_dist2 + detour_dist * detour_dist / 1000; // prefer a closest connection over a detour
+        const coord_t detour_score = crossing_dist2 + detour_dist * detour_dist / (double)MM2INT(1.); // prefer a closest connection over a detour
         // The detour distance is generally large compared to the crossing distance.
         // While the crossing is generally about 1mm across,
         // the distance between an arbitrary point and the boundary may well be a couple of centimetres.

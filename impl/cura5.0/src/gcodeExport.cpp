@@ -240,9 +240,9 @@ void GCodeExport::writeMashineConfig()
     std::ostringstream tmp;
     tmp << ";----------Machine Config--------------" << new_line;
     tmp << ";Machine Name:" << groupSettings->get<std::string>("machine_name") << new_line;
-    tmp << ";Machine Height:" << (float)groupSettings->get<coord_t>("machine_height") / 1000.0f << new_line;
-    tmp << ";Machine Width:" << (float)groupSettings->get<coord_t>("machine_width") / 1000.0f << new_line;
-    tmp << ";Machine Depth:" << (float)groupSettings->get<coord_t>("machine_depth") / 1000.0f << new_line;
+    tmp << ";Machine Height:" << (float)groupSettings->get<double>("machine_height") << new_line;
+    tmp << ";Machine Width:" << (float)groupSettings->get<double>("machine_width") << new_line;
+    tmp << ";Machine Depth:" << (float)groupSettings->get<double>("machine_depth") << new_line;
     tmp << ";Material Type:" << extruderSettings->get<std::string>("material_type") << new_line;
     tmp << ";Material Name:" << extruderSettings->get<std::string>("material_name") << new_line;
     int exsize = scene->extruders.size();
@@ -283,30 +283,30 @@ void GCodeExport::writeProfileConfig()
     //{
     //    tmp << ";Engine Release Time:" << engine_release_time << new_line;
     //}
-    tmp << ";Layer Height:" << (float)groupSettings->get<coord_t>("layer_height") / 1000.0f << new_line;
-    tmp << ";Wall Thickness:" << (float)groupSettings->get<coord_t>("wall_thickness") / 1000.0f << new_line;
-    tmp << ";Top/Bottom Thickness:" << (float)groupSettings->get<coord_t>("top_bottom_thickness") / 1000.0f << new_line;
-    tmp << ";Out Wall Line Width:" << (float)groupSettings->get<coord_t>("wall_line_width_0") / 1000.0f << new_line;
-    tmp << ";Inner Wall Line Width:" << (float)groupSettings->get<coord_t>("wall_line_width_x") / 1000.0f << new_line;
+    tmp << ";Layer Height:" << (float)groupSettings->get<double>("layer_height") << new_line;
+    tmp << ";Wall Thickness:" << (float)groupSettings->get<double>("wall_thickness") << new_line;
+    tmp << ";Top/Bottom Thickness:" << (float)groupSettings->get<double>("top_bottom_thickness") << new_line;
+    tmp << ";Out Wall Line Width:" << (float)groupSettings->get<double>("wall_line_width_0") << new_line;
+    tmp << ";Inner Wall Line Width:" << (float)groupSettings->get<double>("wall_line_width_x") << new_line;
     tmp << ";Inital Layer Height:" << groupSettings->get<coord_t>("layer_height_0") << new_line;
     tmp << ";Wall Line Count:" << groupSettings->get<size_t>("wall_line_count") << new_line;
-    tmp << ";Infill Line Distance:" << (float)groupSettings->get<coord_t>("infill_line_distance") / 1000.0f << new_line;
+    tmp << ";Infill Line Distance:" << (float)groupSettings->get<double>("infill_line_distance") << new_line;
     tmp << ";Infill Pattern:" << groupSettings->get<std::string>("infill_pattern") << new_line;
 
-    tmp << ";Infill Sparse Density:" << (float)meshSettings->get <coord_t>("infill_sparse_density") / 1000.0f << new_line;
+    tmp << ";Infill Sparse Density:" << (float)meshSettings->get <double>("infill_sparse_density") << new_line;
 
-    tmp << ";Infill Wipe Distance:" << (float)meshSettings->get <coord_t>("infill_wipe_dist") / 1000.0f << new_line;
+    tmp << ";Infill Wipe Distance:" << (float)meshSettings->get <double>("infill_wipe_dist") << new_line;
     tmp << ";Print Temperature:" << extruderSettings->get<Temperature>("material_print_temperature") << new_line;
     tmp << ";Bed Temperature:" << extruderSettings->get<Temperature>("material_bed_temperature") << new_line;
 
     tmp << ";Support Enable:" << (groupSettings->get<bool>("support_enable") ? "true" : "false") << new_line;
-    tmp << ";Support Density:" << (float)groupSettings->get<coord_t>("support_infill_rate") / 1000.0f << new_line;
+    tmp << ";Support Density:" << (float)groupSettings->get<double>("support_infill_rate") << new_line;
     tmp << ";Support Angle:" << (int)(groupSettings->get<AngleRadians>("support_angle") * 180 / 3.141592f) << new_line;
     tmp << ";Adhesion Type:" << groupSettings->get<std::string>("adhesion_type") << new_line;
     tmp << ";machine is belt:" << (groupSettings->get<bool>("machine_is_belt") ? "true" : "false") << new_line;
-    tmp << ";machine belt offset:" << (float)groupSettings->get<coord_t>("machine_belt_offset") / 1000.0f << new_line;
-    tmp << ";machine belt offset Y:" << (float)groupSettings->get<coord_t>("machine_belt_offset_Y") / 1000.0f << new_line;
-    tmp << ";Raft Base Line Spacing:" << (float)groupSettings->get<coord_t>("raft_base_line_spacing") / 1000.0f << new_line;
+    tmp << ";machine belt offset:" << (float)groupSettings->get<double>("machine_belt_offset") << new_line;
+    tmp << ";machine belt offset Y:" << (float)groupSettings->get<double>("machine_belt_offset_Y") << new_line;
+    tmp << ";Raft Base Line Spacing:" << (float)groupSettings->get<double>("raft_base_line_spacing") << new_line;
     tmp << ";Wait Heatup Sync:" << (groupSettings->get<bool>("bed_print_temp_wait_sync") ? "true" : "false") << new_line;
     tmp << ";Enable Ironing:" << (groupSettings->get<bool>("ironing_enabled") ? "true" : "false") << new_line;
     tmp << ";Material Type:" << extruderSettings->get<std::string>("material_type") << new_line;
@@ -322,10 +322,10 @@ void GCodeExport::writeShellConfig()
     Settings* extruderSettings = &scene->extruders[0].settings;
     std::ostringstream tmp;
     tmp << ";----------Shell Config----------------" << new_line;
-    tmp << ";Outer Wall Wipe Distance:" << meshSettings->get<coord_t>("wall_0_wipe_dist") << new_line;
+    tmp << ";Outer Wall Wipe Distance:" << meshSettings->get<double>("wall_0_wipe_dist") << new_line;
     tmp << ";Outer Inset First:" << (meshSettings->get<bool>("outer_inset_first") ? "true" : "false") << new_line;
     tmp << ";Infill Before Walls:" << (meshSettings->get<bool>("infill_before_walls") ? "true" : "false") << new_line;
-    tmp << ";Infill Overlap:" << (float)meshSettings->get<coord_t>("infill_overlap_mm") / 1000.f << new_line;
+    tmp << ";Infill Overlap:" << (float)meshSettings->get<double>("infill_overlap_mm") << new_line;
     tmp << ";Fill Gaps Between Walls:" << meshSettings->get<std::string>("fill_perimeter_gaps") << new_line;
 
     tmp << ";Minimum Infill Area:" << meshSettings->get<double>("min_infill_area") << new_line;
@@ -335,9 +335,9 @@ void GCodeExport::writeShellConfig()
     tmp << ";Seam Corner Preference:" << meshSettings->get<std::string>("z_seam_corner") << new_line;
 
 
-    tmp << ";Z Seam X:" << (float)meshSettings->get<coord_t>("z_seam_x") / 1000.0f << new_line;
-    tmp << ";Z Seam Y:" << (float)meshSettings->get<coord_t>("z_seam_y") / 1000.0f << new_line;
-    tmp << ";Horizontal Expansion:" << (float)meshSettings->get<coord_t>("xy_offset") / 1000.0f << new_line;
+    tmp << ";Z Seam X:" << (float)meshSettings->get<double>("z_seam_x") << new_line;
+    tmp << ";Z Seam Y:" << (float)meshSettings->get<double>("z_seam_y") << new_line;
+    tmp << ";Horizontal Expansion:" << (float)meshSettings->get<double>("xy_offset") << new_line;
     tmp << ";Top/Bottom Pattern:" << meshSettings->get<std::string>("top_bottom_pattern") << new_line;
     tmp << ";Ironing Pattern:" << meshSettings->get<std::string>("ironing_pattern") << new_line;
     tmp << ";Vase Model:" << (meshSettings->get<bool>("magic_spiralize") ? "true" : "false") << new_line;
@@ -355,15 +355,15 @@ void GCodeExport::writeSupportConfig()
     tmp << ";Support Type:" << groupSettings->get<std::string>("support_type") << new_line;
 
     tmp << ";Support Pattern:" << groupSettings->get<std::string>("support_pattern") << new_line;
-    tmp << ";Support Infill Layer Thickness:" << (float)groupSettings->get<coord_t>("support_infill_sparse_thickness") / 1000.0f << new_line;
+    tmp << ";Support Infill Layer Thickness:" << (float)groupSettings->get<double>("support_infill_sparse_thickness") << new_line;
     tmp << ";Minimum Support Area:" << groupSettings->get<double>("minimum_support_area") << new_line;
     tmp << ";Enable Support Roof:" << (groupSettings->get<bool>("support_roof_enable") ? "true" : "false") << new_line;
-    tmp << ";Support Roof Thickness:" << (float)groupSettings->get<coord_t>("support_roof_height") / 1000.0f << new_line;
+    tmp << ";Support Roof Thickness:" << (float)groupSettings->get<double>("support_roof_height") << new_line;
     tmp << ";Support Roof Pattern:" << groupSettings->get<std::string>("support_roof_pattern") << new_line;
     tmp << ";Connect Support Lines:" << groupSettings->get<bool>("zig_zaggify_support") << new_line;
     tmp << ";Connect Support ZigZags:" << groupSettings->get<bool>("support_connect_zigzags") << new_line;
-    tmp << ";Minimum Support X/Y Distance:" << (float)groupSettings->get<coord_t>("support_xy_distance_overhang") / 1000.0f << new_line;
-    tmp << ";Support Line Distance:" << (float)groupSettings->get<coord_t>("support_line_distance") / 1000.0f << new_line;
+    tmp << ";Minimum Support X/Y Distance:" << (float)groupSettings->get<double>("support_xy_distance_overhang") << new_line;
+    tmp << ";Support Line Distance:" << (float)groupSettings->get<double>("support_line_distance") << new_line;
     *output_stream << tmp.str();
 }
 void GCodeExport::writeSpeedAndTravelConfig()
@@ -377,7 +377,7 @@ void GCodeExport::writeSpeedAndTravelConfig()
     tmp << ";Enable Print Cool:" << (extruderSettings->get<bool>("cool_fan_enabled") ? "true" : "false") << new_line;
     tmp << ";Avoid Printed Parts Traveling:" << (extruderSettings->get<bool>("travel_avoid_other_parts") ? "true" : "false") << new_line;
     tmp << ";Enable Retraction:" << (extruderSettings->get<bool>("retraction_enable") ? "true" : "false") << new_line;
-    tmp << ";Retraction Distance:" << (float)extruderSettings->get<coord_t>("retraction_amount") / 1000.0f << new_line;
+    tmp << ";Retraction Distance:" << (float)extruderSettings->get<double>("retraction_amount") << new_line;
 
     tmp << ";Retraction Speed:" << extruderSettings->get<Velocity>("retraction_retract_speed") << new_line;
     tmp << ";Retraction Prime Speed:" << extruderSettings->get<Velocity>("retraction_prime_speed") << new_line;
@@ -385,7 +385,7 @@ void GCodeExport::writeSpeedAndTravelConfig()
     tmp << ";Minimum Extrusion Distance Window:" << extruderSettings->get<double>("retraction_extrusion_window") << new_line;
 
     tmp << ";Z Hop When Retracted:" << (extruderSettings->get<bool>("retraction_hop_enabled") ? "true" : "false") << new_line;
-    tmp << ";Z Hop Height:" << (float)extruderSettings->get<coord_t>("retraction_hop") / 1000.0f << new_line;
+    tmp << ";Z Hop Height:" << (float)extruderSettings->get<double>("retraction_hop") << new_line;
     tmp << ";Retract Before Outer Wall:" << (groupSettings->get<bool>("travel_retract_before_outer_wall") ? "true" : "false") << new_line<< new_line;
     
     tmp << ";Outer Wall Speed:" << groupSettings->get<Velocity>("speed_wall_0") << new_line;
@@ -421,16 +421,16 @@ void GCodeExport::writeSpecialModelAndMeshConfig()
     tmp << "; --------SpecialModel&Mesh Fixes--------" << new_line;
     tmp << ";Union Overlapping Volum:" << (meshSettings->get<bool>("meshfix_union_all") ? "true" : "false") << new_line;
     tmp << ";Remove All Holes:" << (meshSettings->get<bool>("meshfix_union_all_remove_holes") ? "true" : "false") << new_line;
-    tmp << ";Maximum Travel Resolution:" << (float)extruderSettings->get<coord_t>("meshfix_maximum_travel_resolution") / 1000.0f << new_line;
-    tmp << ";Maximum Deviation:" << (float)extruderSettings->get<coord_t>("meshfix_maximum_deviation") / 1000.0f << new_line;
+    tmp << ";Maximum Travel Resolution:" << (float)extruderSettings->get<double>("meshfix_maximum_travel_resolution") << new_line;
+    tmp << ";Maximum Deviation:" << (float)extruderSettings->get<double>("meshfix_maximum_deviation") << new_line;
     tmp << ";Maximum Model Angle:" << meshSettings->get<AngleRadians>("conical_overhang_angle") << new_line;
     tmp << ";IS Mold Print:" << (meshSettings->get<bool>("mold_enabled") ? "true" : "false") << new_line;
     tmp << ";Make Overhang Printable:" << (meshSettings->get<bool>("conical_overhang_enabled") ? "true" : "false") << new_line;
     tmp << ";Enable Coasting:" << (extruderSettings->get<bool>("coasting_enable") ? "true" : "false") << new_line;
     tmp << ";Coasting Volumes:" << extruderSettings->get<double>("coasting_volume") << new_line;
     tmp << ";Coasting Speed:" << extruderSettings->get<Ratio>("coasting_speed") << new_line;
-    tmp << ";Raft AirGap:" << (float)extruderSettings->get<coord_t>("raft_airgap") / 1000.0f << new_line;
-    tmp << ";Layer0 ZOverLap:" << (float)extruderSettings->get<coord_t>("layer_0_z_overlap") / 1000.0f << new_line;
+    tmp << ";Raft AirGap:" << (float)extruderSettings->get<double>("raft_airgap") << new_line;
+    tmp << ";Layer0 ZOverLap:" << (float)extruderSettings->get<double>("layer_0_z_overlap") << new_line;
 
     *output_stream << tmp.str();
 }
@@ -1119,7 +1119,7 @@ Point3 RotateByVector(Point3 old_pt, Point3 axit, Point3 offset, double theta)
 void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 {
     Scene* scene = &application->current_slice->scene;
-    float angle = scene->settings.get<coord_t>("special_slope_slice_angle") / 1000.;
+    float angle = scene->settings.get<double>("special_slope_slice_angle");
     std::string Axis = scene->settings.get<std::string>("special_slope_slice_axis");
     if (angle != 0. && layer_nr >= 0)
     {
@@ -1138,7 +1138,7 @@ void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double e
 {
     Scene* scene = &application->current_slice->scene;
     Ratio flow_ratio = scene->settings.get<Ratio>("material_flow_ratio") ;
-    float angle = scene->settings.get<coord_t>("special_slope_slice_angle") / 1000.;
+    float angle = scene->settings.get<double>("special_slope_slice_angle");
     std::string Axis = scene->settings.get<std::string>("special_slope_slice_axis");
     if (angle != 0. && layer_nr >= 0)
     {
@@ -1211,7 +1211,7 @@ void GCodeExport::writeExtrusionG2G3(const Point3& p, const Point& center_offset
 
 float getAngelOfTwoVector(const Point& pt1, const Point& pt2)
 {
-	Point c(pt2.X+1000,pt2.Y);
+	Point c(pt2.X+ MM2INT(1.),pt2.Y);
 	float theta = atan2(pt1.X - c.Y, pt1.X - c.X) - atan2(pt2.Y - c.Y, pt2.X - c.X);
 	if (theta > PI)
 		theta -= 2 * PI;
@@ -1689,12 +1689,12 @@ coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t 
     if (O.X > radius && O.X < machine_width - radius - 1 && O.Y > radius && O.Y < machine_depth - radius - 1)
     {
         *output_stream << "G17\n";
-        *output_stream << "G2" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
-            << " I" << PrecisionedDouble{ 5, ij_offset.X / 1000. } << " J" << PrecisionedDouble{ 5, ij_offset.Y / 1000. }
+        *output_stream << "G2" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / (double)MM2INT(1.) }
+            << " I" << PrecisionedDouble{ 5, ij_offset.X / (double)MM2INT(1.) } << " J" << PrecisionedDouble{ 5, ij_offset.Y / (double)MM2INT(1.) }
         << " P1 F" << PrecisionedDouble{ 1, speed * 60 } << "\n";
     }
     else {
-        *output_stream << "G1" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. } << "\n";
+        *output_stream << "G1" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / (double)MM2INT(1.) } << "\n";
     }
 
     return is_z_hopped;

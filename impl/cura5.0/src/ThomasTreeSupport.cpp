@@ -734,7 +734,7 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
     const coord_t support_outset = mesh.settings.get<coord_t>("support_offset");
     const coord_t roof_outset = mesh.settings.get<coord_t>("support_roof_offset");
     const coord_t extra_outset = std::max(coord_t(0), mesh_config.min_radius - mesh_config.support_line_width) + (xy_overrides ? 0 : mesh_config.support_line_width / 2); // extra support offset to compensate for larger tip radiis. Also outset a bit more when z overwrites xy, because supporting something with a part of a support line is better than not supporting it at all.
-    const bool force_tip_to_roof = (mesh_config.min_radius * mesh_config.min_radius * M_PI > minimum_roof_area * (1000 * 1000)) && roof_enabled; // tip will be changed to foof if tip_area is bigger than roof_area.
+    const bool force_tip_to_roof = (mesh_config.min_radius * mesh_config.min_radius * M_PI > minimum_roof_area * (MM2_2INT(1.))) && roof_enabled; // tip will be changed to foof if tip_area is bigger than roof_area.
     const double tip_roof_size = force_tip_to_roof ? mesh_config.min_radius * mesh_config.min_radius * M_PI : 0;
     const double support_overhang_angle = mesh.settings.get<AngleRadians>("support_angle");
     const coord_t max_overhang_speed = (support_overhang_angle < TAU / 4) ? (coord_t)(tan(support_overhang_angle) * mesh_config.layer_height) : std::numeric_limits<coord_t>::max();
@@ -967,7 +967,7 @@ void ThomasTreeSupport::generateInitialAreas(const SliceMeshStorage& mesh, std::
                     Polygons forbidden_next = (mesh_config.support_rests_on_model ? (only_gracious ? volumes_.getAvoidance(mesh_config.getRadius(0), layer_idx - (dtt_roof + 1), AvoidanceType::FAST, true, !xy_overrides) : volumes_.getCollision(mesh_config.getRadius(0), layer_idx - (dtt_roof + 1), !xy_overrides)) : volumes_.getAvoidance(mesh_config.getRadius(0), layer_idx - (dtt_roof + 1), AvoidanceType::FAST, false, !xy_overrides));
                     forbidden_next = forbidden_next.offset(5); // prevent rounding errors down the line
                     Polygons overhang_outset_next = overhang_outset.difference(forbidden_next);
-                    if (overhang_outset_next.area() / (1000 * 1000) < minimum_roof_area) // next layer down the roof area would be to small so we have to insert our roof support here. Also convert squaremicrons to squaremilimeter
+                    if (overhang_outset_next.area() / MM2_2INT(1.) < minimum_roof_area) // next layer down the roof area would be to small so we have to insert our roof support here. Also convert squaremicrons to squaremilimeter
                     {
                         size_t dtt_before = dtt_roof > 0 ? dtt_roof - 1 : 0;
                         if (dtt_roof != 0)
@@ -1865,7 +1865,7 @@ void ThomasTreeSupport::createLayerPathing(std::vector<std::set<TreeSupportEleme
     LayerIndex last_merge = move_bounds.size();
     bool new_element = false;
 
-    size_t max_merge_every_x_layers = std::min(std::min(5000 / (std::max(config.maximum_move_distance, coord_t(100))), 1000 / std::max(config.maximum_move_distance_slow, coord_t(20))), 3000 / config.layer_height); // Ensures at least one merge operation per 3mm height, 50 layers, 1 mm movement of slow speed or 5mm movement of fast speed (whatever is lowest). Values were guessed.
+    size_t max_merge_every_x_layers = std::min(std::min(MM2INT(5) / (std::max(config.maximum_move_distance, MM2INT(0.1))), MM2INT(1.) / std::max(config.maximum_move_distance_slow, MM2INT(0.02))), MM2INT(3.) / config.layer_height); // Ensures at least one merge operation per 3mm height, 50 layers, 1 mm movement of slow speed or 5mm movement of fast speed (whatever is lowest). Values were guessed.
     size_t merge_every_x_layers = 1;
     // Calculate the influence areas for each layer below (Top down)
     // This is done by first increasing the influence area by the allowed movement distance, and merging them with other influence areas if possible

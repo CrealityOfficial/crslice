@@ -1433,11 +1433,11 @@ void PolygonUtils::fixSelfIntersections(const coord_t epsilon, Polygons& thiss)
         return;
     }
 
-    const coord_t half_epsilon = std::max(10LL, (epsilon + 1) / 2);
+    const coord_t half_epsilon = std::max(MM2INT(0.01), (epsilon + 1) / 2);
 
     // Points too close to line segments should be moved a little away from those line segments, but less than epsilon,
     //   so at least half-epsilon distance between points can still be guaranteed.
-    constexpr coord_t grid_size = 2000;
+    constexpr coord_t grid_size = MM2INT(2.0);
     auto query_grid = PolygonUtils::createLocToLineGrid(thiss, grid_size);
 
     const coord_t move_dist = half_epsilon - 2;

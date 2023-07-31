@@ -291,7 +291,7 @@ LightningTreeNode::RectilinearJunction LightningTreeNode::straighten
     }
     else
     {
-        constexpr coord_t weight = 1000;
+        constexpr coord_t weight = MM2INT(1.);
         Point junction_moving_dir = normal(junction_above - p, weight);
         bool prevent_junction_moving = false;
         for (auto& child_p : children)

@@ -272,6 +272,7 @@ double getMaxSpeed(SliceDataStorage& storage)
 
 void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer_outline, std::vector<size_t>& vct_primary_line_count)
 {
+	static constexpr double SCALING_FACTOR = 0.000001;
 	double maxSpeed = getMaxSpeed(storage);
 	for (SliceMeshStorage& amesh : storage.meshes)
 	{
@@ -304,8 +305,8 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 				for (ClipperLib::IntPoint& aPoint : *it)
 				{
 					aPoint -= center;
-					aPoint.X *= 1000.0;
-					aPoint.Y *= 1000.0;
+					aPoint.X /= MM2INT(1.0) * SCALING_FACTOR;
+					aPoint.Y /= MM2INT(1.0) * SCALING_FACTOR;
 				}
 				aExpolys.add(*it);
 
@@ -324,7 +325,6 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 					if (!compSecondMoment(aPolysPaths, Ixx, Iyy, path))
 						Ixx = Iyy = -1.e30;
 
-					static constexpr double SCALING_FACTOR = 0.000001;
 					Ixx = Ixx * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
 					Iyy = Iyy * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR * SCALING_FACTOR;
 
@@ -568,8 +568,8 @@ ClipperLib::Paths SkirtBrim::skirt2Lace(ClipperLib::Paths& outlinePaths)
 		for (FloatPoint& pointTemp : fpath)
 		{
 			ClipperLib::IntPoint p;
-			p.X = (int)(1000.0f * pointTemp.x);
-			p.Y = (int)(1000.0f * pointTemp.y);
+			p.X = (int)(MM2INT(1.) * pointTemp.x);
+			p.Y = (int)(MM2INT(1.) * pointTemp.y);
 			circlePath.push_back(p);
 		}
 		clipper.AddPath(circlePath, ClipperLib::ptClip, true);

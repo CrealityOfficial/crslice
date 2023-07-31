@@ -14,12 +14,19 @@ namespace cura52
 	using coord_t = ClipperLib::cInt;
 
 	static inline coord_t operator "" _mu(unsigned long long i) { return i; };
-
+#if 1
+#define INT2MM(n) (static_cast<double>(n) / 1000000.0)
+#define INT2MM2(n) (static_cast<double>(n) / 1000000000000.0)
+#define MM2INT(n) (static_cast<cura52::coord_t>((n) * 1000000 + 0.5 * (((n) > 0) - ((n) < 0))))
+#define MM2_2INT(n) (static_cast<cura52::coord_t>((n) * 1000000000000 + 0.5 * (((n) > 0) - ((n) < 0))))
+#define MM3_2INT(n) (static_cast<cura52::coord_t>((n) * 1000000000000000000 + 0.5 * (((n) > 0) - ((n) < 0))))
+#else
 #define INT2MM(n) (static_cast<double>(n) / 1000.0)
 #define INT2MM2(n) (static_cast<double>(n) / 1000000.0)
 #define MM2INT(n) (static_cast<cura52::coord_t>((n) * 1000 + 0.5 * (((n) > 0) - ((n) < 0))))
 #define MM2_2INT(n) (static_cast<cura52::coord_t>((n) * 1000000 + 0.5 * (((n) > 0) - ((n) < 0))))
 #define MM3_2INT(n) (static_cast<cura52::coord_t>((n) * 1000000000 + 0.5 * (((n) > 0) - ((n) < 0))))
+#endif
 
 #define INT2MICRON(n) ((n) / 1)
 #define MICRON2INT(n) ((n) * 1)

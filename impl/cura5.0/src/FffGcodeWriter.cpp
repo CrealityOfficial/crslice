@@ -778,7 +778,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     {
         gcode.writeComment("enable auto-retraction");
         std::ostringstream tmp;
-        tmp << "M227 S" << (mesh_group_settings.get<coord_t>("retraction_amount") * 2560 / 1000) << " P" << (mesh_group_settings.get<coord_t>("retraction_amount") * 2560 / 1000);
+        tmp << "M227 S" << (mesh_group_settings.get<double>("retraction_amount") * 2560 ) << " P" << (mesh_group_settings.get<double>("retraction_amount") * 2560);
         gcode.writeLine(tmp.str().c_str());
     }
     else if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
@@ -2600,7 +2600,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
         // Originally an area of 0.4*0.4*2 (2 line width squares) was found to be a good threshold for removal.
         // However we found that this doesn't scale well with polygons with larger circumference (https://github.com/Ultimaker/Cura/issues/3992).
         // Given that the original test worked for approximately 2x2cm models, this scaling by circumference should make it work for any size.
-        constexpr double minimum_small_area_factor = 0.4 * 0.4 / 40000;
+        constexpr double minimum_small_area_factor = 0.4 * 0.4 * 2 / MM2INT(80);// 0.4 * 0.4 / 40000;
         const double minimum_small_area = minimum_small_area_factor * circumference;
 
         // This is only for density infill, because after generating the infill might appear unnecessary infill on walls
@@ -3743,7 +3743,7 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
     {
         if (layer_nr == 0 && pattern == EFillMethod::CONCENTRIC)
         {
-            return area.offset(static_cast<int>(line_width * brim_line_count / 1000));
+            return area.offset(static_cast<int>(line_width * brim_line_count / (double)MM2INT(1.)));
         }
         return area;
     };
@@ -4319,7 +4319,7 @@ bool FffGcodeWriter::processEstimatePoints(const Polygons& prev_paths, const Pol
             //float layer_widthTest = 0.449999392f;
         }
         std::vector<Slic3r::ExtendedPoint> extended_point =
-            Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width / 1000.0);
+            Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width / (double)MM2INT(1.));
         for (Slic3r::ExtendedPoint& pt : extended_point)
         {
             pt.position *= 1000;

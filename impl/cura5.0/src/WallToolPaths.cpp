@@ -51,7 +51,7 @@ WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0
 
 const std::vector<VariableWidthLines>& WallToolPaths::generate()
 {
-    const double scale_factor = 1000;
+    const double scale_factor = 1;
     const coord_t allowed_distance = settings.get<coord_t>("meshfix_maximum_deviation");
     const coord_t epsilon_offset = (allowed_distance / 2) - 1;
     const AngleRadians transitioning_angle = settings.get<AngleRadians>("wall_transition_angle");
@@ -241,10 +241,6 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
                 pt.p.X = pt.p.X / scale_factor + 0.5;
                 pt.p.Y = pt.p.Y / scale_factor + 0.5;
                 pt.w = pt.w / scale_factor + 0.5;
-                if (pt.w > 1000)
-                {
-                    int aaa = 0;
-                }
             }
             Simplify(settings).polygon(line);
             if (line.getLength() < allowed_distance) continue;
