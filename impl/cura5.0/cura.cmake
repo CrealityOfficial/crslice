@@ -105,7 +105,8 @@ set(engine_SRCS # Except main.cpp.
         ${PREFIX5.2}src/utils/VoronoiUtils.cpp
 		${PREFIX5.2}src/utils/VoronoiUtilsCgal.cpp
 		${PREFIX5.2}src/utils/inputserial.cpp
-		
+		${PREFIX5.2}src/generateVaryingXYDisallowedArea.cpp
+
 		${PREFIX5.2}include/progress/Progress.h
 		${PREFIX5.2}include/progress/ProgressEstimator.h
 		${PREFIX5.2}include/progress/ProgressEstimatorLinear.h
@@ -115,6 +116,7 @@ set(engine_SRCS # Except main.cpp.
 		${PREFIX5.2}include/TreeSupportSettings.h
 		${PREFIX5.2}include/utils/inputserial.h
 		${PREFIX5.2}include/debugger.h
+        ${PREFIX5.2}include/generateVaryingXYDisallowedArea.h
         )
 
 __cc_find(RapidJSON)
