@@ -223,6 +223,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     tmp_mesh_name = "";
     first_mesh_cancel = false;
     tmp_is_change_layer = 0;
+    need_smart_brim = false;
 }
 
 LayerPlan::~LayerPlan()
@@ -552,8 +553,8 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
     }
 
     // no combing? retract only when path is not shorter than minimum travel distance
-    if (/*! combed &&*/ ! is_first_travel_of_layer && last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
-    {//! combed 移出滑行对回抽抬升的影响
+    if (! combed && ! is_first_travel_of_layer && last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
+    {
         if (was_inside) // when the previous location was from printing something which is considered inside (not support or prime tower etc)
         { // then move inside the printed part, so that we don't ooze on the outer wall while retraction, but on the inside of the print.
             assert(extruder != nullptr);
@@ -684,6 +685,28 @@ void LayerPlan::addPolygonsByOptimizer(const Polygons& polygons,
     }
     orderOptimizer.optimize();
 
+#if 1
+    if (need_smart_brim)
+    {      
+        for (int i = 2; i < orderOptimizer.paths.size(); i++)
+        {
+            const PathOrderPath<ConstPolygonPointer>& path = orderOptimizer.paths[i];
+            PathOrderPath<ConstPolygonPointer> pre_path = orderOptimizer.paths[i - 1];
+            coord_t dis = vSize(pre_path.converted->at(pre_path.start_vertex) - path.converted->at(path.start_vertex));
+            if (i == orderOptimizer.paths.size() - 1)
+            {
+                orderOptimizer.paths[i - 1] = std::move(orderOptimizer.paths[i]);
+                orderOptimizer.paths[i] = std::move(pre_path);
+            }
+            else if(dis > MM2INT(2.0))
+            {
+                orderOptimizer.paths[i - 1] = std::move(orderOptimizer.paths[i - 2]);
+                orderOptimizer.paths[i - 2] = std::move(pre_path);
+            }
+        }
+    }
+#endif
+
     if (! reverse_order)
     {
         for (const PathOrderPath<ConstPolygonPointer>& path : orderOptimizer.paths)
@@ -722,26 +745,9 @@ void LayerPlan::addWallLine(const Point& p0,
 
     const coord_t min_bridge_line_len = settings.get<coord_t>("bridge_wall_min_length");
     const Ratio bridge_wall_coast = settings.get<Ratio>("bridge_wall_coast");
-    const Ratio overhang_speed_factor = settings.get<Ratio>("wall_overhang_speed_factor");
     const bool overhang_bridge_force_cooling = settings.get<bool>("cool_overhang_bridge_force_cooling");
     const Ratio overhang_threshold = settings.get<Ratio>("cool_overhang_threshold");
     const Ratio overhang_fan_speed = settings.get<Ratio>("cool_overhang_fan_speed");
-    const bool set_wall_overhang_grading = settings.get<bool>("set_wall_overhang_grading");
-    std::vector<Ratio> overhang_speed_factor_vec;
-    if (set_wall_overhang_grading)
-    {
-        for (int i = 1; i < 5; i++)
-        {
-            Ratio level_speed_factor = std::min(Ratio(settings.get<Velocity>("wall_overhang_speed_" + std::to_string(i)) / non_bridge_config.getSpeed()), Ratio(1.0));
-            if (level_speed_factor <= 0) 
-                level_speed_factor = Ratio(1.0);
-            overhang_speed_factor_vec.push_back(level_speed_factor);
-        }
-    }
-    else
-    {
-        overhang_speed_factor_vec.push_back(overhang_speed_factor);
-    }
 
     std::vector<std::pair<float, float>> speed_sections = getOverhangSpeedSections();
 
@@ -755,7 +761,7 @@ void LayerPlan::addWallLine(const Point& p0,
 
     auto getSpeedFactor = [&](const Point& _p1)
     {
-        if(overhang_distance < 0 || speed_sections.empty())
+        if (overhang_distance < 0 || speed_sections.empty())
             return speed_factor;
         Ratio result_factor = getSpeedFactorP(_p1, overhang_distance, non_bridge_config.getSpeed(), speed_sections);
         return result_factor;
@@ -1206,9 +1212,13 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
             const Point destination = p0.p + normal(line_vector, piece_length * (piece + 1));
             if (is_small_feature)
             {
+                std::vector<std::pair<float, float>> speed_sections = getOverhangSpeedSections();
+                Ratio result_speed_factor = small_feature_speed_factor;
+                if (p1.overhang_distance > 0 && !speed_sections.empty())
+                    result_speed_factor = std::min(small_feature_speed_factor, getSpeedFactorP(destination, p1.overhang_distance, non_bridge_config.getSpeed(), speed_sections));
                 constexpr bool spiralize = false;
                 double fan_speed_s = getLayerNr() < settings.get<LayerIndex>("cool_fan_full_layer") ? non_bridge_config.getFanSpeed() : small_feature_fan_speed;
-                addExtrusionMove(destination, non_bridge_config, SpaceFillType::Polygons, flow_ratio, line_width* nominal_line_width_multiplier, spiralize, small_feature_speed_factor, fan_speed_s);
+                addExtrusionMove(destination, non_bridge_config, SpaceFillType::Polygons, flow_ratio, line_width* nominal_line_width_multiplier, spiralize, result_speed_factor, fan_speed_s);
             }
             else
             {
@@ -1716,17 +1726,7 @@ bool ExtruderPlan::forceMinimalLayerTime(double minTime, double minimalSpeed, do
         }
         totalPrintTime = estimates.getExtrudeTime() + estimates.getTravelTime();
     }
-    else
-    {
-        for (GCodePath& path : paths)
-        {
-            if (path.isTravelPath())
-                continue;
-            double speed = path.config->getSpeed() * path.speed_factor * path.speed_back_pressure_factor;
-            if (speed < minimalSpeed)
-                path.speed_factor = minimalSpeed / path.config->getSpeed() / path.speed_back_pressure_factor;
-        }
-    }
+
     return true;
 }
 
@@ -2244,7 +2244,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     auto getLastExtrusionPath = [paths](int curIdx)
                     {
                         std::vector<Point> ExtrusionPath;
-
+                        Point start_point;
                         if (curIdx < 1)
                             return ExtrusionPath;
                         bool start = false;
@@ -2259,10 +2259,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             }
                             else if (start)
                             {
+                                start_point = path.points.back();
                                 break;
                             }
                         }
-                        ClipperLib::ReversePath(ExtrusionPath);
+                        if(!ExtrusionPath.empty() && start_point == ExtrusionPath[0])
+                            ClipperLib::ReversePath(ExtrusionPath);
                         return ExtrusionPath;
                     };
 

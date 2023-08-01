@@ -44,6 +44,8 @@ public:
      */
     static void generateSupportAreas(SliceDataStorage& storage);
 
+    static void generateSharpTailSupport(SliceDataStorage& storage);
+
     /*!
      * \brief Computes the base tree for cross infill of support.
      * \param storage[in,out] Data storage containing the input support outlines

@@ -1898,6 +1898,7 @@ void FffGcodeWriter::processSkirtBrim(const SliceDataStorage& storage, LayerPlan
     }
     // Start brim close to the prime location
     const ExtruderTrain& train = application->current_slice->scene.extruders[extruder_nr];
+    gcode_layer.need_smart_brim = train.settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::BRIM || train.settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::AUTOBRIM;
     Point start_close_to;
     if (train.settings.get<bool>("prime_blob_enable"))
     {
