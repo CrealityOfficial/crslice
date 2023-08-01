@@ -1705,7 +1705,8 @@ coord_t GCodeExport::writeTrapezoidalLeft(const Velocity& speed, Point endPoint,
     is_z_hopped = z_hop_height;
     const Settings& extruder_settings = application->current_slice->scene.extruders[current_extruder].settings;
     coord_t retraction_min_travel = extruder_settings.get<coord_t>("retraction_min_travel");
-    float zHopTravelDistance = 8000;
+    Velocity hop_speed = extruder_settings.get<Velocity>("speed_z_hop");
+    float zHopTravelDistance = z_hop_height / hop_speed * speed;
     Point source = Point(currentPosition.x, currentPosition.y);
     Point Travel = endPoint - source;
     float len = (float)vSize(Travel);
