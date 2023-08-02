@@ -24,7 +24,7 @@
 #include "support.h"
 #include "utils/ThreadPool.h"
 #include "utils/math.h"
-
+#include "generateVaryingXYDisallowedArea.h"
 
 
 namespace cura52
@@ -948,7 +948,19 @@ void AreaSupport::generateSupportAreasForMesh(SliceDataStorage& storage,
 
                                    if (! is_support_mesh_place_holder)
                                    { // don't compute overhang for support meshes
-                                       if (use_xy_distance_overhang) // Z overrides XY distance.
+                                       bool VaryingXYDisallowedArea = true;
+                                       if (VaryingXYDisallowedArea)
+                                       {
+                                           // we also want to use the min XY distance when the support is resting on a sloped surface so we calculate the area of the
+                                           // layer below that protrudes beyond the current layer's area and combine it with the current layer's overhang disallowed area
+
+                                           Polygons minimum_xy_disallowed_areas = xy_disallowed_per_layer[layer_idx].offset(xy_distance_overhang);
+                                           Polygons varying_xy_disallowed_areas = cura52:: generateVaryingXYDisallowedArea(mesh, infill_settings, layer_idx);
+                                           xy_disallowed_per_layer[layer_idx] = minimum_xy_disallowed_areas.unionPolygons(varying_xy_disallowed_areas);
+                                           //scripta::log("support_xy_disallowed_areas", xy_disallowed_per_layer[layer_idx], SectionType::SUPPORT, layer_idx);
+                                           LOGI("support_xy_disallowed_areas", xy_disallowed_per_layer[layer_idx], PrintFeatureType::Support, layer_idx);
+                                       }
+                                       if (!VaryingXYDisallowedArea && use_xy_distance_overhang) // Z overrides XY distance.
                                        {
                                            // we also want to use the min XY distance when the support is resting on a sloped surface so we calculate the area of the
                                            // layer below that protrudes beyond the current layer's area and combine it with the current layer's overhang disallowed area
