@@ -13,8 +13,8 @@ endif ()
 #add_subdirectory(slice3rBase)
 
 __cc_find(polyclipping)
-__cc_find(range)
-set(ILIBS crcommon polyclipping Slice3rBase mmesh range) 
+
+set(ILIBS crcommon polyclipping Slice3rBase mmesh) 
 
 set(SRCS crslice/interface.h
 		 crslice/header.h
