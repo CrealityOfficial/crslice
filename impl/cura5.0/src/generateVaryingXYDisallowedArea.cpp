@@ -5,153 +5,12 @@
 #include <iostream>
 #include "utils/Coord_t.h"
 
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point_xy.hpp>
-#include <boost/geometry/algorithms/convex_hull.hpp>
-#include <boost/geometry/algorithms/transform.hpp>
-#include <boost/geometry/strategies/transform.hpp>
-#include <boost/geometry/geometries/polygon.hpp>
-#include <boost/geometry/geometries/multi_polygon.hpp>
-#include <boost/geometry/geometries/register/point.hpp>
-#include <boost/geometry/io/io.hpp>
 
 
+#include "impl/cura5.0/include/BoostInterface.hpp"
 #include <boost/polygon/voronoi.hpp>
 #include <cassert>
 #include <iostream>
-using boost::polygon::voronoi_builder;
-using boost::polygon::voronoi_diagram;
-
-struct PointXX
-{
-    double a;
-    double b;
-    PointXX(double x = 0, double y = 0) : a(x), b(y) {}
-};
-
-namespace boost {
-    namespace polygon {
-        template <> struct geometry_concept<PointXX> { typedef point_concept type; };
-
-        template <> struct point_traits<PointXX> {
-            typedef double coordinate_type;
-
-            static inline coordinate_type get(const PointXX& point, orientation_2d orient) {
-
-                return (orient ==orientation_2d_enum::HORIZONTAL_) ? point.a : point.b;
-                //return point.a ;
-            }
-        };
-    }
-}
-
-
-
-namespace bg = boost::geometry;
-namespace bgm = bg::model;
-namespace bgs = bg::strategy;
-
-BOOST_GEOMETRY_REGISTER_POINT_2D(PointXX, double, bg::cs::cartesian, a, b)
-
-static constexpr bool closed_polygons = false;
-using bgPoly = bgm::polygon<PointXX, false, closed_polygons>;
-using bgMulti = bgm::multi_polygon<bgPoly>;
-using Ring = bgPoly::ring_type;
-
-//template <typename G> void validate(std::string name, G& geom) {
-//    std::cout << name << ": " << bg::wkt(geom) << "\n";
-//
-//    std::string reason;
-//    if (!bg::is_valid(geom, reason)) {
-//        std::cout << name << ": " << reason << "\n";
-//
-//        bg::correct(geom);
-//
-//        std::cout << bg::wkt(geom) << "\n";
-//        if (!bg::is_valid(geom, reason)) {
-//            std::cout << name << " corrected: " << reason << "\n";
-//        }
-//    }
-//}
-
-//int main()
-//{
-//    int count = 0;
-//
-//    Ring const inputs[] = {
-//                Ring { {0,0}, {8, 3}, {10, 7}, {8, 9}, {0, 6}, }, // {0, 0},
-//                Ring { {0,0}, {8, 3}, {8, 5}, {10, 7}, {8, 9}, {0, 6}, } // {0, 0},
-//    };
-//
-//    bgs::transform::matrix_transformer<double, 2, 2> const transformations[] = {
-//            { 1,    0,    0, // identity transformation
-//              0,    1,    0,
-//              0,    0,    1 },
-//            { M_PI, 0,    1, // just to get nice non-integral numbers everywhere
-//              0,    M_PI, 1, // shift to (1,1) and scale everything by ¦Ð
-//              0,    0,    1 },
-//    };
-//
-//    for (auto transformation : transformations) {
-//        for (auto input : inputs) {
-//
-//            validate("Input", input);
-//
-//            Ring transformed_input;
-//            bg::transform(input, transformed_input, transformation);
-//
-//            validate("transformed_input", transformed_input);
-//
-//            // Construction of the Voronoi Diagram.
-//            voronoi_diagram<double> vd;
-//            construct_voronoi(transformed_input.begin(), transformed_input.end(), &vd);
-//
-//            bgMulti out;
-//            Ring triangle;
-//
-//            for (const auto& vertex : vd.vertices()) {
-//                triangle.clear();
-//                for (auto edge = vertex.incident_edge(); triangle.empty() || edge != vertex.incident_edge(); edge = edge->rot_next()) {
-//                    triangle.push_back(transformed_input[edge->cell()->source_index()]);
-//
-//                    if (triangle.size() == 3) {
-//
-//#if 0
-//                        std::cout << " -- found \n";
-//                        bgPoly t{ triangle };
-//                        validate("Triangle", t);
-//                        out.push_back(t);
-//#else
-//                        out.push_back({ triangle });
-//#endif
-//
-//                        triangle.erase(triangle.begin() + 1);
-//                    }
-//                }
-//            }
-//
-//            std::cout << "Out " << bg::wkt(out) << "\n";
-//            {
-//                //std::ofstream svg("/tmp/svg" + std::to_string(++count) + ".svg");
-//                //boost::geometry::svg_mapper<Point> mapper(svg, 600, 600);
-//
-//                //mapper.add(out);
-//                //mapper.map(out, R"(fill-opacity:0.5;fill:rgb(153,204,0);stroke:rgb(153,204,0);stroke-dasharray=5,5;stroke-width:2)");
-//
-//                //mapper.add(transformed_input);
-//                //mapper.map(transformed_input, R"(fill-opacity:0.1;fill:rgb(204,153,0);stroke:red;stroke-width:3)");
-//
-//            }
-//        } // inputs
-//    } // transformations
-//}
-//
-//
-
-
-
-
-
 
 namespace cura52
 {
@@ -306,26 +165,14 @@ namespace cura52
             // on the edge length from the boundary to the center edge(s)
             std::vector<SkeletalTrapezoidation::Segment> segments;
 
-            Ring  inputs = {
-                   
-            };
-            //for (auto [poly_idx, poly] : layer_delta | ranges::views::enumerate)
-            //{
-            //    for (auto [point_idx, _p] : poly | ranges::views::enumerate)
-            //    {
-            //        segments.emplace_back(&layer_delta, poly_idx, point_idx);
-            //    }
-            //}
             int poly_idx = 0;
-            Ring input;
             for (auto poly : layer_delta)
             {
                 int point_idx = 0;
                 for (auto _p : poly)
                 {
                     segments.emplace_back(&layer_delta, poly_idx, point_idx);
-                    
-                    input.emplace_back(PointXX(INT2MM(_p.X), INT2MM(_p.Y)));
+
                      ++point_idx;
                 }
                 ++poly_idx;
@@ -338,7 +185,7 @@ namespace cura52
             //Ring { {0,0}, {8, 3}, {8, 5}, {10, 7}, {8, 9}, {0, 6}, } // {0, 0},
             //};
             //for (auto input : inputs) {
-                boost::polygon::construct_voronoi(input.begin(), input.end(), &vonoroi_diagram);
+            boost::polygon::construct_voronoi(segments.begin(), segments.end(), &vonoroi_diagram);
            // }
 
 
