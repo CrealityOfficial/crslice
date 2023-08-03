@@ -642,6 +642,80 @@ bool AreaSupport::isSupportNecessary(SliceDataStorage& storage)
 
 void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
 {
+    const Settings& mesh_group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
+    const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
+    const ESupportStructure support_structure = mesh_group_settings.get<ESupportStructure>("support_structure");
+    const double min_overhang_expand = support_structure == ESupportStructure::THOMASTREE ? 2.0 : 3.0;  
+    const double minimum_support_area = mesh_group_settings.get<double>("minimum_support_area");
+    const double expand = std::sqrt(minimum_support_area / M_PI);
+    const int add_support_layer = MM2INT(3.0) / layer_height;
+    auto bSharpTail = [&](std::vector<Polygons>& upperMeshOutline, const Polygon& miniSupport, int layerIdx)
+    {
+        Polygons spPolygons;
+        AABB supportPartBoundary(miniSupport);
+        supportPartBoundary.expand(MM2INT(min_overhang_expand));
+        spPolygons.add(supportPartBoundary.toPolygon());
+        int max_layer_idx = std::min(layerIdx + add_support_layer, (int)storage.print_layer_count);
+        int max_num = 0;
+        bool found_end = false;
+        for (int i = layerIdx; i < max_layer_idx; i++)
+        {
+            Polygons inside, hit;
+            for (const SliceMeshStorage& mesh : storage.meshes)
+            {
+                const SliceLayer& meshLayer = mesh.layers[i];
+                for (const SliceLayerPart& part : meshLayer.parts)
+                {
+                    if (part.boundaryBox.hit(supportPartBoundary))
+                    {
+                        hit.add(part.outline);
+                        if (part.outline.difference(spPolygons).empty())
+                            inside.add(part.outline);
+                    }
+                }
+            }
+            upperMeshOutline[i - layerIdx] = hit;
+            if (max_num > 0 && inside.empty())
+                found_end = true;
+            if (!inside.empty() && !found_end)
+                max_num++;
+        }
+        return  max_num > 2;
+    };
+
+    auto scalseSharpTailOverhang = [&](std::vector<Polygons>& overhang_areas)
+    {
+        if (!overhang_areas.empty())
+        {
+            std::vector<Polygons> full_overhang_areas_add;
+            full_overhang_areas_add.resize(storage.print_layer_count, Polygons());
+            for (size_t layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
+            {
+                std::vector<Polygons> upperMeshOutline;
+                upperMeshOutline.resize(add_support_layer, Polygons());
+                for (auto& overhang_area : overhang_areas[layer_idx])
+                {
+                    Polygon overhang_poly(overhang_area);
+                    if (std::fabs(overhang_poly.area()) < MM2_2INT(5.0) && bSharpTail(upperMeshOutline, overhang_poly, layer_idx))
+                    {
+                        int maxLayer = std::min(layer_idx + add_support_layer, storage.print_layer_count);
+                        for (int k = layer_idx; k < maxLayer; k++)
+                        {
+                            Polygons overhangOutline = overhang_poly.offset(MM2INT(std::max(expand, min_overhang_expand)));
+                            overhangOutline = overhangOutline.difference(upperMeshOutline[k - layer_idx]);
+                            if (!overhangOutline.empty())
+                            {
+                                full_overhang_areas_add[k].add(overhangOutline);
+                            }
+                        }
+                    }
+                }
+                if (!full_overhang_areas_add[layer_idx].empty())
+                    overhang_areas[layer_idx] = overhang_areas[layer_idx].unionPolygons(full_overhang_areas_add[layer_idx]);
+            }
+        }
+    };
+
     for (SliceMeshStorage& mesh : storage.meshes)
     {
         if (mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("anti_overhang_mesh"))
@@ -650,6 +724,15 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
         }
         // it actually also initializes some buffers that are needed in generateSupport
         generateOverhangAreasForMesh(storage, mesh);
+
+        if (support_structure == ESupportStructure::NORMAL)
+        {
+            scalseSharpTailOverhang(mesh.full_overhang_areas);
+        }
+        else
+        {
+            scalseSharpTailOverhang(mesh.overhang_areas);
+        }
     }
 }
 
@@ -760,107 +843,6 @@ void AreaSupport::generateSupportAreas(SliceDataStorage& storage)
     // split the global support areas into parts for later gradual support infill generation
     AreaSupport::splitGlobalSupportAreasIntoSupportInfillParts(storage, global_support_areas_per_layer, storage.print_layer_count);
     precomputeCrossInfillTree(storage);
-}
-
-void AreaSupport::generateSharpTailSupport(SliceDataStorage& storage)
-{
-    const Settings& mesh_group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
-    const double minimum_support_area = mesh_group_settings.get<double>("minimum_support_area");
-    const coord_t support_offset = mesh_group_settings.get<coord_t>("support_offset");
-    const bool use_xy_distance_overhang = mesh_group_settings.get<SupportDistPriority>("support_xy_overrides_z") == SupportDistPriority::Z_OVERRIDES_XY;
-    const coord_t xy_distance = use_xy_distance_overhang ? mesh_group_settings.get<coord_t>("support_xy_distance_overhang") : mesh_group_settings.get<coord_t>("support_xy_distance");
-    const int add_support_layer = MM2INT(3.0) / mesh_group_settings.get<coord_t>("layer_height");
-
-    auto bSharpTail = [&](std::vector<Polygons>& upperMeshOutline, const SupportInfillPart& supportPart, int layerIdx)
-    {
-        Polygons spPolygons;
-        AABB supportPartBoundary = supportPart.outline_boundary_box;
-        supportPartBoundary.expand(support_offset / 2);
-        spPolygons.add(supportPartBoundary.toPolygon());
-        int max_layer_idx = std::min(layerIdx + add_support_layer, (int)storage.print_layer_count);
-        int max_num = 0;
-        bool found_end = false;
-        for (int i = layerIdx; i < max_layer_idx; i++)
-        {
-            Polygons inside, hit;
-            for (const SliceMeshStorage& mesh : storage.meshes)
-            {
-                const SliceLayer& meshLayer = mesh.layers[i];
-                for (const SliceLayerPart& part : meshLayer.parts)
-                {        
-                    if (part.boundaryBox.hit(supportPartBoundary))
-                    {
-                        hit.add(part.outline);
-                        if(part.outline.difference(spPolygons).empty())
-                            inside.add(part.outline);
-                    }
-                }
-            }
-            upperMeshOutline[i - layerIdx] = hit;
-            if (max_num > 0 && inside.empty())
-                found_end = true;
-            if (!inside.empty() && !found_end)
-                max_num++;
-        }
-        return  max_num > 2;
-    };
-
-    auto bSupportRoof = [&](const SupportInfillPart& supportPart, int layerIdx)
-    {
-        if (layerIdx < storage.support.supportLayers.size()-1)
-        {
-            const SupportLayer& supportLayer = storage.support.supportLayers[layerIdx + 1];
-            for (const SupportInfillPart& part: supportLayer.support_infill_parts)
-            {
-                if (part.outline_boundary_box.hit(supportPart.outline_boundary_box))
-                {
-                    if(part.outline.intersection(supportPart.outline).area()/ supportPart.outline.area() > 0.8)
-                        return false;
-                }                   
-            }
-        }
-        return true;
-    };
-
-    std::vector<int> src_support_parts_num;
-    for (SupportLayer supportLayer : storage.support.supportLayers)
-    {
-        src_support_parts_num.push_back(supportLayer.support_infill_parts.size());
-    }
-
-    int supportLayerSize = storage.support.supportLayers.size();
-    for (int i = 0; i < supportLayerSize;i++)
-    {
-        std::vector<SupportInfillPart> support_infill_parts_new;
-        const SupportLayer& supportLayer = storage.support.supportLayers[i];
-        for (int j = 0; j < src_support_parts_num[i]; j++)
-        {
-            const SupportInfillPart& part = supportLayer.support_infill_parts[j];
-            if (part.outline.area() < MM2_2INT(20.0) && bSupportRoof(part, i))
-            {
-                std::vector<Polygons> upperMeshOutline;
-                upperMeshOutline.resize(add_support_layer);
-                if (bSharpTail(upperMeshOutline, part, i))
-                {
-                    int maxLayer = std::min(i + add_support_layer, supportLayerSize);
-                    for (int k = i + 1; k < maxLayer; k++)
-                    {
-                        Polygons SupportOutline = part.outline.offset(std::min((coord_t)((k - i) * 0.5 * part.support_line_width), support_offset));
-                        std::vector<PolygonsPart> newParts = SupportOutline.difference(upperMeshOutline[k - i].offset(0.8 * xy_distance)).splitIntoParts();
-                        if (!newParts.empty())
-                        {
-                            for (const PolygonsPart& newPart : newParts)
-                            {
-                                SupportInfillPart newSupportPart(newPart, part.support_line_width, part.inset_count_to_generate);
-                                storage.support.supportLayers[k].support_infill_parts.push_back(newSupportPart);
-                            }
-                            storage.support.layer_nr_max_filled_layer = std::max(storage.support.layer_nr_max_filled_layer, maxLayer);
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 void AreaSupport::precomputeCrossInfillTree(SliceDataStorage& storage)

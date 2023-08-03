@@ -1472,8 +1472,10 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
         else {
             double r = dot(p - a, base) / (float)vSize2(base);
             result = a + base * r;
-            return true;
+            if(vSize2(result - a) > MM2_2INT(3.0))
+                return false;
         }
+        return true;
     };
 
     auto getDistFromSeg = [](const Point& p, const Point& a, const Point& b)
@@ -1594,7 +1596,7 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                         {
                             part_order_optimizer.addPolygon(&line);
                             Point nearest_pt;
-                            part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toPolygon(), last_layer_start_pt, nearest_pt, 5000));
+                            part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toPolygon(), last_layer_start_pt, nearest_pt, MM2INT(5.0)));
                             matchZSeam.push_back(nearest_pt);
                         }
                     }
@@ -2232,7 +2234,7 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
     ZSeamConfig z_seam_config;
     if (mesh.isPrinted()) //"normal" meshes with walls, skin, infill, etc. get the traditional part ordering based on the z-seam settings.
     {
-        z_seam_config = ZSeamConfig(mesh.settings.get<EZSeamType>("z_seam_type"), mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), mesh.settings.get<coord_t>("wall_line_width_0") * 2);
+        z_seam_config = ZSeamConfig(EZSeamType::SHORTEST, mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), mesh.settings.get<coord_t>("wall_line_width_0") * 2);
     }
     PathOrderOptimizer<const SliceLayerPart*> part_order_optimizer(gcode_layer.getLastPlannedPositionOrStartingPosition(), z_seam_config);
     for (const SliceLayerPart& part : layer.parts)
@@ -3064,7 +3066,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                 {
                     std::vector<ExtrusionJunction> new_junctions;
                     std::vector<ExtrusionJunction>& junctions = line.junctions;
-                    Point pt_z_seam = junctions[(line.start_idx > -1 ? line.start_idx : 0)].p;
+                    Point pt_z_seam = (line.start_idx > -1 && line.start_idx < junctions.size()) ? junctions[line.start_idx].p : Point();
                     int junctions_idx = 0;
                     for (int i = 0; i < extendedPoints[extendedPoints_idx].size(); i++)
                     {
