@@ -342,7 +342,7 @@ void FffGcodeWriter::setConfigFanSpeedLayerTime()
         fan_speed_layer_time_settings.cds_fan_speed = train.settings.get<Ratio>("cool_cds_fan_speed") * 100.0;
         if (!train.settings.get<bool>("cool_cds_fan_enable"))
         {
-            fan_speed_layer_time_settings.cds_fan_speed = 0;
+            fan_speed_layer_time_settings.cds_fan_speed = -1;
         }
         if (! train.settings.get<bool>("cool_fan_enabled"))
         {
@@ -1747,15 +1747,20 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 		gcode_layer.setLastPosition(last_position);
 	}
 
-	//for (const SliceMeshStorage& mesh : storage.meshes)
-	if (storage.meshes.size()>0 && layer_nr >=0)
+	for (const SliceMeshStorage& mesh : storage.meshes)
 	{
-		const SliceMeshStorage& mesh = storage.meshes[0];
 		if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
 		{
 			gcode_layer.layerTemp = mesh.settings.get<Temperature>("calibration_temperature");
+			ExtruderTrain& train = application->current_slice->scene.extruders[extruder_order.front()];
+			train.settings.add("material_print_temperature", std::to_string(gcode_layer.layerTemp.value));
+			break;
 		}
-		else if (mesh.settings.has("pressure_step"))
+	}
+	if (storage.meshes.size()>0 && layer_nr >=0)
+	{
+		const SliceMeshStorage& mesh = storage.meshes[0];
+		if (mesh.settings.has("pressure_step"))
 		{
 			float pressureStart = mesh.settings.get<double>("pressure_start");
 			float pressureStep = mesh.settings.get<double>("pressure_step");
@@ -2850,7 +2855,11 @@ void FffGcodeWriter::processSpiralizedWall(const SliceDataStorage& storage, Laye
         }
     }
     const bool is_bottom_layer = (layer_nr == mesh.settings.get<LayerIndex>("bottom_layers"));
-    const bool is_top_layer = ((size_t)layer_nr == (storage.spiralize_wall_outlines.size() - 1) || storage.spiralize_wall_outlines[layer_nr + 1] == nullptr);
+    bool is_top_layer = ((size_t)layer_nr == (storage.spiralize_wall_outlines.size() - 1) || storage.spiralize_wall_outlines[layer_nr + 1] == nullptr);
+	if (mesh.settings.has("maxvolumetricspeed_start"))
+	{
+		is_top_layer = false;
+	}
     const int seam_vertex_idx = storage.spiralize_seam_vertex_indices[layer_nr]; // use pre-computed seam vertex index for current layer
     // output a wall slice that is interpolated between the last and current walls
     for (const ConstPolygonRef& wall_outline : part.spiral_wall)

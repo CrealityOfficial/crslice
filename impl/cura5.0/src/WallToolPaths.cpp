@@ -13,6 +13,7 @@
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h"
 #include "utils/inputserial.h"
+#include "settings/EnumSettings.h"
 
 namespace cura52
 {
@@ -59,6 +60,14 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
 
     double scaled_spacing_wall_0 = bead_width_0;
     double scaled_spacing_wall_X = bead_width_x;
+	if (settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
+	{
+		float ifactor = settings.get<double>("min_even_wall_line_width") / settings.get<double>("wall_line_width_0");
+		scaled_spacing_wall_0 *= ifactor;
+		scaled_spacing_wall_X *= ifactor;    
+	}
+
+
     const coord_t layer_thickness = settings.get<coord_t>("layer_height");
     const bool exact_flow_enable = settings.get<bool>("special_exact_flow_enable");
     auto getScaledSpacing = [layer_thickness](size_t line_width)
