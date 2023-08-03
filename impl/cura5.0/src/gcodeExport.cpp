@@ -544,7 +544,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
                 prefix << "00.0000m";
             }
             prefix << new_line;
-            prefix << ";Layer height: " << application->current_slice->scene.current_mesh_group->settings.get<double>("layer_height") << new_line;
+            prefix << ";Layer height:" << application->current_slice->scene.current_mesh_group->settings.get<double>("layer_height") << new_line;
         }
         prefix << ";MINX:" << INT2MM(total_bounding_box.min.x) << new_line;
         prefix << ";MINY:" << INT2MM(total_bounding_box.min.y) << new_line;
