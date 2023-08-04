@@ -546,9 +546,9 @@ protected:
         coord_t quarter_poly_len = simple_poly.polygonLength() / 4;
         for(size_t i = start_from_pos; i < end_before_pos; ++i)
         {
-            const Point& previous = getNearPoint(i, quarter_poly_len < 1000 ? quarter_poly_len : 1000, false);
+            const Point& previous = getNearPoint(i, quarter_poly_len < MM2INT(1.0) ? quarter_poly_len : MM2INT(1.0), false);
             const Point& here = simple_poly[i % simple_poly.size()];
-            const Point& next = getNearPoint(i, quarter_poly_len < 1000 ? quarter_poly_len : 1000, true);
+            const Point& next = getNearPoint(i, quarter_poly_len < MM2INT(1.0) ? quarter_poly_len : MM2INT(1.0), true);
 
             //For most seam types, the shortest distance matters. Not for SHARPEST_CORNER though.
             //For SHARPEST_CORNER, use a fixed starting score of 0.

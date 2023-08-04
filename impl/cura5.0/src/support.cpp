@@ -645,7 +645,7 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
     const Settings& mesh_group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
     const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
     const ESupportStructure support_structure = mesh_group_settings.get<ESupportStructure>("support_structure");
-    const double min_overhang_expand = support_structure == ESupportStructure::THOMASTREE ? 2.0 : 3.0;  
+    const double min_overhang_expand = support_structure == ESupportStructure::THOMASTREE ? 1.5 : 3.0;  
     const double minimum_support_area = mesh_group_settings.get<double>("minimum_support_area");
     const double expand = std::sqrt(minimum_support_area / M_PI);
     const int add_support_layer = MM2INT(3.0) / layer_height;
@@ -683,7 +683,7 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
         return  max_num > 2;
     };
 
-    auto scalseSharpTailOverhang = [&](std::vector<Polygons>& overhang_areas)
+    auto scaleSharpTailOverhang = [&](std::vector<Polygons>& overhang_areas)
     {
         if (!overhang_areas.empty())
         {
@@ -727,11 +727,11 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
 
         if (support_structure == ESupportStructure::NORMAL)
         {
-            scalseSharpTailOverhang(mesh.full_overhang_areas);
+            scaleSharpTailOverhang(mesh.full_overhang_areas);
         }
         else
         {
-            scalseSharpTailOverhang(mesh.overhang_areas);
+            scaleSharpTailOverhang(mesh.overhang_areas);
         }
     }
 }
