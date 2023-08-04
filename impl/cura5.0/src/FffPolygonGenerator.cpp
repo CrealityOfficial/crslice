@@ -58,15 +58,18 @@ namespace cura52
 
 bool FffPolygonGenerator::generateAreas(SliceDataStorage& storage, MeshGroup* meshgroup)
 {
+	CALLTICK("sliceModel 0");
     if (! sliceModel(meshgroup, storage))
     {
         return false;
     }
+	CALLTICK("sliceModel 1");
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::generateAreas");
 
+	CALLTICK("slices2polygons 0");
     slices2polygons(storage);
-
+	CALLTICK("slices2polygons 1");
     return true;
 }
 
@@ -421,7 +424,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     LOGI("Layer count: { %d }", storage.print_layer_count);
 
     // layerparts2HTML(storage, "output/output.html");
-
+	CALLTICK("support 0");
     application->progressor.messageProgressStage(Progress::Stage::SUPPORT);
 
     if (AreaSupport::isSupportNecessary(storage) && !mesh_group_settings.get<bool>("support_enable")) {
@@ -448,6 +451,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 	}
 
 	INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
+	CALLTICK("support 1");
     // we need to remove empty layers after we have processed the insets
     // processInsets might throw away parts if they have no wall at all (cause it doesn't fit)
     // brim depends on the first layer not being empty
@@ -561,6 +565,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     }
 #else
 	// walls
+	CALLTICK("processWalls 0");
 	cura52::parallel_for<size_t>(application, 0,
 		mesh_layer_count,
 		[&](size_t layer_number)
@@ -570,7 +575,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 			processWalls(mesh, layer_number);
 			guarded_progress++;
 		});
-
+	CALLTICK("processWalls 1");
 #endif
 
     ProgressEstimatorLinear* skin_estimator = new ProgressEstimatorLinear(mesh_layer_count);
@@ -597,6 +602,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     }
 
     // skin & infill
+	CALLTICK("skin & infill 0");
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     bool magic_spiralize = mesh_group_settings.get<bool>("magic_spiralize");
     size_t mesh_max_initial_bottom_layer_count = 0;
@@ -618,6 +624,8 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
                                     }
                                     guarded_progress++;
                                });
+
+	CALLTICK("skin & infill 1");
 }
 
 void FffPolygonGenerator::processInfillMesh(SliceDataStorage& storage, const size_t mesh_order_idx, const std::vector<size_t>& mesh_order)

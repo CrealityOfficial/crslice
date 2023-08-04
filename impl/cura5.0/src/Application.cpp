@@ -81,16 +81,12 @@ namespace cura52
         if (!_communication)
             return;
 
-        CALLTICK("start");
+        CALLTICK("slice 0");
         progressor.init();
-        CALLTICK("progress init");
         startThreadPool(); // Start the thread pool
-        CALLTICK("thread pool");
         if (_communication->hasSlice())
         {
-            CALLTICK("start create slice");
             std::shared_ptr<Slice> slice(_communication->createSlice());
-            CALLTICK("end create slice");
             if (slice)
             {
                 processor.time_keeper.restart();
@@ -101,19 +97,13 @@ namespace cura52
 
                 processor.setTargetFile(current_slice->gcodeFile.c_str());
 
-                CALLTICK("finalize 0");
                 current_slice->finalize();
-                CALLTICK("finalize 1");
-                CALLTICK("compute 0");
                 current_slice->compute();
-                CALLTICK("compute 1");
                 // Finalize the processor. This adds the end g-code and reports statistics.
                 processor.finalize();
-
-                CALLTICK("finalize");
             }
         }
-        CALLTICK("slice over");
+		CALLTICK("slice 1");
     }
 
     void Application::startThreadPool(int nworkers)
