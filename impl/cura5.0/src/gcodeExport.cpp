@@ -63,13 +63,13 @@ std::string transliterate(const std::string& text)
 }
 
 GCodeExport::GCodeExport() 
-    : output_stream(&std::cout)
+    : output_stream_file(&std::cout)
 	, currentPosition(0, 0, MM2INT(20))
 	, layer_nr(0)
 	, relative_extrusion(false)
     , estimateCalculator(nullptr)
 {
-    *output_stream << std::fixed;
+    output_stream << std::fixed;
 
     e_value_cleaned       = 0;
     current_e_value		  = 0;
@@ -230,7 +230,7 @@ void GCodeExport::writeGcodeHead()
     writeSupportConfig();
     writeSpeedAndTravelConfig();
     writeSpecialModelAndMeshConfig();
-    *output_stream << ";---------------------End of Head--------------------------" << new_line;
+    output_stream << ";---------------------End of Head--------------------------" << new_line;
 }
 void GCodeExport::writeMashineConfig()
 {
@@ -256,8 +256,7 @@ void GCodeExport::writeMashineConfig()
             tmp << ";ExtruderParams[" << i << "] Nozzle Diameter" << extruderSettings->get<coord_t>("machine_nozzle_tip_outer_diameter") << new_line;
         }
     }
-    *output_stream << tmp.str();
-
+    output_stream << tmp.str();
 }
 void GCodeExport::writeProfileConfig()
 {
@@ -319,7 +318,9 @@ void GCodeExport::writeProfileConfig()
 	tmp << ";Filament Weight:" << extruderSettings->get<std::string>("filament_weight") << new_line;
 	tmp << ";Preview Img Type:" << groupSettings->get<std::string>("preview_img_type") << new_line;
 	tmp << ";Screen Size:" << groupSettings->get<std::string>("screen_size") << new_line;
-    *output_stream << tmp.str();
+    output_stream << tmp.str();
+
+
 }
 
 void GCodeExport::writeShellConfig()
@@ -349,7 +350,7 @@ void GCodeExport::writeShellConfig()
     tmp << ";Top/Bottom Pattern:" << meshSettings->get<std::string>("top_bottom_pattern") << new_line;
     tmp << ";Ironing Pattern:" << meshSettings->get<std::string>("ironing_pattern") << new_line;
     tmp << ";Vase Model:" << (meshSettings->get<bool>("magic_spiralize") ? "true" : "false") << new_line;
-    *output_stream << tmp.str();
+    output_stream << tmp.str();
 }
 
 void GCodeExport::writeSupportConfig()
@@ -372,7 +373,7 @@ void GCodeExport::writeSupportConfig()
     tmp << ";Connect Support ZigZags:" << groupSettings->get<bool>("support_connect_zigzags") << new_line;
     tmp << ";Minimum Support X/Y Distance:" << (float)groupSettings->get<coord_t>("support_xy_distance_overhang") / 1000.0f << new_line;
     tmp << ";Support Line Distance:" << (float)groupSettings->get<coord_t>("support_line_distance") / 1000.0f << new_line;
-    *output_stream << tmp.str();
+    output_stream << tmp.str();
 }
 void GCodeExport::writeSpeedAndTravelConfig()
 {
@@ -417,7 +418,7 @@ void GCodeExport::writeSpeedAndTravelConfig()
         tmp << ";Acceleration to decelerate:" << groupSettings->get<Velocity>("acceleration_breaking") << new_line;
     }
     tmp << ";Combing Mode:" << extruderSettings->get<std::string>("retraction_combing") << new_line;
-    *output_stream << tmp.str();
+    output_stream << tmp.str();
 }
 void GCodeExport::writeSpecialModelAndMeshConfig()
 {
@@ -440,7 +441,7 @@ void GCodeExport::writeSpecialModelAndMeshConfig()
     tmp << ";Raft AirGap:" << (float)extruderSettings->get<coord_t>("raft_airgap") / 1000.0f << new_line;
     tmp << ";Layer0 ZOverLap:" << (float)extruderSettings->get<coord_t>("layer_0_z_overlap") / 1000.0f << new_line;
 
-    *output_stream << tmp.str();
+    output_stream << tmp.str();
 }
 
 std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used, const Duration* print_time, const std::vector<double>& filament_used, const std::vector<std::string>& mat_ids)
@@ -644,8 +645,19 @@ void GCodeExport::setLayerNr(unsigned int layer_nr_)
 
 void GCodeExport::setOutputStream(std::ostream* stream)
 {
-    output_stream = stream;
-    *output_stream << std::fixed;
+    output_stream_file = stream;
+    *output_stream_file << std::fixed;
+    output_stream.clear();
+}
+
+void GCodeExport::updateGcodeFile()
+{
+    std::string  str = output_stream.str();
+    if (!str.empty())
+    {
+        *output_stream_file << str;
+        output_stream.str("");
+    }
 }
 
 bool GCodeExport::getExtruderIsUsed(const int extruder_nr) const
@@ -904,43 +916,43 @@ void GCodeExport::updateTotalPrintTime()
 
 void GCodeExport::reWritePreFixStr(std::string preFix)
 {  
-    output_stream->seekp(0, std::ios::beg);
-    *output_stream << preFix;
+    output_stream_file->seekp(0, std::ios::beg);
+    *output_stream_file << preFix;
     size_t len = preFix.length();
     int i = 0;
     while (len < m_preFixLen)
     {
         if (i%2 == 0)
         {
-            *output_stream << new_line;
+            *output_stream_file << new_line;
         }
         else
         {
-            *output_stream << ";";
+            *output_stream_file << ";";
         }
         i++;
         len++;
     }
-    output_stream->seekp(0, std::ios::end);
+    output_stream_file->seekp(0, std::ios::end);
 }
 
 void GCodeExport::writeComment(const std::string& unsanitized_comment)
 {
     const std::string comment = transliterate(unsanitized_comment);
 
-    *output_stream << ";";
+    output_stream << ";";
     for (unsigned int i = 0; i < comment.length(); i++)
     {
         if (comment[i] == '\n')
         {
-            *output_stream << new_line << ";";
+            output_stream << new_line << ";";
         }
         else
         {
-            *output_stream << comment[i];
+            output_stream << comment[i];
         }
     }
-    *output_stream << new_line;
+    output_stream << new_line;
 }
 
 void GCodeExport::writeComment2(const std::string& unsanitized_comment)
@@ -950,19 +962,19 @@ void GCodeExport::writeComment2(const std::string& unsanitized_comment)
     {
         if (comment[i] == '\n')
         {
-            *output_stream << new_line << ";";
+            output_stream << new_line << ";";
         }
         else
         {
-            *output_stream << comment[i];
+            output_stream << comment[i];
         }
     }
-    *output_stream << new_line;
+    output_stream << new_line;
 }
 
 void GCodeExport::writeTimeComment(const Duration time)
 {
-    *output_stream << ";TIME_ELAPSED:" << time << new_line;
+    output_stream << ";TIME_ELAPSED:" << time << new_line;
 }
 
 void GCodeExport::writeTimePartsComment(std::ostringstream& prefix)
@@ -990,12 +1002,12 @@ void GCodeExport::writeTimePartsComment(std::ostringstream& prefix)
 
 void GCodeExport::writeZoffsetComment(const double zOffset)
 {
-    *output_stream << "SET_GCODE_OFFSET Z=" << zOffset << new_line;
+    output_stream << "SET_GCODE_OFFSET Z=" << zOffset << new_line;
 }
 
 void GCodeExport::writePressureComment(const double length)
 {
-    *output_stream << "M900 K" << length << new_line;
+    output_stream << "M900 K" << length << new_line;
 }
 
 void GCodeExport::writeTypeComment(const PrintFeatureType& type)
@@ -1003,31 +1015,31 @@ void GCodeExport::writeTypeComment(const PrintFeatureType& type)
     switch (type)
     {
     case PrintFeatureType::OuterWall:
-        *output_stream << ";TYPE:WALL-OUTER" << new_line;
+        output_stream << ";TYPE:WALL-OUTER" << new_line;
         break;
     case PrintFeatureType::InnerWall:
-        *output_stream << ";TYPE:WALL-INNER" << new_line;
+        output_stream << ";TYPE:WALL-INNER" << new_line;
         break;
     case PrintFeatureType::Skin:
-        *output_stream << ";TYPE:SKIN" << new_line;
+        output_stream << ";TYPE:SKIN" << new_line;
         break;
     case PrintFeatureType::Support:
-        *output_stream << ";TYPE:SUPPORT" << new_line;
+        output_stream << ";TYPE:SUPPORT" << new_line;
         break;
     case PrintFeatureType::SkirtBrim:
-        *output_stream << ";TYPE:SKIRT" << new_line;
+        output_stream << ";TYPE:SKIRT" << new_line;
         break;
     case PrintFeatureType::Infill:
-        *output_stream << ";TYPE:FILL" << new_line;
+        output_stream << ";TYPE:FILL" << new_line;
         break;
     case PrintFeatureType::SupportInfill:
-        *output_stream << ";TYPE:SUPPORT" << new_line;
+        output_stream << ";TYPE:SUPPORT" << new_line;
         break;
     case PrintFeatureType::SupportInterface:
-        *output_stream << ";TYPE:SUPPORT-INTERFACE" << new_line;
+        output_stream << ";TYPE:SUPPORT-INTERFACE" << new_line;
         break;
     case PrintFeatureType::PrimeTower:
-        *output_stream << ";TYPE:PRIME-TOWER" << new_line;
+        output_stream << ";TYPE:PRIME-TOWER" << new_line;
         break;
     case PrintFeatureType::MoveCombing:
     case PrintFeatureType::MoveRetraction:
@@ -1041,17 +1053,18 @@ void GCodeExport::writeTypeComment(const PrintFeatureType& type)
 
 void GCodeExport::writeLayerComment(const LayerIndex layer_nr)
 {
-    *output_stream << ";LAYER:" << layer_nr << new_line;
+    output_stream << ";LAYER:" << layer_nr << new_line;
+    //application->fDebugger->getPathData(trimesh::vec3(), 0, 0);
 }
 
 void GCodeExport::writeLayerCountComment(const size_t layer_count)
 {
-    *output_stream << ";LAYER_COUNT:" << layer_count << new_line;
+    output_stream << ";LAYER_COUNT:" << layer_count << new_line;
 }
 
 void GCodeExport::writeLine(const char* line)
 {
-    *output_stream << line << new_line;
+    output_stream << line << new_line;
 }
 
 void GCodeExport::writeExtrusionMode(bool set_relative_extrusion_mode)
@@ -1060,22 +1073,22 @@ void GCodeExport::writeExtrusionMode(bool set_relative_extrusion_mode)
     {
 		if (flavor==EGCodeFlavor::MACH3_Creality)
 		{
-			*output_stream << "G91 ;relative extrusion mode" << new_line;
+			output_stream << "G91 ;relative extrusion mode" << new_line;
 		} 
 		else
 		{
-			*output_stream << "M83 ;relative extrusion mode" << new_line;
+			output_stream << "M83 ;relative extrusion mode" << new_line;
 		}
     }
     else
     {
 		if (flavor == EGCodeFlavor::MACH3_Creality)
 		{
-			*output_stream << "G90 ;relative extrusion mode" << new_line;
+			output_stream << "G90 ;relative extrusion mode" << new_line;
 		}
 		else
 		{
-			*output_stream << "M82 ;absolute extrusion mode" << new_line;
+			output_stream << "M82 ;absolute extrusion mode" << new_line;
 		}
 
     }
@@ -1085,7 +1098,7 @@ void GCodeExport::resetExtrusionValue()
 {
     if (! relative_extrusion)
     {
-        *output_stream << "G92 " << extruder_attr[current_extruder].extruderCharacter << "0" << new_line;
+        output_stream << "G92 " << extruder_attr[current_extruder].extruderCharacter << "0" << new_line;
     }
     double current_extruded_volume = getCurrentExtrudedVolume();
     extruder_attr[current_extruder].totalFilament += current_extruded_volume;
@@ -1100,7 +1113,7 @@ void GCodeExport::resetExtrusionValue()
 
 void GCodeExport::writeDelay(const Duration& time_amount)
 {
-    *output_stream << "G4 P" << int(time_amount * 1000) << new_line;
+    output_stream << "G4 P" << int(time_amount * 1000) << new_line;
     estimateCalculator->addTime(time_amount);
 }
 
@@ -1174,7 +1187,9 @@ void GCodeExport::writeExtrusionG2G3(const Point& pointend, const Point& center_
 
 void GCodeExport::writeArcSatrt(const Point& p)
 {
-    *output_stream << "G0 X" << MMtoStream{ p.X } << " Y" << MMtoStream{ p.Y } << "\n";
+    output_stream << "G0 X" << MMtoStream{ p.X } << " Y" << MMtoStream{ p.Y } << "\n";
+
+    application->fDebugger->getPathData(trimesh::vec3(MMtoStream{ p.X }.value, MMtoStream{ p.Y }.value,-1), -1, (int)PrintFeatureType::MoveCombing);
 }
 
 void GCodeExport::writeTravel(const Point3& p, const Velocity& speed)
@@ -1261,11 +1276,11 @@ void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velo
             {
                 // fprintf(f, "; %f e-per-mm %d mm-width %d mm/s\n", extrusion_per_mm, lineWidth, speed);
                 // fprintf(f, "M108 S%0.1f\r\n", rpm);
-                *output_stream << "M108 S" << PrecisionedDouble{ 1, rpm } << new_line;
+                output_stream << "M108 S" << PrecisionedDouble{ 1, rpm } << new_line;
                 currentSpeed = double(rpm);
             }
             // Add M101 or M201 to enable the proper extruder.
-            *output_stream << "M" << int((current_extruder + 1) * 100 + 1) << new_line;
+            output_stream << "M" << int((current_extruder + 1) * 100 + 1) << new_line;
             extruder_attr[current_extruder].retraction_e_amount_current = 0.0;
         }
         // Fix the speed by the actual RPM we are asking, because of rounding errors we cannot get all RPM values, but we have a lot more resolution in the feedrate value.
@@ -1282,12 +1297,14 @@ void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velo
         // If we are not extruding, check if we still need to disable the extruder. This causes a retraction due to auto-retraction.
         if (! extruder_attr[current_extruder].retraction_e_amount_current)
         {
-            *output_stream << "M103" << new_line;
+            output_stream << "M103" << new_line;
             extruder_attr[current_extruder].retraction_e_amount_current = 1.0; // 1.0 used as stub; BFB doesn't use the actual retraction amount; it performs retraction on the firmware automatically
         }
     }
-    *output_stream << "G1 X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y } << " Z" << MMtoStream{ z };
-    *output_stream << " F" << PrecisionedDouble{ 1, fspeed } << new_line;
+    output_stream << "G1 X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y } << " Z" << MMtoStream{ z };
+    //application->fDebugger->getPathData(trimesh::vec3(MMtoStream{ gcode_pos.X }.value, MMtoStream{ gcode_pos.Y }.value, MMtoStream{ z }.value), -1, 0);
+
+    output_stream << " F" << PrecisionedDouble{ 1, fspeed } << new_line;
 
     currentPosition = Point3(x, y, z);
     estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), 
@@ -1312,8 +1329,11 @@ void GCodeExport::writeTravel(const coord_t x, const coord_t y, const coord_t z,
     const int display_width = extruder_attr[current_extruder].retraction_e_amount_current ? MM2INT(0.2) : MM2INT(0.1);
     const double layer_height = application->current_slice->scene.current_mesh_group->settings.get<double>("layer_height");
 
-    *output_stream << "G0";
+    output_stream << "G0";
     writeFXYZE(speed, x, y, z, current_e_value, travel_move_type);
+
+    application->fDebugger->setSpeed(speed);
+    application->fDebugger->getPathData(trimesh::vec3(x, y, z), current_e_value, (int)travel_move_type);
 }
 
 void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t z, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset)
@@ -1365,7 +1385,7 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
 	if (this->flavor == EGCodeFlavor::PLC)
 	{
 		float iDegree = getAngelOfTwoVector(Point(x,y), Point(currentPosition.x, currentPosition.y));
-		*output_stream << "G90 E" << iDegree << new_line;
+		output_stream << "G90 E" << iDegree << new_line;
 	}
 
     writeUnretractionAndPrime();
@@ -1384,13 +1404,13 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     if (update_extrusion_offset && (extrusion_offset != current_e_offset))
     {
         current_e_offset = extrusion_offset;
-        *output_stream << ";FLOW_RATE_COMPENSATED_OFFSET = " << current_e_offset << new_line;
+        output_stream << ";FLOW_RATE_COMPENSATED_OFFSET = " << current_e_offset << new_line;
     }
 
     extruder_attr[current_extruder].last_e_value_after_wipe += extrusion_per_mm * diff_length;
     const double new_e_value = current_e_value + extrusion_per_mm * diff_length;
 
-    *output_stream << "G1";
+    output_stream << "G1";
     Velocity speed_e = speed;
     if (diff_length)
     {
@@ -1464,7 +1484,7 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     if (update_extrusion_offset && (extrusion_offset != current_e_offset))
     {
         current_e_offset = extrusion_offset;
-        *output_stream << ";FLOW_RATE_COMPENSATED_OFFSET = " << current_e_offset << new_line;
+        output_stream << ";FLOW_RATE_COMPENSATED_OFFSET = " << current_e_offset << new_line;
     }
 
     extruder_attr[current_extruder].last_e_value_after_wipe += extrusion_per_mm * diff_length;
@@ -1473,11 +1493,11 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     switch (is_ccw)
     {
     case true:
-    *output_stream << "G3";
+    output_stream << "G3";
 	estimateCalculator->is_ccw = false;
     break;
     case false:
-    *output_stream << "G2";
+    output_stream << "G2";
 	estimateCalculator->is_ccw = true;
     break;
     }
@@ -1498,26 +1518,35 @@ void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord
 	//double mass = e * (0.25 * 1.75 * 1.75 * 3.1415926) * (1.24 / 1000.0);
 	//if (mass > 1.73) { speed.operator double = 0.5*speed.operator double(); }
 
+    //application->fDebugger->setSpeed(speed);
+    //application->fDebugger->getPathData(trimesh::vec3(x, y, z), new_e_value, (int)feature);
+
     if (currentSpeed != speed)
     {
-        *output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
+        output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
+        application->fDebugger->setSpeed(PrecisionedDouble{ 1, speed * 60 }.value);
         currentSpeed = speed;
     }
 
     Point gcode_pos = getGcodePos(x, y, current_extruder);
     total_bounding_box.include(Point3(gcode_pos.X, gcode_pos.Y, z));
 
-    *output_stream << " X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y };
+    output_stream << " X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y };
     if (z != currentPosition.z)
     {
-        *output_stream << " Z" << MMtoStream{ z };
+        output_stream << " Z" << MMtoStream{ z };
     }
     if (e + current_e_offset != current_e_value)
     {
         const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
-        *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
+        output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
+
+        application->fDebugger->getPathData(trimesh::vec3(MMtoStream{ gcode_pos.X }.value, MMtoStream{ gcode_pos.Y }.value, z), PrecisionedDouble{ 5, output_e }.value, (int)feature);
     }
-    *output_stream << new_line;
+    else
+        application->fDebugger->getPathData(trimesh::vec3(MMtoStream{ gcode_pos.X }.value, MMtoStream{ gcode_pos.Y }.value, z), -1, (int)feature);
+
+    output_stream << new_line;
 
     currentPosition = Point3(x, y, z);
     current_e_value = e;
@@ -1551,7 +1580,7 @@ void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coo
 {
     if (currentSpeed != speed)
     {
-        *output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
+        output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
         currentSpeed = speed;
     }
 
@@ -1559,21 +1588,21 @@ void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coo
 
     total_bounding_box.include(Point3(gcode_pos.X, gcode_pos.Y, z));
 
-    *output_stream << " X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y };
+    output_stream << " X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y };
     if (z != currentPosition.z)
     {
-        *output_stream << " Z" << MMtoStream{ z };
+        output_stream << " Z" << MMtoStream{ z };
     }
 
-    *output_stream << " I" << MMtoStream{ i } << " J" << MMtoStream{ j };
+    output_stream << " I" << MMtoStream{ i } << " J" << MMtoStream{ j };
 
     if (e + current_e_offset != current_e_value)
     {
         const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
-        *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
+        output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
     }
 
-    *output_stream << new_line;
+    output_stream << new_line;
 
 	Point3 A0 = currentPosition;
 	Point3 A1 = Point3(x, y, z);
@@ -1620,12 +1649,12 @@ void GCodeExport::writeUnretractionAndPrime()
         const Settings& extruder_settings = application->current_slice->scene.extruders[current_extruder].settings;
         if (extruder_settings.get<bool>("machine_firmware_retract"))
         { // note that BFB is handled differently
-            *output_stream << "G11" << new_line;
+            output_stream << "G11" << new_line;
             // Assume default UM2 retraction settings.
             if (prime_volume != 0)
             {
                 const double output_e = (relative_extrusion) ? prime_volume_e : current_e_value;
-                *output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e }
+                output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e }
                                << new_line;
                 currentSpeed = extruder_attr[current_extruder].last_retraction_prime_speed;
             }
@@ -1635,7 +1664,7 @@ void GCodeExport::writeUnretractionAndPrime()
         {
             current_e_value += extruder_attr[current_extruder].retraction_e_amount_current;
             const double output_e = (relative_extrusion) ? extruder_attr[current_extruder].retraction_e_amount_current + prime_volume_e : current_e_value;
-            *output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e } << new_line;
+            output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e } << new_line;
             currentSpeed = extruder_attr[current_extruder].last_retraction_prime_speed;
             estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), eToMm(current_e_value)), currentSpeed, PrintFeatureType::MoveRetraction);
         }
@@ -1643,8 +1672,8 @@ void GCodeExport::writeUnretractionAndPrime()
     else if (prime_volume != 0.0)
     {
         const double output_e = (relative_extrusion) ? prime_volume_e : current_e_value;
-        *output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter;
-        *output_stream << PrecisionedDouble{ 5, output_e } << new_line;
+        output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter;
+        output_stream << PrecisionedDouble{ 5, output_e } << new_line;
         currentSpeed = extruder_attr[current_extruder].last_retraction_prime_speed;
         estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), eToMm(current_e_value)), currentSpeed, PrintFeatureType::NoneType);
     }
@@ -1667,8 +1696,11 @@ void GCodeExport::writeExtrusionG1(const Velocity& speed, Point point, const dou
     if (e < 0)
         extr_attr.retraction_e_amount_current -= e;
 
-    *output_stream << "G1";
+    output_stream << "G1";
     writeFXYZE(speed, point.X, point.Y, current_layer_z, current_e_value + e, feature);
+
+    application->fDebugger->setSpeed(speed);
+    application->fDebugger->getPathData(trimesh::vec3(point.X, point.Y, current_layer_z), current_e_value + e, (int)feature);
 }
 
 coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t z_hop_height)
@@ -1688,13 +1720,16 @@ coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t 
     //����̧��·�����ɳ���ƽ̨��Χ
     if (O.X > radius && O.X < machine_width - radius - 1 && O.Y > radius && O.Y < machine_depth - radius - 1)
     {
-        *output_stream << "G17\n";
-        *output_stream << "G2" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
+        output_stream << "G17\n";
+        output_stream << "G2" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. }
             << " I" << PrecisionedDouble{ 5, ij_offset.X / 1000. } << " J" << PrecisionedDouble{ 5, ij_offset.Y / 1000. }
         << " P1 F" << PrecisionedDouble{ 1, speed * 60 } << "\n";
     }
     else {
-        *output_stream << "G1" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. } << "\n";
+        output_stream << "G1" << " Z" << PrecisionedDouble{ 5, (current_layer_z + is_z_hopped) / 1000. } << "\n";
+
+        //application->fDebugger->setSpeed(speed);
+        //application->fDebugger->getPathData(trimesh::vec3(point.X, point.Y, current_layer_z), current_e_value + e, (int)feature);
     }
 
     return is_z_hopped;
@@ -1737,7 +1772,7 @@ void GCodeExport::writeRetraction(const RetractionConfig& config, bool force, bo
         {
             if (! extr_attr.retraction_e_amount_current)
             {
-                *output_stream << "M103" << new_line;
+                output_stream << "M103" << new_line;
             }
             extr_attr.retraction_e_amount_current = 1.0; // 1.0 is a stub; BFB doesn't use the actual retracted amount; retraction is performed by firmware
         }
@@ -1784,12 +1819,12 @@ void GCodeExport::writeRetraction(const RetractionConfig& config, bool force, bo
         {
             return;
         }
-        *output_stream << "G10";
+        output_stream << "G10";
         if (extruder_switch && flavor == EGCodeFlavor::REPETIER)
         {
-            *output_stream << " S1";
+            output_stream << " S1";
         }
-        *output_stream << new_line;
+        output_stream << new_line;
         // Assume default UM2 retraction settings.
         estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), 
 								eToMm(current_e_value + retraction_diff_e_amount)),
@@ -1801,7 +1836,7 @@ void GCodeExport::writeRetraction(const RetractionConfig& config, bool force, bo
         double speed = ((retraction_diff_e_amount < 0.0) ? config.speed : extr_attr.last_retraction_prime_speed);
         current_e_value += retraction_diff_e_amount;
         const double output_e = (relative_extrusion) ? retraction_diff_e_amount : current_e_value;
-        *output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " " << extr_attr.extruderCharacter << PrecisionedDouble{ 5, output_e } << new_line;
+        output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " " << extr_attr.extruderCharacter << PrecisionedDouble{ 5, output_e } << new_line;
         currentSpeed = speed;
         estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), eToMm(current_e_value)), currentSpeed, PrintFeatureType::MoveRetraction);
         extr_attr.last_retraction_prime_speed = config.primeSpeed;
@@ -1822,7 +1857,7 @@ void GCodeExport::writeZhopStart(const coord_t hop_height, Velocity speed /*= 0*
         }
         is_z_hopped = hop_height;
         currentSpeed = speed;
-        *output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z + is_z_hopped } << new_line;
+        output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z + is_z_hopped } << new_line;
         total_bounding_box.includeZ(current_layer_z + is_z_hopped);
         assert(speed > 0.0 && "Z hop speed should be positive.");
     }
@@ -1843,11 +1878,11 @@ void GCodeExport::writeZhopEnd(Velocity speed /*= 0*/)
         const Settings& extruder_settings = application->current_slice->scene.extruders[current_extruder].settings;
         if (extruder_settings.get<RetractionHopType>("retraction_hop_type") == RetractionHopType::SPIRALLIFT)
         {
-            *output_stream << "G1 Z" << MMtoStream{ current_layer_z } << new_line;
+            output_stream << "G1 Z" << MMtoStream{ current_layer_z } << new_line;
 		}
 		else
 		{
-			*output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z } << new_line;
+			output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " Z" << MMtoStream{ current_layer_z } << new_line;
 		}
         assert(speed > 0.0 && "Z hop speed should be positive.");
     }
@@ -1886,11 +1921,11 @@ void GCodeExport::startExtruder(const size_t new_extruder)
 	{
 		if (flavor == EGCodeFlavor::MAKERBOT)
 		{
-			*output_stream << "M135 T" << new_extruder << new_line;
+			output_stream << "M135 T" << new_extruder << new_line;
 		}
 		else
 		{
-			*output_stream << "T" << new_extruder << new_line;
+			output_stream << "T" << new_extruder << new_line;
 		}
 	}
 
@@ -1943,7 +1978,7 @@ void GCodeExport::switchExtruder(size_t new_extruder, const RetractionConfig& re
 
 void GCodeExport::writeCode(const char* str)
 {
-    *output_stream << str << new_line;
+    output_stream << str << new_line;
 }
 
 bool GCodeExport::substitution(std::string& srcStr, const size_t start_extruder_nr)
@@ -2038,7 +2073,7 @@ void GCodeExport::writePrimeTrain(const Velocity& travel_speed)
             command += " S1"; // use S1 to disable prime blob
             should_correct_z = true;
         }
-        *output_stream << command << new_line;
+        output_stream << command << new_line;
 
         // There was an issue with the S1 strategy parameter, where it would only change the material-position,
         //   as opposed to 'be a prime-blob maneuvre without actually printing the prime blob', as we assumed here.
@@ -2048,7 +2083,7 @@ void GCodeExport::writePrimeTrain(const Velocity& travel_speed)
         {
             // Can't output via 'writeTravel', since if this is needed, the value saved for 'current height' will not be correct.
             // For similar reasons, this isn't written to the front-end via command-socket.
-            *output_stream << "G0 Z" << MMtoStream{ getPositionZ() } << new_line;
+            output_stream << "G0 Z" << MMtoStream{ getPositionZ() } << new_line;
         }
     }
     else
@@ -2076,7 +2111,7 @@ void GCodeExport::writeCdsFanCommand(double cds_speed)
     }
 
     const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
-    *output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed : cds_speed * 255) / 100 } << new_line;
+    output_stream << "M106 P2 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? cds_speed : cds_speed * 255) / 100 } << new_line;
 
     current_cds_fan_speed = cds_speed;
 }
@@ -2090,7 +2125,7 @@ void GCodeExport::writeChamberFanCommand(double chamber_speed)
     }
 
     const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
-    *output_stream << "M106 P1 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? chamber_speed : chamber_speed * 255) / 100 } << new_line;
+    output_stream << "M106 P1 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? chamber_speed : chamber_speed * 255) / 100 } << new_line;
 
     current_chamber_fan_speed = chamber_speed;
 }
@@ -2106,34 +2141,34 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
     {
         if (speed >= 50)
         {
-            *output_stream << "M126 T0" << new_line; // Makerbot cannot PWM the fan speed...
+            output_stream << "M126 T0" << new_line; // Makerbot cannot PWM the fan speed...
         }
         else
         {
-            *output_stream << "M127 T0" << new_line;
+            output_stream << "M127 T0" << new_line;
         }
     }
     else if (speed > 0)
     {
         const bool should_scale_zero_to_one = application->current_slice->scene.settings.get<bool>("machine_scale_fan_speed_zero_to_one");
-        *output_stream << "M106 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? speed : speed * 255) / 100 };
+        output_stream << "M106 S" << PrecisionedDouble{ (should_scale_zero_to_one ? 2u : 1u), (should_scale_zero_to_one ? speed : speed * 255) / 100 };
         if (fan_number)
         {
-            *output_stream << " P" << fan_number;
+            output_stream << " P" << fan_number;
         }
-        *output_stream << new_line;
+        output_stream << new_line;
 
         writeCdsFanCommand(cds_speed);
     }
     else
     {
-        //*output_stream << "M107";
+        //output_stream << "M107";
         //if (fan_number)
         //{
-        //    *output_stream << " P" << fan_number;
+        //    output_stream << " P" << fan_number;
         //}
-        //*output_stream << new_line;
-        *output_stream << "M106 S0" << new_line;
+        //output_stream << new_line;
+        output_stream << "M106 S0" << new_line;
         
         writeCdsFanCommand(cds_speed);
     }
@@ -2186,40 +2221,40 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
     {
         if (flavor == EGCodeFlavor::MARLIN)
         {
-            *output_stream << "M105" << new_line; // get temperatures from the last update, the M109 will not let get the target temperature
+            output_stream << "M105" << new_line; // get temperatures from the last update, the M109 will not let get the target temperature
         }
-        *output_stream << "M109";
+        output_stream << "M109";
         extruder_attr[extruder].waited_for_temperature = true;
     }
     else
     {
-        *output_stream << "M104";
+        output_stream << "M104";
         extruder_attr[extruder].waited_for_temperature = false;
     }
     if (extruder != current_extruder)
     {
 		if (flavor == EGCodeFlavor::MACH3_Creality)
 		{
-			*output_stream << " T1" << extruder;
+			output_stream << " T1" << extruder;
 		} 
 		else
 		{
-			*output_stream << " T" << extruder;
+			output_stream << " T" << extruder;
 		}
     }
 #ifdef ASSERT_INSANE_OUTPUT
     assert(temperature >= 0);
 #endif // ASSERT_INSANE_OUTPUT
-    *output_stream << " S" << PrecisionedDouble{ 1, temperature } << new_line;
+    output_stream << " S" << PrecisionedDouble{ 1, temperature } << new_line;
     if (extruder != current_extruder && always_write_active_tool)
     {
         // Some firmwares (ie Smoothieware) change tools every time a "T" command is read - even on a M104 line, so we need to switch back to the active tool.
-        *output_stream << "T" << current_extruder << new_line;
+        output_stream << "T" << current_extruder << new_line;
     }
     if (wait && flavor == EGCodeFlavor::MAKERBOT)
     {
         // Makerbot doesn't use M109 for heat-and-wait. Instead, use M104 and then wait using M116.
-        *output_stream << "M116" << new_line;
+        output_stream << "M116" << new_line;
     }
     extruder_attr[extruder].currentTemperature = temperature;
 }
@@ -2237,22 +2272,22 @@ void GCodeExport::writeBedTemperatureCommand(const Temperature& temperature, con
         {
             if (flavor == EGCodeFlavor::MARLIN)
             {
-                *output_stream << "M140 S"; // set the temperature, it will be used as target temperature from M105
-                *output_stream << PrecisionedDouble{ 1, temperature } << new_line;
-                *output_stream << "M105" << new_line;
+                output_stream << "M140 S"; // set the temperature, it will be used as target temperature from M105
+                output_stream << PrecisionedDouble{ 1, temperature } << new_line;
+                output_stream << "M105" << new_line;
             }
         }
-        *output_stream << "M190 S";
+        output_stream << "M190 S";
         wrote_command = true;
     }
     else if (bed_temperature != temperature)
     {
-        *output_stream << "M140 S";
+        output_stream << "M140 S";
         wrote_command = true;
     }
     if (wrote_command)
     {
-        *output_stream << PrecisionedDouble{ 1, temperature } << new_line;
+        output_stream << PrecisionedDouble{ 1, temperature } << new_line;
     }
     bed_temperature = temperature;
 }
@@ -2266,13 +2301,13 @@ void GCodeExport::writeBuildVolumeTemperatureCommand(const Temperature& temperat
     }
     if (wait)
     {
-        *output_stream << "M191 S";
+        output_stream << "M191 S";
     }
     else
     {
-        *output_stream << "M141 S";
+        output_stream << "M141 S";
     }
-    *output_stream << PrecisionedDouble{ 1, temperature } << new_line;
+    output_stream << PrecisionedDouble{ 1, temperature } << new_line;
 }
 
 void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
@@ -2303,23 +2338,23 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
     case EGCodeFlavor::REPETIER:
         if (current_print_acceleration != acc)
         {
-            *output_stream << "M201 X" << PrecisionedDouble{ 0, acc } << " Y" << PrecisionedDouble{ 0, acc } << new_line;
+            output_stream << "M201 X" << PrecisionedDouble{ 0, acc } << " Y" << PrecisionedDouble{ 0, acc } << new_line;
         }
         break;
     case EGCodeFlavor::REPRAP:
         if (current_print_acceleration != acc)
         {
-            *output_stream << "M204 P" << PrecisionedDouble{ 0, acc } << new_line;
+            output_stream << "M204 P" << PrecisionedDouble{ 0, acc } << new_line;
         }
         break;
     default:
         // MARLIN, etc. only have one acceleration for both print and travel
         if (current_print_acceleration != acc)
         {
-            *output_stream << "M204 S" << PrecisionedDouble{ 0, acc } << new_line;
+            output_stream << "M204 S" << PrecisionedDouble{ 0, acc } << new_line;
             if (acceleration_breaking_enable)
             {
-                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc* acceleration_percent/100 } << new_line;
+                output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc* acceleration_percent/100 } << new_line;
             }
         }
         break;
@@ -2335,13 +2370,13 @@ void GCodeExport::writeTravelAcceleration(const Acceleration& acceleration, bool
     case EGCodeFlavor::REPETIER:
         if (current_travel_acceleration != acceleration)
         {
-            *output_stream << "M202 X" << PrecisionedDouble{ 0, acceleration } << " Y" << PrecisionedDouble{ 0, acceleration } << new_line;
+            output_stream << "M202 X" << PrecisionedDouble{ 0, acceleration } << " Y" << PrecisionedDouble{ 0, acceleration } << new_line;
         }
         break;
     case EGCodeFlavor::REPRAP:
         if (current_travel_acceleration != acceleration)
         {
-            *output_stream << "M204 T" << PrecisionedDouble{ 0, acceleration } << new_line;
+            output_stream << "M204 T" << PrecisionedDouble{ 0, acceleration } << new_line;
         }
         break;
     default:
@@ -2361,13 +2396,13 @@ void GCodeExport::writeJerk(const Velocity& jerk)
         switch (getFlavor())
         {
         case EGCodeFlavor::REPETIER:
-            *output_stream << "M207 X" << PrecisionedDouble{ 2, jerk } << new_line;
+            output_stream << "M207 X" << PrecisionedDouble{ 2, jerk } << new_line;
             break;
         case EGCodeFlavor::REPRAP:
-            *output_stream << "M566 X" << PrecisionedDouble{ 2, jerk * 60 } << " Y" << PrecisionedDouble{ 2, jerk * 60 } << new_line;
+            output_stream << "M566 X" << PrecisionedDouble{ 2, jerk * 60 } << " Y" << PrecisionedDouble{ 2, jerk * 60 } << new_line;
             break;
         default:
-            *output_stream << "M205 X" << PrecisionedDouble{ 2, jerk } << " Y" << PrecisionedDouble{ 2, jerk } << new_line;
+            output_stream << "M205 X" << PrecisionedDouble{ 2, jerk } << " Y" << PrecisionedDouble{ 2, jerk } << new_line;
             break;
         }
         current_jerk = jerk;
@@ -2405,7 +2440,7 @@ void GCodeExport::finalize(const std::string& endCode)
     for (int n = 1; n < MAX_EXTRUDERS; n++)
         if (getTotalFilamentUsed(n) > 0)
             LOGI("Filament { %d }: { %d }", n + 1, int(getTotalFilamentUsed(n)));
-    output_stream->flush();
+    output_stream_file->flush();
 }
 
 double GCodeExport::getExtrudedVolumeAfterLastWipe(size_t extruder)
@@ -2519,5 +2554,4 @@ void GCodeExport::setAcc_Limit_mass(std::map <float, float>& _acceleration_limit
 {
 	acceleration_limit_mass = _acceleration_limit_mass;
 }
-
 } // namespace cura52

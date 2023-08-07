@@ -111,13 +111,14 @@ private:
         {
         }
     };
-
     ExtruderTrainAttributes extruder_attr[MAX_EXTRUDERS];
     bool use_extruder_offset_to_offset_coords;
     std::string machine_name;
     std::string slice_uuid_; //!< The UUID of the current slice.
 
-	std::ostream* output_stream;
+    std::ostream* output_stream_file;
+	std::ostringstream output_stream;//block_stream
+
     std::string new_line;
 
     double current_e_value; //!< The last E value written to gcode (in mm or mm^3)
@@ -259,6 +260,7 @@ public:
     void setLayerNr(unsigned int layer_nr);
 
     void setOutputStream(std::ostream* stream);
+    void updateGcodeFile();
 
     int getExtruderNum();
     bool getExtruderIsUsed(const int extruder_nr) const; //!< return whether the extruder has been used throughout printing all meshgroup up till now

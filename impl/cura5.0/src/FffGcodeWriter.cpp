@@ -127,6 +127,8 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
     }
     calculateExtruderOrderPerLayer(storage);
 
+    gcode.updateGcodeFile();//write ostringstream to gcode file;
+
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
     calculatePrimeLayerPerExtruder(storage);
@@ -217,6 +219,8 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     constexpr bool force = true;
     gcode.writeRetraction(storage.retraction_config_per_extruder[gcode.getExtruderNr()], force); // retract after finishing each meshgroup
+
+    gcode.updateGcodeFile();//write ostringstream to gcode file;
 }
 
 unsigned int FffGcodeWriter::findSpiralizedLayerSeamVertexIndex(const SliceDataStorage& storage, const SliceMeshStorage& mesh, const int layer_nr, const int last_layer_nr)
@@ -4280,6 +4284,7 @@ void FffGcodeWriter::finalize()
     }
 
     gcode.writeComment("End of Gcode");
+    gcode.updateGcodeFile();//write ostringstream to gcode file;
 }
 bool FffGcodeWriter::closeGcodeWriterFile()
 {

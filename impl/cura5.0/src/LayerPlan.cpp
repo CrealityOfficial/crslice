@@ -1916,6 +1916,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     bool wall_slow_OK = false;
     gcode.setLayerNr(layer_nr);
 
+    //application->fDebugger->getPathData(trimesh::vec3(),0,0);
+
     gcode.writeLayerComment(layer_nr);
 
     if (layerTemp >0)
@@ -2759,6 +2761,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     } // extruder plans /\  .
 
     gcode.updateTotalPrintTime();
+
+    gcode.updateGcodeFile();//write ostringstream to gcode file;
 }
 
 void LayerPlan::overrideFanSpeeds(double speed)
