@@ -176,6 +176,39 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
     }
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
+
+
+    //指定轮廓的打印顺序
+    if (scene.current_mesh_group->settings.get<bool>("poly_order_user_specified"))
+    {
+        storage.polyOrderUserDef.clear();
+        std::string str = scene.current_mesh_group->settings.get<std::string>("poly_order_user_specified_str");
+        //[0.0,0.0] //[x1,y1,x2,y2]
+        if (str.length() > 3)
+        {
+            str = str.substr(0, str.length() - 1);
+            str = str.substr(1, str.length() - 1);
+        }
+        std::vector<float> order;
+        int findIndex = str.find(',');
+        std::string temp = "";
+        while (findIndex >= 0)
+        {
+            temp = str.substr(0, findIndex);
+            str = str.substr(findIndex + 1, str.length());
+            order.push_back(std::atof(temp.c_str()));
+            findIndex = str.find(',');
+        }
+        order.push_back(std::atof(str.c_str()));
+
+        for (size_t i = 0; i < order.size()-1; i++,i++)
+        {
+            ClipperLib::IntPoint p;
+            p.X = MM2INT(order[i]);
+            p.Y = MM2INT(order[i+1]);
+            storage.polyOrderUserDef.push_back(p);
+        }
+    }
     
 		//引擎调试多线程
 		if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
@@ -2238,7 +2271,40 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
     {
         z_seam_config = ZSeamConfig(EZSeamType::SHORTEST, mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), mesh.settings.get<coord_t>("wall_line_width_0") * 2);
     }
-    PathOrderOptimizer<const SliceLayerPart*> part_order_optimizer(gcode_layer.getLastPlannedPositionOrStartingPosition(), z_seam_config);
+
+    std::unordered_set<std::pair<const SliceLayerPart*, const SliceLayerPart*>> order_requirements;
+    if (mesh.settings.get<bool>("poly_order_user_specified"))
+    {
+        //指定轮廓的打印顺序
+        if (!storage.polyOrderUserDef.empty())
+        {
+            std::vector<int> _order;
+            for (int i = 0; i < storage.polyOrderUserDef.size(); i++)
+            {
+                for (int j = 0; j < layer.parts.size(); j++)
+                {
+                    std::vector<int>::iterator iter = std::find(_order.begin(), _order.end(), j);
+                    if (iter == _order.end())
+                    {
+                        if (layer.parts[j].outline.inside(storage.polyOrderUserDef[i]))
+                        {
+                            _order.push_back(j);
+                        }
+                    }
+                }
+            }
+
+            if (_order.size() == layer.parts.size())
+            {
+                for (size_t i = 0; i < _order.size()-1; i++)
+                {
+                    order_requirements.emplace(std::make_pair(&layer.parts[_order[i]%layer.parts.size()], &layer.parts[_order[i+1]% layer.parts.size()]));
+                }
+            }
+        }
+    }
+
+    PathOrderOptimizer<const SliceLayerPart*> part_order_optimizer(gcode_layer.getLastPlannedPositionOrStartingPosition(), z_seam_config,false,nullptr,false, order_requirements);
     for (const SliceLayerPart& part : layer.parts)
     {
         part_order_optimizer.addPolygon(&part);

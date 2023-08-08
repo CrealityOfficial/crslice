@@ -336,6 +336,8 @@ public:
     std::vector<Polygons> oozeShield;        //oozeShield per layer
     Polygons draft_protection_shield; //!< The polygons for a heightened skirt which protects from warping by gusts of wind and acts as a heated chamber.
 
+    std::vector<ClipperLib::IntPoint> polyOrderUserDef; //polygon order
+
     /*!
      * \brief Creates a new slice data storage that stores the slice data of the
      * current mesh group.
