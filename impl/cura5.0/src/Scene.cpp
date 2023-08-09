@@ -107,9 +107,9 @@ namespace cura52
 
             application->progressor.messageProgressStage(Progress::Stage::EXPORT);
 
-            CALLTICK("writeGCode 0");
+            CALLTICK("writeGCode");
             fff_processor.gcode_writer.writeGCode(storage);
-            CALLTICK("writeGCode 1");
+            CALLTICK("writeGCode");
         }
 
         application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup

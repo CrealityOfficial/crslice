@@ -192,7 +192,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 		} 
 		else
 		{
-			CALLTICK("processLayer & handle 0");
+			CALLTICK("processLayer & handle");
 			run_multiple_producers_ordered_consumer(application,
 				process_layer_starting_layer_nr,
 				total_layers,
@@ -202,7 +202,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 					application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
 					layer_plan_buffer.handle(*gcode_layer, gcode);
 				});
-			CALLTICK("processLayer & handle 1");
+			CALLTICK("processLayer & handle");
 		}
 
     layer_plan_buffer.flush();

@@ -12,6 +12,7 @@
 #include "communication/Communication.h"
 
 #include "ccglobal/log.h"
+#include "ccglobal/profile.h"
 
 #include "Slice.h"
 #include "FffProcessor.h"
@@ -72,8 +73,10 @@ namespace cura52
 
     void Application::tick(const std::string& tag)
     {
-        if (fDebugger)
-            fDebugger->tick(tag);
+        //if (fDebugger)
+        //    fDebugger->tick(tag);
+
+        SYSTEM_TICK(tag);
     }
 
     void Application::runCommulication(Communication* _communication)
@@ -81,7 +84,7 @@ namespace cura52
         if (!_communication)
             return;
 
-        CALLTICK("slice 0");
+        CALLTICK("slice");
         progressor.init();
         startThreadPool(); // Start the thread pool
         if (_communication->hasSlice())
@@ -103,7 +106,7 @@ namespace cura52
                 processor.finalize();
             }
         }
-		CALLTICK("slice 1");
+		CALLTICK("slice");
     }
 
     void Application::startThreadPool(int nworkers)
