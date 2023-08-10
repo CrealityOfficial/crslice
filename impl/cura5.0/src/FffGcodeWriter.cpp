@@ -179,6 +179,36 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
     
+    crslice::PathParam pathParam;
+    {
+        Settings& setting = scene.current_mesh_group->settings;
+        pathParam.machine_height = setting.get<double>("machine_height");
+        pathParam.machine_width = setting.get<double>("machine_width");
+        pathParam.machine_depth = setting.get<double>("machine_depth");
+        //pathParam.printTime;
+        //pathParam.materialLenth;
+        pathParam.material_diameter = setting.get<double>("material_diameter"); //材料直径
+        pathParam.material_density = setting.get<double>("material_density");  //材料密度
+        pathParam.materialDensity = PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
+        pathParam.lineWidth = setting.get<double>("line_width");
+        pathParam.layerHeight = setting.get<double>("layer_height");
+        //pathParam.unitPrice;
+        pathParam.spiralMode = setting.get<bool>("magic_spiralize");
+;
+        pathParam.exportFormat = setting.get<std::string>("preview_img_type");//QString exportFormat;
+        pathParam.screenSize = setting.get<std::string>("screen_size");//QString screenSize;
+
+        //TimeParts timeParts;
+
+        pathParam.beltType = setting.get<bool>("machine_is_belt") ? 1 : 0;  // 1 creality print belt  2 creality slicer belt
+        pathParam.beltOffset = setting.get<double>("machine_belt_offset");
+        pathParam.beltOffsetY = setting.get<double>("machine_belt_offset_Y");
+        //pathParam.xf4;//cr30 fxform
+
+        pathParam.relativeExtrude = setting.get<bool>("relative_extrusion");
+        application->fDebugger->setParam(pathParam);
+    }
+    
 		//引擎调试多线程
 		if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
 		{

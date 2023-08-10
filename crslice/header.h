@@ -78,12 +78,16 @@ namespace crslice
 		virtual void tick(const std::string& tag) = 0;
 
 		virtual void getPathData(const trimesh::vec3 point,float e , int type) = 0;
+		virtual void getPathDataG2G3(const trimesh::vec3 point,float i,float j, float e, int type, bool isG2=true) = 0;
 		virtual void setParam(PathParam pathParam) = 0;
 		virtual void setLayer(int layer) = 0;
 		virtual void setSpeed(float s) = 0;
 		virtual void setTEMP(float temp) = 0;
 		virtual void setExtruder(int nr) = 0;
+		virtual void setTime(float time) = 0;
 		virtual void setFan(float fan) = 0;
+		virtual void setZ(float z,float h =-1) = 0;
+		virtual void setE(float e) = 0;
 	};
 
 	class PathData :public crslice::FDMDebugger
@@ -92,12 +96,16 @@ namespace crslice
 		void tick(const std::string& tag) override {};
 
 		void getPathData(const trimesh::vec3 point, float e, int type) override {};
+		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true) override {};
 		void setParam(PathParam pathParam)override {};
 		void setLayer(int layer) override {};
 		void setSpeed(float s) override {};
 		void setTEMP(float temp) override {};
 		void setExtruder(int nr) override {};
+		void setTime(float time) override {};
 		void setFan(float fan) override {};
+		void setZ(float z, float h = -1) override {};
+		void setE(float e) override {};
 	};
 }
 #endif // CRSLICE_HEADER_INTERFACE
