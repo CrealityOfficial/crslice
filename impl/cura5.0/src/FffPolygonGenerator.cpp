@@ -450,6 +450,8 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 		tree_support_generator.generateSupportAreas(storage);
 	}
 
+    AreaSupport::generateSharpTailSupport(storage);
+
 	INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
 	CALLTICK("support 1");
     // we need to remove empty layers after we have processed the insets

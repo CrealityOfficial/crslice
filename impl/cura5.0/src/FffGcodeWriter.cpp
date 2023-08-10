@@ -1786,7 +1786,7 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 
 	for (const SliceMeshStorage& mesh : storage.meshes)
 	{
-		if (mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
+		if (layer_nr >= 0 && mesh.layers[layer_nr].parts.size() > 0 && mesh.settings.has("calibration_temperature"))
 		{
 			gcode_layer.layerTemp = mesh.settings.get<Temperature>("calibration_temperature");
 			ExtruderTrain& train = application->current_slice->scene.extruders[extruder_order.front()];

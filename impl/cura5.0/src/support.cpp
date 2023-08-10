@@ -643,25 +643,29 @@ bool AreaSupport::isSupportNecessary(SliceDataStorage& storage)
 void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
 {
     const Settings& mesh_group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
-    const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
+    const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height"); 
+    const coord_t support_interface_line_width = mesh_group_settings.get<coord_t>("support_interface_line_width");
+    const coord_t xy_distance = mesh_group_settings.get<coord_t>("support_xy_distance");
     const ESupportStructure support_structure = mesh_group_settings.get<ESupportStructure>("support_structure");
-    const double min_overhang_expand = support_structure == ESupportStructure::THOMASTREE ? 1.5 : 3.0;  
     const double minimum_support_area = mesh_group_settings.get<double>("minimum_support_area");
-    const double expand = std::sqrt(minimum_support_area / M_PI);
-    const int add_support_layer = MM2INT(3.0) / layer_height;
+    const coord_t branch_diameter = mesh_group_settings.get<coord_t>("support_tree_branch_diameter");
+    const coord_t min_area_expand = std::max(MM2INT(std::sqrt(minimum_support_area / M_PI)), branch_diameter / 3);
+    const coord_t actual_expand = std::max(min_area_expand, MM2INT(3.0));
+    const int add_support_layer = MM2INT(support_structure == ESupportStructure::THOMASTREE ? 4.0 : 3.0) / layer_height;
     auto bSharpTail = [&](std::vector<Polygons>& upperMeshOutline, const Polygon& miniSupport, int layerIdx)
     {
         Polygons spPolygons;
         AABB supportPartBoundary(miniSupport);
-        supportPartBoundary.expand(MM2INT(min_overhang_expand));
+        supportPartBoundary.expand(MM2INT(2.0));
         spPolygons.add(supportPartBoundary.toPolygon());
         int max_layer_idx = std::min(layerIdx + add_support_layer, (int)storage.print_layer_count);
         int max_num = 0;
         bool found_end = false;
-        for (int i = layerIdx; i < max_layer_idx; i++)
+
+        Polygons inside, hit;
+        for (const SliceMeshStorage& mesh : storage.meshes)
         {
-            Polygons inside, hit;
-            for (const SliceMeshStorage& mesh : storage.meshes)
+            for (int i = layerIdx; i < max_layer_idx; i++)
             {
                 const SliceLayer& meshLayer = mesh.layers[i];
                 for (const SliceLayerPart& part : meshLayer.parts)
@@ -671,19 +675,24 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
                         hit.add(part.outline);
                         if (part.outline.difference(spPolygons).empty())
                             inside.add(part.outline);
+                        else if (inside.empty())
+                        {
+                            return false;
+                        }
+
                     }
                 }
+                upperMeshOutline[i - layerIdx] = hit;
+                if (max_num > 0 && inside.empty())
+                    found_end = true;
+                if (!inside.empty() && !found_end)
+                    max_num++;
             }
-            upperMeshOutline[i - layerIdx] = hit;
-            if (max_num > 0 && inside.empty())
-                found_end = true;
-            if (!inside.empty() && !found_end)
-                max_num++;
         }
         return  max_num > 2;
     };
 
-    auto scaleSharpTailOverhang = [&](std::vector<Polygons>& overhang_areas)
+    auto scaleSharpTailOverhang = [&](std::vector<Polygons>& overhang_areas, std::vector<Polygons>& sharp_tail_data)
     {
         if (!overhang_areas.empty())
         {
@@ -701,18 +710,28 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
                         int maxLayer = std::min(layer_idx + add_support_layer, storage.print_layer_count);
                         for (int k = layer_idx; k < maxLayer; k++)
                         {
-                            Polygons overhangOutline = overhang_poly.offset(MM2INT(std::max(expand, min_overhang_expand)));
-                            overhangOutline = overhangOutline.difference(upperMeshOutline[k - layer_idx]);
+                            coord_t layer_expand = min_area_expand + 0.5 * support_interface_line_width * (k - layer_idx + 1);
+                            Polygons overhangOutline = overhang_poly.offset(std::min(layer_expand, actual_expand));
+                            overhangOutline = overhangOutline.difference(upperMeshOutline[k - layer_idx].offset(0.75 * xy_distance));
                             if (!overhangOutline.empty())
                             {
                                 full_overhang_areas_add[k].add(overhangOutline);
                             }
+                            if (k == layer_idx && k - 1 >= 0)
+                            {
+                                full_overhang_areas_add[k - 1].add(overhangOutline);
+                            }
                         }
                     }
                 }
-                if (!full_overhang_areas_add[layer_idx].empty())
+                if (!full_overhang_areas_add[layer_idx].empty() && support_structure == ESupportStructure::NORMAL)
                     overhang_areas[layer_idx] = overhang_areas[layer_idx].unionPolygons(full_overhang_areas_add[layer_idx]);
             }
+            for (Polygons& overhang_area_add : full_overhang_areas_add)
+            {
+                overhang_area_add = overhang_area_add.unionPolygons();
+            }
+            sharp_tail_data.swap(full_overhang_areas_add);
         }
     };
 
@@ -727,11 +746,11 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
 
         if (support_structure == ESupportStructure::NORMAL)
         {
-            scaleSharpTailOverhang(mesh.full_overhang_areas);
+            scaleSharpTailOverhang(mesh.full_overhang_areas, mesh.sharp_tail_areas);
         }
         else
         {
-            scaleSharpTailOverhang(mesh.overhang_areas);
+            scaleSharpTailOverhang(mesh.overhang_areas, mesh.sharp_tail_areas);
         }
     }
 }
@@ -765,10 +784,92 @@ void AreaSupport::generateSupportAreas(SliceDataStorage& storage)
         storage.support.supportLayers.resize(storage.print_layer_count);
     }
 
-    // generate support areas
-    bool support_meshes_drop_down_handled = false;
-    bool support_meshes_handled = false;
-    const Settings& mesh_group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
+// generate support areas
+bool support_meshes_drop_down_handled = false;
+bool support_meshes_handled = false;
+const Settings& mesh_group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
+for (unsigned int mesh_idx = 0; mesh_idx < storage.meshes.size(); mesh_idx++)
+{
+    SliceMeshStorage& mesh = storage.meshes[mesh_idx];
+    if (mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("anti_overhang_mesh"))
+    {
+        continue;
+    }
+    Settings* infill_settings = &storage.meshes[mesh_idx].settings;
+    Settings* roof_settings = &storage.meshes[mesh_idx].settings;
+    Settings* bottom_settings = &storage.meshes[mesh_idx].settings;
+    if (mesh.settings.get<bool>("support_mesh"))
+    {
+        if ((mesh.settings.get<bool>("support_mesh_drop_down") && support_meshes_drop_down_handled) || (!mesh.settings.get<bool>("support_mesh_drop_down") && support_meshes_handled))
+        { // handle all support_mesh and support_mesh_drop_down areas only once
+            continue;
+        }
+        // use extruder train settings rather than the per-object settings of the first support mesh encountered.
+        // because all support meshes are processed at the same time it doesn't make sense to use the per-object settings of the first support mesh encountered.
+        // instead we must use the support extruder settings, which is the settings base common to all support meshes.
+        infill_settings = &mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr").settings;
+        roof_settings = &mesh_group_settings.get<ExtruderTrain&>("support_roof_extruder_nr").settings;
+        bottom_settings = &mesh_group_settings.get<ExtruderTrain&>("support_bottom_extruder_nr").settings;
+        if (mesh.settings.get<bool>("support_mesh_drop_down"))
+        {
+            support_meshes_drop_down_handled = true;
+        }
+        else
+        {
+            support_meshes_handled = true;
+        }
+    }
+    std::vector<Polygons> mesh_support_areas_per_layer;
+    mesh_support_areas_per_layer.resize(storage.print_layer_count, Polygons());
+
+    generateSupportAreasForMesh(storage, *infill_settings, *roof_settings, *bottom_settings, mesh_idx, storage.print_layer_count, mesh_support_areas_per_layer);
+    const double minimum_support_area = mesh.settings.get<double>("minimum_support_area");
+    for (size_t layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
+    {
+        if (minimum_support_area > 0.0)
+        {
+            mesh_support_areas_per_layer[layer_idx].removeSmallAreas(minimum_support_area);
+        }
+        global_support_areas_per_layer[layer_idx].add(mesh_support_areas_per_layer[layer_idx]);
+    }
+}
+
+for (unsigned int layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
+{
+    Polygons& support_areas = global_support_areas_per_layer[layer_idx];
+    support_areas = support_areas.unionPolygons();
+}
+
+// handle support interface
+for (unsigned int mesh_idx = 0; mesh_idx < storage.meshes.size(); mesh_idx++)
+{
+    SliceMeshStorage& mesh = storage.meshes[mesh_idx];
+    if (mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("anti_overhang_mesh"))
+    {
+        continue;
+    }
+
+    if (mesh.settings.get<bool>("support_roof_enable"))
+    {
+        generateSupportRoof(storage, mesh, global_support_areas_per_layer);
+    }
+    if (mesh.settings.get<bool>("support_bottom_enable"))
+    {
+        generateSupportBottom(storage, mesh, global_support_areas_per_layer);
+    }
+}
+
+// split the global support areas into parts for later gradual support infill generation
+AreaSupport::splitGlobalSupportAreasIntoSupportInfillParts(storage, global_support_areas_per_layer, storage.print_layer_count);
+precomputeCrossInfillTree(storage);
+}
+
+void AreaSupport::generateSharpTailSupport(SliceDataStorage& storage)
+{
+    const Settings& group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
+    const bool global_use_tree_support = group_settings.get<bool>("support_enable") && group_settings.get<ESupportStructure>("support_structure") != ESupportStructure::NORMAL;
+    if (!global_use_tree_support)
+        return;
     for (unsigned int mesh_idx = 0; mesh_idx < storage.meshes.size(); mesh_idx++)
     {
         SliceMeshStorage& mesh = storage.meshes[mesh_idx];
@@ -776,73 +877,23 @@ void AreaSupport::generateSupportAreas(SliceDataStorage& storage)
         {
             continue;
         }
-        Settings* infill_settings = &storage.meshes[mesh_idx].settings;
-        Settings* roof_settings = &storage.meshes[mesh_idx].settings;
-        Settings* bottom_settings = &storage.meshes[mesh_idx].settings;
-        if (mesh.settings.get<bool>("support_mesh"))
+        for (unsigned int layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
         {
-            if ((mesh.settings.get<bool>("support_mesh_drop_down") && support_meshes_drop_down_handled) || (! mesh.settings.get<bool>("support_mesh_drop_down") && support_meshes_handled))
-            { // handle all support_mesh and support_mesh_drop_down areas only once
-                continue;
-            }
-            // use extruder train settings rather than the per-object settings of the first support mesh encountered.
-            // because all support meshes are processed at the same time it doesn't make sense to use the per-object settings of the first support mesh encountered.
-            // instead we must use the support extruder settings, which is the settings base common to all support meshes.
-            infill_settings = &mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr").settings;
-            roof_settings = &mesh_group_settings.get<ExtruderTrain&>("support_roof_extruder_nr").settings;
-            bottom_settings = &mesh_group_settings.get<ExtruderTrain&>("support_bottom_extruder_nr").settings;
-            if (mesh.settings.get<bool>("support_mesh_drop_down"))
+            const Polygons& sharp_tail_area = mesh.sharp_tail_areas[layer_idx];
+            SupportLayer& supportLayer = storage.support.supportLayers[layer_idx];
+            if (!sharp_tail_area.empty())
             {
-                support_meshes_drop_down_handled = true;
+                Polygons support_infill_area;
+                AABB aabb(sharp_tail_area);
+                for (SupportInfillPart part : supportLayer.support_infill_parts)
+                {
+                    if (part.outline_boundary_box.hit(aabb))
+                        support_infill_area.add(part.outline);
+                }
+                supportLayer.support_roof = supportLayer.support_roof.unionPolygons(sharp_tail_area.difference(support_infill_area));
             }
-            else
-            {
-                support_meshes_handled = true;
-            }
-        }
-        std::vector<Polygons> mesh_support_areas_per_layer;
-        mesh_support_areas_per_layer.resize(storage.print_layer_count, Polygons());
-
-        generateSupportAreasForMesh(storage, *infill_settings, *roof_settings, *bottom_settings, mesh_idx, storage.print_layer_count, mesh_support_areas_per_layer);
-        const double minimum_support_area = mesh.settings.get<double>("minimum_support_area");
-        for (size_t layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
-        {
-            if (minimum_support_area > 0.0)
-            {
-                mesh_support_areas_per_layer[layer_idx].removeSmallAreas(minimum_support_area);
-            }
-            global_support_areas_per_layer[layer_idx].add(mesh_support_areas_per_layer[layer_idx]);
         }
     }
-
-    for (unsigned int layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
-    {
-        Polygons& support_areas = global_support_areas_per_layer[layer_idx];
-        support_areas = support_areas.unionPolygons();
-    }
-
-    // handle support interface
-    for (unsigned int mesh_idx = 0; mesh_idx < storage.meshes.size(); mesh_idx++)
-    {
-        SliceMeshStorage& mesh = storage.meshes[mesh_idx];
-        if (mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("anti_overhang_mesh"))
-        {
-            continue;
-        }
-
-        if (mesh.settings.get<bool>("support_roof_enable"))
-        {
-            generateSupportRoof(storage, mesh, global_support_areas_per_layer);
-        }
-        if (mesh.settings.get<bool>("support_bottom_enable"))
-        {
-            generateSupportBottom(storage, mesh, global_support_areas_per_layer);
-        }
-    }
-
-    // split the global support areas into parts for later gradual support infill generation
-    AreaSupport::splitGlobalSupportAreasIntoSupportInfillParts(storage, global_support_areas_per_layer, storage.print_layer_count);
-    precomputeCrossInfillTree(storage);
 }
 
 void AreaSupport::precomputeCrossInfillTree(SliceDataStorage& storage)
@@ -1642,6 +1693,8 @@ void AreaSupport::generateSupportRoof(SliceDataStorage& storage, const SliceMesh
 
 void AreaSupport::generateSupportInterfaceLayer(Polygons& support_areas, const Polygons colliding_mesh_outlines, const coord_t safety_offset, const coord_t outline_offset, const double minimum_interface_area, Polygons& interface_polygons)
 {
+    if (support_areas.empty())
+        return;
     Polygons model = colliding_mesh_outlines.unionPolygons();
     interface_polygons = support_areas.intersection(model);
     interface_polygons = interface_polygons.offset(safety_offset).intersection(support_areas); // Make sure we don't generate any models that are not printable.

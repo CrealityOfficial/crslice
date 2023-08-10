@@ -1013,10 +1013,119 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
 
     const Ratio nominal_line_width_multiplier = 1.0 / Ratio(non_bridge_config.getLineWidth()); // we multiply the flow with the actual wanted line width (for that junction), and then multiply with this
 
+#define COVERBRIDGEDISTANCE 1
+#if COVERBRIDGEDISTANCE
+    const Ratio bridge_wall_coast = settings.get<Ratio>("bridge_wall_coast");
+    const Ratio speed_flow_factor((bridge_config.getSpeed() * bridge_config.getFlowRatio()) / (non_bridge_config.getSpeed() * non_bridge_config.getFlowRatio()));
+    const double coast_dist = max_non_bridge_line_volume * (1 - speed_flow_factor) * bridge_wall_coast / 40;
+    std::vector<coord_t> distance_data;
+    distance_data.resize(wall.size(), 0);
+    auto computeDistanceToBridgeStartForAll = [&]()->void
+    {
+        if (bridge_wall_mask.empty())
+            return ;
+        const int direction = is_reversed ? -1 : 1;
+        const size_t max_index = wall.size();
+        for (size_t point_idx = 0; point_idx < max_index; point_idx += direction)
+        {
+            ExtrusionJunction p0 = wall[point_idx];
+            const ExtrusionJunction& p1 = wall[(point_idx + 1) % wall.size()];     
+            if (bridge_wall_mask.inside(p0.p, true))
+            {
+                continue;
+            }
+            coord_t p0_to_bridge_start_disteance = 0;
+            bool findBridge = false;
+            if (PolygonUtils::polygonCollidesWithLineSegment(bridge_wall_mask, p0.p, p1.p))
+            {
+                // the line crosses the boundary between supported and non-supported regions so it will contain one or more bridge segments
+
+                // determine which segments of the line are bridges
+
+                Polygons line_polys;
+                line_polys.addLine(p0.p, p1.p);
+                constexpr bool restitch = false; // only a single line doesn't need stitching
+                line_polys = bridge_wall_mask.intersectionPolyLines(line_polys, restitch);
+                
+                while (line_polys.size() > 0)
+                {
+                    // find the bridge line segment that's nearest to p0
+                    int nearest = 0;
+                    float smallest_dist2 = vSize2f(p0.p - line_polys[0][0]);
+                    for (unsigned i = 1; i < line_polys.size(); ++i)
+                    {
+                        float dist2 = vSize2f(p0.p - line_polys[i][0]);
+                        if (dist2 < smallest_dist2)
+                        {
+                            nearest = i;
+                            smallest_dist2 = dist2;
+                        }
+                    }
+                    ConstPolygonRef bridge = line_polys[nearest];
+
+                    // set b0 to the nearest vertex and b1 the furthest
+                    Point b0 = bridge[0];
+                    Point b1 = bridge[1];
+
+                    if (vSize2f(p0.p - b1) < vSize2f(p0.p - b0))
+                    {
+                        // swap vertex order
+                        b0 = bridge[1];
+                        b1 = bridge[0];
+                    }
+
+                    p0_to_bridge_start_disteance += vSize(b0 - p0.p);
+
+                    const double bridge_line_len = vSize(b1 - b0);
+
+                    if (bridge_line_len >= min_bridge_line_len)
+                    {
+                        // job done, we have found the first bridge line
+                        findBridge = true;
+                        break;
+                    }
+
+                    p0_to_bridge_start_disteance += bridge_line_len;
+
+                    // finished with this segment
+                    line_polys.remove(nearest);
+                }
+            }
+            
+            if (findBridge && p0_to_bridge_start_disteance > 0)
+            {
+                int currentIdx = point_idx;
+                coord_t dist_record = p0_to_bridge_start_disteance;
+                if (distance_data[currentIdx] == 0)
+                    distance_data[currentIdx] = dist_record;
+                while (dist_record < coast_dist)
+                {
+                    int preIdx = (currentIdx - 1 + wall.size()) % wall.size();
+                    const ExtrusionJunction& pre = wall[preIdx];
+                    dist_record += vSize(pre.p - p0.p);
+                    if (distance_data[preIdx] == 0)
+                        distance_data[preIdx] = dist_record;
+                    else
+                        break;
+                    p0 = pre;
+                    currentIdx--;
+                }
+            }
+        }
+    };
+    computeDistanceToBridgeStartForAll();
+#endif
+
     // helper function to calculate the distance from the start of the current wall line to the first bridge segment
 
     auto computeDistanceToBridgeStart = [&](unsigned current_index)
     {
+#if COVERBRIDGEDISTANCE
+        distance_to_bridge_start = distance_data[current_index];
+
+        return;
+#endif
+
         distance_to_bridge_start = 0;
 
         if (! bridge_wall_mask.empty())
