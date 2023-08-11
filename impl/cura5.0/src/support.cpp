@@ -602,17 +602,49 @@ Polygons AreaSupport::join(const SliceDataStorage& storage, const Polygons& supp
 
 bool AreaSupport::isSupportNecessary(SliceDataStorage& storage)
 {
-    const coord_t layer_height = storage.meshes.back().settings.get<coord_t>("layer_height");
-    const AngleRadians support_angle = storage.meshes.back().settings.get<AngleRadians>("support_angle");
+    const Settings& mesh_group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
+    const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
+    const AngleRadians support_angle = mesh_group_settings.get<AngleRadians>("support_angle");
     const double tan_angle = tan(support_angle) - 0.01;
     const coord_t max_dist_from_lower_layer = tan_angle * layer_height;
-    const double minimum_support_area = storage.meshes.back().settings.get<double>("minimum_support_area");
+    const double minimum_support_area = mesh_group_settings.get<double>("minimum_support_area");
+
+    const ExtruderTrain& infill_extruder = mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr");
+    const coord_t offset = -infill_extruder.settings.get<coord_t>("support_line_width") / 2;
+    const coord_t max_tower_supported_diameter = mesh_group_settings.get<coord_t>("support_tower_maximum_supported_diameter");
+    const coord_t max_tower_supported_area = max_tower_supported_diameter * max_tower_supported_diameter;
+
+    auto bSharpTailExist = [&](const SliceMeshStorage& mesh, int layer_idx)
+    {
+        if (layer_idx < 1)
+            return false;
+        const SliceLayer& layer = mesh.layers[layer_idx];;
+        for (const SliceLayerPart& part : layer.parts)
+        {
+            if (std::fabs(part.outline.outerPolygon().area()) < MM2_2INT(minimum_support_area))
+            {
+                const SliceLayer& layer_below = mesh.layers[layer_idx - 1];
+                if (!layer_below.getOutlines().intersection(part.outline).empty())
+                {
+                    continue;
+                }
+
+                const Polygons overhang = part.outline.offset(offset).difference(storage.support.supportLayers[layer_idx].anti_overhang);
+                if (overhang.empty())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
     
     for (size_t layer_idx = 1; layer_idx < storage.print_layer_count; layer_idx++)
     {
         Polygons current_layer_mesh_area;
         Polygons lower_layer_mesh_area;
         Polygons lower_layer_support_area;
+        bool sharpTailExist = false;
         for (SliceMeshStorage& mesh : storage.meshes)
         {
             if (mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("anti_overhang_mesh"))
@@ -629,6 +661,11 @@ bool AreaSupport::isSupportNecessary(SliceDataStorage& storage)
                 current_layer_mesh_area.add(mesh.layers[layer_idx].getOutlines());
                 lower_layer_mesh_area.add(mesh.layers[layer_idx - 1].getOutlines());
             }
+            sharpTailExist |= bSharpTailExist(mesh, layer_idx);
+        }
+        if (sharpTailExist)
+        {
+            return true;
         }
         Polygons overhang_area = current_layer_mesh_area.difference(lower_layer_mesh_area.unionPolygons(lower_layer_support_area.offset(max_dist_from_lower_layer))).offset(-max_dist_from_lower_layer);
         overhang_area.removeSmallAreas(minimum_support_area);
@@ -884,13 +921,14 @@ void AreaSupport::generateSharpTailSupport(SliceDataStorage& storage)
             if (!sharp_tail_area.empty())
             {
                 Polygons support_infill_area;
-                AABB aabb(sharp_tail_area);
+                AABB sharp_tail_box(sharp_tail_area);
                 for (SupportInfillPart part : supportLayer.support_infill_parts)
                 {
-                    if (part.outline_boundary_box.hit(aabb))
+                    if (part.outline_boundary_box.hit(sharp_tail_box))
                         support_infill_area.add(part.outline);
                 }
                 supportLayer.support_roof = supportLayer.support_roof.unionPolygons(sharp_tail_area.difference(support_infill_area));
+                storage.support.layer_nr_max_filled_layer = std::max(storage.support.layer_nr_max_filled_layer, (int)layer_idx);
             }
         }
     }

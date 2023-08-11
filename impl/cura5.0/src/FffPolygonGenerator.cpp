@@ -427,7 +427,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 	CALLTICK("support 0");
     application->progressor.messageProgressStage(Progress::Stage::SUPPORT);
 
-    if (AreaSupport::isSupportNecessary(storage) && !mesh_group_settings.get<bool>("support_enable")) {
+    if (!mesh_group_settings.get<bool>("support_enable") && AreaSupport::isSupportNecessary(storage)) {
         application->tracer->message("need_support_structure");
     }
 
