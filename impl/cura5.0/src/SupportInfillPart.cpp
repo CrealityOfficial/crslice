@@ -4,14 +4,31 @@
 #include "SupportInfillPart.h"
 #include "support.h"
 
-using namespace cura52;
+// namespace cura52 
+//{
+//
+//    SupportInfillPart::SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate)
+//    : outline(outline)
+//    , outline_boundary_box(outline)
+//    , support_line_width(support_line_width)
+//    , inset_count_to_generate(inset_count_to_generate)
+//    {
+//        infill_area_per_combine_per_density.clear();
+//    }
+//}
 
 
-SupportInfillPart::SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate)
-: outline(outline)
-, outline_boundary_box(outline)
-, support_line_width(support_line_width)
-, inset_count_to_generate(inset_count_to_generate)
-{
-    infill_area_per_combine_per_density.clear();
-}
+
+
+ namespace cura52
+ {
+    SupportInfillPart::SupportInfillPart(const cura52::PolygonsPart& outline, cura52:: coord_t support_line_width, int inset_count_to_generate, cura52::coord_t custom_line_distance)
+        : outline(outline)
+        , outline_boundary_box(outline)
+        , support_line_width(support_line_width)
+        , inset_count_to_generate(inset_count_to_generate)
+        , custom_line_distance(custom_line_distance)
+    {
+        infill_area_per_combine_per_density.clear();
+    }
+ }

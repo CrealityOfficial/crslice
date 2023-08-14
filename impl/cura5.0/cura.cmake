@@ -107,16 +107,33 @@ set(engine_SRCS # Except main.cpp.
 		${PREFIX5.2}src/utils/inputserial.cpp
 		${PREFIX5.2}src/generateVaryingXYDisallowedArea.cpp
 
+		${PREFIX5.2}src/TreeSupportT.cpp
+		${PREFIX5.2}src/TreeSupportTipGenerator.cpp
+        ${PREFIX5.2}src/TreeModelVolumesT.cpp
+
 		${PREFIX5.2}include/progress/Progress.h
 		${PREFIX5.2}include/progress/ProgressEstimator.h
 		${PREFIX5.2}include/progress/ProgressEstimatorLinear.h
 		${PREFIX5.2}include/progress/ProgressStageEstimator.h
 		${PREFIX5.2}include/utils/VoronoiUtilsCgal.h
 		${PREFIX5.2}include/TreeSupportElement.h
+        ${PREFIX5.2}include/TreeSupportElementT.h
 		${PREFIX5.2}include/TreeSupportSettings.h
+        ${PREFIX5.2}include/TreeSupportSettingsT.h
 		${PREFIX5.2}include/utils/inputserial.h
 		${PREFIX5.2}include/debugger.h
-        ${PREFIX5.2}include/generateVaryingXYDisallowedArea.h
+        ${PREFIX5.2}include/TreeModelVolumesT.h
+        ${PREFIX5.2}include/TreeModelVolumes.h
+
+
+
+        ${PREFIX5.2}include/utils/section_type.h
+        ${PREFIX5.2}include/utils/TreeSupportBaseCircle.h
+        ${PREFIX5.2}include/utils/TreeSupportBaseCircleT.h
+        ${PREFIX5.2}include/TreeSupportEnums.h
+        ${PREFIX5.2}include/TreeSupportTipGenerator.h
+        ${PREFIX5.2}include/TreeSupportUtils.h
+        ${PREFIX5.2}include/TreeSupportT.h
         )
 
 __cc_find(RapidJSON)

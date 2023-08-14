@@ -284,4 +284,8 @@ enum class RetractionHopType
 
 } //Cura namespace.
 
+
+
+
+
 #endif //ENUMSETTINGS_H

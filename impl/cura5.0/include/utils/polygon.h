@@ -753,7 +753,12 @@ public:
     {
         return paths.size();
     }
-
+    void reserve(size_t new_cap)
+    {
+        paths.reserve(new_cap);
+    }
+    void sortByNesting_processPolyTreeNode(ClipperLib::PolyNode* node, const size_t nesting_idx, std::vector<Polygons>& ret) const;
+    std::vector<Polygons> sortByNesting() const;
     /*!
      * Convenience function to check if the polygon has no points.
      *

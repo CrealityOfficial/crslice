@@ -9,6 +9,8 @@
 #include "utils/polygon.h"
 #include "utils/TreeSupportBaseCircle.h"
 #include <boost/container_hash/hash.hpp>
+
+#include "TreeSupportEnums.h"
 namespace cura52
 {
 
@@ -325,17 +327,25 @@ struct TreeSupportElement
     }
 };
 } // namespace cura
+
+
+
+
+
 namespace std
 {
-template <>
-struct hash<cura52::TreeSupportElement>
-{
-    size_t operator()(const cura52::TreeSupportElement& node) const
+    template <>
+    struct hash<cura52::TreeSupportElement>
     {
-        size_t hash_node = hash<cura52::Point>()(node.target_position);
-        boost::hash_combine(hash_node, size_t(node.target_height));
-        return hash_node;
-    }
-};
+        size_t operator()(const cura52::TreeSupportElement& node) const
+        {
+            size_t hash_node = hash<cura52::Point>()(node.target_position);
+            boost::hash_combine(hash_node, size_t(node.target_height));
+            return hash_node;
+        }
+    };
 } // namespace std
+
+
+
 #endif /* TREESUPPORTELEMENT_H */

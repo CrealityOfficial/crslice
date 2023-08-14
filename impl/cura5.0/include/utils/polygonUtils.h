@@ -92,7 +92,8 @@ class PolygonUtils
 {
 public:
     static const std::function<int(Point)> no_penalty_function; //!< Function always returning zero
-
+    static Polygons unionManySmall(const Polygons & p);
+    static Polygons clipPolygonWithAABB(const Polygons & src, const AABB & aabb);
     /*!
      * compute the length of a segment of a polygon
      * 

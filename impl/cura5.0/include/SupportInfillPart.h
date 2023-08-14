@@ -11,39 +11,76 @@
 #include "utils/polygon.h"
 
 
+//namespace cura52
+//{
+//
+///*!
+// * A SupportInfillPart represents an connected area for support infill on a layer.
+// * The support infill areas on a layer can be isolated islands, and in this case, a SupportInfillPart represents a single island.
+// *
+// * This data structure is required for gradual support, which needs to partition a support area into a number of sub-areas with different density.
+// * Because support is handled as a whole in the engine, that is, we have a global support areas instead of support areas for each mesh.
+// * With this data structure, we can keep track of which gradual support infill areas belongs to which support area, so we can print them together.
+// */
+//class SupportInfillPart
+//{
+//public:
+//    PolygonsPart outline;  //!< The outline of the support infill area
+//    AABB outline_boundary_box;  //!< The boundary box for the infill area
+//    coord_t support_line_width;  //!< The support line width
+//    int inset_count_to_generate;  //!< The number of insets need to be generated from the outline. This is not the actual insets that will be generated.
+//    std::vector<std::vector<Polygons>> infill_area_per_combine_per_density;  //!< a list of separated sub-areas which requires different infill densities and combined thicknesses
+//                                                                              //   for infill_areas[x][n], x means the density level and n means the thickness
+//    std::vector<VariableWidthLines> wall_toolpaths; //!< Any walls go here, not in the areas, where they could be combined vertically (don't combine walls). Binned by inset_idx.
+//
+//    SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate = 0);
+//
+//    const Polygons& getInfillArea() const;
+//};
+//
+//inline const Polygons& SupportInfillPart::getInfillArea() const
+//{
+//    // if there is no wall, we use the original outline as the infill area
+//    return outline;
+//}
+//
+//} // namespace cura52
+
+
 namespace cura52
 {
 
-/*!
- * A SupportInfillPart represents an connected area for support infill on a layer.
- * The support infill areas on a layer can be isolated islands, and in this case, a SupportInfillPart represents a single island.
- *
- * This data structure is required for gradual support, which needs to partition a support area into a number of sub-areas with different density.
- * Because support is handled as a whole in the engine, that is, we have a global support areas instead of support areas for each mesh.
- * With this data structure, we can keep track of which gradual support infill areas belongs to which support area, so we can print them together.
- */
-class SupportInfillPart
-{
-public:
-    PolygonsPart outline;  //!< The outline of the support infill area
-    AABB outline_boundary_box;  //!< The boundary box for the infill area
-    coord_t support_line_width;  //!< The support line width
-    int inset_count_to_generate;  //!< The number of insets need to be generated from the outline. This is not the actual insets that will be generated.
-    std::vector<std::vector<Polygons>> infill_area_per_combine_per_density;  //!< a list of separated sub-areas which requires different infill densities and combined thicknesses
-                                                                              //   for infill_areas[x][n], x means the density level and n means the thickness
-    std::vector<VariableWidthLines> wall_toolpaths; //!< Any walls go here, not in the areas, where they could be combined vertically (don't combine walls). Binned by inset_idx.
+    /*!
+     * A SupportInfillPart represents an connected area for support infill on a layer.
+     * The support infill areas on a layer can be isolated islands, and in this case, a SupportInfillPart represents a single island.
+     *
+     * This data structure is required for gradual support, which needs to partition a support area into a number of sub-areas with different density.
+     * Because support is handled as a whole in the engine, that is, we have a global support areas instead of support areas for each mesh.
+     * With this data structure, we can keep track of which gradual support infill areas belongs to which support area, so we can print them together.
+     */
+    class SupportInfillPart
+    {
+    public:
+        cura52::PolygonsPart outline;  //!< The outline of the support infill area
+        cura52::AABB outline_boundary_box;  //!< The boundary box for the infill area
+        cura52::coord_t support_line_width;  //!< The support line width
+        int inset_count_to_generate;  //!< The number of insets need to be generated from the outline. This is not the actual insets that will be generated.
+        std::vector<std::vector< cura52::Polygons>> infill_area_per_combine_per_density;  //!< a list of separated sub-areas which requires different infill densities and combined thicknesses
+                                                                                  //   for infill_areas[x][n], x means the density level and n means the thickness
+        std::vector< cura52::VariableWidthLines> wall_toolpaths; //!< Any walls go here, not in the areas, where they could be combined vertically (don't combine walls). Binned by inset_idx.
+        cura52::coord_t custom_line_distance;
+        //SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate = 0);
+        SupportInfillPart(const  cura52::PolygonsPart& outline, cura52::coord_t support_line_width, int inset_count_to_generate = 0, cura52::coord_t custom_line_distance = 0);
+        const  cura52::Polygons& getInfillArea() const;
+    };
 
-    SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate = 0);
+    inline const  cura52::Polygons& SupportInfillPart::getInfillArea() const
+    {
+        // if there is no wall, we use the original outline as the infill area
+        return outline;
+    }
 
-    const Polygons& getInfillArea() const;
-};
+} // namespace cura54
 
-inline const Polygons& SupportInfillPart::getInfillArea() const
-{
-    // if there is no wall, we use the original outline as the infill area
-    return outline;
-}
-
-} // namespace cura52
 
 #endif // SUPPORT_INFILL_PART_H

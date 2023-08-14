@@ -566,6 +566,120 @@ bool SliceDataStorage::getExtruderPrimeBlobEnabled(const size_t extruder_nr) con
     const ExtruderTrain& train = application->current_slice->scene.extruders[extruder_nr];
     return train.settings.get<bool>("prime_blob_enable");
 }
+Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
+{
+    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
+
+    Polygons border;
+    border.emplace_back();
+    PolygonRef outline = border.back();
+    switch (mesh_group_settings.get<BuildPlateShape>("machine_shape"))
+    {
+    case BuildPlateShape::ELLIPTIC:
+    {
+        // Construct an ellipse to approximate the build volume.
+        const coord_t width = machine_size.max.x - machine_size.min.x;
+        const coord_t depth = machine_size.max.y - machine_size.min.y;
+        constexpr unsigned int circle_resolution = 50;
+        for (unsigned int i = 0; i < circle_resolution; i++)
+        {
+            const double angle = M_PI * 2 * i / circle_resolution;
+            outline.emplace_back(machine_size.getMiddle().x + std::cos(angle) * width / 2, machine_size.getMiddle().y + std::sin(angle) * depth / 2);
+        }
+        break;
+    }
+    case BuildPlateShape::RECTANGULAR:
+    default:
+        outline = machine_size.flatten().toPolygon();
+        break;
+    }
+
+    Polygons disallowed_areas = mesh_group_settings.get<Polygons>("machine_disallowed_areas");
+    disallowed_areas = disallowed_areas.unionPolygons(); // union overlapping disallowed areas
+    for (PolygonRef poly : disallowed_areas)
+        for (Point& p : poly)
+            p = Point(machine_size.max.x / 2 + p.X, machine_size.max.y / 2 - p.Y); // apparently the frontend stores the disallowed areas in a different coordinate system
+
+    std::vector<bool> extruder_is_used = getExtrudersUsed();
+
+    constexpr coord_t prime_clearance = MM2INT(6.5);
+    for (size_t extruder_nr = 0; extruder_nr < extruder_is_used.size(); extruder_nr++)
+    {
+        if ((checking_extruder_nr != -1 && int(extruder_nr) != checking_extruder_nr) || !extruder_is_used[extruder_nr])
+        {
+            continue;
+        }
+        Settings& extruder_settings = application->current_slice->scene.extruders[extruder_nr].settings;
+        if (!(extruder_settings.get<bool>("prime_blob_enable") && mesh_group_settings.get<bool>("extruder_prime_pos_abs")))
+        {
+            continue;
+        }
+        Point prime_pos(extruder_settings.get<coord_t>("extruder_prime_pos_x"), extruder_settings.get<coord_t>("extruder_prime_pos_y"));
+        if (prime_pos == Point(0, 0))
+        {
+            continue; // Ignore extruder prime position if it is not set.
+        }
+        Point translation(extruder_settings.get<coord_t>("machine_nozzle_offset_x"), extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
+        prime_pos -= translation;
+        Polygons prime_polygons;
+        prime_polygons.emplace_back(PolygonUtils::makeCircle(prime_pos, prime_clearance, M_PI / 32));
+        disallowed_areas = disallowed_areas.unionPolygons(prime_polygons);
+    }
+
+    Polygons disallowed_all_extruders;
+    bool first = true;
+    for (size_t extruder_nr = 0; extruder_nr < extruder_is_used.size(); extruder_nr++)
+    {
+        if ((checking_extruder_nr != -1 && int(extruder_nr) != checking_extruder_nr) || !extruder_is_used[extruder_nr])
+        {
+            continue;
+        }
+        Settings& extruder_settings = application->current_slice->scene.extruders[extruder_nr].settings;
+        Point translation(extruder_settings.get<coord_t>("machine_nozzle_offset_x"), extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
+        Polygons extruder_border = disallowed_areas;
+        extruder_border.translate(translation);
+        if (first)
+        {
+            disallowed_all_extruders = extruder_border;
+            first = false;
+        }
+        else
+        {
+            disallowed_all_extruders = disallowed_all_extruders.unionPolygons(extruder_border);
+        }
+    }
+    disallowed_all_extruders.processEvenOdd(ClipperLib::pftNonZero); // prevent overlapping disallowed areas from XORing
+
+    Polygons border_all_extruders = border; // each extruders border areas must be limited to the global border, which is the union of all extruders borders
+    if (mesh_group_settings.has("nozzle_offsetting_for_disallowed_areas") && mesh_group_settings.get<bool>("nozzle_offsetting_for_disallowed_areas"))
+    {
+        for (size_t extruder_nr = 0; extruder_nr < extruder_is_used.size(); extruder_nr++)
+        {
+            if ((checking_extruder_nr != -1 && int(extruder_nr) != checking_extruder_nr) || !extruder_is_used[extruder_nr])
+            {
+                continue;
+            }
+            Settings& extruder_settings = application->current_slice->scene.extruders[extruder_nr].settings;
+            Point translation(extruder_settings.get<coord_t>("machine_nozzle_offset_x"), extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
+            for (size_t other_extruder_nr = 0; other_extruder_nr < extruder_is_used.size(); other_extruder_nr++)
+            {
+                // NOTE: the other extruder doesn't have to be used. Since the global border is the union of all extruders borders also unused extruders must be taken into account.
+                if (other_extruder_nr == extruder_nr)
+                {
+                    continue;
+                }
+                Settings& other_extruder_settings = application->current_slice->scene.extruders[other_extruder_nr].settings;
+                Point other_translation(other_extruder_settings.get<coord_t>("machine_nozzle_offset_x"), other_extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
+                Polygons translated_border = border;
+                translated_border.translate(translation - other_translation);
+                border_all_extruders = border_all_extruders.intersection(translated_border);
+            }
+        }
+    }
+
+    border = border_all_extruders.difference(disallowed_all_extruders);
+    return border;
+}
 
 Polygon SliceDataStorage::getMachineBorder(bool adhesion_offset) const
 {

@@ -23,8 +23,8 @@ struct TreeSupportSettings
     TreeSupportSettings() = default; // required for the definition of the config variable in the ThomasTreeSupport class.
 
     TreeSupportSettings(const Settings& mesh_group_settings)
-        : angle(mesh_group_settings.get<AngleRadians>("support_tree_angle")),
-		angle_slow(0.7 * angle),//(mesh_group_settings.get<AngleRadians>("support_tree_angle_slow")),
+        : angle(mesh_group_settings.get<cura52::AngleRadians>("support_tree_angle")),
+		angle_slow(0.7 * angle),//(mesh_group_settings.get<cura52::AngleRadians>("support_tree_angle_slow")),
 		support_line_width(mesh_group_settings.get<coord_t>("support_line_width")),
 		layer_height(mesh_group_settings.get<coord_t>("layer_height")),
 		branch_radius(mesh_group_settings.get<coord_t>("support_tree_branch_diameter") / 2),
@@ -34,7 +34,7 @@ struct TreeSupportSettings
 		maximum_move_distance_slow((angle_slow < TAU / 4) ? (coord_t)(tan(angle_slow) * layer_height) : std::numeric_limits<coord_t>::max()),
 		support_bottom_layers(mesh_group_settings.get<bool>("support_bottom_enable") ? round_divide(mesh_group_settings.get<coord_t>("support_bottom_height"), layer_height) : 0),
 		tip_layers(std::max((branch_radius - min_radius) / (support_line_width / 3), branch_radius / layer_height)), // Ensure lines always stack nicely even if layer height is large
-		diameter_angle_scale_factor(sin(mesh_group_settings.get<AngleRadians>("support_tree_branch_diameter_angle"))* layer_height / branch_radius),
+		diameter_angle_scale_factor(sin(mesh_group_settings.get<cura52::AngleRadians>("support_tree_branch_diameter_angle"))* layer_height / branch_radius),
 		max_to_model_radius_increase(mesh_group_settings.get<coord_t>("support_tree_max_diameter_increase_by_merges_when_support_to_model") / 2),
 		min_dtt_to_model(round_up_divide(mesh_group_settings.get<coord_t>("support_tree_min_height_to_model"), layer_height)),
         increase_radius_until_radius(mesh_group_settings.get<coord_t>("support_tree_branch_diameter") / 2),
@@ -49,10 +49,10 @@ struct TreeSupportSettings
         z_distance_top_layers(round_up_divide(mesh_group_settings.get<coord_t>("support_top_distance"), layer_height)),
         z_distance_bottom_layers(round_up_divide(mesh_group_settings.get<coord_t>("support_bottom_distance"), layer_height)),
         performance_interface_skip_layers(round_up_divide(mesh_group_settings.get<coord_t>("support_interface_skip_height"), layer_height)),
-        support_infill_angles(mesh_group_settings.get<std::vector<AngleDegrees>>("support_infill_angles")),
-        support_roof_angles(mesh_group_settings.get<std::vector<AngleDegrees>>("support_roof_angles")),
-        roof_pattern(mesh_group_settings.get<EFillMethod>("support_roof_pattern")),
-        support_pattern(mesh_group_settings.get<EFillMethod>("support_pattern")),
+        support_infill_angles(mesh_group_settings.get<std::vector<cura52::AngleDegrees>>("support_infill_angles")),
+        support_roof_angles(mesh_group_settings.get<std::vector<cura52::AngleDegrees>>("support_roof_angles")),
+        roof_pattern(mesh_group_settings.get<cura52::EFillMethod>("support_roof_pattern")),
+        support_pattern(mesh_group_settings.get<cura52::EFillMethod>("support_pattern")),
         support_roof_line_width(mesh_group_settings.get<coord_t>("support_roof_line_width")),
         support_line_distance(mesh_group_settings.get<coord_t>("support_line_distance")),
         support_bottom_offset(mesh_group_settings.get<coord_t>("support_bottom_offset")),
@@ -80,14 +80,14 @@ struct TreeSupportSettings
 
         xy_distance = std::max(xy_distance, xy_min_distance);
 
-        std::function<void(std::vector<AngleDegrees>&, EFillMethod)> getInterfaceAngles = [&](std::vector<AngleDegrees>& angles, EFillMethod pattern) { // (logic) from getInterfaceAngles in FFFGcodeWriter.
+        std::function<void(std::vector<cura52::AngleDegrees>&, cura52::EFillMethod)> getInterfaceAngles = [&](std::vector<cura52::AngleDegrees>& angles, cura52::EFillMethod pattern) { // (logic) from getInterfaceAngles in FFFGcodeWriter.
             if (angles.empty())
             {
-                if (pattern == EFillMethod::CONCENTRIC)
+                if (pattern == cura52::EFillMethod::CONCENTRIC)
                 {
                     angles.push_back(0); // Concentric has no rotation.
                 }
-                else if (pattern == EFillMethod::TRIANGLES)
+                else if (pattern == cura52::EFillMethod::TRIANGLES)
                 {
                     angles.push_back(90); // Triangular support interface shouldn't alternate every layer.
                 }
@@ -229,19 +229,19 @@ struct TreeSupportSettings
     /*!
      * \brief User specified angles for the support infill.
      */
-    std::vector<AngleDegrees> support_infill_angles;
+    std::vector<cura52::AngleDegrees> support_infill_angles;
     /*!
      * \brief User specified angles for the support roof infill.
      */
-    std::vector<AngleDegrees> support_roof_angles;
+    std::vector<cura52::AngleDegrees> support_roof_angles;
     /*!
      * \brief Pattern used in the support roof. May contain non relevant data if support roof is disabled.
      */
-    EFillMethod roof_pattern;
+    cura52::EFillMethod roof_pattern;
     /*!
      * \brief Pattern used in the support infill.
      */
-    EFillMethod support_pattern;
+    cura52::EFillMethod support_pattern;
     /*!
      * \brief Line width of the support roof.
      */
@@ -318,7 +318,7 @@ struct TreeSupportSettings
                && support_rest_preference == other.support_rest_preference && max_radius == other.max_radius
                // The infill class now wants the settings object and reads a lot of settings, and as the infill class is used to calculate support roof lines for interface-preference. Not all of these may be required to be identical, but as I am not sure, better safe than sorry
                && (interface_preference == InterfacePreference::INTERFACE_AREA_OVERWRITES_SUPPORT || interface_preference == InterfacePreference::SUPPORT_AREA_OVERWRITES_INTERFACE
-                   || (settings.get<bool>("fill_outline_gaps") == other.settings.get<bool>("fill_outline_gaps") && settings.get<coord_t>("min_bead_width") == other.settings.get<coord_t>("min_bead_width") && settings.get<AngleRadians>("wall_transition_angle") == other.settings.get<AngleRadians>("wall_transition_angle") && settings.get<coord_t>("wall_transition_length") == other.settings.get<coord_t>("wall_transition_length") && settings.get<Ratio>("min_odd_wall_line_width") == other.settings.get<Ratio>("min_odd_wall_line_width") && settings.get<Ratio>("min_even_wall_line_width") == other.settings.get<Ratio>("min_even_wall_line_width") && settings.get<int>("wall_distribution_count") == other.settings.get<int>("wall_distribution_count") && settings.get<coord_t>("wall_transition_filter_distance") == other.settings.get<coord_t>("wall_transition_filter_distance") && settings.get<coord_t>("wall_transition_filter_deviation") == other.settings.get<coord_t>("wall_transition_filter_deviation") && settings.get<coord_t>("wall_line_width_x") == other.settings.get<coord_t>("wall_line_width_x")
+                   || (settings.get<bool>("fill_outline_gaps") == other.settings.get<bool>("fill_outline_gaps") && settings.get<coord_t>("min_bead_width") == other.settings.get<coord_t>("min_bead_width") && settings.get<cura52::AngleRadians>("wall_transition_angle") == other.settings.get<cura52::AngleRadians>("wall_transition_angle") && settings.get<coord_t>("wall_transition_length") == other.settings.get<coord_t>("wall_transition_length") && settings.get<cura52::Ratio>("min_odd_wall_line_width") == other.settings.get<cura52::Ratio>("min_odd_wall_line_width") && settings.get<cura52::Ratio>("min_even_wall_line_width") == other.settings.get<cura52::Ratio>("min_even_wall_line_width") && settings.get<int>("wall_distribution_count") == other.settings.get<int>("wall_distribution_count") && settings.get<coord_t>("wall_transition_filter_distance") == other.settings.get<coord_t>("wall_transition_filter_distance") && settings.get<coord_t>("wall_transition_filter_deviation") == other.settings.get<coord_t>("wall_transition_filter_deviation") && settings.get<coord_t>("wall_line_width_x") == other.settings.get<coord_t>("wall_line_width_x")
                        && settings.get<int>("meshfix_maximum_extrusion_area_deviation") == other.settings.get<int>("meshfix_maximum_extrusion_area_deviation")));
     }
 
@@ -401,4 +401,8 @@ struct TreeSupportSettings
     }
 };
 } // namespace cura
+
+
+
+
 #endif // TREESUPPORTSETTINGS_H

@@ -70,6 +70,32 @@ Polygons ConstPolygonRef::intersection(const ConstPolygonRef& other) const
     return ret;
 }
 
+void Polygons::sortByNesting_processPolyTreeNode(ClipperLib::PolyNode* node, const size_t nesting_idx, std::vector<Polygons>& ret) const
+{
+    for (int n = 0; n < node->ChildCount(); n++)
+    {
+        ClipperLib::PolyNode* child = node->Childs[n];
+        if (nesting_idx >= ret.size())
+        {
+            ret.resize(nesting_idx + 1);
+        }
+        ret[nesting_idx].add(child->Contour);
+        sortByNesting_processPolyTreeNode(child, nesting_idx + 1, ret);
+    }
+}
+
+std::vector<Polygons> Polygons::sortByNesting() const
+{
+    std::vector<Polygons> ret;
+    ClipperLib::Clipper clipper(clipper_init);
+    ClipperLib::PolyTree resultPolyTree;
+    clipper.AddPaths(paths, ClipperLib::ptSubject, true);
+    clipper.Execute(ClipperLib::ctUnion, resultPolyTree);
+
+    sortByNesting_processPolyTreeNode(&resultPolyTree, 0, ret);
+    return ret;
+}
+
 bool Polygons::empty() const
 {
     return paths.empty();

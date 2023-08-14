@@ -16,7 +16,24 @@
 #include "settings/EnumSettings.h"
 
 namespace cura52
-{
+{                              
+    WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset,
+        const Settings& settings, const int layer_idx,  cura54:: SectionType section_type)
+        : outline(outline)
+        , bead_width_0(nominal_bead_width)
+        , bead_width_x(nominal_bead_width)
+        , inset_count(inset_count)
+        , wall_0_inset(wall_0_inset)
+        , print_thin_walls(settings.get<bool>("fill_outline_gaps"))
+        , min_feature_size(settings.get<coord_t>("min_feature_size"))
+        , min_bead_width(settings.get<coord_t>("min_bead_width"))
+        , small_area_length(INT2MM(static_cast<double>(nominal_bead_width) / 2))
+        , toolpaths_generated(false)
+        , settings(settings)
+        , layer_idx(layer_idx)
+        , section_type(section_type)
+    {
+    }
 
 WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset,
                              const Settings& settings)

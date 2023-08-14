@@ -30,6 +30,7 @@
 #include "support.h"
 #include "TopSurface.h"
 #include "TreeSupport.h"
+#include "TreeSupportT.h"
 #include "ThomasTreeSupport.h"
 #include "WallsComputation.h"
 #include "infill/DensityProvider.h"
@@ -50,7 +51,10 @@
 #include "utils/gettime.h"
 #include "utils/math.h"
 #include "utils/Simplify.h"
+#include "TreeSupportT.h"
+#include "TreeSupportT.h"
 // clang-format on
+
 
 namespace cura52
 {
@@ -438,6 +442,12 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     AreaSupport::generateSupportAreas(storage);
 
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
+    //bool cura54Support = true;
+    //if (cura54Support)
+    //{
+    //    cura54::TreeSupportT tree_support_generator(storage);
+    //    tree_support_generator.generateSupportAreas(storage);
+    //}
 
 	if (scene.settings.get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
 	{
