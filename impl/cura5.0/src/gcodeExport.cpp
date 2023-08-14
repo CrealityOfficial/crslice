@@ -1057,13 +1057,15 @@ void GCodeExport::writeTypeComment(const PrintFeatureType& type)
 void GCodeExport::writeLayerComment(const LayerIndex layer_nr)
 {
     output_stream << ";LAYER:" << layer_nr << new_line;
+
     //application->fDebugger->getPathData(trimesh::vec3(), 0, 0);
+    application->fDebugger->setLayer(layer_nr);
 }
 
 void GCodeExport::writeLayerCountComment(const size_t layer_count)
 {
     output_stream << ";LAYER_COUNT:" << layer_count << new_line;
-    application->fDebugger->setLayer(layer_count);
+
 }
 
 void GCodeExport::writeLine(const char* line)
