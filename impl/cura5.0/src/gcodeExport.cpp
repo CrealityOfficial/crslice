@@ -67,7 +67,7 @@ GCodeExport::GCodeExport()
 	, currentPosition(0, 0, MM2INT(20))
 	, layer_nr(0)
 	, relative_extrusion(false)
-    , estimateCalculator(nullptr)
+    , estimateCalculator(new TimeEstimateCalculator())
 {
     *output_stream << std::fixed;
 
@@ -111,10 +111,10 @@ void GCodeExport::preSetup(const size_t start_extruder)
 {
     const Scene& scene = application->current_slice->scene;
 
-    if(scene.settings.get<bool>("klipper_time_estimate_enable"))
-        estimateCalculator = new TimeEstimateKlipper(); //�µĴ�ӡʱ����㷽��
-    else
-        estimateCalculator = new TimeEstimateCalculator();   //
+    if (scene.settings.get<bool>("klipper_time_estimate_enable"))
+        estimateCalculator.reset(new TimeEstimateKlipper()); //�µĴ�ӡʱ����㷽��
+    //else 
+   //   estimateCalculator.reset(new TimeEstimateCalculator());  //
 
     current_extruder = start_extruder;
 
