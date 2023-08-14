@@ -10,6 +10,7 @@
 #endif
 #include <sstream> // for stream.str()
 #include <stdio.h>
+#include <memory>
 
 #include "utils/AABB3D.h" //To track the used build volume for the Griffin header.
 #include "timeEstimate.h"
