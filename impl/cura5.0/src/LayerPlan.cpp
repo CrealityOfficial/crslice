@@ -2350,12 +2350,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")* retraction_config_1.distance;
                     gcode.writeRetraction(retraction_config_1);
 
-                    auto getLastExtrusionPath = [paths](int curIdx)
+                    auto getLastExtrusionPath = [paths](std::vector<Point>& ExtrusionPath, int curIdx)
                     {
-                        std::vector<Point> ExtrusionPath;
+                        ExtrusionPath.clear();
                         Point start_point;
                         if (curIdx < 1)
-                            return ExtrusionPath;
+                            return true;
                         bool start = false;
                         for (int i = curIdx - 1; i >= 0; i--)
                         {
@@ -2372,16 +2372,24 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 break;
                             }
                         }
-                        if(!ExtrusionPath.empty() && start_point == ExtrusionPath[0])
+                        if (!ExtrusionPath.empty() && start_point == ExtrusionPath[0])//closePolygon
+                        {
                             ClipperLib::ReversePath(ExtrusionPath);
-                        return ExtrusionPath;
+                            return false;
+                        }
+                            
+                        return true;
                     };
 
-                    std::vector<Point> last_path = getLastExtrusionPath(path_idx);
+                    std::vector<Point> last_path;
+                    std::vector<std::pair<Point, double>> wipe_path_record;
+                    bool openPolygen = getLastExtrusionPath(last_path, path_idx);
                     double wipe_length = MM2INT(extruder.settings.get<double>("wipe_length"));
                     double cur_dis_path = 0;
                     double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
-                    double speed = path.config->getSpeed() * 0.5; //retraction_config.speed; //path.config->getSpeed() * path.speed_factor;
+                    double speed = path.config->getSpeed() * 0.5; //wipe speed
+                    if (openPolygen)
+                        wipe_length /= 2;
                     for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
                     {
                         Point src_pos = gcode.getPositionXY();
@@ -2398,9 +2406,18 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             theta = (wipe_length - cur_dis_path) / wipe_length;
                             cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
                         }
+                        if (openPolygen)
+                            theta /= 2;
+                        wipe_path_record.push_back(std::make_pair(src_pos, theta));
                         gcode.writeExtrusionG1(speed, cur_pos, -dis_Extru * theta, path.config->type);
                         cur_dis_path += len;
                         if (cur_dis_path > wipe_length) break;
+                    }
+                    if (openPolygen && !wipe_path_record.empty())
+                    {
+                        std::reverse(wipe_path_record.begin(), wipe_path_record.end());
+                        for(std::pair<Point, double> wipe_step: wipe_path_record)
+                            gcode.writeExtrusionG1(speed, wipe_step.first, -dis_Extru * wipe_step.second, path.config->type);
                     }
                     //gcode.writeRetraction(retraction_config);
                     //if (path.perform_z_hop)

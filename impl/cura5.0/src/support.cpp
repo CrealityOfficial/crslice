@@ -180,7 +180,6 @@ void AreaSupport::generateGradualSupport(SliceDataStorage& storage)
     const coord_t overlap = infill_extruder.settings.get<coord_t>("infill_overlap_mm");
     const coord_t small_feature_radius = infill_extruder.settings.get<coord_t>("small_feature_max_length") / M_PI / 2;
     const ESupportStructure support_structure = infill_extruder.settings.get<ESupportStructure>("support_structure");
-    const bool larger_area_need_wall = infill_extruder.settings.get<Ratio>("support_infill_rate") < 0.1;
 
     // no early-out for this function; it needs to initialize the [infill_area_per_combine_per_density]
     float layer_skip_count = 8; // skip every so many layers as to ignore small gaps in the model making computation more easy
@@ -228,13 +227,13 @@ void AreaSupport::generateGradualSupport(SliceDataStorage& storage)
                 if (!smaller_area.empty())
                 {
                     std::vector<VariableWidthLines> smaller_area_wall_toolpaths;
-                    infill_area.add(Infill::generateWallToolPaths(smaller_area_wall_toolpaths, smaller_area, std::min(coord_t(1), wall_count), wall_width, overlap, infill_extruder.settings));
+                    infill_area.add(Infill::generateWallToolPaths(smaller_area_wall_toolpaths, smaller_area, 1, wall_width, overlap, infill_extruder.settings));
                     support_infill_part.wall_toolpaths.insert(support_infill_part.wall_toolpaths.end(), smaller_area_wall_toolpaths.begin(), smaller_area_wall_toolpaths.end());
                 }
                 if (!larger_area.empty())
                 {
                     std::vector<VariableWidthLines> larger_area_wall_toolpaths;
-                    infill_area.add(Infill::generateWallToolPaths(larger_area_wall_toolpaths, larger_area, larger_area_need_wall ? wall_count : 0, wall_width, overlap, infill_extruder.settings));
+                    infill_area.add(Infill::generateWallToolPaths(larger_area_wall_toolpaths, larger_area, wall_count, wall_width, overlap, infill_extruder.settings));
                     support_infill_part.wall_toolpaths.insert(support_infill_part.wall_toolpaths.end(), larger_area_wall_toolpaths.begin(), larger_area_wall_toolpaths.end());
                 }
             }
@@ -737,18 +736,26 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
             full_overhang_areas_add.resize(storage.print_layer_count, Polygons());
             for (size_t layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
             {
-                std::vector<Polygons> upperMeshOutline;
-                upperMeshOutline.resize(add_support_layer, Polygons());
                 for (auto& overhang_area : overhang_areas[layer_idx])
                 {
+                    std::vector<Polygons> upperMeshOutline;
+                    upperMeshOutline.resize(add_support_layer, Polygons());
                     Polygon overhang_poly(overhang_area);
                     if (std::fabs(overhang_poly.area()) < MM2_2INT(5.0) && bSharpTail(upperMeshOutline, overhang_poly, layer_idx))
                     {
+                        for (int idx = upperMeshOutline.size() - 1; idx >= 0; idx--)
+                        {
+                            if (upperMeshOutline[idx].empty())
+                                upperMeshOutline.pop_back();
+                        }
+
                         int maxLayer = std::min(layer_idx + add_support_layer, storage.print_layer_count);
                         for (int k = layer_idx; k < maxLayer; k++)
                         {
                             coord_t layer_expand = min_area_expand + 0.5 * support_interface_line_width * (k - layer_idx + 1);
                             Polygons overhangOutline = overhang_poly.offset(std::min(layer_expand, actual_expand));
+                            if (k - layer_idx > upperMeshOutline.size() - 1)
+                                continue;
                             overhangOutline = overhangOutline.difference(upperMeshOutline[k - layer_idx].offset(0.75 * xy_distance));
                             if (!overhangOutline.empty())
                             {
