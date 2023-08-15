@@ -279,7 +279,7 @@ void TreeSupportT::precalculate(const cura52::SliceDataStorage& storage, std::ve
         }
 
         //for (const auto layer_idx : ranges::views::iota(1UL, mesh.overhang_areas.size() - z_distance_top_layers) | ranges::views::reverse)
-        for (size_t layer_idx = mesh.overhang_areas.size() - z_distance_top_layers-1; layer_idx> 0 ; layer_idx--) 
+        for (size_t layer_idx = mesh.overhang_areas.size() - z_distance_top_layers-1; layer_idx >= 1 ; layer_idx--) 
         {
             // Look for max relevant layer.
             const Polygons& overhang = mesh.overhang_areas[layer_idx + z_distance_top_layers];
@@ -1308,7 +1308,7 @@ void TreeSupportT::createLayerPathing(std::vector<std::set<TreeSupportElementT*>
     // Calculate the influence areas for each layer below (Top down)
     // This is done by first increasing the influence area by the allowed movement distance, and merging them with other influence areas if possible
    //for (const auto layer_idx : ranges::views::iota(1UL, move_bounds.size()) | ranges::views::reverse)
-    for (size_t layer_idx  = move_bounds.size(); layer_idx > 0; layer_idx--)
+    for (size_t layer_idx  = move_bounds.size()-1; layer_idx >=1 ; layer_idx--)
     {
         // Merging is expensive and only parallelized to a max speedup of 2. As such it may be useful in some cases to only merge every few layers to improve performance.
         bool merge_this_layer = size_t(last_merge - layer_idx) >= merge_every_x_layers;
@@ -1866,7 +1866,7 @@ void TreeSupportT::smoothBranchAreas(std::vector<std::unordered_map<TreeSupportE
     // Smooth downwards.
     std::unordered_set<TreeSupportElementT*> updated_last_iteration;
   //  for (const auto layer_idx : ranges::views::iota(0UL, std::max<size_t>(layer_tree_polygons.size(), 1UL) - 1UL) | ranges::views::reverse)
-    for (size_t layer_idx =  (std::max<size_t>(layer_tree_polygons.size(), 1) - 1); layer_idx >= 0; layer_idx--)
+    for (int layer_idx =  (std::max<size_t>(layer_tree_polygons.size(), 1) - 1) - 1; layer_idx >= 0; layer_idx--)
     {
         std::vector<std::pair<TreeSupportElementT*, Polygons>> processing;
         processing.insert(processing.end(), layer_tree_polygons[layer_idx].begin(), layer_tree_polygons[layer_idx].end());

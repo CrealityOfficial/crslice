@@ -721,8 +721,8 @@ namespace cura54
                             data[key] = data[key].unionPolygons(max_anti_overhang_layer >= layer_idx ? anti_overhang_[layer_idx].offset(radius) : cura52::Polygons());
                         }
 
-                        //for (const auto layer_idx : ranges::views::iota(UL, max_required_layer + 1UL) | ranges::views::reverse)
-                        for (auto layer_idx = max_required_layer ; layer_idx >= static_cast<size_t>(keys[i].second) + 1; layer_idx--)
+                        //for (const auto layer_idx : ranges::views::iota(static_cast<size_t>(keys[i].second) + 1UL, max_required_layer + 1UL) | ranges::views::reverse)
+                        for (auto layer_idx = max_required_layer ; layer_idx >= static_cast<size_t>(keys[i].second) + 1UL; layer_idx--)
                         {
                             data.erase(RadiusLayerPair(radius, layer_idx)); // all these dont have the correct z_distance_top_layers as they can still have areas above them
                         }
