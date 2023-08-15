@@ -122,7 +122,7 @@ public:
      */
     void generate(std::vector<VariableWidthLines>& toolpaths, Polygons& result_polygons, Polygons& result_lines, const Settings& settings, const SierpinskiFillProvider* cross_fill_provider = nullptr, const LightningLayer * lightning_layer = nullptr, const SliceMeshStorage* mesh = nullptr);
 
-    void Infill::generateThomas(std::vector<VariableWidthLines>& toolpaths,
+    void generateThomas(std::vector<VariableWidthLines>& toolpaths,
         Polygons& result_polygons,
         Polygons& result_lines,
         const Settings& settings,
