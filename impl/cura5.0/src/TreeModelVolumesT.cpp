@@ -663,7 +663,7 @@ namespace cura54
 
                         // Add layers below, to ensure correct support_bottom_distance. Also save placeable areas of radius 0, if required for this mesh.
                         //for (const auto layer_idx : ranges::views::iota(min_layer_bottom, max_required_layer + 1) | ranges::views::reverse)
-                        for (auto layer_idx = max_required_layer + 1; layer_idx > min_layer_bottom; layer_idx--)
+                        for (auto layer_idx = max_required_layer ; layer_idx >= min_layer_bottom; layer_idx--)
                         {
                             key.second = layer_idx;
                             for (size_t layer_offset = 1; layer_offset <= z_distance_bottom_layers && layer_idx - cura52::coord_t(layer_offset) > min_layer_bottom; layer_offset++)
@@ -722,7 +722,7 @@ namespace cura54
                         }
 
                         //for (const auto layer_idx : ranges::views::iota(UL, max_required_layer + 1UL) | ranges::views::reverse)
-                        for (auto layer_idx = max_required_layer + 1; layer_idx > static_cast<size_t>(keys[i].second) + 1; layer_idx--)
+                        for (auto layer_idx = max_required_layer ; layer_idx >= static_cast<size_t>(keys[i].second) + 1; layer_idx--)
                         {
                             data.erase(RadiusLayerPair(radius, layer_idx)); // all these dont have the correct z_distance_top_layers as they can still have areas above them
                         }

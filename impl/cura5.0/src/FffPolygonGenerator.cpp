@@ -442,23 +442,23 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     AreaSupport::generateSupportAreas(storage);
 
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
-    //bool cura54Support = true;
-    //if (cura54Support)
-    //{
-    //    cura54::TreeSupportT tree_support_generator(storage);
-    //    tree_support_generator.generateSupportAreas(storage);
-    //}
+    bool cura54Support = true;
+    if (cura54Support)
+    {
+        cura54::TreeSupportT tree_support_generator(storage);
+        tree_support_generator.generateSupportAreas(storage);
+    }
 
-	if (scene.settings.get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
-	{
-		ThomasTreeSupport thomas_tree_support_generator(storage);
-		thomas_tree_support_generator.generateSupportAreas(storage);
-	}
-	else
-	{
-		TreeSupport tree_support_generator(storage);
-		tree_support_generator.generateSupportAreas(storage);
-	}
+	//if (scene.settings.get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
+	//{
+	//	ThomasTreeSupport thomas_tree_support_generator(storage);
+	//	thomas_tree_support_generator.generateSupportAreas(storage);
+	//}
+	//else
+	//{
+	//	TreeSupport tree_support_generator(storage);
+	//	tree_support_generator.generateSupportAreas(storage);
+	//}
 
 	INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
 	CALLTICK("support");
