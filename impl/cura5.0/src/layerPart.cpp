@@ -26,7 +26,7 @@ It's also the first step that stores the result in the "data storage" so all oth
 
 namespace cura52 {
 
-void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer)
+void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer, size_t layer_nr)
 {
     PolylineStitcher<Polygons, Polygon, Point>::stitch(layer->openPolylines, storageLayer.openPolyLines, layer->polygons, settings.get<coord_t>("wall_line_width_0"));
 
@@ -59,11 +59,12 @@ void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, Sl
         result = layer->polygons.splitIntoParts(union_layers || union_all_remove_holes);
     }
     const coord_t hole_offset = settings.get<coord_t>("hole_xy_offset");
+    const size_t bottom_layers = settings.get<size_t>("bottom_layers");
     bool magic_spiralize = settings.get<bool>("magic_spiralize");
     for(auto & part : result)
     {
         storageLayer.parts.emplace_back();
-        if (magic_spiralize)
+        if (magic_spiralize && layer_nr >= bottom_layers)
         {
             // holes remove
             Polygons outline;
@@ -114,7 +115,7 @@ void createLayerParts(Application* application, SliceMeshStorage& mesh, Slicer* 
     {
         SliceLayer& layer_storage = mesh.layers[layer_nr];
         SlicerLayer& slice_layer = slicer->layers[layer_nr];
-        createLayerWithParts(mesh.settings, layer_storage, &slice_layer);
+        createLayerWithParts(mesh.settings, layer_storage, &slice_layer, layer_nr);
     });
 
     for (LayerIndex layer_nr = total_layers - 1; layer_nr >= 0; layer_nr--)
