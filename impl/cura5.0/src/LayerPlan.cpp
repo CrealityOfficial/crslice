@@ -2388,8 +2388,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     double cur_dis_path = 0;
                     double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
                     double speed = path.config->getSpeed() * 0.5; //wipe speed
-                    if (openPolygen)
-                        wipe_length /= 2;
                     for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
                     {
                         Point src_pos = gcode.getPositionXY();
@@ -2406,18 +2404,18 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             theta = (wipe_length - cur_dis_path) / wipe_length;
                             cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
                         }
-                        if (openPolygen)
-                            theta /= 2;
                         wipe_path_record.push_back(std::make_pair(src_pos, theta));
-                        gcode.writeExtrusionG1(speed, cur_pos, -dis_Extru * theta, path.config->type);
+                        gcode.writeExtrusionG1(speed, cur_pos, openPolygen ? 0 : -dis_Extru * theta, path.config->type);
                         cur_dis_path += len;
                         if (cur_dis_path > wipe_length) break;
                     }
                     if (openPolygen && !wipe_path_record.empty())
                     {
                         std::reverse(wipe_path_record.begin(), wipe_path_record.end());
-                        for(std::pair<Point, double> wipe_step: wipe_path_record)
+                        for (const std::pair<Point, double>& wipe_step : wipe_path_record)
+                        {
                             gcode.writeExtrusionG1(speed, wipe_step.first, -dis_Extru * wipe_step.second, path.config->type);
+                        }    
                     }
                     //gcode.writeRetraction(retraction_config);
                     //if (path.perform_z_hop)

@@ -3796,11 +3796,12 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
     }
 
     // Helper to get the support pattern
-    const auto get_support_pattern = [](const EFillMethod pattern, const int layer_nr)
+    const auto get_support_pattern = [&](const EFillMethod pattern, const int layer_nr)
     {
         if (layer_nr <= 0 && (pattern == EFillMethod::LINES || pattern == EFillMethod::ZIG_ZAG))
         {
-            return EFillMethod::GRID;
+            default_support_line_distance = default_support_line_width;
+            return EFillMethod::CONCENTRIC;
         }
         return pattern;
     };
@@ -3823,11 +3824,11 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
     {
         if (layer_nr == 0 && pattern == EFillMethod::CONCENTRIC)
         {
-            return area.offset(static_cast<int>(line_width * brim_line_count / 1000));
+            return area.offset(-static_cast<int>(line_width * brim_line_count / 1000));
         }
         return area;
     };
-    const auto support_brim_line_count = infill_extruder.settings.get<coord_t>("support_brim_line_count");
+    const auto support_brim_line_count = infill_extruder.settings.get<bool>("support_brim_enable") ? infill_extruder.settings.get<coord_t>("support_brim_line_count") : 0;
     const auto support_connect_zigzags = infill_extruder.settings.get<bool>("support_connect_zigzags");
     const auto support_structure = infill_extruder.settings.get<ESupportStructure>("support_structure");
     const Point infill_origin;
