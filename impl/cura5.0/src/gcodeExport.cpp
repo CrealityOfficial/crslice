@@ -448,6 +448,8 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 {
     std::ostringstream prefix;
 
+    crslice::PathParam pathParam;
+
     const size_t extruder_count = application->current_slice->scene.extruders.size();
     switch (flavor)
     {
@@ -489,6 +491,8 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         if (print_time)
         {
             prefix << ";PRINT.TIME:" << static_cast<int>(*print_time) << new_line;
+
+            pathParam.printTime = print_time->value;
         }
 
         prefix << ";PRINT.GROUPS:" << application->current_slice->scene.mesh_groups.size() << new_line;
@@ -512,6 +516,11 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";FLAVOR:" << flavorToString(flavor) << new_line;
         prefix << ";TIME:" << ((print_time) ? static_cast<double>(*print_time) : 100000.00) << new_line;
         
+        if (print_time)
+        {
+            pathParam.printTime = print_time->value;
+        }
+
         if (flavor == EGCodeFlavor::ULTIGCODE)
         {
             prefix << ";MATERIAL:" << ((filament_used.size() >= 1) ? static_cast<int>(filament_used[0]) : 6666) << new_line;
@@ -533,10 +542,14 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
                     if (flavor != EGCodeFlavor::MARLIN_VOLUMATRIC)
                     {
                         prefix << filament_used[i] / (1000 * extruder_attr[i].filament_area) << "m";
+
+                        pathParam.materialLenth += filament_used[i] / (1000 * extruder_attr[i].filament_area);
                     }
                     else // Use volumetric filament used.
                     {
                         prefix << filament_used[i] << "mm3";
+
+                        pathParam.materialLenth += filament_used[i];
                     }
                 }
             }
@@ -557,6 +570,54 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         //各个区域的时间段
         writeTimePartsComment(prefix);
         //
+
+        {
+            Scene* scene = &application->current_slice->scene;
+            Settings* setting = &scene->current_mesh_group->settings;
+            Settings* meshSettings = &scene->current_mesh_group->meshes[0].settings;
+            Settings* extruderSettings = &scene->extruders[0].settings;
+            pathParam.machine_height = setting->get<double>("machine_height");
+            pathParam.machine_width = setting->get<double>("machine_width");
+            pathParam.machine_depth = setting->get<double>("machine_depth");
+            //pathParam.printTime;
+            //pathParam.materialLenth;
+            pathParam.material_diameter = setting->get<double>("material_diameter"); //材料直径
+            pathParam.material_density = setting->get<double>("material_density");  //材料密度
+            pathParam.materialDensity = PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
+            pathParam.lineWidth = setting->get<double>("line_width");
+            pathParam.layerHeight = setting->get<double>("layer_height");
+            //pathParam.unitPrice;
+
+            float filament_cost = setting->get<double>("filament_cost");
+            pathParam.unitPrice = filament_cost / pathParam.materialLenth;
+            pathParam.spiralMode = setting->get<bool>("magic_spiralize");
+            ;
+            pathParam.exportFormat = setting->get<std::string>("preview_img_type");//QString exportFormat;
+            pathParam.screenSize = setting->get<std::string>("screen_size");//QString screenSize;
+
+            if( total_print_times.size()>9)
+            {
+                pathParam.timeParts = { 
+                     (float)total_print_times[1].value
+                    ,(float)total_print_times[2].value
+                    ,(float)total_print_times[3].value
+                    ,(float)total_print_times[4].value
+                    ,(float)total_print_times[5].value
+                    ,(float)total_print_times[6].value
+                    ,(float)total_print_times[7].value
+                    ,(float)total_print_times[8].value
+                    ,(float)total_print_times[9].value
+                    ,(float)total_print_times[10].value };
+            }
+
+            pathParam.beltType = setting->get<bool>("machine_is_belt") ? 1 : 0;  // 1 creality print belt  2 creality slicer belt
+            pathParam.beltOffset = setting->get<double>("machine_belt_offset");
+            pathParam.beltOffsetY = setting->get<double>("machine_belt_offset_Y");
+            //pathParam.xf4;//cr30 fxform
+
+            pathParam.relativeExtrude = setting->get<bool>("relative_extrusion");
+            application->fDebugger->setParam(pathParam);
+        }
     }
 
     return prefix.str();
