@@ -12,7 +12,7 @@
 #include "boost/functional/hash.hpp" // For combining hashes
 #include "polyclipping/clipper.hpp"
 #include "settings/EnumSettings.h"
-#include "SliceDataStorage.h"
+#include "sliceDataStorage.h"
 #include "utils/Coord_t.h"
 #include "utils/polygon.h"
 
