@@ -94,7 +94,7 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
             roof_area = roof_area.offset(-half_min_roof_width).offset(half_min_roof_width + line_width_0).intersection(non_OuterWall_area);
             Polygons inside_area = non_OuterWall_area.difference(roof_area);
 
-            if (!inside_area.empty())
+            if (!inside_area.empty() && wall_count > 1)
             {
                 WallToolPaths innerWall_tool_paths(inside_area, line_width_x, line_width_x, wall_count - 1, 0, settings);
                 std::vector<VariableWidthLines> innerWall_toolpaths = innerWall_tool_paths.getToolPaths();
@@ -105,6 +105,10 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
                 }
                 part->wall_toolpaths.insert(part->wall_toolpaths.end(), innerWall_toolpaths.begin(), innerWall_toolpaths.end());
                 part->inner_area = innerWall_tool_paths.getInnerContour();
+            }
+            else if (wall_count <= 1)
+            {
+                part->inner_area.add(inside_area);
             }
             part->inner_area.add(roof_area);
         }
