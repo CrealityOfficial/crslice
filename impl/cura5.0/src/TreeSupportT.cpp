@@ -63,55 +63,55 @@ TreeSupportT::TreeSupportT(const cura52::SliceDataStorage& storage)
         //}
 
 
-        mesh.settings.settings["support_tree_angle"] = std::to_string(60);
-        mesh.settings.settings["support_tree_angle_slow"] = std::to_string(50);
-        mesh.settings.settings["support_line_width"] = std::to_string(0.4);   //yi
-        mesh.settings.settings["layer_height"] = std::to_string(0.2); //100yi
-        mesh.settings.settings["support_tree_branch_diameter"] = std::to_string(5);
-        mesh.settings.settings["support_tree_tip_diameter"] = std::to_string(0.4); // The actual radius is 50 microns larger as the resulting branches will be increased by 50 microns to avoid rounding errors effectively increasing the xydistance
-        mesh.settings.settings["support_tree_max_diameter"] = std::to_string(25);
+       // mesh.settings.settings["support_tree_angle"] = std::to_string(60);
+       // mesh.settings.settings["support_tree_angle_slow"] = std::to_string(50);
+       // mesh.settings.settings["support_line_width"] = std::to_string(0.4);   //yi
+       // mesh.settings.settings["layer_height"] = std::to_string(0.2); //100yi
+       // mesh.settings.settings["support_tree_branch_diameter"] = std::to_string(5);
+       // mesh.settings.settings["support_tree_tip_diameter"] = std::to_string(0.4); // The actual radius is 50 microns larger as the resulting branches will be increased by 50 microns to avoid rounding errors effectively increasing the xydistance
+       // mesh.settings.settings["support_tree_max_diameter"] = std::to_string(25);
  
-        mesh.settings.settings["support_bottom_enable"] = std::to_string(false),
-        mesh.settings.settings["support_tree_branch_diameter_angle"] = std::to_string(7);
-        //tip_layers(std::max((branch_radius - min_radius) / (support_line_width / 3), branch_radius / layer_height)), // Ensure lines always stack nicely even if layer height is large
-        //diameter_angle_scale_factor(sin(mesh_group_settings.get<AngleRadians>("support_tree_branch_diameter_angle")) * layer_height / branch_radius),
-        mesh.settings.settings["support_tree_max_diameter_increase_by_merges_when_support_to_model"] = std::to_string(1);
-        mesh.settings.settings["support_tree_min_height_to_model"] = std::to_string(3);
+       // mesh.settings.settings["support_bottom_enable"] = std::to_string(false),
+       // mesh.settings.settings["support_tree_branch_diameter_angle"] = std::to_string(7);
+       // //tip_layers(std::max((branch_radius - min_radius) / (support_line_width / 3), branch_radius / layer_height)), // Ensure lines always stack nicely even if layer height is large
+       // //diameter_angle_scale_factor(sin(mesh_group_settings.get<AngleRadians>("support_tree_branch_diameter_angle")) * layer_height / branch_radius),
+       // mesh.settings.settings["support_tree_max_diameter_increase_by_merges_when_support_to_model"] = std::to_string(1);
+       // mesh.settings.settings["support_tree_min_height_to_model"] = std::to_string(3);
 
 
-        mesh.settings.settings[("support_tree_branch_diameter")] = std::to_string(5);
-                                
-        mesh.settings.settings[("support_type")] = "everywhere";
-        mesh.settings.settings[("support_tree_rest_preference")] = ("buildplate");
-        mesh.settings.settings[  ("support_xy_distance")] = std::to_string(0.7);
-        mesh.settings.settings[  ("support_tree_bp_diameter")] = std::to_string(7.5);
-        mesh.settings.settings[  ("support_xy_overrides_z")] = "z_overrides_xy";
-        mesh.settings.settings[  ("support_xy_distance_overhang")] = std::to_string(0.2);
-        mesh.settings.settings[  ("support_top_distance")] = std::to_string(0.1);
-        mesh.settings.settings[  ("support_bottom_distance")] = std::to_string(0.1);
-        mesh.settings.settings[  ("support_interface_skip_height")] = std::to_string(0.2);
-        mesh.settings.settings[  ("support_infill_angles")] = std::to_string(0);  //yi
-        mesh.settings.settings[  ("support_roof_angles")] = std::to_string(0);  //yi
-        mesh.settings.settings[  ("support_roof_pattern")] = "concentric";
-        mesh.settings.settings[ ("support_pattern")] = "zigzag";
-        mesh.settings.settings[ ("support_roof_line_width")] = std::to_string(0.4);
-        mesh.settings.settings[ ("support_line_distance")] = std::to_string(2.66);
-        mesh.settings.settings[ ("support_bottom_offset")] = std::to_string(0);
-        mesh.settings.settings[ ("support_wall_count")] = std::to_string(1);
-           ///support_roof_wall_count(mesh_group_settings.get<int>("support_roof_wall_count")),yi
-       // mesh.settings.add("support_roof_wall_count", std::to_string(0)); 5
-        mesh.settings.settings[("support_roof_wall_count")] =  std::to_string(5);
-        mesh.settings.settings[("zig_zaggify_support")] = std::to_string(false);
-        mesh.settings.settings[("meshfix_maximum_deviation")] = std::to_string(0.025);
-        mesh.settings.settings[("meshfix_maximum_resolution")] = std::to_string(0.5);
-        mesh.settings.settings[("support_roof_line_distance")] = std::to_string(0.4); // in the end the actual infill has to be calculated to subtract interface from support areas according to interface_preference.
-        mesh.settings.settings[("support_skip_some_zags")] = std::to_string(false);
-        mesh.settings.settings[("support_zag_skip_count")] = std::to_string(5);
-        mesh.settings.settings[("support_connect_zigzags")] = std::to_string(true);
-         
-        mesh.settings.settings[("min_feature_size")] = std::to_string(0.1);
-        mesh.settings.settings[("min_wall_line_width")] = std::to_string(0); //0
-        mesh.settings.settings[("fill_outline_gaps")] = std::to_string(true);
+       // mesh.settings.settings[("support_tree_branch_diameter")] = std::to_string(5);
+       //                         
+       // mesh.settings.settings[("support_type")] = "everywhere";
+       // mesh.settings.settings[("support_tree_rest_preference")] = ("buildplate");
+       // mesh.settings.settings[  ("support_xy_distance")] = std::to_string(0.7);
+       // mesh.settings.settings[  ("support_tree_bp_diameter")] = std::to_string(7.5);
+       // mesh.settings.settings[  ("support_xy_overrides_z")] = "z_overrides_xy";
+       // mesh.settings.settings[  ("support_xy_distance_overhang")] = std::to_string(0.2);
+       // mesh.settings.settings[  ("support_top_distance")] = std::to_string(0.1);
+       // mesh.settings.settings[  ("support_bottom_distance")] = std::to_string(0.1);
+       // mesh.settings.settings[  ("support_interface_skip_height")] = std::to_string(0.2);
+       // mesh.settings.settings[  ("support_infill_angles")] = std::to_string(0);  //yi
+       // mesh.settings.settings[  ("support_roof_angles")] = std::to_string(0);  //yi
+       // mesh.settings.settings[  ("support_roof_pattern")] = "concentric";
+       // mesh.settings.settings[ ("support_pattern")] = "zigzag";
+       // mesh.settings.settings[ ("support_roof_line_width")] = std::to_string(0.4);
+       // mesh.settings.settings[ ("support_line_distance")] = std::to_string(2.66);
+       // mesh.settings.settings[ ("support_bottom_offset")] = std::to_string(0);
+       // mesh.settings.settings[ ("support_wall_count")] = std::to_string(1);
+       //    ///support_roof_wall_count(mesh_group_settings.get<int>("support_roof_wall_count")),yi
+       //// mesh.settings.add("support_roof_wall_count", std::to_string(0)); 5
+       // mesh.settings.settings[("support_roof_wall_count")] =  std::to_string(5);
+       // mesh.settings.settings[("zig_zaggify_support")] = std::to_string(false);
+       // mesh.settings.settings[("meshfix_maximum_deviation")] = std::to_string(0.025);
+       // mesh.settings.settings[("meshfix_maximum_resolution")] = std::to_string(0.5);
+       // mesh.settings.settings[("support_roof_line_distance")] = std::to_string(0.4); // in the end the actual infill has to be calculated to subtract interface from support areas according to interface_preference.
+       // mesh.settings.settings[("support_skip_some_zags")] = std::to_string(false);
+       // mesh.settings.settings[("support_zag_skip_count")] = std::to_string(5);
+       // mesh.settings.settings[("support_connect_zigzags")] = std::to_string(true);
+       //  
+       // mesh.settings.settings[("min_feature_size")] = std::to_string(0.1);
+       // mesh.settings.settings[("min_wall_line_width")] = std::to_string(0); //0
+       // mesh.settings.settings[("fill_outline_gaps")] = std::to_string(true);
 
 
         bool added = false;
