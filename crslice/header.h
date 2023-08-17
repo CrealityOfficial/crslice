@@ -88,6 +88,7 @@ namespace crslice
 		virtual void setFan(float fan) = 0;
 		virtual void setZ(float z,float h =-1) = 0;
 		virtual void setE(float e) = 0;
+		virtual void getNotPath() = 0;
 	};
 
 	class PathData :public crslice::FDMDebugger
@@ -106,6 +107,7 @@ namespace crslice
 		void setFan(float fan) override {};
 		void setZ(float z, float h = -1) override {};
 		void setE(float e) override {};
+		void getNotPath() override{};
 	};
 }
 #endif // CRSLICE_HEADER_INTERFACE
