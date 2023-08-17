@@ -105,6 +105,15 @@ namespace cura52
 		for (size_t n = 0; n < NUM_AXIS; n++)
 		{
 			move.axes_d[n] = newPos[n] - currentPosition[n];
+
+			if (3 == n)//add
+			{
+				double e = newPos[n] - currentPosition[n];
+				if (e < -1000.0f)//G92 E0
+				{
+					move.axes_d[n] = newPos[n];
+				}
+			}
 		}
 		move.move_d = 0.0;
 		for (size_t n = 0; n < 3; n++)
@@ -159,6 +168,14 @@ namespace cura52
 		for (size_t n = 0; n < NUM_AXIS; n++)
 		{
 			block.delta[n] = newPos[n] - currentPosition[n];
+			if (3 == n)
+			{
+				double e = newPos[n] - currentPosition[n];
+				if (e < -1000.0f)//G92 E0
+				{
+					block.delta[n] = newPos[n];
+				}
+			}
 			block.absDelta[n] = std::abs(block.delta[n]);
 			block.maxTravel = std::max(block.maxTravel, block.absDelta[n]);
 		}
