@@ -84,8 +84,8 @@ void LayerPlanBuffer::addConnectingTravelMove(LayerPlan* prev_layer, const Layer
 
     Point first_location_new_layer = new_layer_destination_state->first;
 
-    assert(newest_layer->extruder_plans.front().paths[0].points.size() == 1);
-    assert(newest_layer->extruder_plans.front().paths[0].points[0] == first_location_new_layer);
+	assert(newest_layer->extruder_plans.front().paths[0].points.size() == 1);
+	assert(newest_layer->extruder_plans.front().paths[0].points[0] == first_location_new_layer);
 
     // if the last planned position in the previous layer isn't the same as the first location of the new layer, travel to the new location
     if (! prev_layer->last_planned_position || *prev_layer->last_planned_position != first_location_new_layer)
@@ -562,11 +562,25 @@ void LayerPlanBuffer::insertFinalPrintTempCommand(std::vector<ExtruderPlan*>& ex
 
 void LayerPlanBuffer::insertTempCommands()
 {
-    if (buffer.back()->extruder_plans.size() == 0 || (buffer.back()->extruder_plans.size() == 1 && buffer.back()->extruder_plans[0].paths.size() == 0))
-    { // disregard empty layer
-        buffer.pop_back();
-        return;
-    }
+    //if (buffer.back()->extruder_plans.size() == 0 || (buffer.back()->extruder_plans.size() == 1 && buffer.back()->extruder_plans[0].paths.size() == 0))
+    //{ // disregard empty layer
+    //    buffer.pop_back();
+    //    return;
+    //}
+	bool isEmpty = true;
+	for (int n=0;n< buffer.back()->extruder_plans.size();n++)
+	{
+		if (!buffer.back()->extruder_plans[n].paths.empty())
+		{
+			isEmpty = false;
+		}
+	}
+	if (isEmpty)
+	{
+		buffer.pop_back();
+		return;
+	}
+
 
     std::vector<ExtruderPlan*> extruder_plans; // sorted in print order
     extruder_plans.reserve(buffer.size() * 2);

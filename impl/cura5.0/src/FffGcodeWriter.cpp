@@ -214,7 +214,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 		if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
 		{
 			std::optional<Point> last_planned_position;
-			for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
+			for (int layer_nr = process_layer_starting_layer_nr; layer_nr < (int)total_layers; layer_nr++)
 			{
 				application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
 				//layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers,last_planned_position), gcode);
