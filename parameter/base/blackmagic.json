@@ -11,9 +11,9 @@
 		},
 		"default_value": "all_at_once",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) == 1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false",
 		"parameter_level": "1"
 	},
 	"infill_mesh":
@@ -22,11 +22,11 @@
 		"description": "Use this mesh to modify the infill of other meshes with which it overlaps. Replaces infill regions of other meshes with regions for this mesh. It's suggested to only print one Wall and no Top/Bottom Skin for this mesh.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false,
-		"settable_globally": false,
-		"enabled": false
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false",
+		"settable_globally": "false",
+		"enabled": "false"
 	},
 	"infill_mesh_order":
 	{
@@ -37,11 +37,11 @@
 		"minimum_value_warning": "1",
 		"maximum_value_warning": "50",
 		"type": "int",
-		"settable_per_mesh": true,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false,
-		"settable_globally": false,
-		"enabled": false
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false",
+		"settable_globally": "false",
+		"enabled": "false"
 	},
 	"cutting_mesh":
 	{
@@ -49,11 +49,11 @@
 		"description": "Limit the volume of this mesh to within other meshes. You can use this to make certain areas of one mesh print with different settings and with a whole different extruder.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false,
-		"settable_globally": false,
-		"enabled": false
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false",
+		"settable_globally": "false",
+		"enabled": "false"
 	},
 	"mold_enabled":
 	{
@@ -62,7 +62,7 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"mold_width":
 	{
@@ -74,7 +74,7 @@
 		"maximum_value_warning": "100",
 		"parameter_level": "4",
 		"default_value": "5",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"mold_enabled\"))"
 	},
 	"mold_roof_height":
@@ -87,7 +87,7 @@
 		"maximum_value_warning": "5",
 		"default_value": "0.5",
 		"parameter_level": "4",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"mold_enabled\"))"
 	},
 	"mold_angle":
@@ -102,7 +102,7 @@
 		"maximum_value": "90",
 		"default_value": "40",
 		"parameter_level": "4",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"mold_enabled\"))"
 	},
 	"support_mesh":
@@ -111,11 +111,11 @@
 		"description": "Use this mesh to specify support areas. This can be used to generate support structure.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false,
-		"settable_globally": false,
-		"enabled": false
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false",
+		"settable_globally": "false",
+		"enabled": "false"
 	},
 	"anti_overhang_mesh":
 	{
@@ -123,11 +123,11 @@
 		"description": "Use this mesh to specify where no part of the model should be detected as overhang. This can be used to remove unwanted support structure.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false,
-		"settable_globally": false,
-		"enabled": false
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false",
+		"settable_globally": "false",
+		"enabled": "false"
 	},
 	"magic_mesh_surface_mode":
 	{
@@ -142,7 +142,7 @@
 		},
 		"default_value": "normal",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"magic_spiralize":
 	{
@@ -151,8 +151,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"smooth_spiralized_contours":
 	{
@@ -162,8 +162,8 @@
 		"default_value": "true",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"magic_spiralize\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"relative_extrusion":
 	{
@@ -172,8 +172,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"value": "getEnumValue(\"machine_gcode_flavor\") == 'RepRap (RepRap)'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"belt_enable":
 	{
@@ -181,8 +181,8 @@
 		"description": "",
 		"type": "bool",
 		"default_value": "false",
-		"enabled": false,
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	}
 }

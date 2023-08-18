@@ -5,9 +5,9 @@
 		"description": "Whether to prime the filament with a blob before printing. Turning this setting on will ensure that the extruder will have material ready at the nozzle before printing. Printing Brim or Skirt can act like priming too, in which case turning this setting off saves some time.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
-		"enabled": false,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
+		"enabled": "false",
 		"warning_value": "True if resolveOrValue('print_sequence') == 'one_at_a_time' else None"
 	},
 	"extruder_prime_pos_x":
@@ -19,9 +19,9 @@
 		"default_value": "0",
 		"minimum_value_warning": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_width\")) / -2 : 0",
 		"maximum_value_warning": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_width\")) / 2 : eval(contex.value(\"machine_width\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
-		"enabled": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
+		"enabled": "false"
 	},
 	"extruder_prime_pos_y":
 	{
@@ -32,9 +32,9 @@
 		"default_value": "0",
 		"minimum_value_warning": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_depth\")) / -2 : 0",
 		"maximum_value_warning": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_depth\")) / 2 : eval(contex.value(\"machine_depth\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
-		"enabled": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
+		"enabled": "false"
 	},
 	"adhesion_type":
 	{
@@ -53,8 +53,8 @@
 		"default_value": "autobrim",
 		"parameter_level": "1",
 		"resolve": "extruderValue(adhesion_extruder_nr, 'adhesion_type')",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"adhesion_extruder_nr":
 	{
@@ -65,8 +65,8 @@
 		"value": "0",
 		"enabled": "eval(contex.value('extruders_enabled_count'))>1 && eval(contex.value('extruders_enabled_count'))!='none' || eval(contex.value('prime_tower_brim_enable'))",
 		"resolve": "max(extruderValues('adhesion_extruder_nr'))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"skirt_brim_extruder_nr":
 	{
@@ -76,8 +76,8 @@
 		"default_value": "0",
 		"value": "eval(contex.value('adhesion_extruder_nr'))",
 		"enabled": "eval(contex.value('extruders_enabled_count'))>1 && (eval(contex.value('adhesion_type'))!='skirt' || eval(contex.value('adhesion_type'))== 'brim' || eval(contex.value('prime_tower_brim_enable')))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"raft_base_extruder_nr":
 	{
@@ -88,8 +88,8 @@
 		"value": "eval(contex.value('adhesion_extruder_nr'))",
 		"enabled": "eval(contex.value('extruders_enabled_count'))>1 && eval(contex.value('adhesion_type')) == 'raft'",
 		"resolve": "max(extruderValues('raft_base_extruder_nr'))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"raft_interface_extruder_nr":
 	{
@@ -100,8 +100,8 @@
 		"value": "eval(contex.value('adhesion_extruder_nr'))",
 		"enabled": "eval(contex.value('extruders_enabled_count'))>1 &&  contex.value('adhesion_type') == 'raft'",
 		"resolve": "max(extruderValues('raft_interface_extruder_nr'))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"raft_surface_extruder_nr":
 	{
@@ -112,8 +112,8 @@
 		"value": "eval(contex.value('adhesion_extruder_nr'))",
 		"enabled": "eval(contex.value('extruders_enabled_count'))>1 &&  contex.value('adhesion_type') == 'raft'",
 		"resolve": "max(extruderValues('raft_surface_extruder_nr'))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"skirt_line_count":
 	{
@@ -125,8 +125,8 @@
 		"maximum_value_warning": "10",
 		"parameter_level": "2",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'skirt'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"skirt_gap":
@@ -139,8 +139,8 @@
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "10",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'skirt'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"skirt_brim_minimal_length":
@@ -154,8 +154,8 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "2500",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'skirt' || getEnumValue(\"adhesion_type\") == 'brim' || eval(contex.value(\"prime_tower_brim_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"brim_width":
 	{
@@ -168,8 +168,8 @@
 		"maximum_value_warning": "50.0",
 		"maximum_value": "0.5 * Math.min(eval(contex.value(\"machine_width\")), eval(contex.value(\"machine_depth\")))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'brim' || eval(contex.value(\"prime_tower_brim_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"brim_line_count":
@@ -183,8 +183,8 @@
 		"maximum_value": "0.5 * Math.min(eval(contex.value(\"machine_width\")), eval(contex.value(\"machine_depth\"))) / eval(contex.value(\"skirt_brim_line_width\"))",
 		"value": "Math.ceil(eval(contex.value(\"brim_width\")) / (eval(contex.value(\"skirt_brim_line_width\")) * (eval(contex.value(\"initial_layer_line_width_factor\")) / 100.0)))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'brim' || eval(contex.value(\"prime_tower_brim_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"brim_gap":
@@ -197,8 +197,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "20.0",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'brim'",
-		"settable_per_mesh": true,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"brim_replaces_support":
@@ -208,8 +208,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'brim' && (eval(contex.value(\"support_enable\")) || eval(contex.value(\"support_tree_enable\")))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "support_infill_extruder_nr"
 	},
 	"brim_outside_only":
@@ -219,8 +219,8 @@
 		"type": "bool",
 		"default_value": "true",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'brim'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_init_layer_num":
@@ -232,8 +232,8 @@
 		"minimum_value": "1",
 		"maximum_value_warning": "5",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'simpleraft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_top_layer_num":
@@ -245,8 +245,8 @@
 		"minimum_value": "1",
 		"maximum_value_warning": "5",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'simpleraft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_init_flow_ratio":
@@ -259,8 +259,8 @@
 		"minimum_value": "100",
 		"maximum_value_warning": "200",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'simpleraft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_margin":
@@ -274,8 +274,8 @@
 		"maximum_value_warning": "20",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"limit_to_extruder": "adhesion_extruder_nr",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"raft_smoothing":
 	{
@@ -288,8 +288,8 @@
 		"minimum_value_warning": "eval(contex.value(\"raft_interface_line_width\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"limit_to_extruder": "adhesion_extruder_nr",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"raft_airgap":
 	{
@@ -301,8 +301,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_size\"))*2",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"layer_0_z_overlap":
@@ -316,8 +316,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "eval(contex.value(\"raft_airgap\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_surface_layers":
@@ -329,8 +329,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "20",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_surface_thickness":
@@ -345,8 +345,8 @@
 		"minimum_value_warning": "0.04",
 		"maximum_value_warning": "0.75 * eval(contex.value(\"machine_nozzle_size\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_surface_line_width":
@@ -361,8 +361,8 @@
 		"minimum_value_warning": "eval(contex.value(\"machine_nozzle_size\")) * 0.1",
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_size\")) * 2",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_surface_line_spacing":
@@ -377,8 +377,8 @@
 		"maximum_value_warning": "eval(contex.value(\"raft_surface_line_width\")) * 3",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"value": "eval(contex.value(\"raft_surface_line_width\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_interface_layers":
@@ -390,8 +390,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "10",
 		"enabled": "resolveOrValue('adhesion_type') == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "raft_interface_extruder_nr"
 	},
 	"raft_interface_thickness":
@@ -406,8 +406,8 @@
 		"minimum_value_warning": "0.04",
 		"maximum_value_warning": "0.75 * eval(contex.value(\"machine_nozzle_size\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_interface_line_width":
@@ -422,8 +422,8 @@
 		"minimum_value_warning": "eval(contex.value(\"machine_nozzle_size\")) * 0.5",
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_size\")) * 3",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_interface_line_spacing":
@@ -438,8 +438,8 @@
 		"minimum_value_warning": "eval(contex.value(\"raft_interface_line_width\"))",
 		"maximum_value_warning": "15.0",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_base_thickness":
@@ -454,8 +454,8 @@
 		"minimum_value_warning": "0.04",
 		"maximum_value_warning": "0.75 * eval(contex.value(\"raft_base_line_width\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_base_line_width":
@@ -470,8 +470,8 @@
 		"minimum_value_warning": "eval(contex.value(\"machine_nozzle_size\")) * 0.5",
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_size\")) * 3",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_base_line_spacing":
@@ -486,8 +486,8 @@
 		"minimum_value_warning": "eval(contex.value(\"raft_base_line_width\"))",
 		"maximum_value_warning": "100",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_speed":
@@ -501,8 +501,8 @@
 		"maximum_value": "eval(Math.sqrt(Math.pow(contex.value(\"machine_max_feedrate_x\"), 2) + Math.pow(contex.value(\"machine_max_feedrate_y\"), 2)))",
 		"maximum_value_warning": "200",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_surface_speed":
@@ -518,8 +518,8 @@
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"value": "eval(contex.value(\"raft_speed\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_interface_speed":
@@ -535,8 +535,8 @@
 		"maximum_value_warning": "150",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_base_speed":
@@ -552,8 +552,8 @@
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"value": "0.5 * eval(contex.value(\"raft_speed\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_acceleration":
@@ -568,7 +568,7 @@
 		"maximum_value_warning": "10000",
 		"value": "eval(contex.value(\"acceleration_print\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"acceleration_enabled\"))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_surface_acceleration":
@@ -584,7 +584,7 @@
 		"maximum_value_warning": "10000",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"acceleration_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_interface_acceleration":
@@ -600,7 +600,7 @@
 		"maximum_value_warning": "10000",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"acceleration_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_base_acceleration":
@@ -616,7 +616,7 @@
 		"maximum_value_warning": "10000",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"acceleration_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_jerk":
@@ -631,7 +631,7 @@
 		"maximum_value_warning": "50",
 		"value": "eval(contex.value(\"jerk_print\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"jerk_enabled\"))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_surface_jerk":
@@ -646,7 +646,7 @@
 		"minimum_value_warning": "5",
 		"maximum_value_warning": "100",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"jerk_enabled\"))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_interface_jerk":
@@ -661,7 +661,7 @@
 		"minimum_value_warning": "5",
 		"maximum_value_warning": "50",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"jerk_enabled\"))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_base_jerk":
@@ -676,7 +676,7 @@
 		"minimum_value_warning": "5",
 		"maximum_value_warning": "50",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft' && eval(contex.value(\"jerk_enabled\"))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_fan_speed":
@@ -688,8 +688,8 @@
 		"minimum_value": "0",
 		"maximum_value": "100",
 		"default_value": "0",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
@@ -705,8 +705,8 @@
 		"value": "eval(contex.value(\"raft_fan_speed\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_interface_fan_speed":
@@ -721,8 +721,8 @@
 		"value": "eval(contex.value(\"raft_fan_speed\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	},
 	"raft_base_fan_speed":
@@ -737,8 +737,8 @@
 		"value": "eval(contex.value(\"raft_fan_speed\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'raft'",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"limit_to_extruder": "adhesion_extruder_nr"
 	}
 }

@@ -6,8 +6,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "3",
-		"settable_per_mesh": true,
-		"settable_per_extruder": true
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "true"
 	},
 	"speed_slowtofast_slowdown_revise_distance":
 	{
@@ -22,8 +22,8 @@
 		"maximum_value": "100",
 		"parameter_level": "4",
 		"enabled": "eval(contex.value(\"speed_slowtofast_slowdown\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"speed_slowtofast_slowdown_revise_speed_factor":
 	{
@@ -38,8 +38,8 @@
 		"maximum_value": "100",
 		"parameter_level": "4",
 		"enabled": "eval(contex.value(\"speed_slowtofast_slowdown\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"speed_slowtofast_slowdown_revise_acceleration":
 	{
@@ -54,8 +54,8 @@
 		"maximum_value": "5000",
 		"parameter_level": "4",
 		"enabled": "eval(contex.value(\"speed_slowtofast_slowdown\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"default_material_print_temperature":
 	{
@@ -67,9 +67,9 @@
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "285",
 		"maximum_value": "365",
-		"enabled": false,
-		"settable_per_extruder": true,
-		"settable_per_mesh": false,
+		"enabled": "false",
+		"settable_per_extruder": "true",
+		"settable_per_mesh": "false",
 		"minimum_value": "-273.15"
 	},
 	"build_volume_temperature":
@@ -84,8 +84,8 @@
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "285",
 		"enabled": "eval(contex.value(\"machine_heated_build_volume\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"have_band":
 	{
@@ -93,9 +93,9 @@
 		"description": "The G12 model has a heating plate on the top",
 		"type": "bool",
 		"default_value": "false",
-		"enabled": false,
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_heater_band":
 	{
@@ -110,8 +110,8 @@
 		"maximum_value": "500",
 		"parameter_level": "1",
 		"enabled": "eval(contex.value(\"have_band\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_print_temperature":
 	{
@@ -127,8 +127,8 @@
 		"maximum_value": "500",
 		"parameter_level": "1",
 		"enabled": "eval(contex.value(\"machine_nozzle_temp_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_print_temperature_layer_0":
 	{
@@ -144,8 +144,8 @@
 		"maximum_value": "500",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"machine_nozzle_temp_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_initial_print_temperature":
 	{
@@ -161,8 +161,8 @@
 		"maximum_value": "365",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"machine_nozzle_temp_enabled\")) && !(eval(contex.value(\"machine_extruders_share_heater\")))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_final_print_temperature":
 	{
@@ -178,8 +178,8 @@
 		"maximum_value": "365",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"machine_nozzle_temp_enabled\")) && !(eval(contex.value(\"machine_extruders_share_heater\")))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_extrusion_cool_down_speed":
 	{
@@ -192,8 +192,8 @@
 		"maximum_value_warning": "10.0",
 		"maximum_value": "machine_nozzle_heat_up_speed",
 		"enabled": "(eval(contex.value(\"extruders_enabled_count\")) > 1 && eval(contex.value(\"material_final_print_temperature\")) != eval(contex.value(\"material_print_temperature\")))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"default_material_bed_temperature":
 	{
@@ -208,10 +208,10 @@
 		"maximum_value_warning": "200",
 		"maximum_value": "200",
 		"parameter_level": "2",
-		"enabled": false,
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false"
 	},
 	"material_bed_temperature":
 	{
@@ -228,9 +228,9 @@
 		"maximum_value": "200",
 		"parameter_level": "1",
 		"enabled": "eval(contex.value(\"machine_heated_bed\")) && getEnumValue(\"machine_gcode_flavor\") != 'UltiGCode'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false"
 	},
 	"material_bed_temperature_layer_0":
 	{
@@ -246,9 +246,9 @@
 		"maximum_value": "200",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"machine_heated_bed\")) && getEnumValue(\"machine_gcode_flavor\") != 'UltiGCode'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false"
 	},
 	"material_flow_dependent_temperature":
 	{
@@ -257,8 +257,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "3",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"material_flow_temp_graph":
 	{
@@ -269,8 +269,8 @@
 		"default_value": "[[3.5,200],[7.0,240]]",
 		"parameter_level": "4",
 		"enabled": "eval(contex.value(\"material_flow_dependent_temperature\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},		
 	"material_adhesion_tendency":
 	{
@@ -280,9 +280,9 @@
 		"default_value": "10",
 		"minimum_value": "0",
 		"maximum_value": "10",
-		"enabled": false,
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_surface_energy":
 	{
@@ -293,9 +293,9 @@
 		"default_value": "100",
 		"minimum_value": "0",
 		"maximum_value": "100",
-		"enabled": false,
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_shrinkage_percentage":
 	{
@@ -305,12 +305,12 @@
 		"type": "float",
 		"parameter_level": "1",
 		"default_value": "100.0",
-		"enabled": true,
+		"enabled": "true",
 		"minimum_value": "0.001",
 		"minimum_value_warning": "100",
 		"maximum_value_warning": "120",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
 		"resolve": "sum(extruderValues(\"material_shrinkage_percentage\")) / len(extruderValues(\"material_shrinkage_percentage\"))"
 	},
 	"material_shrinkage_percentage_xy":
@@ -320,12 +320,12 @@
 		"unit": "%",
 		"type": "float",
 		"default_value": "100.0",
-		"enabled": true,
+		"enabled": "true",
 		"minimum_value": "0.001",
 		"minimum_value_warning": "100",
 		"maximum_value_warning": "120",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
 		"resolve": "sum(extruderValues(\"material_shrinkage_percentage_xy\")) / len(extruderValues(\"material_shrinkage_percentage_xy\"))",
 		"value": "eval(contex.value(\"material_shrinkage_percentage\"))"
 	},
@@ -336,12 +336,12 @@
 		"unit": "%",
 		"type": "float",
 		"default_value": "100.0",
-		"enabled": true,
+		"enabled": "true",
 		"minimum_value": "0.001",
 		"minimum_value_warning": "100",
 		"maximum_value_warning": "120",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
 		"resolve": "sum(extruderValues(\"material_shrinkage_percentage_z\")) / len(extruderValues(\"material_shrinkage_percentage_z\"))",
 		"value": "eval(contex.value(\"material_shrinkage_percentage\"))"
 	},
@@ -351,9 +351,9 @@
 		"description": "Is this material the type that breaks off cleanly when heated (crystalline), or is it the type that produces long intertwined polymer chains (non-crystalline)?",
 		"type": "bool",
 		"default_value": "false",
-		"enabled": false,
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_anti_ooze_retracted_position":
 	{
@@ -362,11 +362,11 @@
 		"type": "float",
 		"unit": "mm",
 		"default_value": "-4",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value_warning": "-1 * eval(contex.value(\"switch_extruder_retraction_amount\"))",
 		"maximum_value_warning": "0",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_anti_ooze_retraction_speed":
 	{
@@ -375,11 +375,11 @@
 		"type": "float",
 		"unit": "mm/s",
 		"default_value": "5",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value": "0",
 		"maximum_value": "eval(contex.value(\"machine_max_feedrate_e\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_break_preparation_retracted_position":
 	{
@@ -388,11 +388,11 @@
 		"type": "float",
 		"unit": "mm",
 		"default_value": "-16",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value_warning": "eval(contex.value(\"retraction_amount\")) * -4",
 		"maximum_value_warning": "0",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_break_preparation_speed":
 	{
@@ -401,11 +401,11 @@
 		"type": "float",
 		"unit": "mm/s",
 		"default_value": "2",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value": "0",
 		"maximum_value": "eval(contex.value(\"machine_max_feedrate_e\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_break_preparation_temperature":
 	{
@@ -415,12 +415,12 @@
 		"unit": "°C",
 		"default_value": "50",
 		"value": "eval(contex.value(\"material_print_temperature\"))",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value": "-273.15",
 		"maximum_value_warning": "300",
 		"maximum_value": "365",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_break_retracted_position":
 	{
@@ -429,11 +429,11 @@
 		"type": "float",
 		"unit": "mm",
 		"default_value": "-50",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value_warning": "-100",
 		"maximum_value_warning": "0",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_break_speed":
 	{
@@ -442,11 +442,11 @@
 		"type": "float",
 		"unit": "mm/s",
 		"default_value": "25",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value": "0",
 		"maximum_value": "eval(contex.value(\"machine_max_feedrate_e\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_break_temperature":
 	{
@@ -455,12 +455,12 @@
 		"type": "float",
 		"unit": "°C",
 		"default_value": "50",
-		"enabled": false,
+		"enabled": "false",
 		"minimum_value": "-273.15",
 		"maximum_value": "365",
 		"maximum_value_warning": "300",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_flush_purge_speed":
 	{
@@ -468,7 +468,7 @@
 		"description": "Material Station internal value",
 		"type": "float",
 		"default_value": "0.5",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_flush_purge_length":
 	{
@@ -476,7 +476,7 @@
 		"description": "Material Station internal value",
 		"type": "float",
 		"default_value": "60",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_end_of_filament_purge_speed":
 	{
@@ -484,7 +484,7 @@
 		"description": "Material Station internal value",
 		"type": "float",
 		"default_value": "0.5",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_end_of_filament_purge_length":
 	{
@@ -492,7 +492,7 @@
 		"description": "Material Station internal value",
 		"type": "float",
 		"default_value": "20",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_maximum_park_duration":
 	{
@@ -500,7 +500,7 @@
 		"description": "Material Station internal value",
 		"type": "float",
 		"default_value": "300",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_no_load_move_factor":
 	{
@@ -508,7 +508,7 @@
 		"description": "Material Station internal value",
 		"type": "float",
 		"default_value": "0.940860215",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_flow_ratio":
 	{
@@ -521,7 +521,7 @@
 		"minimum_value_warning": "50",
 		"maximum_value_warning": "150",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"material_flow":
 	{
@@ -535,7 +535,7 @@
 		"maximum_value_warning": "300",
 		"parameter_level": "-2",
 		"enabled": "getEnumValue(\"machine_gcode_flavor\") != 'UltiGCode'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_material_flow":
 	{
@@ -550,7 +550,7 @@
 		"maximum_value_warning": "300",
 		"parameter_level": "-1",
 		"limit_to_extruder": "wall_0_extruder_nr if wall_x_extruder_nr == wall_0_extruder_nr else -1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_0_material_flow":
 	{
@@ -565,7 +565,7 @@
 		"maximum_value_warning": "300",
 		"parameter_level": "2",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_x_material_flow":
 	{
@@ -580,7 +580,7 @@
 		"maximum_value_warning": "200",
 		"parameter_level": "2",
 		"limit_to_extruder": "wall_x_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_material_flow":
 	{
@@ -596,7 +596,7 @@
 		"enabled": "eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0",
 		"limit_to_extruder": "top_bottom_extruder_nr",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"roofing_material_flow":
 	{
@@ -610,7 +610,7 @@
 		"minimum_value_warning": "10",
 		"maximum_value_warning": "200",
 		"limit_to_extruder": "roofing_extruder_nr",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"roofing_layer_count\")) > 0 && eval(contex.value(\"top_layers\")) > 0"
 	},
 	"infill_material_flow":
@@ -627,7 +627,7 @@
 		"maximum_value_warning": "300",
 		"enabled": "eval(contex.value(\"infill_sparse_density\")) > 0",
 		"limit_to_extruder": "infill_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skirt_brim_material_flow":
 	{
@@ -641,8 +641,8 @@
 		"minimum_value_warning": "10",
 		"maximum_value_warning": "200",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'skirt' || getEnumValue(\"adhesion_type\") == 'brim'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_material_flow":
 	{
@@ -657,8 +657,8 @@
 		"enabled": "eval(contex.value(\"support_enable\"))",
 		"parameter_level": "1",
 		"limit_to_extruder": "support_infill_extruder_nr",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_interface_material_flow":
 	{
@@ -673,8 +673,8 @@
 		"maximum_value_warning": "200",
 		"enabled": "eval(contex.value(\"support_enable\")) && eval(contex.value(\"support_interface_enable\"))",
 		"limit_to_extruder": "support_interface_extruder_nr",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_roof_material_flow":
 	{
@@ -690,8 +690,8 @@
 		"enabled": "eval(contex.value(\"support_enable\")) && eval(contex.value(\"support_roof_enable\"))",
 		"limit_to_extruder": "support_roof_extruder_nr",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_bottom_material_flow":
 	{
@@ -707,8 +707,8 @@
 		"enabled": "eval(contex.value(\"support_enable\")) && eval(contex.value(\"support_bottom_enable\"))",
 		"limit_to_extruder": "support_bottom_extruder_nr",
 		"parameter_level": "4",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"prime_tower_flow":
 	{
@@ -721,8 +721,8 @@
 		"minimum_value": "5",
 		"minimum_value_warning": "10",
 		"maximum_value_warning": "200",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_flow_layer_0":
 	{
@@ -734,7 +734,7 @@
 		"minimum_value": "0.0001",
 		"minimum_value_warning": "10",
 		"maximum_value_warning": "200",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_x_material_flow_layer_0":
 	{
@@ -748,7 +748,7 @@
 		"minimum_value_warning": "50",
 		"maximum_value_warning": "150",
 		"limit_to_extruder": "wall_x_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_0_material_flow_layer_0":
 	{
@@ -762,7 +762,7 @@
 		"minimum_value_warning": "50",
 		"maximum_value_warning": "150",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_material_flow_layer_0":
 	{
@@ -777,7 +777,7 @@
 		"maximum_value_warning": "150",
 		"enabled": "bottom_layers > 0",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"material_standby_temperature":
 	{
@@ -792,8 +792,8 @@
 		"maximum_value": "365",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) > 1 && eval(contex.value(\"machine_nozzle_temp_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"material_name":
 	{
@@ -801,7 +801,7 @@
 		"description": "",
 		"type": "str",
 		"default_value": "PLA",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_brand":
 	{
@@ -809,7 +809,7 @@
 		"description": "",
 		"type": "str",
 		"default_value": "Generic",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_color":
 	{
@@ -817,7 +817,7 @@
 		"description": "",
 		"type": "str",
 		"default_value": "",
-		"enabled": false
+		"enabled": "false"
 	},
 	"filament_material_type":
 	{
@@ -825,7 +825,7 @@
 		"description": "",
 		"type": "str",
 		"default_value": "PLA",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_density":
 	{
@@ -835,7 +835,7 @@
 		"type": "float",
 		"default_value": "1.24",
 		"parameter_level": "1",
-		"enabled": true
+		"enabled": "true"
 	},
 	"material_max_volumetric_speed":
 	{
@@ -845,7 +845,7 @@
 		"type": "float",
 		"default_value": "10",
 		"parameter_level": "1",
-		"enabled": true
+		"enabled": "true"
 	},
 	"filament_cost":
 	{
@@ -855,7 +855,7 @@
 		"type": "float",
 		"default_value": "20",
 		"parameter_level": "1",
-		"enabled": true
+		"enabled": "true"
 	},
 	"filament_weight":
 	{
@@ -864,7 +864,7 @@
 		"unit": "g",
 		"type": "float",
 		"default_value": "1000",
-		"enabled": true
+		"enabled": "true"
 	},
 	"filament_length":
 	{
@@ -873,7 +873,7 @@
 		"unit": "m",
 		"type": "float",
 		"default_value": "0",
-		"enabled": false
+		"enabled": "false"
 	},
 	"cost_per_meter":
 	{
@@ -883,7 +883,7 @@
 		"type": "float",
 		"default_value": "0.00",
 		"parameter_level": "1",
-		"enabled": false
+		"enabled": "false"
 	},
 	"material_description":
 	{
@@ -892,7 +892,7 @@
 		"type": "str",
 		"default_value": "",
 		"parameter_level": "1",
-		"enabled": true
+		"enabled": "true"
 	},
 	"material_pressure_advance":
 	{
@@ -901,9 +901,9 @@
 		"default_value": "false",
 		"type": "bool",
 		"parameter_level": "1",
-		"settable_per_mesh": true,
-		"settable_per_extruder": true,
-		"settable_per_meshgroup": true
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "true",
+		"settable_per_meshgroup": "true"
 	},
 	"material_advance_length":
 	{
@@ -916,8 +916,8 @@
 		"parameter_level": "1",
 		"default_value": "0.04",
 		"enabled": "eval(contex.value(\"material_pressure_advance\"))",
-		"settable_per_mesh": true,
-		"settable_per_extruder": true,
-		"settable_per_meshgroup": true
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "true",
+		"settable_per_meshgroup": "true"
 	}
 }

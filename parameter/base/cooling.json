@@ -6,8 +6,8 @@
 		"type": "bool",
 		"default_value": "true",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_fan_speed":
 	{
@@ -21,8 +21,8 @@
 		"default_value": "100",
 		"value": "eval(contex.value(\"cool_fan_enabled\")) ? 100.0 : 0.0",
 		"enabled": "eval(contex.value(\"cool_fan_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_fan_speed_min":
 	{
@@ -36,8 +36,8 @@
 		"value": "eval(contex.value(\"cool_fan_speed\"))",
 		"default_value": "100",
 		"enabled": "eval(contex.value(\"cool_fan_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_fan_speed_max":
 	{
@@ -51,8 +51,8 @@
 		"parameter_level": "1",
 		"enabled": "eval(contex.value(\"cool_fan_enabled\"))",
 		"value": "eval(contex.value(\"cool_fan_speed\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_min_layer_time_fan_speed_max":
 	{
@@ -63,8 +63,8 @@
 		"default_value": "10",
 		"maximum_value_warning": "600",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_overhang_bridge_force_cooling":
 	{
@@ -73,8 +73,8 @@
 		"type": "bool",
 		"default_value": "true",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_overhang_threshold":
 	{
@@ -87,8 +87,8 @@
 		"default_value": "50",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"cool_overhang_bridge_force_cooling\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_overhang_fan_speed":
 	{
@@ -101,8 +101,8 @@
 		"default_value": "100",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"cool_overhang_bridge_force_cooling\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_small_feature_fan_speed_factor":
 	{
@@ -115,7 +115,7 @@
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "100",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_fan_speed":
 	{
@@ -127,7 +127,7 @@
 		"default_value": "100",
 		"type": "float",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_fan_speed_2":
 	{
@@ -139,7 +139,7 @@
 		"default_value": "0",
 		"type": "float",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_fan_speed_3":
 	{
@@ -151,7 +151,7 @@
 		"default_value": "0",
 		"type": "float",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"support_supported_skin_fan_speed":
 	{
@@ -163,7 +163,7 @@
 		"default_value": "100",
 		"type": "float",
 		"parameter_level": "1",
-		"settable_per_mesh": false
+		"settable_per_mesh": "false"
 	},
 	"cool_fan_speed_0":
 	{
@@ -176,8 +176,8 @@
 		"default_value": "0",
 		"parameter_level": "1",
 		"enabled": "eval(contex.value(\"cool_fan_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_fan_full_at_height":
 	{
@@ -190,8 +190,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "10.0",
 		"parameter_level": "-2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_fan_full_layer":
 	{
@@ -203,8 +203,8 @@
 		"maximum_value_warning": "10 / eval(contex.value(\"layer_height\"))",
 		"parameter_level": "1",
 		"value": "Math.max(1, Number(Math.floor((eval(contex.value(\"cool_fan_full_at_height\")) - eval(contex.value(\"layer_height_0\"))) / eval(contex.value(\"layer_height\"))) + 2))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_min_layer_time":
 	{
@@ -216,8 +216,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "600",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_infill_speed_slowdown_first":
 	{
@@ -226,8 +226,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"enabled": "eval(contex.value(\"cool_min_layer_time\")) > 0",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_min_speed":
 	{
@@ -239,8 +239,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "100",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_lift_head":
 	{
@@ -248,8 +248,8 @@
 		"description": "When the minimum speed is hit because of minimum layer time, lift the head away from the print and wait the extra time until the minimum layer time is reached.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_cds_fan_enable":
 	{
@@ -258,8 +258,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
 		"enabled": "eval(contex.value(\"cool_fan_enabled\"))"
 	},
 	"cool_cds_fan_speed":
@@ -273,8 +273,8 @@
 		"parameter_level": "2",
 		"default_value": "80",
 		"enabled": "eval(contex.value(\"cool_cds_fan_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_special_cds_fan_speed":
 	{
@@ -287,8 +287,8 @@
 		"parameter_level": "2",
 		"default_value": "100",
 		"enabled": "eval(contex.value(\"cool_cds_fan_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_cds_fan_start_at_height":
 	{
@@ -301,8 +301,8 @@
 		"parameter_level": "2",
 		"default_value": "0.5",
 		"enabled": "eval(contex.value(\"cool_cds_fan_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"cool_chamber_fan_enable":
 	{
@@ -312,7 +312,7 @@
 		"default_value": "false",
 		"enabled": "eval(contex.value(\"cool_fan_enabled\")) && eval(contex.value(\"machine_chamber_fan_exist\"))",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	}
 }

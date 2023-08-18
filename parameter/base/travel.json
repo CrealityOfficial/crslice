@@ -11,7 +11,7 @@
 		"default_value": "0.4",
 		"type": "float",
 		"value": "eval(contex.value(\"machine_nozzle_size\"))",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_line_width":
 	{
@@ -26,7 +26,7 @@
 		"default_value": "0.4",
 		"type": "float",
 		"limit_to_extruder": "wall_0_extruder_nr if wall_x_extruder_nr == wall_0_extruder_nr else -1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_line_width_0":
 	{
@@ -41,7 +41,7 @@
 		"value": "eval(contex.value(\"wall_line_width\"))",
 		"type": "float",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_line_width_x":
 	{
@@ -56,7 +56,7 @@
 		"value": "eval(contex.value(\"wall_line_width\"))",
 		"type": "float",
 		"limit_to_extruder": "wall_x_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_line_width":
 	{
@@ -72,7 +72,7 @@
 		"value": "eval(contex.value(\"line_width\"))",
 		"enabled": "(eval(contex.value(\"top_layers\")) > 0) || (eval(contex.value(\"bottom_layers\")) > 0)",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"roofing_line_width":
 	{
@@ -87,7 +87,7 @@
 		"type": "float",
 		"value": "eval(contex.value(\"skin_line_width\"))",
 		"limit_to_extruder": "roofing_extruder_nr",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"roofing_layer_count\")) > 0 && eval(contex.value(\"top_layers\")) > 0"
 	},
 	"infill_line_width":
@@ -104,7 +104,7 @@
 		"value": "eval(contex.value(\"line_width\"))",
 		"enabled": "eval(contex.value(\"infill_sparse_density\")) > 0",
 		"limit_to_extruder": "infill_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skirt_brim_line_width":
 	{
@@ -118,8 +118,8 @@
 		"type": "float",
 		"value": "eval(contex.value(\"line_width\"))",
 		"enabled": "getEnumValue(\"adhesion_type\") == 'skirt' || getEnumValue(\"adhesion_type\") == 'brim' || eval(contex.value(\"prime_tower_brim_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_line_width":
 	{
@@ -134,8 +134,8 @@
 		"enabled": "(eval(contex.value(\"support_enable\")) || eval(contex.value(\"support_tree_enable\")))",
 		"value": "eval(contex.value(\"line_width\"))",
 		"limit_to_extruder": "support_infill_extruder_nr",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_interface_line_width":
 	{
@@ -150,8 +150,8 @@
 		"enabled": "(eval(contex.value(\"support_enable\")) || eval(contex.value(\"support_tree_enable\"))) && eval(contex.value(\"support_interface_enable\"))",
 		"limit_to_extruder": "support_interface_extruder_nr",
 		"value": "eval(contex.value(\"line_width\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_roof_line_width":
 	{
@@ -166,8 +166,8 @@
 		"enabled": "(eval(contex.value(\"support_enable\")) || eval(contex.value(\"support_tree_enable\"))) && eval(contex.value(\"support_roof_enable\"))",
 		"limit_to_extruder": "support_roof_extruder_nr",
 		"value": "eval(contex.value(\"support_interface_line_width\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"support_bottom_line_width":
 	{
@@ -182,8 +182,8 @@
 		"enabled": "(eval(contex.value(\"support_enable\")) || eval(contex.value(\"support_tree_enable\"))) && eval(contex.value(\"support_bottom_enable\"))",
 		"limit_to_extruder": "support_bottom_extruder_nr",
 		"value": "eval(contex.value(\"support_interface_line_width\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"prime_tower_line_width":
 	{
@@ -197,8 +197,8 @@
 		"minimum_value": "0.001",
 		"minimum_value_warning": "0.4 * eval(contex.value(\"machine_nozzle_size\"))",
 		"maximum_value_warning": "2 * eval(contex.value(\"machine_nozzle_size\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"initial_layer_line_width_factor":
 	{
@@ -209,8 +209,8 @@
 		"default_value": "100.0",
 		"minimum_value": "0.001",
 		"maximum_value_warning": "150",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_enable":
 	{
@@ -219,8 +219,8 @@
 		"type": "bool",
 		"default_value": "true",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_wipe":
 	{
@@ -229,8 +229,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"wipe_length":
 	{
@@ -245,8 +245,8 @@
 		"maximum_value_warning": "5",
 		"enabled": "eval(contex.value(\"retraction_wipe\"))",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"before_wipe_retraction_amount_percent":
 	{
@@ -261,8 +261,8 @@
 		"maximum_value_warning": "100",
 		"enabled": "eval(contex.value(\"retraction_wipe\"))",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retract_at_layer_change":
 	{
@@ -271,9 +271,9 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "2",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"retraction_enable\"))",
-		"settable_per_extruder": true
+		"settable_per_extruder": "true"
 	},
 	"retraction_amount":
 	{
@@ -286,8 +286,8 @@
 		"maximum_value_warning": "50.0",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && getEnumValue(\"machine_gcode_flavor\") != 'UltiGCode'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_speed":
 	{
@@ -302,8 +302,8 @@
 		"maximum_value_warning": "100",
 		"parameter_level": "-2",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && getEnumValue(\"machine_gcode_flavor\") != 'UltiGCode'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_retract_speed":
 	{
@@ -319,8 +319,8 @@
 		"enabled": "eval(contex.value(\"retraction_enable\")) && getEnumValue(\"machine_gcode_flavor\") != 'UltiGCode'",
 		"value": "eval(contex.value(\"retraction_speed\"))",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_prime_speed":
 	{
@@ -336,8 +336,8 @@
 		"enabled": "eval(contex.value(\"retraction_enable\")) && getEnumValue(\"machine_gcode_flavor\") != 'UltiGCode'",
 		"value": "eval(contex.value(\"retraction_speed\"))",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_extra_prime_amount":
 	{
@@ -350,8 +350,8 @@
 		"maximum_value_warning": "5.0",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"retraction_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_min_travel":
 	{
@@ -365,8 +365,8 @@
 		"minimum_value_warning": "eval(contex.value(\"line_width\")) * 1.5",
 		"maximum_value_warning": "10",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_count_max":
 	{
@@ -377,9 +377,9 @@
 		"maximum_value_warning": "100",
 		"type": "int",
 		"enabled": "eval(contex.value(\"retraction_enable\"))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"parameter_level": "2",
-		"settable_per_extruder": true
+		"settable_per_extruder": "true"
 	},
 	"retraction_extrusion_window":
 	{
@@ -392,9 +392,9 @@
 		"maximum_value_warning": "eval(contex.value(\"retraction_amount\")) * 2",
 		"value": "eval(contex.value(\"retraction_amount\"))",
 		"enabled": "eval(contex.value(\"retraction_enable\"))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"parameter_level": "2",
-		"settable_per_extruder": true
+		"settable_per_extruder": "true"
 	},
 	"limit_support_retractions":
 	{
@@ -403,9 +403,9 @@
 		"type": "bool",
 		"default_value": "true",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && (eval(contex.value(\"support_enable\")) || eval(contex.value(\"support_tree_enable\")))",
-		"settable_per_mesh": false,
+		"settable_per_mesh": "false",
 		"parameter_level": "1",
-		"settable_per_extruder": true
+		"settable_per_extruder": "true"
 	},
 	"retraction_combing":
 	{
@@ -424,8 +424,8 @@
 		"value":"eval(contex.value(\"retraction_hop_enabled\")) == true ?  'off' : 'no_outer_surfaces'",
 		"resolve": "'noskin' if 'noskin' in extruderValues('retraction_combing') else ('infill' if 'infill' in extruderValues('retraction_combing') else ('all' if 'all' in extruderValues('retraction_combing') else 'off'))",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"retraction_combing_max_distance":
 	{
@@ -436,8 +436,8 @@
 		"default_value": "15",
 		"minimum_value": "0",
 		"enabled": "getEnumValue(\"retraction_combing\") != 'off'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_during_traveling":
 	{
@@ -446,8 +446,8 @@
 		"type": "bool",
 		"default_value": "false",
 		"enabled": "eval(contex.value(\"retraction_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"travel_retract_before_outer_wall":
 	{
@@ -456,8 +456,8 @@
 		"type": "bool",
 		"default_value": "true",
 		"enabled": "eval(contex.value(\"retraction_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"travel_avoid_other_parts":
 	{
@@ -467,8 +467,8 @@
 		"default_value": "true",
 		"parameter_level": "2",
 		"enabled": "getEnumValue(\"retraction_combing\") != 'off'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"travel_avoid_supports":
 	{
@@ -478,8 +478,8 @@
 		"default_value": "true",
 		"parameter_level": "2",
 		"enabled": "getEnumValue(\"retraction_combing\") != 'off' && eval(contex.value(\"travel_avoid_other_parts\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"travel_avoid_distance":
 	{
@@ -494,8 +494,8 @@
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_tip_outer_diameter\")) * 5",
 		"parameter_level": "2",
 		"enabled": "getEnumValue(\"retraction_combing\") != 'off' && eval(contex.value(\"travel_avoid_other_parts\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"layer_start_x":
 	{
@@ -505,9 +505,9 @@
 		"type": "float",
 		"default_value": "0.0",
 		"minimum_value": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_width\")) /-2 : 0",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
-		"settable_per_meshgroup": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
+		"settable_per_meshgroup": "true"
 	},
 	"layer_start_y":
 	{
@@ -517,9 +517,9 @@
 		"type": "float",
 		"default_value": "0.0",
 		"minimum_value": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_depth\")) /-2 : 0",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
-		"settable_per_meshgroup": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
+		"settable_per_meshgroup": "true"
 	},
 	"retraction_hop_enabled": {
 		"label": "Z Hop When Retracted",
@@ -528,8 +528,8 @@
 		"default_value": "false",
 		"parameter_level": "1",
 		"enabled": "eval(contex.value(\"retraction_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_hop_only_when_collides": {
 		"label": "Z Hop Only Over Printed Parts",
@@ -538,8 +538,8 @@
 		"default_value": "false",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && eval(contex.value(\"retraction_hop_enabled\")) && eval(contex.value(\"travel_avoid_other_parts\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_hop": {
 		"label": "Z Hop Height",
@@ -551,8 +551,8 @@
 		"maximum_value_warning": "10",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && eval(contex.value(\"retraction_hop_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_hop_type":
 	{
@@ -568,8 +568,8 @@
 		"default_value": "DirectLift",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && eval(contex.value(\"retraction_hop_enabled\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_hop_after_extruder_switch": {
 		"label": "Z Hop After Extruder Switch",
@@ -578,8 +578,8 @@
 		"default_value": "true",
 		"enabled": "eval(contex.value(\"retraction_hop_enabled\")) && eval(contex.value(\"extruders_enabled_count\")) > 1",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"retraction_hop_after_extruder_switch_height": 
 	{
@@ -592,7 +592,7 @@
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "10",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && eval(contex.value(\"retraction_hop_after_extruder_switch\")) && eval(contex.value(\"extruders_enabled_count\")) > 1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	}
 }

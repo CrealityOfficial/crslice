@@ -6,10 +6,10 @@
 		"type": "optional_extruder",
 		"parameter_level": "2",
 		"default_value": "-1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": true,
-		"settable_globally": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "true",
+		"settable_globally": "true",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) > 1"
 	},
 	"wall_0_extruder_nr":
@@ -20,10 +20,10 @@
 		"value": "eval(contex.value(\"wall_extruder_nr\"))",
 		"default_value": "-1",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": true,
-		"settable_globally": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "true",
+		"settable_globally": "true",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) > 1"
 	},
 	"wall_x_extruder_nr":
@@ -34,10 +34,10 @@
 		"value": "eval(contex.value(\"wall_extruder_nr\"))",
 		"default_value": "-1",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": true,
-		"settable_globally": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "true",
+		"settable_globally": "true",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) > 1"
 	},
 	"wall_thickness":
@@ -52,7 +52,7 @@
 		"type": "float",
 		"limit_to_extruder": "wall_x_extruder_nr",
 		"parameter_level": "-2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_line_count":
 	{
@@ -66,7 +66,7 @@
 		"type": "int",
 		"value": "eval(contex.value(\"magic_spiralize\")) == true ? 1 : (eval(contex.value(\"wall_thickness\")) != 0 ?  Math.max(1, Number(((eval(contex.value(\"wall_thickness\")) - eval(contex.value(\"wall_line_width_0\"))) / eval(contex.value(\"wall_line_width_x\"))).toFixed()) + 1) : 0)",
 		"limit_to_extruder": "wall_x_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_transition_length":
 	{
@@ -109,7 +109,7 @@
 		"type": "float",
 		"unit": "mm",
 		"value": "100",
-		"enabled": false,
+		"enabled": "false",
 		"default_value": "100",
 		"minimum_value": "wall_transition_length",
 		"minimum_value_warning": "math.cos(wall_transition_angle / 180 * math.pi) * wall_line_width_x",
@@ -134,7 +134,7 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_0_wipe_dist":
 	{
@@ -147,7 +147,7 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_size\")) * 5",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"roofing_extruder_nr":
 	{
@@ -156,10 +156,10 @@
 		"type": "optional_extruder",
 		"default_value": "-1",
 		"value": "eval(contex.value(\"top_bottom_extruder_nr\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": true,
-		"settable_globally": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "true",
+		"settable_globally": "true",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) > 1 && eval(contex.value(\"roofing_layer_count\")) > 0 && eval(contex.value(\"top_layers\")) > 0"
 	},
 	"top_bottom_extruder_nr":
@@ -169,10 +169,10 @@
 		"type": "optional_extruder",
 		"default_value": "-1",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": true,
-		"settable_globally": true,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "true",
+		"settable_globally": "true",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) > 1"
 	},
 	"top_bottom_thickness":
@@ -187,7 +187,7 @@
 		"type": "float",
 		"limit_to_extruder": "top_bottom_extruder_nr",
 		"parameter_level": "-2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"top_thickness":
 	{
@@ -202,7 +202,7 @@
 		"value": "eval(contex.value(\"top_bottom_thickness\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
 		"parameter_level": "-2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"top_layers":
 	{
@@ -216,7 +216,7 @@
 		"minimum_value_warning": "0",
 		"value": "eval(contex.value(\"infill_sparse_density\")) == 100 ? 0 : Math.ceil((eval(contex.value(\"top_thickness\")).toFixed(2)) / (eval(contex.value(\"layer_height\")).toFixed(2)))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bottom_thickness":
 	{
@@ -231,7 +231,7 @@
 		"maximum_value": "eval(contex.value(\"machine_height\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
 		"parameter_level": "-2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bottom_layers":
 	{
@@ -244,7 +244,7 @@
 		"type": "int",
 		"value": "eval(contex.value(\"infill_sparse_density\")) == 100 ? 999999 : Math.ceil((eval(contex.value(\"bottom_thickness\")).toFixed(2)) / (eval(contex.value(\"layer_height\")).toFixed(2)))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"initial_bottom_layers":
 	{
@@ -256,7 +256,7 @@
 		"type": "int",
 		"value": "eval(contex.value(\"bottom_layers\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"roofing_layer_count":
 	{
@@ -269,7 +269,7 @@
 		"value": "0",
 		"parameter_level": "1",
 		"limit_to_extruder": "roofing_extruder_nr",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"top_layers\")) > 0"
 	},
 	"top_bottom_pattern":
@@ -286,7 +286,7 @@
 		"default_value": "zigzag",
 		"enabled": "eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"top_bottom_pattern_0":
 	{
@@ -303,7 +303,7 @@
 		"enabled": "eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0",
 		"value": "getEnumValue(\"top_bottom_pattern\")",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"roofing_pattern":
 	{
@@ -319,7 +319,7 @@
 		"default_value": "lines",
 		"value": "getEnumValue(\"top_bottom_pattern\")",
 		"limit_to_extruder": "roofing_extruder_nr",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"enabled": "eval(contex.value(\"roofing_layer_count\")) > 0 && eval(contex.value(\"top_layers\")) > 0"
 	},
 	"connect_skin_polygons":
@@ -330,7 +330,7 @@
 		"default_value": "true",
 		"enabled": "(eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0) && getEnumValue(\"top_bottom_pattern\") != 'concentric'",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_monotonic":
 	{
@@ -340,7 +340,7 @@
 		"default_value": "false",
 		"enabled": "(eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0) && (getEnumValue(\"top_bottom_pattern\") != 'concentric' || getEnumValue(\"top_bottom_pattern_0\") != 'concentric')",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"roofing_monotonic":
 	{
@@ -351,7 +351,7 @@
 		"default_value": "true",
 		"enabled": "eval(contex.value(\"roofing_layer_count\")) > 0 && eval(contex.value(\"top_layers\")) > 0 && eval(contex.value(\"roofing_pattern\")) != 'concentric'",
 		"limit_to_extruder": "roofing_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_angles":
 	{
@@ -361,7 +361,7 @@
 		"default_value": "[ ]",
 		"enabled": "(eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0) && getEnumValue(\"top_bottom_pattern\") != 'concentric'",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"roofing_angles":
 	{
@@ -371,7 +371,7 @@
 		"default_value": "[ ]",
 		"enabled": "getEnumValue(\"roofing_pattern\") != 'concentric' && eval(contex.value(\"roofing_layer_count\")) > 0 && eval(contex.value(\"top_layers\")) > 0",
 		"limit_to_extruder": "roofing_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_0_inset":
 	{
@@ -384,7 +384,7 @@
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_size\"))",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"optimize_wall_printing_order":
 	{
@@ -392,7 +392,7 @@
 		"description": "Optimize the order of wall printing to reduce the number of retracements and the distance travelled. Most parts will benefit from enabling this feature, but some may take longer, so compare the estimated printing time with not optimized. The first layer was not optimized when selecting the brim as build plate adhesion type.",
 		"type": "bool",
 		"default_value": "true",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"inset_direction":
 	{
@@ -405,7 +405,7 @@
 			"outside_in": "Outside To Inside"
 		},
 		"default_value": "inside_out",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"outer_inset_first":
 	{
@@ -414,7 +414,7 @@
 		"type": "bool",
 		"default_value": "false",
 		"enabled": "eval(contex.value(\"wall_0_extruder_nr\")) == eval(contex.value(\"wall_x_extruder_nr\"))",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"alternate_extra_perimeter":
 	{
@@ -423,7 +423,7 @@
 		"type": "bool",
 		"default_value": "false",
 		"limit_to_extruder": "infill_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"unify_walls_print_direction":
 	{
@@ -431,7 +431,7 @@
 		"description": "the walls of the outside shape and the holes will be printed in the same direction.",
 		"type": "bool",
 		"default_value": "true",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},	
 	"min_wall_line_width":
 	{
@@ -443,7 +443,7 @@
 		"default_value": "0.3",
 		"value": "eval(contex.value(\"machine_nozzle_size\")) * .85",
 		"type": "float",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"min_even_wall_line_width":
 	{
@@ -456,7 +456,7 @@
 		"value": "eval(contex.value(\"min_wall_line_width\"))",
 		"type": "float",
 		"parameter_level": "-2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"min_odd_wall_line_width":
 	{
@@ -469,7 +469,7 @@
 		"value": "eval(contex.value(\"min_wall_line_width\"))",
 		"type": "float",
 		"parameter_level": "-2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"travel_compensate_overlapping_walls_enabled":
 	{
@@ -478,7 +478,7 @@
 		"type": "bool",
 		"default_value": "true",
 		"limit_to_extruder": "wall_x_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"travel_compensate_overlapping_walls_0_enabled":
 	{
@@ -489,7 +489,7 @@
 		"value": "eval(contex.value(\"travel_compensate_overlapping_walls_enabled\"))",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"travel_compensate_overlapping_walls_x_enabled":
 	{
@@ -500,7 +500,7 @@
 		"value": "eval(contex.value(\"travel_compensate_overlapping_walls_enabled\"))",
 		"limit_to_extruder": "wall_x_extruder_nr",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_min_flow":
 	{
@@ -512,7 +512,7 @@
 		"default_value": "0",
 		"type": "float",
 		"enabled": "eval(contex.value(\"travel_compensate_overlapping_walls_0_enabled\")) || eval(contex.value(\"travel_compensate_overlapping_walls_x_enabled\"))",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"wall_min_flow_retract":
 	{
@@ -521,7 +521,7 @@
 		"type": "bool",
 		"default_value": "false",
 		"enabled": "(eval(contex.value(\"travel_compensate_overlapping_walls_0_enabled\")) || eval(contex.value(\"travel_compensate_overlapping_walls_x_enabled\"))) && eval(contex.value(\"wall_min_flow\")) > 0",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"fill_perimeter_gaps":
 	{
@@ -535,7 +535,7 @@
 		"default_value": "everywhere",
 		"parameter_level": "1",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"filter_out_tiny_gaps":
 	{
@@ -544,7 +544,7 @@
 		"type": "bool",
 		"default_value": "true",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"fill_outline_gaps": 
 	{
@@ -553,7 +553,7 @@
 		"type": "bool",
 		"default_value": "false",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"min_feature_size":
 	{
@@ -567,7 +567,7 @@
 		"type": "float",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"enabled": "fill_outline_gaps",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"min_bead_width":
 	{
@@ -582,7 +582,7 @@
 		"type": "float",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"enabled": "fill_outline_gaps",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"single_extrusion_walls": 
 	{
@@ -591,7 +591,7 @@
 		"type": "bool",
 		"default_value": "false",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"single_wall_model": 
 	{
@@ -601,7 +601,7 @@
 		"default_value": "false",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"enabled":"eval(contex.value(\"single_extrusion_walls\"))",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"max_part_outline_num": 
 	{
@@ -610,7 +610,7 @@
 		"type": "int",
 		"default_value": "1000",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"initial_layer_reserve": 
 	{
@@ -621,7 +621,7 @@
 		"minimum_value": "0",
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "5",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_offset":
 	{
@@ -634,7 +634,7 @@
 		"parameter_level": "1",
 		"default_value": "0",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"xy_offset":
 	{
@@ -647,7 +647,7 @@
 		"parameter_level": "1",
 		"default_value": "0",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"xy_offset_layer_0":
 	{
@@ -660,7 +660,7 @@
 		"default_value": "0",
 		"value": "eval(contex.value(\"xy_offset\"))",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"route_planning":
 	{
@@ -675,7 +675,7 @@
 		"default_value": "none",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_type":
 	{
@@ -692,7 +692,7 @@
 		"default_value": "sharpest_corner",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_position":
 	{
@@ -714,7 +714,7 @@
 		"default_value": "back",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_x":
 	{
@@ -727,7 +727,7 @@
 		"enabled": "getEnumValue(\"z_seam_type\") == 'user_specified'",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_y":
 	{
@@ -740,7 +740,7 @@
 		"enabled": "getEnumValue(\"z_seam_type\") == 'user_specified'",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_relative":
 	{
@@ -751,7 +751,7 @@
 		"enabled": "getEnumValue(\"z_seam_type\") == 'user_specified'",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_min_angle_diff": 
 	{
@@ -765,7 +765,7 @@
 		"enabled": "getEnumValue(\"z_seam_type\") == 'sharpest_corner'",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_max_angle": 
 	{
@@ -779,7 +779,7 @@
 		"enabled": "getEnumValue(\"z_seam_type\") == 'sharpest_corner'",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"z_seam_corner":
 	{
@@ -798,7 +798,7 @@
 		"enabled": "getEnumValue(\"z_seam_type\") != 'random'",
 		"limit_to_extruder": "wall_0_extruder_nr",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_no_small_gaps_heuristic":
 	{
@@ -808,7 +808,7 @@
 		"default_value": "false",
 		"enabled": "eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_outline_count":
 	{
@@ -820,7 +820,7 @@
 		"type": "int",
 		"enabled": "eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"ironing_enabled":
 	{
@@ -830,7 +830,7 @@
 		"default_value": "false",
 		"parameter_level": "1",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"ironing_only_highest_layer":
 	{
@@ -840,7 +840,7 @@
 		"default_value": "false",
 		"enabled": "eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"ironing_pattern":
 	{
@@ -855,7 +855,7 @@
 		"default_value": "zigzag",
 		"enabled": "eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"ironing_monotonic":
 	{
@@ -865,7 +865,7 @@
 		"default_value": "false",
 		"enabled": "eval(contex.value(\"ironing_enabled\")) && getEnumValue(\"ironing_pattern\") != 'concentric'",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"ironing_line_spacing":
 	{
@@ -878,7 +878,7 @@
 		"maximum_value_warning": "eval(contex.value(\"machine_nozzle_tip_outer_diameter\"))",
 		"enabled": "eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"ironing_flow":
 	{
@@ -891,7 +891,7 @@
 		"maximum_value_warning": "50",
 		"enabled": "eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"ironing_inset":
 	{
@@ -905,7 +905,7 @@
 		"maximum_value_warning": "eval(contex.value(\"wall_line_width_0\"))",
 		"enabled": "eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"speed_ironing":
 	{
@@ -920,7 +920,7 @@
 		"maximum_value_warning": "100",
 		"enabled": "eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"acceleration_ironing":
 	{
@@ -935,7 +935,7 @@
 		"value": "eval(contex.value(\"acceleration_topbottom\"))",
 		"enabled": "eval(contex.value(\"acceleration_enabled\")) || eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"jerk_ironing":
 	{
@@ -949,7 +949,7 @@
 		"value": "eval(contex.value(\"jerk_topbottom\"))",
 		"enabled": "eval(contex.value(\"jerk_enabled\")) && eval(contex.value(\"ironing_enabled\"))",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_overlap":
 	{
@@ -963,7 +963,7 @@
 		"value": "getEnumValue(\"top_bottom_pattern\") != 'concentric' ? 10 : 0",
 		"enabled": "(eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0) && getEnumValue(\"top_bottom_pattern\") != 'concentric'",
 		"limit_to_extruder": "top_bottom_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"skin_overlap_mm":
 	{
@@ -977,6 +977,6 @@
 		"value": "getEnumValue(\"top_bottom_pattern\") != 'concentric' ? 0.5 * (eval(contex.value(\"skin_line_width\")) + (eval(contex.value(\"wall_line_count\")) > 1 ? eval(contex.value(\"wall_line_width_x\")) : eval(contex.value(\"wall_line_width_0\")))) * eval(contex.value(\"skin_overlap\")) / 100 : 0",
 		"enabled": "(eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0) && getEnumValue(\"top_bottom_pattern\") != 'concentric'",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	}
 }

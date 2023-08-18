@@ -6,7 +6,7 @@
 		"type": "bool",
 		"default_value": "true",
 		"value": "getEnumValue(\"magic_mesh_surface_mode\") != 'surface'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"meshfix_union_all_remove_holes":
 	{
@@ -14,7 +14,7 @@
 		"description": "Remove the holes in each layer and keep only the outside shape. This will ignore any invisible internal geometry. However, it also ignores layer holes which can be viewed from above or below.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"meshfix_extensive_stitching":
 	{
@@ -22,7 +22,7 @@
 		"description": "Extensive stitching tries to stitch up open holes in the mesh by closing the hole with touching polygons. This option can introduce a lot of processing time.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"meshfix_keep_open_polygons":
 	{
@@ -30,7 +30,7 @@
 		"description": "Normally Creality Print tries to stitch up small holes in the mesh and remove parts of a layer with big holes. Enabling this option keeps those parts which cannot be stitched. This option should be used as a last resort option when everything else fails to produce proper g-code.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"multiple_mesh_overlap":
 	{
@@ -42,7 +42,7 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "1.0",
 		"limit_to_extruder": "wall_0_extruder_nr",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"carve_multiple_volumes":
 	{
@@ -52,9 +52,9 @@
 		"default_value": "true",
 		"value": "eval(contex.value(\"extruders_enabled_count\")) > 1",
 		"enabled": "getEnumValue(\"magic_mesh_surface_mode\") != 'surface'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "true"
 	},
 	"alternate_carve_order":
 	{
@@ -63,9 +63,9 @@
 		"type": "bool",
 		"default_value": "true",
 		"enabled": "eval(contex.value(\"carve_multiple_volumes\")) && getEnumValue(\"magic_mesh_surface_mode\") != 'surface'",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "true"
 	},
 	"remove_empty_first_layers":
 	{
@@ -74,8 +74,8 @@
 		"type": "bool",
 		"default_value": "true",
 		"enabled": "!(eval(contex.value(\"support_enable\")) || eval(contex.value(\"support_tree_enable\")))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"meshfix_maximum_resolution":
 	{
@@ -87,7 +87,7 @@
 		"minimum_value": "0.001",
 		"minimum_value_warning": "0.01",
 		"maximum_value_warning": "3",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"meshfix_maximum_travel_resolution":
 	{
@@ -100,8 +100,8 @@
 		"minimum_value": "0.001",
 		"minimum_value_warning": "0.05",
 		"maximum_value_warning": "10",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"meshfix_maximum_deviation":
 	{
@@ -113,7 +113,7 @@
 		"minimum_value": "0.001",
 		"minimum_value_warning": "0.01",
 		"maximum_value_warning": "0.5",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"meshfix_maximum_extrusion_area_deviation":
 	{
@@ -125,6 +125,6 @@
 		"minimum_value": "0",
 		"minimum_value_warning": "500",
 		"maximum_value_warning": "100000",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	}
 }

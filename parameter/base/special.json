@@ -5,8 +5,8 @@
 		"description": "The particle machine is suitable for this function: if this function is enabled, the empty path length is within the specified range, and the empty path can be converted into a print path, which is executed with a small flow rate",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"special_material_flow_travel": 
 	{
@@ -19,7 +19,7 @@
 		"minimum_value": "0.0001",
 		"minimum_value_warning": "10",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_travelFlow_length": 
 	{
@@ -28,8 +28,8 @@
 		"type": "float",
 		"default_value": "0",
 		"enabled": "eval(contex.value(\"special_travelFlow_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"special_advance_enable": 
 	{
@@ -37,8 +37,8 @@
 		"description": "If it is pellet machine, then have advance function",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"special_advance_flow": 
 	{
@@ -51,7 +51,7 @@
 		"minimum_value": "0.0001",
 		"minimum_value_warning": "10",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_advance_length": 
 	{
@@ -60,8 +60,8 @@
 		"type": "float",
 		"default_value": "0",
 		"enabled": "eval(contex.value(\"special_advance_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"special_model_centric": 
 	{
@@ -69,9 +69,9 @@
 		"description": "Take the center of the model as the origin of the coordinate axis",
 		"type": "bool",
 		"default_value": "false",
-		"enabled": false,
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"special_mold_evacuation": 
 	{
@@ -79,8 +79,8 @@
 		"description": "mold Evacuation",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},		
 	"set_small_feature_grading": 
 	{
@@ -88,7 +88,7 @@
 		"description": "Whether To Set Graded Treatment Of Small Feature.",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"small_feature_grading": 
 	{
@@ -103,7 +103,7 @@
 			"C_Third": "Grade_3",
 			"D_Fourth": "Grade_4"
 		},
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},	
 	"special_small_feature_max_length_1":
 	{
@@ -115,7 +115,7 @@
 		"default_value": "3",
 		"value": "eval(contex.value(\"small_hole_max_size\")) * Math.PI",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'A_First'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},	
 	"special_small_feature_speed_factor_1": 
 	{
@@ -128,7 +128,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "100",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'A_First'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_small_feature_speed_factor_0_1": 
 	{
@@ -142,7 +142,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "100",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'A_First'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_cool_min_layer_time_1":
 	{
@@ -154,7 +154,7 @@
 		"minimum_value": "0",
 		"maximum_value": "600",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'A_First'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},	
 	"special_small_feature_max_length_2":
 	{
@@ -167,7 +167,7 @@
 		"value": "eval(contex.value(\"small_hole_max_size\")) * Math.PI",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_max_length_1\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'B_Second'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},			
 	"special_small_feature_speed_factor_2": 
 	{
@@ -180,7 +180,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_speed_factor_1\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'B_Second'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_small_feature_speed_factor_0_2": 
 	{
@@ -194,7 +194,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_speed_factor_0_1\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'B_Second'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},	
 	"special_cool_min_layer_time_2":
 	{
@@ -206,7 +206,7 @@
 		"minimum_value": "0",
 		"maximum_value": "600",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'B_Second'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_small_feature_max_length_3":
 	{
@@ -219,7 +219,7 @@
 		"value": "eval(contex.value(\"small_hole_max_size\")) * Math.PI",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_max_length_2\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'C_Third'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_small_feature_speed_factor_3": 
 	{
@@ -232,7 +232,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_speed_factor_2\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'C_Third'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_small_feature_speed_factor_0_3": 
 	{
@@ -246,7 +246,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_speed_factor_0_2\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'C_Third'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_cool_min_layer_time_3":
 	{
@@ -258,7 +258,7 @@
 		"minimum_value": "0",
 		"maximum_value": "600",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'C_Third'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_small_feature_max_length_4":
 	{
@@ -271,7 +271,7 @@
 		"value": "eval(contex.value(\"small_hole_max_size\")) * Math.PI",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_max_length_3\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'D_Fourth'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},				
 	"special_small_feature_speed_factor_4": 
 	{
@@ -284,7 +284,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_speed_factor_3\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'D_Fourth'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_small_feature_speed_factor_0_4": 
 	{
@@ -298,7 +298,7 @@
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "eval(contex.value(\"special_small_feature_speed_factor_0_3\"))",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'D_Fourth'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_cool_min_layer_time_4":
 	{
@@ -310,7 +310,7 @@
 		"minimum_value": "0",
 		"maximum_value": "600",
 		"enabled": "eval(contex.value(\"set_small_feature_grading\")) && getEnumValue(\"small_feature_grading\") == 'D_Fourth'",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},					
 	"special_angle_per_step": 
 	{
@@ -322,7 +322,7 @@
 		"minimum_value": "-90",
 		"minimum_value_warning": "-90",
 		"maximum_value_warning": "90",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_mold_support_infill_line_distance": 
 	{
@@ -334,7 +334,7 @@
 		"minimum_value": "0",
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_mold_top_layers": 
 	{
@@ -345,7 +345,7 @@
 		"minimum_value": "15",
 		"minimum_value_warning": "15",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_mold_high_option": 
 	{
@@ -353,8 +353,8 @@
 		"description": "Mold High Option",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"special_mold_No_bottom": 
 	{
@@ -362,8 +362,8 @@
 		"description": "Mold No Bottom",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"special_mold_support_Xnumbers": 
 	{
@@ -374,7 +374,7 @@
 		"minimum_value": "5",
 		"minimum_value_warning": "3",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_mold_support_Ynumbers": 
 	{
@@ -385,7 +385,7 @@
 		"minimum_value": "5",
 		"minimum_value_warning": "3",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_dynamic_point_flow": 
 	{
@@ -393,8 +393,8 @@
 		"description": "Dynamic Point Flow Enable",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": true,
-		"settable_per_extruder": true
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "true"
 	},
 	"special_dynamic_point_flow_angle": 
 	{
@@ -406,7 +406,7 @@
 		"minimum_value": "20",
 		"minimum_value_warning": "20",
 		"maximum_value_warning": "90",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"special_dynamic_point_flow_factor": 
 	{
@@ -418,6 +418,6 @@
 		"minimum_value": "100",
 		"minimum_value_warning": "80",
 		"maximum_value_warning": "200",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	}
 }

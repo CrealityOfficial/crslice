@@ -10,8 +10,8 @@
 		"minimum_value_warning": "0.04",
 		"maximum_value_warning": "2.0 * eval(contex.value(\"machine_nozzle_size\"))",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"layer_height_0":
 	{
@@ -25,8 +25,8 @@
 		"minimum_value_warning": "0.1",
 		"maximum_value_warning": "2.0 * eval(contex.value(\"machine_nozzle_size\"))",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"arc_configure_enable": 
 	{
@@ -34,8 +34,8 @@
 		"description": "Arc Configure Enable",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false,
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false",
 		"parameter_level": "1"
 	},
 	"arc_tolerance": 
@@ -48,7 +48,7 @@
 		"minimum_value_warning": "-1",
 		"enabled": "eval(contex.value(\"arc_configure_enable\"))",
 		"parameter_level": "2",
-		"settable_per_mesh": false
+		"settable_per_mesh": "false"
 	},
 	"small_hole_max_size":
 	{
@@ -59,7 +59,7 @@
 		"minimum_value": "3",
 		"default_value": "6",
 		"parameter_level": "-2",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"small_feature_max_length":
 	{
@@ -71,7 +71,7 @@
 		"default_value": "6",
 		"value": "eval(contex.value(\"small_hole_max_size\")) * Math.PI",
 		"parameter_level": "1",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"small_feature_speed_factor":
 	{
@@ -84,7 +84,7 @@
 		"minimum_value": "1",
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"small_feature_speed_factor_0":
 	{
@@ -97,7 +97,7 @@
 		"minimum_value": "1",
 		"minimum_value_warning": "25",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_settings_enabled":
 	{
@@ -106,9 +106,9 @@
 		"type": "bool",
 		"default_value": "false",
 		"parameter_level": "1",
-		"settable_per_mesh": true,
-		"settable_per_extruder": false,
-		"settable_per_meshgroup": false
+		"settable_per_mesh": "true",
+		"settable_per_extruder": "false",
+		"settable_per_meshgroup": "false"
 	},
 	"bridge_wall_min_length":
 	{
@@ -119,9 +119,9 @@
 		"minimum_value": "0",
 		"default_value": "2",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
-		"settable_per_mesh": true,
+		"settable_per_mesh": "true",
 		"parameter_level": "4",
-		"settable_per_extruder": false
+		"settable_per_extruder": "false"
 	},
 	"bridge_skin_support_threshold":
 	{
@@ -134,7 +134,7 @@
 		"maximum_value": "100",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_sparse_infill_max_density":
 	{
@@ -147,7 +147,7 @@
 		"minimum_value": "0",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_wall_coast":
 	{
@@ -160,7 +160,7 @@
 		"maximum_value": "500",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_wall_speed":
 	{
@@ -175,7 +175,7 @@
 		"value": "Math.max(eval(contex.value(\"cool_min_speed\")), eval(contex.value(\"speed_wall_0\")) / 2)",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_wall_material_flow":
 	{
@@ -189,7 +189,7 @@
 		"maximum_value_warning": "150",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_speed":
 	{
@@ -204,7 +204,7 @@
 		"value": "Math.max(eval(contex.value(\"cool_min_speed\")), eval(contex.value(\"speed_topbottom\")) / 2)",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_material_flow":
 	{
@@ -215,7 +215,7 @@
 		"type": "float",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_density":
 	{
@@ -229,7 +229,7 @@
 		"minimum_value_warning": "20",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_enable_more_layers":
 	{
@@ -239,7 +239,7 @@
 		"default_value": "true",
 		"parameter_level": "2",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\"))",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_speed_2":
 	{
@@ -254,7 +254,7 @@
 		"value": "eval(contex.value(\"bridge_skin_speed\"))",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_material_flow_2":
 	{
@@ -269,7 +269,7 @@
 		"maximum_value_warning": "150",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_density_2":
 	{
@@ -283,7 +283,7 @@
 		"minimum_value_warning": "20",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_speed_3":
 	{
@@ -298,7 +298,7 @@
 		"value": "eval(contex.value(\"bridge_skin_speed\"))",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_material_flow_3":
 	{
@@ -313,7 +313,7 @@
 		"maximum_value_warning": "150",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	},
 	"bridge_skin_density_3":
 	{
@@ -327,6 +327,6 @@
 		"minimum_value_warning": "20",
 		"enabled": "eval(contex.value(\"bridge_settings_enabled\")) && eval(contex.value(\"bridge_enable_more_layers\"))",
 		"parameter_level": "4",
-		"settable_per_mesh": true
+		"settable_per_mesh": "true"
 	}
 }

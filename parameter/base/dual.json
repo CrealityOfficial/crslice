@@ -8,8 +8,8 @@
 		"default_value": "false",
 		"resolve": "(extruders_enabled_count > 1) and any(extruderValues('prime_tower_enable'))",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"prime_tower_type":
 	{
@@ -25,8 +25,8 @@
 		"default_value": "single",
 		"resolve": "(extruders_enabled_count > 1) and any(extruderValues('prime_tower_enable'))",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"prime_tower_size":
 	{
@@ -41,8 +41,8 @@
 		"maximum_value": "Math.min(0.5 * eval(contex.value(\"machine_width\")), 0.5 * eval(contex.value(\"machine_depth\")))",
 		"minimum_value_warning": "eval(contex.value(\"prime_tower_line_width\")) * 2",
 		"maximum_value_warning": "20",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"prime_tower_min_volume":
 	{
@@ -54,8 +54,8 @@
 		"minimum_value": "0",
 		"maximum_value_warning": "Math.pow((eval(contex.value(\"prime_tower_size\")) * 0.5), 2) * 3.14159 * eval(contex.value(\"layer_height\"))",
 		"enabled": "eval(contex.value(\"prime_tower_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"prime_tower_position_x":
 	{
@@ -68,8 +68,8 @@
 		"maximum_value": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_width\")) / 2 : eval(contex.value(\"machine_width\"))-eval(contex.value(\"prime_tower_size\"))/2",
 		"minimum_value": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"prime_tower_size\")) - eval(contex.value(\"machine_width\")) / 2 : eval(contex.value(\"prime_tower_size\"))/2",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"prime_tower_position_y":
 	{
@@ -82,8 +82,8 @@
 		"maximum_value": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_depth\")) / 2 - eval(contex.value(\"prime_tower_size\")) : eval(contex.value(\"machine_depth\")) - eval(contex.value(\"prime_tower_size\"))/2",
 		"minimum_value": "eval(contex.value(\"machine_center_is_zero\")) ? eval(contex.value(\"machine_depth\")) / -2 : eval(contex.value(\"prime_tower_size\"))/2",
 		"parameter_level": "1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"prime_tower_wipe_enabled":
 	{
@@ -92,8 +92,8 @@
 		"type": "bool",
 		"enabled": "eval(contex.value(\"prime_tower_enable\"))",
 		"default_value": "true",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"prime_tower_brim_enable":
 	{
@@ -104,8 +104,8 @@
 		"resolve": "resolveOrValue('prime_tower_enable') and (resolveOrValue('adhesion_type') in ('none', 'skirt'))",
 		"default_value": "false",
 		"parameter_level": "2",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"ooze_shield_enabled":
 	{
@@ -115,8 +115,8 @@
 		"resolve": "any(extruderValues('ooze_shield_enabled'))",
 		"enabled": "eval(contex.value(\"extruders_enabled_count\")) > 1",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"ooze_shield_angle":
 	{
@@ -129,8 +129,8 @@
 		"resolve": "min(extruderValues('ooze_shield_angle'))",
 		"minimum_value": "0",
 		"maximum_value": "90",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"ooze_shield_dist":
 	{
@@ -143,8 +143,8 @@
 		"resolve": "max(extruderValues('ooze_shield_dist'))",
 		"minimum_value": "0",
 		"maximum_value_warning": "20",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"switch_extruder_retraction_amount":
 	{
@@ -158,8 +158,8 @@
 		"value": "eval(contex.value(\"machine_heat_zone_length\"))",
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "100",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"switch_extruder_retraction_speeds":
 	{
@@ -173,8 +173,8 @@
 		"minimum_value_warning": "1",
 		"maximum_value": "eval(contex.value(\"retraction_enable\")) ? eval(contex.value(\"machine_max_feedrate_e\")) : 99999999",
 		"maximum_value_warning": "70",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"switch_extruder_retraction_speed":
 	{
@@ -190,8 +190,8 @@
 		"minimum_value_warning": "1",
 		"maximum_value": "eval(contex.value(\"retraction_enable\")) ? eval(contex.value(\"machine_max_feedrate_e\")) : 99999999",
 		"maximum_value_warning": "70",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"switch_extruder_prime_speed":
 	{
@@ -207,8 +207,8 @@
 		"minimum_value_warning": "1",
 		"maximum_value": "eval(contex.value(\"retraction_enable\")) ? eval(contex.value(\"machine_max_feedrate_e\")) : 99999999",
 		"maximum_value_warning": "70",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	},
 	"switch_extruder_extra_prime_amount":
 	{
@@ -221,7 +221,7 @@
 		"minimum_value_warning": "0",
 		"maximum_value_warning": "100",
 		"enabled": "eval(contex.value(\"retraction_enable\")) && eval(contex.value(\"extruders_enabled_count\")) > 1",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	}
 }
