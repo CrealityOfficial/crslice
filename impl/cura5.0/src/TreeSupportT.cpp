@@ -55,12 +55,11 @@ TreeSupportT::TreeSupportT(const cura52::SliceDataStorage& storage)
     {
         auto mesh = storage.meshes.at(mesh_idx);
         const bool non_supportable_mesh = mesh.settings.get<bool>("infill_mesh") || mesh.settings.get<bool>("anti_overhang_mesh") || mesh.settings.get<bool>("support_mesh");
-        //bool xxxx1 = mesh.settings.get<ESupportStructure>("support_structure") != ESupportStructure::TREE;
-        //bool xxxx2 = !mesh.settings.get<bool>("support_enable");yi
-        //if (mesh.settings.get<ESupportStructure>("support_structure") != ESupportStructure::TREE || ! mesh.settings.get<bool>("support_enable") || non_supportable_mesh)
-        //{
-        //    continue;
-        //}
+        //if (mesh.settings.get<cura52::ESupportStructure>("support_structure") != cura52::ESupportStructure::TREE || ! mesh.settings.get<bool>("support_enable") || non_supportable_mesh)
+        if (!mesh.settings.get<bool>("support_enable") || non_supportable_mesh)
+        {
+            continue;
+        }
 
 
        // mesh.settings.settings["support_tree_angle"] = std::to_string(60);
