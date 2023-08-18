@@ -595,6 +595,10 @@ void LayerPlanBuffer::insertTempCommands()
     // insert commands for all extruder plans on this layer
     Scene& scene = application->current_slice->scene;
     LayerPlan& layer_plan = *buffer.back();
+	if (layer_plan.layerTemp >0)
+	{
+		return;
+	}
     for (size_t extruder_plan_idx = 0; extruder_plan_idx < layer_plan.extruder_plans.size(); extruder_plan_idx++)
     {
         const size_t overall_extruder_plan_idx = extruder_plans.size() - layer_plan.extruder_plans.size() + extruder_plan_idx;
