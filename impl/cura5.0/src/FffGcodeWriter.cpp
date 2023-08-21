@@ -3134,6 +3134,11 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
                 {
                     std::vector<ExtrusionJunction> new_junctions;
                     std::vector<ExtrusionJunction>& junctions = line.junctions;
+
+					if (line.start_idx >=line.junctions.size())
+					{
+						line.start_idx = line.junctions.size() - 1;
+					}
                     Point pt_z_seam = (line.start_idx > -1 && line.start_idx < junctions.size()) ? junctions[line.start_idx].p : Point();
                     int junctions_idx = 0;
                     for (int i = 0; i < extendedPoints[extendedPoints_idx].size(); i++)

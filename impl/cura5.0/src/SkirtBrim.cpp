@@ -292,6 +292,7 @@ void SkirtBrim::generateAutoBrim(SliceDataStorage& storage,Polygons& first_layer
 
 			aExpolysHole = allExpolys.getEmptyHoles();
 			allExpolys = allExpolys.removeEmptyHoles();
+			allExpolys = allExpolys.getOutsidePolygons();
 			first_layer_outline.add(allExpolys);
 
 			for (ClipperLib::Paths::iterator it=allExpolys.begin();it!=allExpolys.end();it++)
