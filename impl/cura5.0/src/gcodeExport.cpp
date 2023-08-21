@@ -1148,7 +1148,7 @@ void GCodeExport::writeLayerComment(const LayerIndex layer_nr)
 void GCodeExport::writeLayerCountComment(const size_t layer_count)
 {
     output_stream << ";LAYER_COUNT:" << layer_count << new_line;
-
+    application->fDebugger->setLayers(layer_count);
 }
 
 void GCodeExport::writeLine(const char* line)

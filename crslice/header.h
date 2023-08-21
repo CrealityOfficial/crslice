@@ -81,6 +81,7 @@ namespace crslice
 		virtual void getPathDataG2G3(const trimesh::vec3 point,float i,float j, float e, int type, bool isG2=true) = 0;
 		virtual void setParam(PathParam pathParam) = 0;
 		virtual void setLayer(int layer) = 0;
+		virtual void setLayers(int layer) = 0;
 		virtual void setSpeed(float s) = 0;
 		virtual void setTEMP(float temp) = 0;
 		virtual void setExtruder(int nr) = 0;
@@ -100,6 +101,7 @@ namespace crslice
 		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true) override {};
 		void setParam(PathParam pathParam)override {};
 		void setLayer(int layer) override {};
+		void setLayers(int layer) override {};
 		void setSpeed(float s) override {};
 		void setTEMP(float temp) override {};
 		void setExtruder(int nr) override {};
