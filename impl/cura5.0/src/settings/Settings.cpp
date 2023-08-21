@@ -15,6 +15,7 @@
 #include "ExtruderTrain.h"
 #include "Slice.h"
 #include "settings/EnumSettings.h"
+#include "settings/EnumSettingsT.h"
 #include "settings/FlowTempGraph.h"
 #include "settings/Settings.h"
 #include "settings/types/Angle.h"
@@ -606,6 +607,117 @@ BuildPlateShape Settings::get<BuildPlateShape>(const std::string& key) const
     {
         return BuildPlateShape::RECTANGULAR;
     }
+}
+
+template<>
+cura54::ESupportType Settings::get<cura54::ESupportType>(const std::string& key) const
+{
+    const std::string& value = get<std::string>(key);
+    if (value == "everywhere")
+    {
+        return cura54::ESupportType::EVERYWHERE;
+    }
+    else if (value == "buildplate")
+    {
+        return cura54::ESupportType::PLATFORM_ONLY;
+    }
+    else // Default.
+    {
+        return cura54::ESupportType::NONE;
+    }
+}
+
+
+template<>
+cura54::ESurfaceMode Settings::get<cura54::ESurfaceMode>(const std::string& key) const
+{
+    const std::string& value = get<std::string>(key);
+    if (value == "surface")
+    {
+        return cura54::ESurfaceMode::SURFACE;
+    }
+    else if (value == "both")
+    {
+        return cura54::ESurfaceMode::BOTH;
+    }
+    else // Default.
+    {
+        return cura54::ESurfaceMode::NORMAL;
+    }
+}
+
+template<>
+cura54::SupportDistPriority Settings::get<cura54::SupportDistPriority>(const std::string& key) const
+{
+    if (get<std::string>(key) == "z_overrides_xy")
+    {
+        return cura54::SupportDistPriority::Z_OVERRIDES_XY;
+    }
+    else // Default.
+    {
+        return cura54::SupportDistPriority::XY_OVERRIDES_Z;
+    }
+}
+
+template<> Polygons Settings::get<Polygons>(const std::string& key) const
+{
+    std::string value_string = get<std::string>(key);
+
+    Polygons result;
+    if (value_string.empty())
+    {
+        return result; //Empty at this point.
+    }
+    /* We're looking to match one or more floating point values separated by
+     * commas and surrounded by square brackets. Note that because the QML
+     * RegExpValidator only stops unrecognised characters being input and
+     * doesn't actually barf if the trailing ']' is missing, we are lenient here
+     * and make that bracket optional.
+     */
+    std::regex polygons_regex(R"(\[(.*)\]?)");
+    std::smatch polygons_match;
+    if (std::regex_search(value_string, polygons_match, polygons_regex) && polygons_match.size() > 1)
+    {
+        std::string polygons_string = polygons_match.str(1);
+
+        std::regex polygon_regex(R"(\[((\[[^\[\]]*\]\s*,?\s*)*)\]\s*,?)"); // matches with a list of lists (a list of 2D vertices)
+        std::smatch polygon_match;
+
+        std::regex_token_iterator<std::string::iterator> rend; //Default constructor gets the end-of-sequence iterator.
+        std::regex_token_iterator<std::string::iterator> polygon_match_iter(polygons_string.begin(), polygons_string.end(), polygon_regex, 0);
+        while (polygon_match_iter != rend)
+        {
+            std::string polygon_str = *polygon_match_iter++;
+
+            result.emplace_back();
+            PolygonRef poly = result.back();
+
+            std::regex point2D_regex(R"(\[([^,\[]*),([^,\]]*)\])"); // matches to a list of exactly two things
+
+            const int submatches[] = { 1, 2 }; // Match first number and second number of a pair.
+            std::regex_token_iterator<std::string::iterator> match_iter(polygon_str.begin(), polygon_str.end(), point2D_regex, submatches);
+            while (match_iter != rend)
+            {
+                std::string first_substring = *match_iter++;
+                std::string second_substring = *match_iter++;
+                try
+                {
+                    double first = std::stod(first_substring);
+                    double second = std::stod(second_substring);
+                    poly.emplace_back(MM2INT(first), MM2INT(second));
+                }
+                catch (const std::invalid_argument& e)
+                {
+                    //spdlog::error("Couldn't read 2D graph element [{},{}] in setting '{}'. Ignored.\n", first_substring.c_str(), second_substring.c_str(), key.c_str());
+                }
+                if (match_iter == rend)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    return result;
 }
 
 template<>

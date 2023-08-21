@@ -394,7 +394,7 @@ public:
      * \return a Polygon representing the usable area of the print bed.
      */
     Polygon getMachineBorder(bool adhesion_offset = false) const;
-
+    Polygons getMachineBorder(int checking_extruder_nr) const;
 private:
     /*!
      * Construct the retraction_config_per_extruder

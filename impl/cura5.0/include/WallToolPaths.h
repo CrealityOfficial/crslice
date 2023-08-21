@@ -10,6 +10,7 @@
 #include "settings/Settings.h"
 #include "utils/ExtrusionLine.h"
 #include "utils/polygon.h"
+#include "utils/section_type.h"
 
 namespace cura52
 {
@@ -24,6 +25,7 @@ public:
      * \param wall_0_inset How far to inset the outer wall, to make it adhere better to other walls.
      * \param settings The settings as provided by the user
      */
+    WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset, const Settings& settings, const int layer_idx, cura54::SectionType section_type);
     WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset, const Settings& settings);
 
     /*!
@@ -120,6 +122,8 @@ private:
     std::vector<VariableWidthLines> toolpaths; //<! The generated toolpaths binned by inset_idx.
     Polygons inner_contour;  //<! The inner contour of the generated toolpaths
     const Settings& settings;
+    int layer_idx;
+    cura54:: SectionType section_type;
 };
 } // namespace cura52
 

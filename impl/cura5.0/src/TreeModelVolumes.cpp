@@ -1,23 +1,27 @@
-//Copyright (c) 2021 Ultimaker B.V.
+﻿//Copyright (c) 2021 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "sliceDataStorage.h"
 #include "TreeModelVolumes.h"
+#include "ExtruderTrain.h"
+#include "utils/ThreadPool.h"
+#include "TreeSupportT.h"
+
 
 namespace cura52
 {
 
-TreeModelVolumes::TreeModelVolumes(const SliceDataStorage& storage, const Settings& settings)
+TreeModelVolumes::TreeModelVolumes(const cura52::SliceDataStorage& storage, const Settings& settings)
     : machine_border_(calculateMachineBorderCollision(storage.getMachineBorder()))
-    , xy_distance_(settings.get<coord_t>("support_xy_distance"))
-    , xy_distance_overhang(settings.get<coord_t>("support_xy_distance_overhang"))
+    , xy_distance_(settings.get<cura52::coord_t>("support_xy_distance"))
+    , xy_distance_overhang(settings.get<cura52::coord_t>("support_xy_distance_overhang"))
     , distance_priority(settings.get<SupportDistPriority>("support_xy_overrides_z"))
-    , radius_sample_resolution_(settings.get<coord_t>("support_tree_collision_resolution"))
+    , radius_sample_resolution_(settings.get<cura52::coord_t>("support_tree_collision_resolution"))
 {
-    const coord_t layer_height = settings.get<coord_t>("layer_height");
+    const cura52::coord_t layer_height = settings.get<cura52::coord_t>("layer_height");
     const AngleRadians angle = settings.get<AngleRadians>("support_tree_angle");
-    max_move_ = (angle < TAU / 4) ? (coord_t)(tan(angle) * layer_height) : std::numeric_limits<coord_t>::max();
-    z_distance_layers = round_up_divide(settings.get<coord_t>("support_top_distance"), layer_height) + 1;
+    max_move_ = (angle < TAU / 4) ? (cura52::coord_t)(tan(angle) * layer_height) : std::numeric_limits<cura52::coord_t>::max();
+    z_distance_layers = round_up_divide(settings.get<cura52::coord_t>("support_top_distance"), layer_height) + 1;
     for (std::size_t layer_idx  = 0; layer_idx < storage.support.supportLayers.size(); ++layer_idx)
     {
         constexpr bool include_support = false;
@@ -26,7 +30,7 @@ TreeModelVolumes::TreeModelVolumes(const SliceDataStorage& storage, const Settin
     }
 }
 
-const Polygons& TreeModelVolumes::getCollision(coord_t radius, LayerIndex layer_idx) const
+const cura52::Polygons& TreeModelVolumes::getCollision(cura52::coord_t radius, LayerIndex layer_idx) const
 {
     radius = ceilRadius(radius);
     RadiusLayerPair key{radius, layer_idx};
@@ -41,7 +45,7 @@ const Polygons& TreeModelVolumes::getCollision(coord_t radius, LayerIndex layer_
     }
 }
 
-const Polygons& TreeModelVolumes::getAvoidance(coord_t radius, LayerIndex layer_idx) const
+const cura52::Polygons& TreeModelVolumes::getAvoidance(cura52::coord_t radius, LayerIndex layer_idx) const
 {
     radius = ceilRadius(radius);
     RadiusLayerPair key{radius, layer_idx};
@@ -56,7 +60,7 @@ const Polygons& TreeModelVolumes::getAvoidance(coord_t radius, LayerIndex layer_
     }
 }
 
-const Polygons& TreeModelVolumes::getInternalModel(coord_t radius, LayerIndex layer_idx) const
+const cura52::Polygons& TreeModelVolumes::getInternalModel(cura52::coord_t radius, LayerIndex layer_idx) const
 {
     radius = ceilRadius(radius);
     RadiusLayerPair key{radius, layer_idx};
@@ -71,19 +75,19 @@ const Polygons& TreeModelVolumes::getInternalModel(coord_t radius, LayerIndex la
     }
 }
 
-coord_t TreeModelVolumes::ceilRadius(coord_t radius) const
+cura52::coord_t TreeModelVolumes::ceilRadius(cura52::coord_t radius) const
 {
     const auto remainder = radius % radius_sample_resolution_;
     const auto delta = remainder != 0 ? radius_sample_resolution_- remainder : 0;
     return radius + delta;
 }
 
-const Polygons& TreeModelVolumes::calculateCollision(const RadiusLayerPair& key) const
+const cura52::Polygons& TreeModelVolumes::calculateCollision(const RadiusLayerPair& key) const
 {
-    const coord_t radius = key.first;
+    const cura52::coord_t radius = key.first;
     const LayerIndex layer_idx = key.second;
 
-    Polygons collision_areas = machine_border_;
+    cura52::Polygons collision_areas = machine_border_;
     if(layer_idx < static_cast<LayerIndex>(layer_outlines_.size()))
     {
         if(distance_priority == SupportDistPriority::XY_OVERRIDES_Z)
@@ -94,13 +98,13 @@ const Polygons& TreeModelVolumes::calculateCollision(const RadiusLayerPair& key)
         else if(layer_idx + z_distance_layers < static_cast<LayerIndex>(layer_outlines_.size()))
         {
             //If Z overrides X/Y, use X/Y distance if the surface is vertical, or Min X/Y distance if not.
-            Polygons z_influenced = layer_outlines_[layer_idx + z_distance_layers].difference(layer_outlines_[layer_idx]).offset(xy_distance_); //In-between layers are ignored for performance.
-            Polygons collision_not_overhang = layer_outlines_[layer_idx].offset(xy_distance_); //In places where there is no overhang nearby, use the normal X/Y distance.
+            cura52::Polygons z_influenced = layer_outlines_[layer_idx + z_distance_layers].difference(layer_outlines_[layer_idx]).offset(xy_distance_); //In-between layers are ignored for performance.
+            cura52::Polygons collision_not_overhang = layer_outlines_[layer_idx].offset(xy_distance_); //In places where there is no overhang nearby, use the normal X/Y distance.
             if(!z_influenced.empty())
             {
                 collision_not_overhang = collision_not_overhang.difference(z_influenced);
             }
-            Polygons collision_model = collision_not_overhang.unionPolygons(layer_outlines_[layer_idx].offset(xy_distance_overhang)); //Apply the minimum distance everywhere else.
+            cura52::Polygons collision_model = collision_not_overhang.unionPolygons(layer_outlines_[layer_idx].offset(xy_distance_overhang)); //Apply the minimum distance everywhere else.
             collision_areas = collision_areas.unionPolygons(collision_model.offset(radius));
         }
     }
@@ -109,7 +113,7 @@ const Polygons& TreeModelVolumes::calculateCollision(const RadiusLayerPair& key)
     return ret.first->second;
 }
 
-const Polygons& TreeModelVolumes::calculateAvoidance(const RadiusLayerPair& key) const
+const cura52::Polygons& TreeModelVolumes::calculateAvoidance(const RadiusLayerPair& key) const
 {
     const auto& radius = key.first;
     const auto& layer_idx = key.second;
@@ -140,7 +144,7 @@ const Polygons& TreeModelVolumes::calculateAvoidance(const RadiusLayerPair& key)
     return ret.first->second;
 }
 
-const Polygons& TreeModelVolumes::calculateInternalModel(const RadiusLayerPair& key) const
+const cura52::Polygons& TreeModelVolumes::calculateInternalModel(const RadiusLayerPair& key) const
 {
     const auto& radius = key.first;
     const auto& layer_idx = key.second;
@@ -151,9 +155,9 @@ const Polygons& TreeModelVolumes::calculateInternalModel(const RadiusLayerPair& 
     return ret.first->second;
 }
 
-Polygons TreeModelVolumes::calculateMachineBorderCollision(Polygon machine_border)
+cura52::Polygons TreeModelVolumes::calculateMachineBorderCollision(Polygon machine_border)
 {
-    Polygons machine_volume_border;
+    cura52::Polygons machine_volume_border;
     machine_volume_border.add(machine_border.offset(MM2INT(1000))); //Put a border of 1m around the print volume so that we don't collide.
     machine_border.reverse(); //Makes the polygon negative so that we subtract the actual volume from the collision area.
     machine_volume_border.add(machine_border);
@@ -161,3 +165,7 @@ Polygons TreeModelVolumes::calculateMachineBorderCollision(Polygon machine_borde
 }
 
 }
+
+
+
+

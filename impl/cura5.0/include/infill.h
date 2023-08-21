@@ -11,6 +11,7 @@
 #include "settings/Settings.h"
 #include "utils/ExtrusionLine.h"
 #include "utils/IntPoint.h"
+#include "utils/section_type.h"
 
 namespace cura52
 {
@@ -39,6 +40,7 @@ class Infill
     coord_t max_resolution; //!< Min feature size of the output
     coord_t max_deviation; //!< Max deviation fro the original poly when enforcing max_resolution
     size_t wall_line_count; //!< Number of walls to generate at the boundary of the infill region, spaced \ref infill_line_width apart
+    coord_t small_area_width; //!< Maximum width of a small infill region to be filled with walls
     const Point infill_origin; //!< origin of the infill pattern
     bool skip_line_stitching; //!< Whether to bypass the line stitching normally performed for polyline type infills
     bool fill_gaps; //!< Whether to fill gaps in strips of infill that would be too thin to fit the infill lines. If disabled, those areas are left empty.
@@ -103,6 +105,7 @@ public:
         //We skip ZigZag, Cross and Cross3D because they have their own algorithms. Eventually we want to replace all that with the new algorithm.
         //Cubic Subdivision ends lines in the center of the infill so it won't be effective.
         connect_lines = zig_zaggify && (pattern == EFillMethod::LINES || pattern == EFillMethod::TRIANGLES || pattern == EFillMethod::GRID || pattern == EFillMethod::CUBIC || pattern == EFillMethod::TETRAHEDRAL || pattern == EFillMethod::QUARTER_CUBIC || pattern == EFillMethod::TRIHEXAGON);
+        small_area_width = 0;
     }
 
     /*!
@@ -118,6 +121,18 @@ public:
      */
     void generate(std::vector<VariableWidthLines>& toolpaths, Polygons& result_polygons, Polygons& result_lines, const Settings& settings, const SierpinskiFillProvider* cross_fill_provider = nullptr, const LightningLayer * lightning_layer = nullptr, const SliceMeshStorage* mesh = nullptr);
 
+    Polygons generateWallToolPathsT(std::vector<VariableWidthLines>& toolpaths, Polygons& outer_contour, const size_t wall_line_count, const coord_t line_width, const coord_t infill_overlap, const Settings& settings, int layer_idx, cura54::SectionType section_type);
+
+    void generateThomas(std::vector<VariableWidthLines>& toolpaths,
+        Polygons& result_polygons,
+        Polygons& result_lines,
+        const Settings& settings,
+        int layer_idx,
+        cura54::SectionType section_type,
+        const SierpinskiFillProvider* cross_fill_provider,
+        const LightningLayer* lightning_trees,
+        const SliceMeshStorage* mesh);
+  
     /*!
      * Generate the wall toolpaths of an infill area. It will return the inner contour and set the inner-contour.
      * This function is called within the generate() function but can also be called stand-alone

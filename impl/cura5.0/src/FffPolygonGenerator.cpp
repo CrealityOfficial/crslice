@@ -30,6 +30,7 @@
 #include "support.h"
 #include "TopSurface.h"
 #include "TreeSupport.h"
+#include "TreeSupportT.h"
 #include "ThomasTreeSupport.h"
 #include "WallsComputation.h"
 #include "infill/DensityProvider.h"
@@ -439,16 +440,18 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
 
-	if (scene.settings.get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
-	{
-		ThomasTreeSupport thomas_tree_support_generator(storage);
-		thomas_tree_support_generator.generateSupportAreas(storage);
-	}
-	else
-	{
-		TreeSupport tree_support_generator(storage);
-		tree_support_generator.generateSupportAreas(storage);
-	}
+    if (scene.settings.get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
+    {
+        //ThomasTreeSupport thomas_tree_support_generator(storage);
+        //thomas_tree_support_generator.generateSupportAreas(storage);
+        cura54::TreeSupportT tree_support_generator(storage);
+        tree_support_generator.generateSupportAreas(storage);
+    }
+    else if(scene.settings.get<ESupportStructure>("support_structure") == ESupportStructure::TREE)
+    {
+        TreeSupport tree_support_generator(storage);
+        tree_support_generator.generateSupportAreas(storage);
+    }
 
     AreaSupport::generateSharpTailSupport(storage);
 

@@ -32,9 +32,9 @@ public:
     std::vector<std::vector<Polygons>> infill_area_per_combine_per_density;  //!< a list of separated sub-areas which requires different infill densities and combined thicknesses
                                                                               //   for infill_areas[x][n], x means the density level and n means the thickness
     std::vector<VariableWidthLines> wall_toolpaths; //!< Any walls go here, not in the areas, where they could be combined vertically (don't combine walls). Binned by inset_idx.
-
-    SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate = 0);
-
+    cura52::coord_t custom_line_distance;
+    //SupportInfillPart(const PolygonsPart& outline, coord_t support_line_width, int inset_count_to_generate = 0);
+    SupportInfillPart(const  cura52::PolygonsPart& outline, cura52::coord_t support_line_width, int inset_count_to_generate = 0, cura52::coord_t custom_line_distance = 0);
     const Polygons& getInfillArea() const;
 };
 
