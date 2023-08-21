@@ -924,6 +924,21 @@ void Infill::generateLinearBasedInfill(Polygons& result, const int line_distance
         crossings_on_line.resize(outline.size()); // One for each polygon.
     }
 
+    auto getStartPointAndIdx = [](const PolygonRef& poly, const Point prePoint, Point& p0)
+    {
+        size_t startIdx = 0;
+        if (prePoint != Point())
+        {
+            p0 = poly.closestPointTo(prePoint);
+            for (size_t point_idx = 0; point_idx < poly.size(); point_idx++)
+            {
+                if (poly[point_idx] == p0)
+                    startIdx = (point_idx + 1) % poly.size();
+            }
+        }
+        return startIdx;
+    };
+
     for (size_t poly_idx = 0; poly_idx < outline.size(); poly_idx++)
     {
         PolygonRef poly = outline[poly_idx];
@@ -932,10 +947,12 @@ void Infill::generateLinearBasedInfill(Polygons& result, const int line_distance
             crossings_on_line[poly_idx].resize(poly.size()); // One for each line in this polygon.
         }
         Point p0 = poly.back();
+        size_t startIdx = getStartPointAndIdx(poly, rotation_matrix.apply(current_position), p0);
         zigzag_connector_processor.registerVertex(p0); // always adds the first point to ZigzagConnectorProcessorEndPieces::first_zigzag_connector when using a zigzag infill type
 
-        for (size_t point_idx = 0; point_idx < poly.size(); point_idx++)
+        for (size_t i = startIdx; i < poly.size() + startIdx; i++)
         {
+            size_t point_idx = i % poly.size();
             Point p1 = poly[point_idx];
             if (p1.X == p0.X)
             {
@@ -1040,6 +1057,21 @@ void Infill::connectLines(Polygons& result_lines)
         }
     }
 
+    auto getStartPointAndIdx = [](const ConstPolygonRef& poly, const Point prePoint, Point& p0)
+    {
+        size_t startIdx = 0;
+        if (prePoint != Point())
+        {
+            p0 = poly.closestPointTo(prePoint);
+            for (size_t point_idx = 0; point_idx < poly.size(); point_idx++)
+            {
+                if (poly[point_idx] == p0)
+                    startIdx = (point_idx + 1) % poly.size();
+            }
+        }
+        return startIdx;
+    };
+
     for (size_t polygon_index = 0; polygon_index < inner_contour.size(); polygon_index++)
     {
         ConstPolygonRef inner_contour_polygon = inner_contour[polygon_index];
@@ -1052,8 +1084,10 @@ void Infill::connectLines(Polygons& result_lines)
         InfillLineSegment* previous_crossing = nullptr; // The crossing that we should connect to. If nullptr, we have been skipping until we find the next crossing.
         InfillLineSegment* previous_segment = nullptr; // The last segment we were connecting while drawing a line along the border.
         Point vertex_before = inner_contour_polygon.back();
-        for (size_t vertex_index = 0; vertex_index < inner_contour_polygon.size(); vertex_index++)
+        size_t startIdx = getStartPointAndIdx(inner_contour_polygon, current_position, vertex_before);
+        for (size_t i = startIdx; i < inner_contour_polygon.size() + startIdx; i++)
         {
+            size_t vertex_index = i % inner_contour_polygon.size();
             assert(crossings_on_polygon.size() > vertex_index && "crossings on line for the current polygon should be bigger then vertex index");
             std::vector<InfillLineSegment*>& crossings_on_polygon_segment = crossings_on_polygon[vertex_index];
             Point vertex_after = inner_contour_polygon[vertex_index];

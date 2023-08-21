@@ -534,6 +534,7 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
                 const coord_t retract_threshold = extruder->settings.get<coord_t>("retraction_combing_max_distance");
                 path->retract = retract || (retract_threshold > 0 && distance > retract_threshold && retraction_enable);
                 // don't perform a z-hop
+                path->perform_z_hop = path->retract && extruder->settings.get<bool>("retraction_hop_enabled") && comb->combInside();//z-hop when combing inside a part
             }
             // Whether to unretract before the last travel move of the travel path, which comes before the wall to be printed.
             // This should be true when traveling towards an outer wall to make sure that the unretraction will happen before the
@@ -2374,6 +2375,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         }
                         if (!ExtrusionPath.empty() && start_point == ExtrusionPath[0])//closePolygon
                         {
+                            ExtrusionPath.pop_back();
                             ClipperLib::ReversePath(ExtrusionPath);
                             return false;
                         }

@@ -50,6 +50,7 @@ class Infill
     size_t zag_skip_count;  //!< (ZigZag) To skip one zag in every N if skip some zags is enabled
     coord_t pocket_size; //!< The size of the pockets at the intersections of the fractal in the cross 3d pattern
     bool mirror_offset; //!< Indication in which offset direction the extra infill lines are made
+    Point current_position;
 
     static constexpr double one_over_sqrt_2 = 0.7071067811865475244008443621048490392848359376884740; //!< 1.0 / sqrt(2.0)
 public:
@@ -106,6 +107,7 @@ public:
         //Cubic Subdivision ends lines in the center of the infill so it won't be effective.
         connect_lines = zig_zaggify && (pattern == EFillMethod::LINES || pattern == EFillMethod::TRIANGLES || pattern == EFillMethod::GRID || pattern == EFillMethod::CUBIC || pattern == EFillMethod::TETRAHEDRAL || pattern == EFillMethod::QUARTER_CUBIC || pattern == EFillMethod::TRIHEXAGON);
         small_area_width = 0;
+        current_position = Point();
     }
 
     /*!
@@ -146,6 +148,8 @@ public:
      * \return The inner contour of the wall toolpaths
      */
     static Polygons generateWallToolPaths(std::vector<VariableWidthLines>& toolpaths, Polygons& outer_contour, const size_t wall_line_count, const coord_t line_width, const coord_t infill_overlap, const Settings& settings);
+
+    void setCurrentPosition(const Point position) { current_position = position; }
 private:
     /*!
      * Generate the infill pattern without the infill_multiplier functionality

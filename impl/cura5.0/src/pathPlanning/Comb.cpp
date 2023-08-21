@@ -77,6 +77,7 @@ Comb::Comb(const SliceDataStorage& storage, const LayerIndex layer_nr, const Pol
 , move_inside_distance(move_inside_distance)
 , travel_avoid_distance(travel_avoid_distance)
 {
+    comb_inside = false;
 }
 
 bool Comb::calc(const ExtruderTrain& train, Point start_point, Point end_point, CombPaths& comb_paths, bool _start_inside, bool _end_inside, coord_t max_comb_distance_ignored, bool &unretract_before_last_travel_move)
@@ -105,6 +106,7 @@ bool Comb::calc(const ExtruderTrain& train, Point start_point, Point end_point, 
     // normal combing within part using optimal comb boundary
     if (start_inside && end_inside && start_part_idx == end_part_idx)
     {
+        comb_inside = true;
         PolygonsPart part = partsView_inside_optimal.assemblePart(start_part_idx);
         comb_paths.emplace_back();
         const bool combing_succeeded = LinePolygonsCrossings::comb(part, *inside_loc_to_line_optimal, start_point, end_point, comb_paths.back(), -offset_dist_to_get_from_on_the_polygon_to_outside, max_comb_distance_ignored, fail_on_unavoidable_obstacles);

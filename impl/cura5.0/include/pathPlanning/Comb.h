@@ -136,7 +136,7 @@ private:
     std::unordered_map<size_t, std::unique_ptr<LocToLineGrid>> outside_loc_to_line; //!< The SparsePointGridInclusive mapping locations to line segments of the outside boundary.
     std::unordered_map<size_t, std::unique_ptr<LocToLineGrid>> model_boundary_loc_to_line; //!< The SparsePointGridInclusive mapping locations to line segments of the model boundary
     coord_t move_inside_distance; //!< When using comb_boundary_inside_minimum for combing it tries to move points inside by this amount after calculating the path to move it from the border a bit.
-
+    bool comb_inside;
     /*!
      * Get the SparsePointGridInclusive mapping locations to line segments of the outside boundary. Calculate it when it hasn't been calculated yet.
      */
@@ -212,6 +212,8 @@ public:
      * \return Whether combing has succeeded; otherwise a retraction is needed.
      */
     bool calc(const ExtruderTrain& train, Point startPoint, Point endPoint, CombPaths& combPaths, bool startInside, bool endInside, coord_t max_comb_distance_ignored, bool &unretract_before_last_travel_move);
+
+    bool combInside() { return comb_inside; }
 };
 
 }//namespace cura52
