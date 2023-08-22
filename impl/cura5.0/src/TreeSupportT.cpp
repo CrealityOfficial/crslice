@@ -190,6 +190,7 @@ void TreeSupportT::generateSupportAreas(cura52::SliceDataStorage& storage)
             cura52::LayerIndex(storage.support.supportLayers.size()),
             [&](const cura52::LayerIndex layer_idx)
             {
+                application->progressor.messageProgress(cura52::Progress::Stage::SUPPORT,  layer_idx + 1, storage.support.supportLayers.size());
                 cura52::Polygons exlude_at_layer;
                 exlude_at_layer.add(storage.support.supportLayers[layer_idx].support_bottom);
                 exlude_at_layer.add(storage.support.supportLayers[layer_idx].support_roof);
