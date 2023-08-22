@@ -1712,15 +1712,22 @@ void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coo
 
     *output_stream << " I" << MMtoStream{ i } << " J" << MMtoStream{ j };
 
+    const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
     if (e + current_e_offset != current_e_value)
     {
-        const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
         *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
-        if (application->fDebugger)
-            application->fDebugger->getPathDataG2G3(trimesh::vec3(), MMtoStream{ i }.value, MMtoStream{ j }.value, PrecisionedDouble{ 5, output_e }.value, (int)feature, estimateCalculator->is_ccw);
     }
-    else if (application->fDebugger)
-        application->fDebugger->getPathDataG2G3(trimesh::vec3(), MMtoStream{ i }.value, MMtoStream{ j }.value, -999, (int)feature, estimateCalculator->is_ccw);
+    
+    
+    if (application->fDebugger)
+        application->fDebugger->getPathDataG2G3(
+            trimesh::vec3(MMtoStream{ gcode_pos.X }.value
+            , MMtoStream{ gcode_pos.Y }.value
+            , (z != currentPosition.z)? MMtoStream{ z }.value : -999)
+            , MMtoStream{ i }.value
+            , MMtoStream{ j }.value
+            , (e + current_e_offset != current_e_value) ? PrecisionedDouble{ 5, output_e }.value :-999
+            , (int)feature, estimateCalculator->is_ccw);
 
 
     *output_stream << new_line;
@@ -1842,11 +1849,11 @@ void GCodeExport::writeExtrusionG1(const Velocity& speed, Point point, const dou
     *output_stream << "G1";
     writeFXYZE(speed, point.X, point.Y, current_layer_z, current_e_value + e, feature);
 
-    if (application->fDebugger)
-    {
-        application->fDebugger->setSpeed(speed);
-        application->fDebugger->getPathData(trimesh::vec3(point.X, point.Y, current_layer_z), current_e_value + e, (int)feature);
-    }
+    //if (application->fDebugger)
+    //{
+    //    application->fDebugger->setSpeed(speed);
+    //    application->fDebugger->getPathData(trimesh::vec3(point.X, point.Y, current_layer_z), current_e_value + e, (int)feature);
+    //}
 }
 
 coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t z_hop_height)
