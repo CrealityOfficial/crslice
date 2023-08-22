@@ -1206,13 +1206,14 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
 
     bool first_line = true;
     const coord_t small_feature_max_length = settings.get<coord_t>("small_feature_max_length");
+    Ratio small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "small_feature_speed_factor_0" : "small_feature_speed_factor");
+    if (small_feature_speed_factor == 0) small_feature_speed_factor = 1.0;
     bool is_small_feature = (small_feature_max_length > 0) && cura52::shorterThan(wall, small_feature_max_length);
     const Velocity min_speed = fan_speed_layer_time_settings_per_extruder[getLastPlannedExtruderTrain()->extruder_nr].cool_min_speed;
     const coord_t max_area_deviation = std::max(settings.get<int>("meshfix_maximum_extrusion_area_deviation"), 1); // Square micrometres!
     const coord_t max_resolution = std::max(settings.get<coord_t>("meshfix_maximum_resolution"), coord_t(1));
     const double small_feature_fan_speed = settings.get<double>("cool_small_feature_fan_speed_factor");
 
-    Ratio small_feature_speed_factor = settings.get<Ratio>((layer_nr == 0) ? "small_feature_speed_factor_0" : "small_feature_speed_factor");
     Ratio smaller_level_factor = 0;
     coord_t big_length = small_feature_max_length;
     coord_t smaller_length = 0;
@@ -1260,7 +1261,7 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
             smaller_length = settings.get<coord_t>(length_name);
         }
     }
-    if (is_small_feature && wall_length > 0)
+    if (is_small_feature && wall_length > 0 && small_feature_speed_factor > 0 && small_feature_speed_factor < 1.0)
     {
         small_feature_speed_factor = ((wall_length - smaller_length) / (float)(big_length - smaller_length)) * (small_feature_speed_factor - smaller_level_factor) + smaller_level_factor;
         small_feature_speed_factor = std::max(small_feature_speed_factor, Ratio(min_speed / non_bridge_config.getSpeed()));
@@ -1986,20 +1987,21 @@ void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_t
         fan_speed = fan_speed_layer_time_settings.cool_fan_speed_0 + (fan_speed - fan_speed_layer_time_settings.cool_fan_speed_0) * std::max(LayerIndex(0), layer_nr) / fan_speed_layer_time_settings.cool_fan_full_layer;
     }
 
-    if (cds_fan_speed > 0)
+    bool full_fan_layer = (layer_nr >= fan_speed_layer_time_settings.cool_fan_full_layer) && getExtrudeSpeedFactor() < 1.0;
+    double low_speed_print_time = 0;
+    for (GCodePath& path : paths)
     {
-        double low_speed_print_time = 0;
-        for (GCodePath path : paths)
+        if (full_fan_layer && !path.isTravelPath())
+            path.fan_speed = 100.0;
+        if (cds_fan_speed > 0 && (path.speed_factor < 1.0 || path.config->isBridgePath()))
         {
-            if (path.speed_factor < 1.0 || path.config->isBridgePath())
-            {
-                low_speed_print_time += path.estimates.getTotalTime();
-            }
+            low_speed_print_time += path.estimates.getTotalTime();
         }
-        if (totalLayerTime < 6 || low_speed_print_time > 1)
-        {
-            cds_fan_speed = max_cds_fan_speed;
-        }
+    }
+
+    if (cds_fan_speed > 0 && (totalLayerTime < 6 || low_speed_print_time > 1))
+    {
+        cds_fan_speed = max_cds_fan_speed;
     }
 }
 
