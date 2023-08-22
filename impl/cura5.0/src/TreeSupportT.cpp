@@ -2318,7 +2318,7 @@ void TreeSupportT::drawAreas(std::vector<std::set<TreeSupportElementT*>>& move_b
 
     // single threaded combining all dropped down support areas to the right layers. ONLY COPYS DATA!
    // for (const coord_t i : ranges::views::iota(0UL, dropped_down_areas.size()))
-    for (size_t i = 0; i < move_bounds.size(); i++)
+    for (size_t i = 0; i < dropped_down_areas.size(); i++)
     {
         for (std::pair<LayerIndex, Polygons> pair : dropped_down_areas[i])
         {
