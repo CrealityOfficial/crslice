@@ -439,6 +439,7 @@ void GCodeExport::writeSpecialModelAndMeshConfig()
     tmp << ";Coasting Speed:" << extruderSettings->get<Ratio>("coasting_speed") << new_line;
     tmp << ";Raft AirGap:" << (float)extruderSettings->get<coord_t>("raft_airgap") / 1000.0f << new_line;
     tmp << ";Layer0 ZOverLap:" << (float)extruderSettings->get<coord_t>("layer_0_z_overlap") / 1000.0f << new_line;
+    tmp << ";Adaptive Layers:" << (float)extruderSettings->get<bool>("adaptive_layer_height_enabled") << new_line;
 
     *output_stream << tmp.str();
 }
