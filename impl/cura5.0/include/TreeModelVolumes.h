@@ -18,7 +18,7 @@ namespace cura52
 {
 
 class SliceDataStorage;
-class cura52::LayerIndex;
+class LayerIndex;
 class Settings;
 
 /*!
@@ -206,7 +206,7 @@ private:
 namespace cura52
 {
     class SliceDataStorage;
-    class cura52::LayerIndex;
+    class LayerIndex;
     class Settings;
 }
 

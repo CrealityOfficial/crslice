@@ -1216,7 +1216,7 @@ void TreeSupportT::increaseAreas
 
                 if (result)
                 {
-                    elem = result.value();
+                    elem = *result;
                     radius = config.getCollisionRadius(elem);
                     elem.last_area_increase = settings;
                     add = true;

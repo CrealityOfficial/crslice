@@ -353,7 +353,7 @@ namespace cura54
         }
         if (result)
         {
-            return result.value().get();
+            return (*result).get();
         }
         if (precalculated)
         {
@@ -383,7 +383,7 @@ namespace cura54
         }
         if (result)
         {
-            return result.value().get();
+            return (*result).get();
         }
         if (precalculated)
         {
@@ -465,7 +465,7 @@ namespace cura54
         }
         if (result)
         {
-            return result.value().get();
+            return (*result).get();
         }
         if (precalculated)
         {
@@ -499,7 +499,7 @@ namespace cura54
         }
         if (result)
         {
-            return result.value().get();
+            return (*result).get();
         }
         if (precalculated)
         {
@@ -539,7 +539,7 @@ namespace cura54
         }
         if (result)
         {
-            return result.value().get();
+            return (*result).get();
         }
         if (precalculated)
         {
