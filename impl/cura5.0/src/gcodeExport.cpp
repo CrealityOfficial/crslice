@@ -1172,7 +1172,7 @@ void GCodeExport::writeExtrusionMode(bool set_relative_extrusion_mode)
     {
 		if (flavor == EGCodeFlavor::MACH3_Creality)
 		{
-			*output_stream << "G90 ;relative extrusion mode" << new_line;
+			*output_stream << "G90 ;absolute extrusion mode" << new_line;
 		}
 		else
 		{
