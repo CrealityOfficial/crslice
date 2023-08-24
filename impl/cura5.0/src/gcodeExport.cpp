@@ -2684,7 +2684,10 @@ void GCodeExport::travelToSafePosition()
 
 void GCodeExport::finalize(const std::string& endCode)
 {
-    travelToSafePosition();
+	if (flavor != EGCodeFlavor::MACH3_Creality)
+	{
+		travelToSafePosition();
+	}
     writeFanCommand(0);
     writeChamberFanCommand(0);
     writeCode(endCode.c_str());
