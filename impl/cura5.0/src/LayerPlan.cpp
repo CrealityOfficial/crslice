@@ -2106,6 +2106,13 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
     gcode.setZ(z);
 
+    bool speed_limit_to_height_enable = mesh_group_settings.get<bool>("speed_limit_to_height_enable");
+    FlowTempGraph speed_limit_to_height = mesh_group_settings.get<FlowTempGraph>("speed_limit_to_height");
+    if (speed_limit_to_height_enable)
+    {
+        gcode.calculatMaxSpeedLimitToHerght(speed_limit_to_height);
+    }
+
     const GCodePathConfig* last_extrusion_config = nullptr; // used to check whether we need to insert a TYPE comment in the gcode.
     const bool acceleration_enabled = mesh_group_settings.get<bool>("acceleration_enabled");
     const bool acceleration_travel_enabled = mesh_group_settings.get<bool>("acceleration_travel_enabled");

@@ -128,6 +128,7 @@ private:
 	double acceleration_limit_mess;
 	std::map <float,float> acceleration_limit_mass;
 	bool acceleration_limit_mess_enable;
+    Velocity max_speed_limit_to_height;
 
     // flow-rate compensation
     double current_e_offset; //!< Offset to compensate for flow rate (mm or mm^3)
@@ -442,6 +443,7 @@ public:
 	double getAcc_Limit_mass();
 	//void setAcc_Limit_mass(double a);
 	void setAcc_Limit_mass(std::map <float, float>& acceleration_limit_mass);
+    void calculatMaxSpeedLimitToHerght(const FlowTempGraph & speed_limit_to_height);
 private:
     /*!
      * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.

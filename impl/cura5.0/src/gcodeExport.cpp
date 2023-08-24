@@ -101,6 +101,7 @@ GCodeExport::GCodeExport()
     new_line = "\n";
 
     total_bounding_box = AABB3D();
+    max_speed_limit_to_height = -1.0;
 }
 
 GCodeExport::~GCodeExport()
@@ -1527,6 +1528,8 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
         Velocity* max_feedrate = estimateCalculator->maxFeedrate();
         Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
         speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
+        if (max_speed_limit_to_height > 0)
+            speed_e = std::min(speed_e, max_speed_limit_to_height);
     }
     writeFXYZE(speed_e, x, y, z, new_e_value, feature);
 }
@@ -1621,6 +1624,8 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
         Velocity* max_feedrate = estimateCalculator->maxFeedrate();
         Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
         speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
+        if (max_speed_limit_to_height > 0)
+            speed_e = std::min(speed_e, max_speed_limit_to_height);
     }
 
 	writeFXYZIJE(speed_e, x, y, z, i, j, new_e_value, feature);
@@ -2809,6 +2814,32 @@ double GCodeExport::getAcc_Limit_mass()
 void GCodeExport::setAcc_Limit_mass(std::map <float, float>& _acceleration_limit_mass)
 {
 	acceleration_limit_mass = _acceleration_limit_mass;
+}
+
+void GCodeExport::calculatMaxSpeedLimitToHerght(const FlowTempGraph& speed_limit_to_height)
+{
+    std::vector <std::pair<float, float>> limit_data;
+    for (int i = 0; i < speed_limit_to_height.data.size(); i++)
+    {
+        limit_data.push_back(std::pair(speed_limit_to_height.data[i].flow, speed_limit_to_height.data[i].temp));
+    }
+
+    std::sort(limit_data.begin(), limit_data.end(),
+        [](const std::pair<float, float>& a, const std::pair<float, float>& b) {
+            if (a.first == b.first) {
+                return a.second > b.second;
+            }
+            return a.first < b.first; });
+
+    auto iter = limit_data.begin();
+    while (iter != limit_data.end())
+    {
+        if (current_layer_z >= MM2INT(iter->first))
+        {
+            max_speed_limit_to_height = iter->second;
+        }
+        iter++;
+    }
 }
 
 } // namespace cura52
