@@ -712,6 +712,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     {
         std::string prefix = gcode.getFileHeader(extruder_is_used);
         gcode.writeCode(prefix.c_str());
+		gcode.writeCode(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
         gcode.setPreFixLen(prefix.length());
     }
 
