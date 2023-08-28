@@ -2821,7 +2821,7 @@ void GCodeExport::setAcc_Limit_mass(std::map <float, float>& _acceleration_limit
 	acceleration_limit_mass = _acceleration_limit_mass;
 }
 
-void GCodeExport::calculatMaxSpeedLimitToHerght(const FlowTempGraph& speed_limit_to_height)
+void GCodeExport::calculatMaxSpeedLimitToHeight(const FlowTempGraph& speed_limit_to_height)
 {
     std::vector <std::pair<float, float>> limit_data;
     for (int i = 0; i < speed_limit_to_height.data.size(); i++)

@@ -443,7 +443,7 @@ public:
 	double getAcc_Limit_mass();
 	//void setAcc_Limit_mass(double a);
 	void setAcc_Limit_mass(std::map <float, float>& acceleration_limit_mass);
-    void calculatMaxSpeedLimitToHerght(const FlowTempGraph & speed_limit_to_height);
+    void calculatMaxSpeedLimitToHeight(const FlowTempGraph & speed_limit_to_height);
 private:
     /*!
      * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.

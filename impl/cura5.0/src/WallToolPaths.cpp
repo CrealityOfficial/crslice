@@ -251,12 +251,18 @@ const std::vector<VariableWidthLines>& WallToolPaths::generate()
         VariableWidthLines path_new;
         for (ExtrusionLine& line : path)
         {
+            std::vector<ExtrusionJunction> new_junctions;
             for (ExtrusionJunction& pt : line.junctions)
             {
-                pt.p.X = pt.p.X / scale_factor + 0.5;
-                pt.p.Y = pt.p.Y / scale_factor + 0.5;
-                pt.w = pt.w / scale_factor + 0.5;
+                if (prepared_outline.inside(pt.p))
+                {
+                    pt.p.X = pt.p.X / scale_factor + 0.5;
+                    pt.p.Y = pt.p.Y / scale_factor + 0.5;
+                    pt.w = pt.w / scale_factor + 0.5;
+                    new_junctions.emplace_back(pt);
+                }           
             }
+            line.junctions.swap(new_junctions);
             Simplify(settings).polygon(line);
             if (line.getLength() < allowed_distance) continue;
             line.start_idx = -1;
