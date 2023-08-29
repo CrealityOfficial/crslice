@@ -438,19 +438,14 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed() const
 std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) const
 {
     const std::vector<ExtruderTrain>& extruders = application->current_slice->scene.extruders;
-    std::vector<bool> ret;
-    ret.resize(extruders.size(), true);
-	if (layer_nr == 0)
+	if (layer_nr > 0)
 	{
-		for (size_t extruder_nr = 0; extruder_nr < extruders.size(); ++extruder_nr)
-		{
-			if (skirt_brim[extruder_nr].empty())
-			{
-				ret[extruder_nr] = false;
-			}
-		}
+		std::vector<bool> ret;
+		ret.resize(extruders.size(), true);
+		return ret;
 	}
-	return ret;
+	std::vector<bool> ret;
+	ret.resize(extruders.size(), false);
 
     const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
     const EPlatformAdhesion adhesion_type = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type");
