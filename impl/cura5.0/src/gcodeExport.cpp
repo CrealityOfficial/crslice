@@ -754,11 +754,18 @@ void GCodeExport::setFlavor(EGCodeFlavor flavor)
             extruder_attr[n].extruderCharacter = 'A' + n;
         }
     }
-	else if (flavor == EGCodeFlavor::PLC || flavor == EGCodeFlavor::MACH3_Creality)
+	else if (flavor == EGCodeFlavor::MACH3_Creality)
 	{
 		for (int n = 0; n < MAX_EXTRUDERS; n++)
 		{
 			extruder_attr[n].extruderCharacter = 'P' + n;
+		}
+	}
+	else if (flavor == EGCodeFlavor::PLC)
+	{
+		for (int n = 0; n < MAX_EXTRUDERS; n++)
+		{
+			extruder_attr[n].extruderCharacter = 'V' + n;
 		}
 	}
     else
@@ -1319,10 +1326,10 @@ void GCodeExport::writeExtrusionG2G3(const Point3& p, const Point& center_offset
 }
 
 
-float getAngelOfTwoVector(const Point& pt1, const Point& pt2)
+float getAngelOfTwoVector(const Point& endP, const Point& startP)
 {
-	Point c(pt2.X+1000,pt2.Y);
-	float theta = atan2(pt1.X - c.Y, pt1.X - c.X) - atan2(pt2.Y - c.Y, pt2.X - c.X);
+	Point newP(startP.X+1000,startP.Y);
+	float theta = atan2(endP.X - startP.Y, endP.X - startP.X) - atan2(newP.Y - startP.Y, newP.X - startP.X);
 	if (theta > PI)
 		theta -= 2 * PI;
 	if (theta < -PI)
@@ -1335,7 +1342,6 @@ float getAngelOfTwoVector(const Point& pt1, const Point& pt2)
 	}
 	return theta;
 }
-
 
 
 void GCodeExport::writeMoveBFB(const int x, const int y, const int z, const Velocity& speed, 
@@ -1492,7 +1498,7 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
 	if (this->flavor == EGCodeFlavor::PLC)
 	{
 		float iDegree = getAngelOfTwoVector(Point(x,y), Point(currentPosition.x, currentPosition.y));
-		*output_stream << "G90 E" << iDegree << new_line;
+		*output_stream << "G90 W" << iDegree << new_line;
 
         if (application->fDebugger)
             application->fDebugger->getNotPath();
