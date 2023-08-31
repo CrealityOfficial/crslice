@@ -224,6 +224,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     first_mesh_cancel = false;
     tmp_is_change_layer = 0;
     need_smart_brim = false;
+	is_deceleration_speed = false;
 }
 
 LayerPlan::~LayerPlan()
@@ -2253,6 +2254,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         }
 
+		float realLength = 0.0;
         for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
         {
             extruder_plan.handleInserts(path_idx, gcode);
@@ -2805,10 +2807,44 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     }
                     else
                     {
-                        for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
+                        for(unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
-                            const double extrude_speed = speed * path.speed_back_pressure_factor;
-                            gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+
+							if (is_deceleration_speed)//颗粒机 每层起始段减速
+							{
+								float length = application->current_slice->scene.settings.get<coord_t>("layer_deceleration_length");
+								float speed = application->current_slice->scene.settings.get<Velocity>("layer_deceleration_speed");
+								const Point diff = path.points[point_idx] - gcode.getPositionXY();
+								double diff_length = (sqrt(diff.X * diff.X + diff.Y * diff.Y));
+								realLength += diff_length;
+								if (realLength > length*0.8 && realLength <length*1.2)
+								{
+									gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+									is_deceleration_speed = false;
+								} 
+								else if (realLength < length)
+								{
+									gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+								}
+								else
+								{
+									 float needLength = diff_length - realLength + length;
+									 Point newPoint;
+									 newPoint.X = (needLength * diff.X) / diff_length + gcode.getPositionXY().X;
+									 newPoint.Y = (needLength * diff.Y) / diff_length + gcode.getPositionXY().Y;
+									 gcode.writeExtrusion(newPoint, speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+
+									 const double extrude_speed = speed * path.speed_back_pressure_factor;
+									 gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+								}
+
+
+							} 
+							else
+							{
+								const double extrude_speed = speed * path.speed_back_pressure_factor;
+								gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+							}
                         }
                     }
                 }

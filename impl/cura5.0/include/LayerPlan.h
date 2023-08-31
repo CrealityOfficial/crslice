@@ -246,6 +246,7 @@ public:
     int tmp_is_change_layer;
     bool first_mesh_cancel;
     bool need_smart_brim;
+	bool is_deceleration_speed;
 private:
     Application* application = nullptr;
     const SliceDataStorage& storage; //!< The polygon data obtained from FffPolygonProcessor

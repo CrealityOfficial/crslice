@@ -1784,6 +1784,11 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 	{
 		gcode_layer.setLastPosition(last_position);
 	}
+	if (mesh_group_settings.get<bool>("layer_initial_deceleration_enable")&& layer_nr>0)
+	{
+		gcode_layer.is_deceleration_speed = true;
+	}
+
 
 	for (const SliceMeshStorage& mesh : storage.meshes)
 	{
@@ -1899,6 +1904,7 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
     }
 
     gcode_layer.applyBackPressureCompensation();
+
     return gcode_layer;
 }
 
