@@ -68,7 +68,8 @@ std::string Settings::get<std::string>(const std::string& key) const
     }
 
     LOGE("Trying to retrieve setting with no value given: %s", key.c_str());
-    std::exit(2);
+    //std::exit(2);
+	return "0";
 }
 
 template<>
