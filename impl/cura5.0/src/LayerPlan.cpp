@@ -1846,6 +1846,8 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
 {
     estimates.reset();
     TimeMaterialEstimates ret;
+    TimeEstimateCalculator travel_time_calculator;
+    travel_time_calculator.currentPosition = TimeEstimateCalculator::Position(INT2MM(starting_position.X), INT2MM(starting_position.Y), INT2MM(layer_nr * layer_thickness), 0);
     Point p0 = starting_position;
 
     bool was_retracted = false; // wrong assumption; won't matter that much. (TODO)
@@ -1895,13 +1897,26 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
             if (is_extrusion_path)
             {
                 material_estimate += length * INT2MM(layer_thickness) * INT2MM(path.config->getLineWidth());
+                double thisTime = length / (path.config->getSpeed() * path.speed_factor);
+                *path_time_estimate += thisTime;
+                travel_time_calculator.currentPosition = TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness), 0);
             }
-            double thisTime = length / (path.config->getSpeed() * path.speed_factor);
-            *path_time_estimate += thisTime;
+            else
+            {
+                travel_time_calculator.plan(TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness),0), (path.config->getSpeed() * path.speed_factor), path.config->type);
+            }
+           
             p0 = p1;
         }
         estimates += path.estimates;
     }
+
+    std::vector<Duration> estimates_aaa = travel_time_calculator.calculate();
+    for (int i = 0; i < estimates_aaa.size(); i++)
+    {
+        estimates.unretracted_travel_time += estimates_aaa[i];
+    }
+
     return estimates;
 }
 
