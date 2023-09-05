@@ -22,10 +22,10 @@ namespace cura54
 // The various stages of the process can be weighted differently in the progress bar.
 // These weights are obtained experimentally using a small sample size. Sensible weights can differ drastically based on the assumed default settings and model.
 constexpr auto TREE_PROGRESS_TOTAL = 10000;
-constexpr auto TREE_PROGRESS_PRECALC_COLL = TREE_PROGRESS_TOTAL * 0.1;
-constexpr auto TREE_PROGRESS_PRECALC_AVO = TREE_PROGRESS_TOTAL * 0.4;
-constexpr auto TREE_PROGRESS_GENERATE_NODES = TREE_PROGRESS_TOTAL * 0.1;
-constexpr auto TREE_PROGRESS_AREA_CALC = TREE_PROGRESS_TOTAL * 0.3;
+constexpr auto TREE_PROGRESS_PRECALC_COLL = TREE_PROGRESS_TOTAL * 0.05;
+constexpr auto TREE_PROGRESS_PRECALC_AVO = TREE_PROGRESS_TOTAL * 0.1;
+constexpr auto TREE_PROGRESS_GENERATE_NODES = TREE_PROGRESS_TOTAL * 0.05;
+constexpr auto TREE_PROGRESS_AREA_CALC = TREE_PROGRESS_TOTAL * 0.7;
 constexpr auto TREE_PROGRESS_DRAW_AREAS = TREE_PROGRESS_TOTAL * 0.1;
 
 constexpr auto TREE_PROGRESS_GENERATE_BRANCH_AREAS = TREE_PROGRESS_DRAW_AREAS / 3;
