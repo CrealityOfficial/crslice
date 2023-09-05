@@ -692,14 +692,14 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
     {
         Polygons spPolygons;
         AABB supportPartBoundary(miniSupport);
-        supportPartBoundary.expand(MM2INT(2.0));
+        supportPartBoundary.expand(MM2INT(2.0)); //get tail box from tail then expand 
         spPolygons.add(supportPartBoundary.toPolygon());
         int max_layer_idx = std::min(layerIdx + add_support_layer, (int)storage.print_layer_count);
         int max_num = 0;
         bool found_end = false;
 
         Polygons inside, hit;
-        for (const SliceMeshStorage& mesh : storage.meshes)
+        for (const SliceMeshStorage& mesh : storage.meshes) //judge support sharp tail area 
         {
             for (int i = layerIdx; i < max_layer_idx; i++)
             {
@@ -709,8 +709,8 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
                     if (part.boundaryBox.hit(supportPartBoundary))
                     {
                         hit.add(part.outline);
-                        if (part.outline.difference(spPolygons).empty())
-                            inside.add(part.outline);
+                        if (part.outline.difference(spPolygons).empty())//get upper layers area, bool, if empty push data
+                            inside.add(part.outline);  //difference order   care it,    for diff result
                         else if (inside.empty())
                         {
                             return false;
@@ -729,7 +729,7 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
     };
 
     auto scaleSharpTailOverhang = [&](std::vector<Polygons>& overhang_areas, std::vector<Polygons>& sharp_tail_data)
-    {
+    {//  get anlulur  and middle circle,   but  circle  and anlular got some small  distance,     for stick
         if (!overhang_areas.empty())
         {
             std::vector<Polygons> full_overhang_areas_add;
@@ -910,6 +910,7 @@ precomputeCrossInfillTree(storage);
 
 void AreaSupport::generateSharpTailSupport(SliceDataStorage& storage)
 {
+    //sharp_tail_areas join into support roof 
     const Settings& group_settings = storage.application->current_slice->scene.current_mesh_group->settings;
     const bool global_use_tree_support = group_settings.get<bool>("support_enable") && group_settings.get<ESupportStructure>("support_structure") != ESupportStructure::NORMAL;
     if (!global_use_tree_support)
