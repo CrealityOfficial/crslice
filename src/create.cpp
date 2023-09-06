@@ -95,6 +95,7 @@ namespace crslice
             mmesh::Cr30Param cr30Param;
             if (machine_is_belt)
             {
+				slice->scene.settings.add("adhesion_type", "none");
                 //cr30Param.belt_support_enable = slice.scene.settings.get<bool>("belt_support_enable");
                 cr30Param.belt_support_enable = slice->scene.settings.get<bool>("support_enable");
                 cr30Param.machine_depth = slice->scene.settings.get<double>("machine_depth");
