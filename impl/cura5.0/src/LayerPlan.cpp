@@ -2067,33 +2067,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
 
 	double material_diameter = mesh_group_settings.get<double>("material_diameter");   
-	//float acceleration_limit_mess = mesh_group_settings.get<double>("acceleration_limit_mess"); 
 	double material_density = mesh_group_settings.get<double>("material_density");
 	gcode.setDensity(material_density);
 	gcode.setDiameter(material_diameter);
 	//std::string machine_name = mesh_group_settings.get<std::string>("machine_name");
-
-	bool acceleration_limit_mess_enable = mesh_group_settings.get<bool>("acceleration_limit_mess_enable");
-	//std::string acceleration_limit_mess = mesh_group_settings.get<std::string>("acceleration_limit_mess");
-	FlowTempGraph acceleration_limit_mess = mesh_group_settings.get<FlowTempGraph>("acceleration_limit_mess");
-
-	//acceleration_limit_mess.data.size();
-	//double mass = acceleration_limit_mess.data[0].flow;
-	//Temperature acc_limit = acceleration_limit_mess.data[0].temp;
-	//double aa = acc_limit.operator double();
-
-	if (acceleration_limit_mess_enable)
-	{
-		gcode.setEnable(acceleration_limit_mess_enable);
-		//gcode.setAcc_Limit_mass(acceleration_limit_mess);
-		std::map <float, float> _acceleration_limit_mass_;
-		for (int i = 0; i < acceleration_limit_mess.data.size(); i++)
-		{
-			_acceleration_limit_mass_.insert(std::pair(acceleration_limit_mess.data[i].flow, acceleration_limit_mess.data[i].temp));
-		}
-		gcode.setAcc_Limit_mass(_acceleration_limit_mass_);
-	}
-
 
     coord_t cds_fan_start_layer = extruder_settings.get<coord_t>("cool_cds_fan_start_at_height") / layer_thickness;
 

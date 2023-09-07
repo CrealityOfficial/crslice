@@ -29,6 +29,8 @@
 #include "utils/orderOptimizer.h"
 #include "Slice3rBase/overhangquality/extrusionerocessor.hpp"
 
+#include "settings/GetLimitList.h"
+
 namespace cura52
 {
 
@@ -67,6 +69,78 @@ bool FffGcodeWriter::setTargetFile(const char* filename)
         return true;
     }
     return false;
+}
+
+void FffGcodeWriter::paraseLimitStr(std::string str, std::vector<LimitGraph>& outData, const Velocity& init_limit_speed,const Acceleration& init_limit_acc, const Temperature& init_limit_temp)
+{
+    //[[0.5,1.0,100,6000,220],[1.0,1.5,80,5500,210],[1.5,2.0,60,5000,200]]
+    int len = str.length();
+    if (len <= 3)
+        return;
+
+    int no = str.find_first_of('[');
+    if (no < 0 || no >= len)
+        return;
+
+    str = str.substr(no + 1, str.length());
+    no = str.find_last_of(']');
+    if (no < 0 || no >= len)
+        return;
+
+    str = str.substr(0, no);
+
+    int findIndex1 = str.find(']');
+    while (findIndex1 >= 0 && findIndex1 < str.size())
+    {
+        LimitGraph limitData;
+        limitData.data.speed1 = outData.empty() ? init_limit_speed : outData.back().data.speed2;
+        limitData.data.Acc1 = outData.empty() ? init_limit_acc : outData.back().data.Acc2;
+        limitData.data.Temp1 = outData.empty() ? init_limit_temp : outData.back().data.Temp2;
+
+        std::string temp = str.substr(0, findIndex1);
+        str = str.substr(findIndex1 + 1, str.length());
+
+        int findIndex = temp.find_last_of('[');
+        if (findIndex < 0 || findIndex >= temp.length())
+            continue;
+        temp = temp.substr(findIndex + 1, temp.length());
+
+        findIndex = temp.find(',');
+        std::vector<double> data;
+        std::string str1;
+        while (findIndex >= 0 && findIndex < temp.length())
+        {
+            str1 = temp.substr(0, findIndex);
+            temp = temp.substr(findIndex + 1, temp.length());
+            data.push_back(std::atof(str1.c_str()));
+            findIndex = temp.find(',');
+
+            if (findIndex < 0 || findIndex >= temp.length())
+            {
+                data.push_back(std::atof(temp.c_str()));
+            }
+        }
+
+        if (data.size() == 4)
+        {
+            limitData.data.value1 = MM2INT(data[0]);
+            limitData.data.value2 = MM2INT(data[1]);
+            limitData.data.speed2 = data[2];
+            limitData.data.Acc2 = data[3];
+            //limitData.data.temp;
+        }
+        else if (data.size() == 5)
+        {
+            limitData.data.value1 = MM2INT(data[0]);
+            limitData.data.value2 = MM2INT(data[1]);
+            limitData.data.speed2 = data[2];
+            limitData.data.Acc2 = data[3];
+            limitData.data.Temp2 = data[4];
+        }
+        outData.push_back(limitData);
+
+        findIndex1 = str.find(']');
+    }
 }
 
 void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
@@ -209,34 +283,74 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
             storage.polyOrderUserDef.push_back(p);
         }
     }
-    
-		//引擎调试多线程
-		if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
-		{
-			std::optional<Point> last_planned_position;
-			for (int layer_nr = process_layer_starting_layer_nr; layer_nr < (int)total_layers; layer_nr++)
-			{
-				application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
-				//layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers,last_planned_position), gcode);
-				LayerPlan& gcode_layer = processLayer(storage, layer_nr, total_layers, last_planned_position);
-				last_planned_position = gcode_layer.getLastPosition();
-				layer_plan_buffer.handle(gcode_layer, gcode);
-			}
-		} 
-		else
-		{
-			CALLTICK("processLayer & handle 0");
-			run_multiple_producers_ordered_consumer(application,
-				process_layer_starting_layer_nr,
-				total_layers,
-				[&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
-				[this, total_layers](LayerPlan* gcode_layer)
-				{
-					application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
-					layer_plan_buffer.handle(*gcode_layer, gcode);
-				});
-			CALLTICK("processLayer & handle 1");
-		}
+
+    //限制速度加速度温度
+    if (scene.current_mesh_group->settings.get<bool>("acceleration_limit_mess_enable")
+        || scene.current_mesh_group->settings.get<bool>("speed_limit_to_height_enable"))
+    {
+        //todo
+        //init_limit_speed
+        Velocity speed1 = scene.current_mesh_group->settings.get<Velocity>("speed_wall_0");
+        Velocity speed2 = scene.current_mesh_group->settings.get<Velocity>("speed_wall_x");
+        Velocity speed3 = scene.current_mesh_group->settings.get<Velocity>("speed_infill");
+        Velocity init_limit_speed = std::min(std::min(speed1, speed2), speed3);
+
+        //init_limit_acc
+        Acceleration acc1 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_infill");
+        Acceleration acc2 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_wall_0");
+        Acceleration acc3 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_wall_x");
+        Acceleration init_limit_acc = std::min(std::min(acc1, acc2), acc3);
+
+        //init_limit_temp
+        Temperature init_limit_temp = scene.current_mesh_group->settings.get<Temperature>("material_print_temperature");
+     
+        if (scene.current_mesh_group->settings.get<bool>("acceleration_limit_mess_enable"))
+        {
+            std::string str = scene.current_mesh_group->settings.get<std::string>("acceleration_limit_mess");
+
+            std::vector<LimitGraph> out;
+            paraseLimitStr(str, out, init_limit_speed, init_limit_acc, init_limit_temp);
+            gcode.setAccelerationLimitMessEnable(true);
+            gcode.setAcc_Limit_mass(out);
+        }
+        else if (scene.current_mesh_group->settings.get<bool>("speed_limit_to_height_enable"))
+        {
+            std::string str = scene.current_mesh_group->settings.get<std::string>("speed_limit_to_height");
+
+            std::vector<LimitGraph> out;
+            paraseLimitStr(str, out, init_limit_speed, init_limit_acc, init_limit_temp);
+            gcode.setAccelerationLimitHeightEnable(true);
+            gcode.setAcc_Limit_height(out);
+        }
+    }
+  
+    //引擎调试多线程
+    if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
+    {
+        std::optional<Point> last_planned_position;
+        for (int layer_nr = process_layer_starting_layer_nr; layer_nr < (int)total_layers; layer_nr++)
+        {
+            application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
+            //layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers,last_planned_position), gcode);
+            LayerPlan& gcode_layer = processLayer(storage, layer_nr, total_layers, last_planned_position);
+            last_planned_position = gcode_layer.getLastPosition();
+            layer_plan_buffer.handle(gcode_layer, gcode);
+        }
+    }
+    else
+    {
+        CALLTICK("processLayer & handle 0");
+        run_multiple_producers_ordered_consumer(application,
+            process_layer_starting_layer_nr,
+            total_layers,
+            [&storage, total_layers, this](int layer_nr) { return &processLayer(storage, layer_nr, total_layers); },
+            [this, total_layers](LayerPlan* gcode_layer)
+            {
+                application->progressor.messageProgress(Progress::Stage::EXPORT, std::max(0, gcode_layer->getLayerNr()) + 1, total_layers);
+                layer_plan_buffer.handle(*gcode_layer, gcode);
+            });
+        CALLTICK("processLayer & handle 1");
+    }
 
     layer_plan_buffer.flush();
 

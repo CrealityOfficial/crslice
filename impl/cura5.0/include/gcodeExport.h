@@ -22,6 +22,7 @@
 #include "utils/NoCopy.h"
 
 #include "settings/FlowTempGraph.h"
+#include "settings/GetLimitList.h"
 
 namespace cura52
 {
@@ -30,6 +31,12 @@ class RetractionConfig;
 struct WipeScriptConfig;
 class Application;
 struct SliceResult;
+
+enum LimitType
+{
+    LIMIT_MESS,
+    LIMIT_HEIGHT
+};
 
 //The GCodeExport class writes the actual GCode. This is the only class that knows how GCode looks and feels.
 //Any customizations on GCodes flavors are done in this class.
@@ -126,9 +133,17 @@ private:
     double material_diameter = { 1.75 };
     double material_density = { 1.24 };
 	double acceleration_limit_mess;
-	std::map <float,float> acceleration_limit_mass;
-	bool acceleration_limit_mess_enable;
+
+    std::vector<LimitGraph> vctacceleration_limit_mass;
+    std::vector<LimitGraph> vctacceleration_limit_height;
+
+	bool acceleration_limit_mess_enable = false;
+    bool acceleration_limit_height_enable = false;
     Velocity max_speed_limit_to_height;
+
+    Velocity current_limit_speed = -1.0f;
+    Velocity current_limit_Acc = -1.0f;
+    Temperature current_limit_Temp = -1.0f;
 
     // flow-rate compensation
     double current_e_offset; //!< Offset to compensate for flow rate (mm or mm^3)
@@ -438,12 +453,16 @@ public:
 	void   setDiameter(double diameter);
 	Acceleration get_current_travel_acceleration();
 	Acceleration get_current_print_acceleration();
-	bool getEnable();
-	void setEnable(bool a);
-	double getAcc_Limit_mass();
-	//void setAcc_Limit_mass(double a);
-	void setAcc_Limit_mass(std::map <float, float>& acceleration_limit_mass);
+
+    void setAccelerationLimitMessEnable(bool limitMess);
+    void setAccelerationLimitHeightEnable(bool limitHeight);
+	void setAcc_Limit_mass(std::vector<LimitGraph>& acceleration_limit_mass);
+    void setAcc_Limit_height(std::vector<LimitGraph>& acceleration_limit_height);
+
     void calculatMaxSpeedLimitToHeight(const FlowTempGraph & speed_limit_to_height);
+
+private:
+     bool detect_limit(LimitType limitType);
 private:
     /*!
      * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.

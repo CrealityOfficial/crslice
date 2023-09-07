@@ -113,7 +113,7 @@ void GCodeExport::preSetup(const size_t start_extruder)
     const Scene& scene = application->current_slice->scene;
 
     if (scene.settings.get<bool>("klipper_time_estimate_enable"))
-        estimateCalculator.reset(new TimeEstimateKlipper()); //ï¿½ÂµÄ´ï¿½Ó¡Ê±ï¿½ï¿½ï¿½ï¿½ã·½ï¿½ï¿½
+        estimateCalculator.reset(new TimeEstimateKlipper()); //?¦Ì???????????
     //else 
    //   estimateCalculator.reset(new TimeEstimateCalculator());  //
 
@@ -565,7 +565,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";MAXY:" << INT2MM(total_bounding_box.max.y) << new_line;
         prefix << ";MAXZ:" << INT2MM(total_bounding_box.max.z) << new_line;
 
-        //å„ä¸ªåŒºåŸŸçš„æ—¶é—´æ®µ
+        //¸÷¸öÇøÓòµÄÊ±¼ä¶Î
         writeTimePartsComment(prefix);
         //
 
@@ -579,9 +579,9 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
             pathParam.machine_depth = setting->get<double>("machine_depth");
             //pathParam.printTime;
             //pathParam.materialLenth;
-            pathParam.material_diameter = setting->get<double>("material_diameter"); //ææ–™ç›´å¾„
-            pathParam.material_density = setting->get<double>("material_density");  //ææ–™å¯†åº¦
-            pathParam.materialDensity = PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//å•ä½é¢ç§¯å¯†åº¦
+            pathParam.material_diameter = setting->get<double>("material_diameter"); //²ÄÁÏÖ±¾¶
+            pathParam.material_density = setting->get<double>("material_density");  //²ÄÁÏÃÜ¶È
+            pathParam.materialDensity = PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//µ¥Î»Ãæ»ýÃÜ¶È
             pathParam.lineWidth = setting->get<double>("line_width");
             pathParam.layerHeight = setting->get<double>("layer_height");
             //pathParam.unitPrice;
@@ -689,7 +689,7 @@ void GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
     }
     else
     {
-        //PLA  Density:1.24g/cm3    DIameter:1.75mm  ï¿½ï¿½:3.14159
+        //PLA  Density:1.24g/cm3    DIameter:1.75mm  ??:3.14159
         const double PI = 3.14159;
         float radius = 1.75 / 2.0;
         float density = 1.24;
@@ -1150,6 +1150,13 @@ void GCodeExport::writeLayerComment(const LayerIndex layer_nr)
         application->fDebugger->setLayer(layer_nr);
         application->fDebugger->getNotPath();
     }
+
+    if (acceleration_limit_mess_enable)
+        if (layer_nr % 3 == 0)
+            detect_limit(LimitType::LIMIT_MESS);
+    if (acceleration_limit_height_enable)
+        if (layer_nr % 3 == 0)
+            detect_limit(LimitType::LIMIT_HEIGHT);
 }
 
 void GCodeExport::writeLayerCountComment(const size_t layer_count)
@@ -1449,11 +1456,18 @@ void GCodeExport::writeTravel(const coord_t x, const coord_t y, const coord_t z,
     writeFXYZE(speed, x, y, z, current_e_value, travel_move_type);
 }
 
-void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t z, const Velocity& speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset)
+void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t z, const Velocity& _speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset)
 {
+    Velocity speed = _speed;
     if (currentPosition.x == x && currentPosition.y == y && currentPosition.z == z)
     {
         return;
+    }
+
+    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
+    {
+        if (current_limit_speed > 0.0f)
+            speed = std::min(speed, current_limit_speed);
     }
 
 #ifdef ASSERT_INSANE_OUTPUT
@@ -1536,20 +1550,28 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
         Velocity* max_feedrate = estimateCalculator->maxFeedrate();
         Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
         speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
-        if (max_speed_limit_to_height > 0)
-            speed_e = std::min(speed_e, max_speed_limit_to_height);
+        
+        //if (max_speed_limit_to_height > 0)
+        //    speed_e = std::min(speed_e, max_speed_limit_to_height);
     }
     writeFXYZE(speed_e, x, y, z, new_e_value, feature);
 }
 void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, 
 									 const coord_t i, const coord_t j, double arc_length, 
-	                                 const Velocity& speed, const double extrusion_mm3_per_mm, 
+	                                 const Velocity& _speed, const double extrusion_mm3_per_mm, 
 									 const PrintFeatureType& feature, const bool update_extrusion_offset,
 									 const bool is_ccw)
 {
+    Velocity speed = _speed;
     if (currentPosition.x == x && currentPosition.y == y && currentPosition.z == z)
     {
         return;
+    }
+
+    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
+    {
+        if (current_limit_speed > 0.0f)
+            speed = std::min(speed, current_limit_speed);
     }
 
 #ifdef ASSERT_INSANE_OUTPUT
@@ -1632,8 +1654,9 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
         Velocity* max_feedrate = estimateCalculator->maxFeedrate();
         Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
         speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
-        if (max_speed_limit_to_height > 0)
-            speed_e = std::min(speed_e, max_speed_limit_to_height);
+        
+        //if (max_speed_limit_to_height > 0)
+        //    speed_e = std::min(speed_e, max_speed_limit_to_height);
     }
 
 	writeFXYZIJE(speed_e, x, y, z, i, j, new_e_value, feature);
@@ -1883,7 +1906,7 @@ coord_t GCodeExport::writeCircle(const Velocity& speed, Point endPoint, coord_t 
     double radius = is_z_hopped / (2 * M_PI * atan(3 * M_PI / 180));
     Point ij_offset = Point(radius * (delta_no_z.Y / len), -radius * (delta_no_z.X / len));
     Point O = Point(source.X + ij_offset.X, source.Y + ij_offset.Y);
-    //ï¿½ï¿½ï¿½ï¿½Ì§ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½É³ï¿½ï¿½ï¿½Æ½Ì¨ï¿½ï¿½Î§
+    //???????¡¤?????????????¦¶
     if (O.X > radius && O.X < machine_width - radius - 1 && O.Y > radius && O.Y < machine_depth - radius - 1)
     {
         *output_stream << "G17\n";
@@ -2386,8 +2409,16 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
     current_fan_speed = speed;
 }
 
-void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperature& temperature, const bool wait)
+void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperature& _temperature, const bool wait)
 {
+    Temperature temperature = _temperature;
+
+    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
+    {
+        if (current_limit_Temp > 0.0f)
+            temperature = std::min(temperature, current_limit_Temp);
+    }
+
     const ExtruderTrain& extruder_train = application->current_slice->scene.extruders[extruder];
 
     if (! extruder_train.settings.get<bool>("machine_nozzle_temp_enabled"))
@@ -2457,7 +2488,7 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
 			*output_stream << " T1" << extruder;
 
             if (application->fDebugger)
-                application->fDebugger->setExtruder(10 + extruder);//TODO:  T10ã€T11
+                application->fDebugger->setExtruder(10 + extruder);//TODO:  T10¡¢T11
 		} 
 		else
 		{
@@ -2560,27 +2591,106 @@ void GCodeExport::writeBuildVolumeTemperatureCommand(const Temperature& temperat
         application->fDebugger->getNotPath();
 }
 
+bool GCodeExport::detect_limit(LimitType limitType)
+{
+    double value = 0.0f;
+
+    if (limitType == LimitType::LIMIT_MESS)
+    {
+        double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
+        value = volume * (getDensity() / 1000.0);
+    }
+    else if (limitType == LimitType::LIMIT_HEIGHT)
+    {
+        value = current_layer_z;
+    }
+
+    if (value < 0)
+        return false;
+
+    //¼ì²âÔÚµÚ¼¸¸öÇø¼ä
+    std::vector<LimitGraph> limit_data;
+    if (limitType == LimitType::LIMIT_MESS){
+        limit_data = vctacceleration_limit_mass;
+    }
+    else if (limitType == LimitType::LIMIT_HEIGHT){
+        limit_data = vctacceleration_limit_height;
+    }
+
+    for (size_t i = 0; i < limit_data.size(); i++)
+    {
+        LimitGraph& limit = limit_data[i];
+        double& value1 = limit.data.value1;
+        double& value2 = limit.data.value2;
+
+        if (value <= value2 && value >= value1)
+        {
+            //speed
+            {
+                double& s1 = limit.data.speed1;
+                double& s2 = limit.data.speed2;
+                if (value2 - value1)
+                {
+                    //y = ax + b
+                    double a = (s2 - s1) / (value2 - value1);
+                    double b = s1 - a * value1;
+                    double out = a * value + b;
+                    if (out < current_limit_speed || current_limit_speed < 0.0f)
+                    {
+                        current_limit_speed = out;
+                    }
+                }
+            }
+
+            //Acc
+            {
+                double& s1 = limit.data.Acc1;
+                double& s2 = limit.data.Acc2;
+                if (value2 - value1)
+                {
+                    //y = ax + b
+                    double a = (s2 - s1) / (value2 - value1);
+                    double b = s1 - a * value1;
+                    double out = a * value + b;
+                    if (out < current_limit_Acc || current_limit_Acc < 0.0f)
+                    {
+                        current_limit_Acc = out;
+                    }
+                }
+            }
+
+            //Temp
+            {
+                double& s1 = limit.data.Temp1;
+                double& s2 = limit.data.Temp2;
+                if (value2 - value1)
+                {
+                    //y = ax + b
+                    double a = (s2 - s1) / (value2 - value1);
+                    double b = s1 - a * value1;
+                    double out = a * value + b;
+                    if (out < current_limit_Temp || current_limit_Temp < 0.0f)
+                    {
+                        current_limit_Temp = out;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
-	double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-	double mass = volume * (getDensity() / 1000.0);
-
 	Acceleration acc = acceleration;
 
-	if (acceleration_limit_mess_enable)
-	{
-		auto iter = acceleration_limit_mass.begin();
-		while (iter != acceleration_limit_mass.end())
-		{
-			if (mass >= iter->first * 1000.0f && (acceleration.operator double() >= iter->second || current_print_acceleration >= iter->second))
-			{
-				//Acceleration acc(iter->second);
-				//acceleration = acc;
-				acc.value = iter->second;
-				break;
-			}
-			iter++;
-		}
+	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
+	{       
+        if(current_limit_Acc > 0.0f)
+            acc = std::min(acc, current_limit_Acc);
 	}
 
     switch (getFlavor())
@@ -2806,25 +2916,23 @@ Acceleration GCodeExport::get_current_print_acceleration()
 {
 	return current_print_acceleration;
 }
-bool GCodeExport::getEnable()
+
+void GCodeExport::setAccelerationLimitMessEnable(bool limitMess)
 {
-	return acceleration_limit_mess_enable;
+    acceleration_limit_mess_enable = limitMess;
 }
-void GCodeExport::setEnable(bool a)
+void GCodeExport::setAccelerationLimitHeightEnable(bool limitHeight)
 {
-	acceleration_limit_mess_enable = a;
+    acceleration_limit_height_enable = limitHeight;
 }
-double GCodeExport::getAcc_Limit_mass()
+void GCodeExport::setAcc_Limit_mass(std::vector<LimitGraph>& _acceleration_limit_mass)
 {
-	return acceleration_limit_mess;
+    vctacceleration_limit_mass = _acceleration_limit_mass;
 }
-//void GCodeExport::setAcc_Limit_mass(double a)
-//{
-//	acceleration_limit_mess = a;
-//}
-void GCodeExport::setAcc_Limit_mass(std::map <float, float>& _acceleration_limit_mass)
+
+void GCodeExport::setAcc_Limit_height(std::vector<LimitGraph>& _acceleration_limit_height)
 {
-	acceleration_limit_mass = _acceleration_limit_mass;
+    vctacceleration_limit_height = _acceleration_limit_height;
 }
 
 void GCodeExport::calculatMaxSpeedLimitToHeight(const FlowTempGraph& speed_limit_to_height)
