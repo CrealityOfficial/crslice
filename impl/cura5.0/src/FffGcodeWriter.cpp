@@ -93,9 +93,9 @@ void FffGcodeWriter::paraseLimitStr(std::string str, std::vector<LimitGraph>& ou
     while (findIndex1 >= 0 && findIndex1 < str.size())
     {
         LimitGraph limitData;
-        limitData.data.speed1 = outData.empty() ? init_limit_speed : outData.back().data.speed2;
-        limitData.data.Acc1 = outData.empty() ? init_limit_acc : outData.back().data.Acc2;
-        limitData.data.Temp1 = outData.empty() ? init_limit_temp : outData.back().data.Temp2;
+        limitData.data.speed1 = outData.empty() ? init_limit_speed.value : outData.back().data.speed2;
+        limitData.data.Acc1 = outData.empty() ? init_limit_acc.value : outData.back().data.Acc2;
+        limitData.data.Temp1 = outData.empty() ? init_limit_temp.value : outData.back().data.Temp2;
 
         std::string temp = str.substr(0, findIndex1);
         str = str.substr(findIndex1 + 1, str.length());
@@ -252,7 +252,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
 
-    //Ö¸¶¨ÂÖÀªµÄ´òÓ¡Ë³Ğò
+    //æŒ‡å®šè½®å»“çš„æ‰“å°é¡ºåº
     if (scene.current_mesh_group->settings.get<bool>("poly_order_user_specified"))
     {
         storage.polyOrderUserDef.clear();
@@ -284,7 +284,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         }
     }
 
-    //ÏŞÖÆËÙ¶È¼ÓËÙ¶ÈÎÂ¶È
+    //é™åˆ¶é€Ÿåº¦åŠ é€Ÿåº¦æ¸©åº¦
     if (scene.current_mesh_group->settings.get<bool>("acceleration_limit_mess_enable")
         || scene.current_mesh_group->settings.get<bool>("speed_limit_to_height_enable"))
     {
@@ -324,7 +324,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         }
     }
   
-    //ÒıÇæµ÷ÊÔ¶àÏß³Ì
+    //å¼•æ“è°ƒè¯•å¤šçº¿ç¨‹
     if (scene.current_mesh_group->settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
     {
         std::optional<Point> last_planned_position;
@@ -885,13 +885,13 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     gcode.writeCode(strTemp.c_str());
 	const Scene& scene = application->current_slice->scene;
 	const ExtruderTrain& train = scene.extruders[start_extruder_nr];
-	bool pressure_enable = train.settings.get<bool>("material_pressure_advance");//Ñ¹Á¦ÍÆ½ø
+	bool pressure_enable = train.settings.get<bool>("material_pressure_advance");//å‹åŠ›æ¨è¿›
 	if (pressure_enable)
 	{
 		double  length = train.settings.get<double>("material_advance_length");
 		gcode.writePressureComment(length);
 	}
-    bool used_Zoffset = mesh_group_settings.get<bool>("zadjust_enable");//Z Æ«ÒÆ
+    bool used_Zoffset = mesh_group_settings.get<bool>("zadjust_enable");//Z åç§»
     if (used_Zoffset)
     {
         double  zOffset = mesh_group_settings.get<double>("gcode_offset_zadjust");
@@ -1726,7 +1726,7 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                 {
                     mesh_last_layer_outline.add(part.outline);
                 }
-                //¼ÆËã·ÇĞü¿ÕÇøÓò
+                //è®¡ç®—éæ‚¬ç©ºåŒºåŸŸ
                 mesh_last_layer_outline = mesh_last_layer_outline.offset(0.5 * wall_line_width_0);
             }
             ZSeamConfig z_seam_config;
@@ -2290,7 +2290,7 @@ std::vector<size_t> FffGcodeWriter::calculateMeshOrder(const SliceDataStorage& s
     std::vector<size_t> ret;
     ret.reserve(mesh_indices_order.size());
 
-    //Ö¸¶¨Ä£ĞÍµÄ´òÓ¡Ë³Ğò
+    //æŒ‡å®šæ¨¡å‹çš„æ‰“å°é¡ºåº
     if (mesh_group->settings.get<bool>("mesh_order_user_specified"))
     {
         std::string str = mesh_group->settings.get<std::string>("mesh_order_user_specified_str");
@@ -2396,7 +2396,7 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
     std::unordered_set<std::pair<const SliceLayerPart*, const SliceLayerPart*>> order_requirements;
     if (mesh.settings.get<bool>("poly_order_user_specified"))
     {
-        //Ö¸¶¨ÂÖÀªµÄ´òÓ¡Ë³Ğò
+        //æŒ‡å®šè½®å»“çš„æ‰“å°é¡ºåº
         if (!storage.polyOrderUserDef.empty())
         {
             std::vector<int> _order;
