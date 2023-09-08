@@ -119,6 +119,30 @@ void MeshGroup::finalize()
 
         if (mesh.settings.get<bool>("support_mesh"))
             mesh_surpport_exist = true;
+        int  boxx = mesh.max().x - mesh.min().x;
+        int  boxy = mesh.max().y - mesh.min().y;
+
+        const Point3 center = (mesh.max() + mesh.min()) / 2;
+        const Point3 origin(center.x, center.y, 0);
+        const FMatrix4x3 transformation = FMatrix4x3::scale(0.9999, 0.9999, 0.9999, origin);
+
+        if (boxx == settings.get<coord_t>("machine_width"))
+        {
+            mesh.transform(transformation);
+        }
+        else if (boxx == settings.get<coord_t>("machine_depth"))
+        {
+            mesh.transform(transformation);
+        }
+        else if (boxy == settings.get<coord_t>("machine_width"))
+        {
+            mesh.transform(transformation);
+        }
+        else if (boxy == settings.get<coord_t>("machine_depth"))
+        {
+            mesh.transform(transformation);
+        }
+
     }
     scaleFromBottom(settings.get<Ratio>("material_shrinkage_percentage_x"), settings.get<Ratio>("material_shrinkage_percentage_y"), settings.get<Ratio>("material_shrinkage_percentage_z")); // Compensate for the shrinkage of the material.
   
