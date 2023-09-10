@@ -1,7 +1,20 @@
 #ifndef CRSLICE_HEADER_INTERFACE
 #define CRSLICE_HEADER_INTERFACE
-#include "crcommon/header.h"
+#include "crslice/interface.h"
 #include <memory>
+
+#include "trimesh2/TriMesh.h"
+#include "trimesh2/XForm.h"
+#include "trimesh2/TriMesh_algo.h"
+
+#include <fstream>
+#include <unordered_map>
+#include "ccglobal/tracer.h"
+
+typedef std::shared_ptr<trimesh::TriMesh> TriMeshPtr;
+
+#include "crslice/settings.h"
+typedef std::shared_ptr<crslice::Settings> SettingsPtr;
 
 namespace crslice
 {
@@ -27,8 +40,8 @@ namespace crslice
 		int printTime;
 		float materialLenth;
 		float materialDensity;//单位面积密度
-		float material_diameter = { 1.75 }; //材料直径
-		float material_density = { 1.24 };  //材料密度
+		float material_diameter = { 1.75f }; //材料直径
+		float material_density = { 1.24f };  //材料密度
 		float lineWidth;
 		float layerHeight;
 		float unitPrice;
@@ -46,9 +59,9 @@ namespace crslice
 		bool relativeExtrude;
 		PathParam()
 		{
-			machine_height = 250;
-			machine_width = 220;
-			machine_depth = 220;
+			machine_height = 250.0f;
+			machine_width = 220.0f;
+			machine_depth = 220.0f;
 			printTime = 0;
 			materialLenth = 0.0f;
 			materialDensity = 1.0f;

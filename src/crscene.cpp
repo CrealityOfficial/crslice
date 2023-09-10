@@ -2,7 +2,8 @@
 
 #include "crgroup.h"
 #include "crobject.h"
-#include "crcommon/jsonloader.h"
+#include "jsonhelper.h"
+#include "jsonloader.h"
 #include "ccglobal/log.h"
 
 namespace crslice
@@ -10,7 +11,7 @@ namespace crslice
 	CrScene::CrScene()
 		:m_debugger(nullptr)
 	{
-		m_settings.reset(new crcommon::Settings());
+		m_settings.reset(new Settings());
 		machine_center_is_zero = false;
 	}
 
@@ -93,16 +94,16 @@ namespace crslice
 
 	void CrScene::setSceneJsonFile(const std::string& fileName)
 	{
-		std::vector<crcommon::KValues> extruders;
-		if (crcommon::loadJSON(fileName, m_settings->settings, extruders) != 0)
+		std::vector<KValues> extruders;
+		if (loadJSON(fileName, m_settings->settings, extruders) != 0)
 		{
 			LOGE("setSceneJsonFile invalid json file: %s", fileName.c_str());
 			return;
 		}
 
-		for (crcommon::KValues& kvs : extruders)
+		for (KValues& kvs : extruders)
 		{
-			SettingsPtr settings(new crcommon::Settings());
+			SettingsPtr settings(new Settings());
 			settings->settings.swap(kvs);
 			m_extruders.push_back(settings);
 		}
@@ -188,7 +189,7 @@ namespace crslice
 			int extruderCount = templateLoad<int>(in);
 			for (int i = 0; i < extruderCount; ++i)
 			{
-				SettingsPtr setting(new crcommon::Settings());
+				SettingsPtr setting(new Settings());
 				setting->load(in);
 				m_extruders.push_back(setting);
 			}

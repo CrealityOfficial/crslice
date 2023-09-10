@@ -1,11 +1,12 @@
 #include "crgroup.h"
 
+#include "jsonhelper.h"
 #include "ccglobal/log.h"
 namespace crslice
 {
 	CrGroup::CrGroup()
 	{
-		m_settings.reset(new crcommon::Settings());
+		m_settings.reset(new Settings());
 	}
 
 	CrGroup::~CrGroup()

@@ -2,8 +2,8 @@
 #include "Application.h"
 
 #include "crgroup.h"
+#include "mesh/trimecr30.h"
 #include "ccglobal/log.h"
-#include "mmesh/util/trimecr30.h"
 
 namespace crslice
 {
@@ -34,7 +34,7 @@ namespace crslice
             curaMesh.finish();
     }
 
-    void crSetting2CuraSettings(const crcommon::Settings& crSettings, cura52::Settings* curaSettings)
+    void crSetting2CuraSettings(const Settings& crSettings, cura52::Settings* curaSettings)
     {
         for (const std::pair<std::string, std::string> pair : crSettings.settings)
         {
@@ -92,7 +92,7 @@ namespace crslice
         //CR30 
         {
             bool machine_is_belt = slice->scene.settings.get<bool>("machine_is_belt");
-            mmesh::Cr30Param cr30Param;
+            Cr30Param cr30Param;
             if (machine_is_belt)
             {
 				slice->scene.settings.add("adhesion_type", "none");
@@ -118,7 +118,7 @@ namespace crslice
 
                 if (!meshs.empty())
                 {
-                    std::vector<trimesh::TriMesh*> outmeshs = machine_is_belt == true ? mmesh::sliceBelt(meshs, cr30Param, nullptr) : std::vector<trimesh::TriMesh*>(0);
+                    std::vector<trimesh::TriMesh*> outmeshs = machine_is_belt == true ? sliceBelt(meshs, cr30Param, nullptr) : std::vector<trimesh::TriMesh*>(0);
                     slice->scene.settings.add("support_enable", "false");
                     slice->scene.settings.add("machine_belt_offset", std::to_string(cr30Param.beltOffsetX));
                     slice->scene.settings.add("machine_belt_offset_Y", std::to_string(cr30Param.beltOffsetY));
@@ -135,7 +135,7 @@ namespace crslice
                                 trimesh2CuraMesh(outmesh, meshsupport, application);
                                 INTERRUPT_BREAK("CRSliceFromScene::sliceNext  trimesh2CuraMesh.");
 
-                                SettingsPtr settings(new crcommon::Settings());
+                                SettingsPtr settings(new Settings());
                                 *settings = *(object.m_settings);
                                 settings->add("support_enable", "false");
                                 settings->add("support_mesh", "true");

@@ -1,10 +1,11 @@
 #include "crobject.h"
+#include "jsonhelper.h"
 
 namespace crslice
 {
 	CrObject::CrObject()
 	{
-		m_settings.reset(new crcommon::Settings());
+		m_settings.reset(new Settings());
 	}
 
 	CrObject::~CrObject()

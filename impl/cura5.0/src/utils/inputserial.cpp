@@ -2,6 +2,7 @@
 #include "SkeletalTrapezoidation.h"
 #include "BeadingStrategy/BeadingStrategyFactory.h"
 
+using namespace crslice;
 namespace cura52
 {
     void savePolygons(const Polygons& polygons, std::ofstream& out)

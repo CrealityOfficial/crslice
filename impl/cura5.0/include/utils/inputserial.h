@@ -1,6 +1,6 @@
 #ifndef CURA52_INPUTSERIAL_1679560834710_H
 #define CURA52_INPUTSERIAL_1679560834710_H
-#include "crcommon/header.h"
+#include "jsonhelper.h"
 #include "settings/types/Angle.h"
 #include "polygon.h"
 
