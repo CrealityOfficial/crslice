@@ -2629,7 +2629,7 @@ bool GCodeExport::detect_limit(LimitType limitType)
             {
                 double& s1 = limit.data.speed1;
                 double& s2 = limit.data.speed2;
-                if (value2 - value1)
+                if ((value2 - value1) && (s1 - s2))
                 {
                     //y = ax + b
                     double a = (s2 - s1) / (value2 - value1);
@@ -2646,7 +2646,7 @@ bool GCodeExport::detect_limit(LimitType limitType)
             {
                 double& s1 = limit.data.Acc1;
                 double& s2 = limit.data.Acc2;
-                if (value2 - value1)
+                if ((value2 - value1) && (s1 - s2))
                 {
                     //y = ax + b
                     double a = (s2 - s1) / (value2 - value1);
@@ -2663,7 +2663,7 @@ bool GCodeExport::detect_limit(LimitType limitType)
             {
                 double& s1 = limit.data.Temp1;
                 double& s2 = limit.data.Temp2;
-                if (value2 - value1)
+                if ((value2 - value1) && (s1 - s2))
                 {
                     //y = ax + b
                     double a = (s2 - s1) / (value2 - value1);
@@ -2676,11 +2676,11 @@ bool GCodeExport::detect_limit(LimitType limitType)
                 }
             }
 
-            return true;
+            //return true;
         }
     }
 
-    return false;
+    return true;
 }
 
 void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
