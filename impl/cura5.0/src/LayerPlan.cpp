@@ -52,6 +52,7 @@ ExtruderPlan::ExtruderPlan(const size_t extruder,
     , cool_min_layer_time_correct(0)
     , slowdown_level(0)
 {
+    min_layertime = 5.0f;
 }
 
 void ExtruderPlan::handleInserts(unsigned int& path_idx, GCodeExport& gcode)
@@ -1851,6 +1852,7 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
     Point p0 = starting_position;
 
     bool was_retracted = false; // wrong assumption; won't matter that much. (TODO)
+    float fitting = -8.5994e-06 * pow(min_layertime, 4) + 0.00060887 * pow(min_layertime, 3) - 0.015561 * pow(min_layertime, 2) + 0.18022 * min_layertime + 0.15418;
     for (GCodePath& path : paths)
     {
         path.estimates.reset();
@@ -1894,18 +1896,32 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
         for (Point& p1 : path.points)
         {
             double length = vSizeMM(p0 - p1);
+            double t12 = (path.config->getSpeed() * path.speed_factor) / path.config->getAcceleration();
+            double s12 = path.config->getAcceleration() * t12 * t12 / 2.0;
+            double lengthM = length - s12 - s12;
             if (is_extrusion_path)
             {
                 material_estimate += length * INT2MM(layer_thickness) * INT2MM(path.config->getLineWidth());
-                double thisTime = length / (path.config->getSpeed() * path.speed_factor);
+                double thisTime = 0; //= length / (path.config->getSpeed() * path.speed_factor);
+                if (lengthM < length && lengthM > 0)
+                {
+                    thisTime = lengthM / (path.config->getSpeed() * path.speed_factor);
+                    thisTime = thisTime + t12 / fitting;
+                }
+                else
+                {
+                    double time_halfwaf_smallDis_accLarge = sqrt(length / path.config->getAcceleration());
+                    thisTime = thisTime + time_halfwaf_smallDis_accLarge / fitting;
+                }
+
                 *path_time_estimate += thisTime;
                 travel_time_calculator.currentPosition = TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness), 0);
             }
             else
             {
-                travel_time_calculator.plan(TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness),0), (path.config->getSpeed() * path.speed_factor), path.config->type);
+                travel_time_calculator.plan(TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness), 0), (path.config->getSpeed() * path.speed_factor), path.config->type);
             }
-           
+
             p0 = p1;
         }
         estimates += path.estimates;

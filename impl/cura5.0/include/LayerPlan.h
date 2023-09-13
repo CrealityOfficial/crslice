@@ -75,6 +75,7 @@ protected:
     TimeMaterialEstimates estimates; //!< Accumulated time and material estimates for all planned paths within this extruder plan.
 
 public:
+    float min_layertime;
     size_t extruder_nr; //!< The extruder used for this paths in the current plan.
     Duration cool_min_layer_time_correct;
     int slowdown_level;
