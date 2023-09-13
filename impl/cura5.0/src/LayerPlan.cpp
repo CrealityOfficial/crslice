@@ -2247,6 +2247,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
         }
 
 		float realLength = 0.0;
+		int iflag = 0;
         for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
         {
             extruder_plan.handleInserts(path_idx, gcode);
@@ -2801,36 +2802,68 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     {
                         for(unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
                         {
+							auto start_speed_down = [&](const double length,const Velocity deceleration_speed)
+							{
+								const Point diff = path.points[point_idx] - gcode.getPositionXY();
+								if (cura52::shorterThan(diff, 100))
+								{
+									return;
+								}
+								double diff_length = (sqrt(diff.X * diff.X + diff.Y * diff.Y));
+								realLength += diff_length;
+								if (realLength > length * 0.8 && realLength < length * 1.2)
+								{
+									gcode.writeExtrusion(path.points[point_idx], deceleration_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+									//is_deceleration_speed = false;
+									realLength = 0.0;
+									iflag += 1;
+								}
+								else if (realLength < length)
+								{
+									gcode.writeExtrusion(path.points[point_idx], deceleration_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+								}
+								else
+								{
+									float needLength = diff_length - realLength + length;
+									Point newPoint;
+									newPoint.X = (needLength * diff.X) / diff_length + gcode.getPositionXY().X;
+									newPoint.Y = (needLength * diff.Y) / diff_length + gcode.getPositionXY().Y;
+									gcode.writeExtrusion(newPoint, deceleration_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+									//is_deceleration_speed = false;
+									realLength = 0.0;
+									iflag += 1;
+
+									if (3 == iflag)
+									{
+										const double extrude_speed = speed * path.speed_back_pressure_factor;
+										gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+									}
+								}
+							};
+
 
 							if (is_deceleration_speed)//颗粒机 每层起始段减速
 							{
 								float length = application->current_slice->scene.settings.get<coord_t>("layer_deceleration_length");
-								float speed = application->current_slice->scene.settings.get<Velocity>("layer_deceleration_speed");
-								const Point diff = path.points[point_idx] - gcode.getPositionXY();
-								double diff_length = (sqrt(diff.X * diff.X + diff.Y * diff.Y));
-								realLength += diff_length;
-								if (realLength > length*0.8 && realLength <length*1.2)
+								float deceleration_speed = application->current_slice->scene.settings.get<Velocity>("layer_deceleration_speed");
+								if (iflag == 0)
 								{
-									gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
-									is_deceleration_speed = false;
-								} 
-								else if (realLength < length)
-								{
-									gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+									start_speed_down(length * 0.6, deceleration_speed);
 								}
-								else
+								if (1 == iflag)
 								{
-									 float needLength = diff_length - realLength + length;
-									 Point newPoint;
-									 newPoint.X = (needLength * diff.X) / diff_length + gcode.getPositionXY().X;
-									 newPoint.Y = (needLength * diff.Y) / diff_length + gcode.getPositionXY().Y;
-									 gcode.writeExtrusion(newPoint, speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
-
-									 const double extrude_speed = speed * path.speed_back_pressure_factor;
-									 gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+									Velocity currentSpeed = deceleration_speed + (speed * path.speed_back_pressure_factor - deceleration_speed) * 0.25;
+									start_speed_down(length * 0.2, currentSpeed);
 								}
-
-
+								if (2 == iflag)
+								{
+									Velocity currentSpeed = deceleration_speed + (speed * path.speed_back_pressure_factor - deceleration_speed) * 0.6;
+									start_speed_down(length * 0.2, currentSpeed);
+								}
+								if (3 == iflag)
+								{ 
+									is_deceleration_speed = false; 
+								}
 							} 
 							else
 							{
