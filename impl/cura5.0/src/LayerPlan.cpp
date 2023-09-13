@@ -52,7 +52,7 @@ ExtruderPlan::ExtruderPlan(const size_t extruder,
     , cool_min_layer_time_correct(0)
     , slowdown_level(0)
 {
-    min_layertime = 5.0f;
+    min_layertime = fan_speed_layer_time_settings.cool_min_layer_time;
 }
 
 void ExtruderPlan::handleInserts(unsigned int& path_idx, GCodeExport& gcode)
