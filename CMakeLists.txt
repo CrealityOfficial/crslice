@@ -11,8 +11,14 @@ __assert_target(trimesh2)
 __cc_find(polyclipping)
 __assert_target(polyclipping)
 
+__cc_find(stb)
+__assert_target(stb)
+
+__cc_find(rapidjson)
+__assert_target(rapidjson)
+			
 set(ILIBS trimesh2) 
-set(LIBS polyclipping slice3r_base) 
+set(LIBS polyclipping slice3r_base stb rapidjson) 
 
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/crslice/ SRCS1)
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/src/ SRCS2)

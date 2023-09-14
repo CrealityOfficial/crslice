@@ -7,8 +7,6 @@
 #include <memory>
 #include <string>
 
-#include <fmt/format.h>
-#include <fmt/ranges.h>
 #include "communication/Communication.h"
 
 #include "ccglobal/log.h"
