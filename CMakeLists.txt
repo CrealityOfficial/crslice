@@ -3,8 +3,6 @@ include(StandardProjectSettings.cmake)
 
 __build_crslice_info_header()
 
-__assert_target(slice3r_base)
-
 __cc_find(trimesh2)
 __assert_target(trimesh2)
 
@@ -18,7 +16,7 @@ __cc_find(rapidjson)
 __assert_target(rapidjson)
 			
 set(ILIBS trimesh2) 
-set(LIBS polyclipping slice3r_base stb rapidjson) 
+set(LIBS polyclipping stb rapidjson) 
 
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/crslice/ SRCS1)
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/src/ SRCS2)
@@ -31,6 +29,7 @@ set(DEFS BOOST_ALL_NO_LIB)
 set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(impl/cura5.0/cura.cmake)
+include(Slice3rBase.cmake)
 
 __add_common_library(crslice FOLDER slice OPENMP)
 
