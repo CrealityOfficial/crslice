@@ -2319,7 +2319,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     if (entireLayerSlowdown)
                         gcode.writePrintAcceleration(speed_slowtofast_slowdown_revise_acceleration, acceleration_breaking_enabled, acceleration_breaking);
                     else
-                        gcode.writePrintAcceleration(path.config->getAcceleration() * extruder_plan.getExtrudeSpeedFactor(), acceleration_breaking_enabled, acceleration_breaking);
+                        gcode.writePrintAcceleration(std::max(path.config->getAcceleration()* extruder_plan.getExtrudeSpeedFactor(), Acceleration(500)), acceleration_breaking_enabled, acceleration_breaking);
                 }
             }
             if (jerk_enabled)
