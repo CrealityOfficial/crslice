@@ -785,6 +785,10 @@ InsetDirection Settings::get<InsetDirection>(const std::string& key) const
     {
         return InsetDirection::OUTSIDE_IN;
     }
+	if (value == "flexible_sequence")
+	{
+		return InsetDirection::Flexible_Sequence;
+	}
     else // Default.
     {
         return InsetDirection::INSIDE_OUT;

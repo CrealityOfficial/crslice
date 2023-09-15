@@ -255,16 +255,18 @@ enum class EGCodeFlavor
  */
 enum class InsetDirection
 {
-    /*!
-     * The innermost wall is printed first, then the second-innermost wall, etc.
-     */
-    INSIDE_OUT,
+	/*!
+	 * The innermost wall is printed first, then the second-innermost wall, etc.
+	 */
+	INSIDE_OUT,
 
-    /*!
-     * The outermost wall is printed first, then the second wall, etc.
-     */
-    OUTSIDE_IN,
+	/*!
+	 * The outermost wall is printed first, then the second wall, etc.
+	 */
+	OUTSIDE_IN,
 
+	//Walls that overhang more than this angle will be printed using overhanging wall settings.When the value is 90, no walls will be treated as overhanging.Overhang that gets supported by support will not be treated as overhang either.
+	Flexible_Sequence,
     /*!
      * If the innermost wall is a central wall, it is printed last. Otherwise
      * prints the same as inside out.

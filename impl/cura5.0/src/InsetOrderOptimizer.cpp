@@ -54,9 +54,44 @@ bool InsetOrderOptimizer::addToLayer()
 {
     // Settings & configs:
     const auto pack_by_inset = ! settings.get<bool>("optimize_wall_printing_order");
-    const auto inset_direction = settings.get<InsetDirection>("inset_direction");
     const auto alternate_walls = settings.get<bool>("material_alternate_walls");
     const auto wipe_length = settings.get<coord_t>("wipe_length");
+	auto inset_direction = settings.get<InsetDirection>("inset_direction");
+	if (inset_direction == InsetDirection::Flexible_Sequence)
+	{
+		const AngleDegrees overhang_angle = settings.get<AngleDegrees>("wall_ordering_overhang_angle");
+		double overlap;
+		const coord_t layer_height = inset_0_non_bridge_config.getLayerThickness();
+		const int outer_wall_width = inset_0_non_bridge_config.getLineWidth();
+		coord_t overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
+		overlap = overhang_width * 100.0 / outer_wall_width;
+		float distance = outer_wall_width * (overlap / 100.0);
+
+		bool isOverhang = false;
+		for (auto& aunit:paths)
+		{
+			for (auto adata:aunit)
+			{
+				for (int n=0;n<adata.junctions.size();n++)
+				{
+					if (adata.junctions[n].overhang_distance >= distance)
+					{
+						isOverhang = true;
+					}
+				}
+			}
+		}
+
+		if (isOverhang)
+		{
+			inset_direction = InsetDirection::INSIDE_OUT;
+		}
+		else
+		{
+			inset_direction = InsetDirection::OUTSIDE_IN;
+		}
+	}
+
 
     const bool outer_to_inner = inset_direction == InsetDirection::OUTSIDE_IN;
     const bool use_one_extruder = wall_0_extruder_nr == wall_x_extruder_nr;

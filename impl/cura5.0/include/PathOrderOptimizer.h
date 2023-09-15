@@ -196,13 +196,19 @@ public:
                     continue;
                 }
 
-                int startIdx = path.startIdx();
-                if (startIdx < path.getVertexData().size()
-                    && startIdx > -1)
-                    path.start_vertex = startIdx;
-                else
-                    path.start_vertex = findStartLocation(path, seam_config.pos);
-
+				if (seam_config.type == EZSeamType::SHARPEST_CORNER)
+				{
+					int startIdx = path.startIdx();
+					if (startIdx < path.getVertexData().size()
+						&& startIdx > -1)
+						path.start_vertex = startIdx;
+					else
+						path.start_vertex = findStartLocation(path, seam_config.pos);
+				}
+				else
+				{
+					path.start_vertex = findStartLocation(path, seam_config.pos);
+				}
             }
         }
         

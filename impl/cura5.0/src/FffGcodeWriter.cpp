@@ -313,7 +313,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
             gcode.setAccelerationLimitMessEnable(true);
             gcode.setAcc_Limit_mass(out);
         }
-        else if (scene.current_mesh_group->settings.get<bool>("speed_limit_to_height_enable"))
+        if (scene.current_mesh_group->settings.get<bool>("speed_limit_to_height_enable"))
         {
             std::string str = scene.current_mesh_group->settings.get<std::string>("speed_limit_to_height");
 
