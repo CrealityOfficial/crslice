@@ -2692,6 +2692,7 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
         if(current_limit_Acc > 0.0f)
             acc = std::min(acc, current_limit_Acc);
 	}
+    acc = std::max(acc, Acceleration(10.0));
 
     switch (getFlavor())
     {
