@@ -7,10 +7,10 @@ endif ()
 
 __conan_import(boost dll COMPONENT boost_nowide boost_filesystem)
 __cc_find(eigen)
-__cc_find(Cereal)
-__cc_find(Admesh)
+__cc_find(cereal)
+__cc_find(admesh)
 __cc_find(tbb)
-__cc_find(Clipper2)
+__cc_find(clipper2)
 
 __assert_target(clipper2)
 __assert_target(cereal)
