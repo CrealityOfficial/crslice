@@ -70,7 +70,7 @@ public:
     Velocity max_feedrate[NUM_AXIS] = {600, 600, 40, 25}; 
     Velocity minimumfeedrate = 0.01;
     Acceleration acceleration = 3000;
-    Acceleration max_acceleration[NUM_AXIS] = {9000, 9000, 100, 10000};   
+    Acceleration max_acceleration[NUM_AXIS] = {99000, 99000, 999100, 1099000};   
     Velocity max_xy_jerk = 20.0;
     Velocity max_z_jerk = 0.4;
     Velocity max_e_jerk = 5.0;

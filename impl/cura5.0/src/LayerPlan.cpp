@@ -1849,12 +1849,16 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
     TimeMaterialEstimates ret;
     TimeEstimateCalculator travel_time_calculator;
     travel_time_calculator.currentPosition = TimeEstimateCalculator::Position(INT2MM(starting_position.X), INT2MM(starting_position.Y), INT2MM(layer_nr * layer_thickness), 0);
+
     Point p0 = starting_position;
 
     bool was_retracted = false; // wrong assumption; won't matter that much. (TODO)
-    float fitting = -8.5994e-06 * pow(min_layertime, 4) + 0.00060887 * pow(min_layertime, 3) - 0.015561 * pow(min_layertime, 2) + 0.18022 * min_layertime + 0.15418;
+    double fitting = 0.024517 * pow(min_layertime, 4) - 1.0104 * pow(min_layertime, 3) + 15.453 * pow(min_layertime, 2) - 105.71 * min_layertime + 323.81;
+    int count = 0;
     for (GCodePath& path : paths)
     {
+        travel_time_calculator.max_xy_jerk = path.config->getJerk();
+        travel_time_calculator.acceleration = path.config->getAcceleration();
         path.estimates.reset();
         bool is_extrusion_path = false;
         double* path_time_estimate;
@@ -1895,42 +1899,19 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
         }
         for (Point& p1 : path.points)
         {
-            double length = vSizeMM(p0 - p1);
-            double t12 = (path.config->getSpeed() * path.speed_factor) / path.config->getAcceleration();
-            double s12 = path.config->getAcceleration() * t12 * t12 / 2.0;
-            double lengthM = length - s12 - s12;
-            if (is_extrusion_path)
-            {
-                material_estimate += length * INT2MM(layer_thickness) * INT2MM(path.config->getLineWidth());
-                double thisTime = 0; //= length / (path.config->getSpeed() * path.speed_factor);
-                if (lengthM < length && lengthM > 0)
-                {
-                    thisTime = lengthM / (path.config->getSpeed() * path.speed_factor);
-                    thisTime = thisTime + t12 / fitting;
-                }
-                else
-                {
-                    double time_halfwaf_smallDis_accLarge = sqrt(length / path.config->getAcceleration());
-                    thisTime = thisTime + time_halfwaf_smallDis_accLarge / fitting;
-                }
-
-                *path_time_estimate += thisTime;
-                travel_time_calculator.currentPosition = TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness), 0);
-            }
-            else
-            {
-                travel_time_calculator.plan(TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness), 0), (path.config->getSpeed() * path.speed_factor), path.config->type);
-            }
+            count+=1;
+            travel_time_calculator.plan(TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness), 0), (path.config->getSpeed() * path.speed_factor), path.config->type);
 
             p0 = p1;
         }
-        estimates += path.estimates;
-    }
 
+    }
+    if (level == 0 && count < 200)
+        estimates.extrude_time -= count/fitting;
     std::vector<Duration> estimates_aaa = travel_time_calculator.calculate();
     for (int i = 0; i < estimates_aaa.size(); i++)
     {
-        estimates.unretracted_travel_time += estimates_aaa[i];
+        estimates.extrude_time += estimates_aaa[i];
     }
 
     return estimates;
