@@ -3620,13 +3620,15 @@ void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage,
             }
         }
 
-        if (supported)
+        const bool cool_fan_enabled = mesh.settings.get<bool>("cool_fan_enabled");
+        if (supported && cool_fan_enabled)
         {
             fan_speed = mesh.settings.get<Ratio>("support_supported_skin_fan_speed") * 100.0;
         }
     }
     const bool overhang_bridge_force_cooling = mesh.settings.get<bool>("cool_overhang_bridge_force_cooling");
-    if(overhang_bridge_force_cooling && is_bridge_skin)
+    const bool cool_fan_enabled = mesh.settings.get<bool>("cool_fan_enabled");
+    if(overhang_bridge_force_cooling && is_bridge_skin && cool_fan_enabled)
     {
         fan_speed = mesh.settings.get<Ratio>("cool_overhang_fan_speed") * 100.0;
     }
