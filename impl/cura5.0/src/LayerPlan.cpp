@@ -771,6 +771,11 @@ void LayerPlan::addWallLine(const Point& p0,
 
     auto getFanSpeed = [&](const GCodePathConfig& config)
     {
+        const bool cool_fan_enabled = settings.get<bool>("cool_fan_enabled");
+        if (!cool_fan_enabled)
+        {
+            return GCodePathConfig::FAN_SPEED_DEFAULT;
+        }
         if (!overhang_bridge_force_cooling)
             return GCodePathConfig::FAN_SPEED_DEFAULT;
         if (config.isBridgePath() || overhang_distance > overhang_threshold * config.getLineWidth())
@@ -1329,7 +1334,10 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
                 if (p1.overhang_distance > 0 && !speed_sections.empty())
                     result_speed_factor = std::min(small_feature_speed_factor, getSpeedFactorP(destination, p1.overhang_distance, non_bridge_config.getSpeed(), speed_sections));
                 constexpr bool spiralize = false;
+
                 double fan_speed_s = getLayerNr() < settings.get<LayerIndex>("cool_fan_full_layer") ? non_bridge_config.getFanSpeed() : small_feature_fan_speed;
+                bool cool_fan_enabled = settings.get<bool>("cool_fan_enabled");
+                cool_fan_enabled ? fan_speed_s : fan_speed_s = 0.0f;
                 addExtrusionMove(destination, non_bridge_config, SpaceFillType::Polygons, flow_ratio, line_width* nominal_line_width_multiplier, spiralize, result_speed_factor, fan_speed_s);
             }
             else
@@ -1920,7 +1928,7 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
     return estimates;
 }
 
-void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed)
+void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed, bool cool_fan_enabled)
 {
     Duration cool_min_layer_time = fan_speed_layer_time_settings.cool_min_layer_time;
     if (cool_min_layer_time_correct != 0.)
@@ -2003,11 +2011,13 @@ void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_t
         fan_speed = fan_speed_layer_time_settings.cool_fan_speed_0 + (fan_speed - fan_speed_layer_time_settings.cool_fan_speed_0) * std::max(LayerIndex(0), layer_nr) / fan_speed_layer_time_settings.cool_fan_full_layer;
     }
 
+
+
     bool full_fan_layer = (layer_nr >= fan_speed_layer_time_settings.cool_fan_full_layer) && getExtrudeSpeedFactor() < 1.0;
     double low_speed_print_time = 0;
     for (GCodePath& path : paths)
     {
-        if (full_fan_layer && !path.isTravelPath())
+        if (full_fan_layer && !path.isTravelPath() && cool_fan_enabled)
             path.fan_speed = 100.0;
         if (cds_fan_speed > 0 && (path.speed_factor < 1.0 || path.config->isBridgePath()))
         {
@@ -2029,7 +2039,8 @@ void LayerPlan::processFanSpeedAndMinimalLayerTime(Point starting_position)
         const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_plan.extruder_nr].settings;
         double max_cds_fan_speed = extruder_settings.get<double>("cool_special_cds_fan_speed");
         bool force_minimal_layer_time = extr_plan_idx == extruder_plans.size() - 1;
-        extruder_plan.processFanSpeedAndMinimalLayerTime(force_minimal_layer_time, starting_position, max_cds_fan_speed);
+        const bool cool_fan_enabled = extruder_settings.get<bool>("cool_fan_enabled");
+        extruder_plan.processFanSpeedAndMinimalLayerTime(force_minimal_layer_time, starting_position, max_cds_fan_speed, cool_fan_enabled);
         if (! extruder_plan.paths.empty() && ! extruder_plan.paths.back().points.empty())
         {
             starting_position = extruder_plan.paths.back().points.back();

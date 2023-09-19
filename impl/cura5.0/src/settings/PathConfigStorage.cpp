@@ -53,7 +53,7 @@ PathConfigStorage::MeshPathConfigs::MeshPathConfigs(const SliceMeshStorage& mesh
     , mesh.settings.get<Ratio>("bridge_wall_material_flow")
     , GCodePathConfig::SpeedDerivatives{mesh.settings.get<Velocity>("bridge_wall_speed"), mesh.settings.get<Acceleration>("acceleration_wall_0"), mesh.settings.get<Velocity>("jerk_wall_0")}
     , true // is_bridge_path
-    , mesh.settings.get<Ratio>("bridge_fan_speed") * 100.0
+    , mesh.settings.get<Ratio>("cool_fan_enabled") ? mesh.settings.get<Ratio>("bridge_fan_speed") * 100.0 : GCodePathConfig::FAN_SPEED_DEFAULT
 )
 , bridge_insetX_config(
     PrintFeatureType::InnerWall
@@ -62,7 +62,7 @@ PathConfigStorage::MeshPathConfigs::MeshPathConfigs(const SliceMeshStorage& mesh
     , mesh.settings.get<Ratio>("bridge_wall_material_flow")
     , GCodePathConfig::SpeedDerivatives{mesh.settings.get<Velocity>("bridge_wall_speed"), mesh.settings.get<Acceleration>("acceleration_wall_x"), mesh.settings.get<Velocity>("jerk_wall_x")}
     , true // is_bridge_path
-    , mesh.settings.get<Ratio>("bridge_fan_speed") * 100.0
+    , mesh.settings.get<Ratio>("cool_fan_enabled") ? mesh.settings.get<Ratio>("bridge_fan_speed") * 100.0 : GCodePathConfig::FAN_SPEED_DEFAULT
 )
 , skin_config(
     PrintFeatureType::Skin
@@ -78,7 +78,7 @@ PathConfigStorage::MeshPathConfigs::MeshPathConfigs(const SliceMeshStorage& mesh
     , mesh.settings.get<Ratio>("bridge_skin_material_flow")
     , GCodePathConfig::SpeedDerivatives{mesh.settings.get<Velocity>("bridge_skin_speed"), mesh.settings.get<Acceleration>("acceleration_topbottom"), mesh.settings.get<Velocity>("jerk_topbottom")}
     , true // is_bridge_path
-    , mesh.settings.get<Ratio>("bridge_fan_speed") * 100.0
+    , mesh.settings.get<Ratio>("cool_fan_enabled") ? mesh.settings.get<Ratio>("bridge_fan_speed") * 100.0 : GCodePathConfig::FAN_SPEED_DEFAULT
 )
 , bridge_skin_config2( // use bridge skin 2 flow, speed and fan
     PrintFeatureType::Skin
@@ -87,7 +87,7 @@ PathConfigStorage::MeshPathConfigs::MeshPathConfigs(const SliceMeshStorage& mesh
     , mesh.settings.get<Ratio>("bridge_skin_material_flow_2")
     , GCodePathConfig::SpeedDerivatives{mesh.settings.get<Velocity>("bridge_skin_speed_2"), mesh.settings.get<Acceleration>("acceleration_topbottom"), mesh.settings.get<Velocity>("jerk_topbottom")}
     , true // is_bridge_path
-    , mesh.settings.get<Ratio>("bridge_fan_speed_2") * 100.0
+    , mesh.settings.get<Ratio>("cool_fan_enabled") ? mesh.settings.get<Ratio>("bridge_fan_speed_2") * 100.0 : GCodePathConfig::FAN_SPEED_DEFAULT
 )
 , bridge_skin_config3( // use bridge skin 3 flow, speed and fan
     PrintFeatureType::Skin
@@ -96,7 +96,7 @@ PathConfigStorage::MeshPathConfigs::MeshPathConfigs(const SliceMeshStorage& mesh
     , mesh.settings.get<Ratio>("bridge_skin_material_flow_3")
     , GCodePathConfig::SpeedDerivatives{mesh.settings.get<Velocity>("bridge_skin_speed_3"), mesh.settings.get<Acceleration>("acceleration_topbottom"), mesh.settings.get<Velocity>("jerk_topbottom")}
     , true // is_bridge_path
-    , mesh.settings.get<Ratio>("bridge_fan_speed_3") * 100.0
+    , mesh.settings.get<Ratio>("cool_fan_enabled") ? mesh.settings.get<Ratio>("bridge_fan_speed_3") * 100.0 : GCodePathConfig::FAN_SPEED_DEFAULT
 )
 , roofing_config(
     PrintFeatureType::Skin
