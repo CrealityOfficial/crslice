@@ -291,15 +291,17 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         //todo
         //init_limit_speed
         Velocity speed1 = scene.current_mesh_group->settings.get<Velocity>("speed_wall_0");
-        Velocity speed2 = scene.current_mesh_group->settings.get<Velocity>("speed_wall_x");
-        Velocity speed3 = scene.current_mesh_group->settings.get<Velocity>("speed_infill");
-        Velocity init_limit_speed = std::min(std::min(speed1, speed2), speed3);
+        //Velocity speed2 = scene.current_mesh_group->settings.get<Velocity>("speed_wall_x");
+        //Velocity speed3 = scene.current_mesh_group->settings.get<Velocity>("speed_infill");
+        //Velocity init_limit_speed = std::min(std::min(speed1, speed2), speed3);
+        Velocity& init_limit_speed = speed1;
 
         //init_limit_acc
-        Acceleration acc1 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_infill");
+        //Acceleration acc1 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_infill");
         Acceleration acc2 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_wall_0");
-        Acceleration acc3 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_wall_x");
-        Acceleration init_limit_acc = std::min(std::min(acc1, acc2), acc3);
+        //Acceleration acc3 = scene.current_mesh_group->settings.get<Acceleration>("acceleration_wall_x");
+        //Acceleration init_limit_acc = std::min(std::min(acc1, acc2), acc3);
+        Acceleration& init_limit_acc = acc2;
 
         //init_limit_temp
         Temperature init_limit_temp = scene.current_mesh_group->settings.get<Temperature>("material_print_temperature");
