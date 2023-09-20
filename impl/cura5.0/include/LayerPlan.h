@@ -874,7 +874,7 @@ public:
 
     void setOverhangSpeedSections(const std::vector<std::pair<float, float>>& speedSections);
     std::vector<std::pair<float, float>> getOverhangSpeedSections();
-
+    bool needs_retraction(const GCodePath& travel, RetractionHopType& HopType, Polygons& bp);
     /*!
     * 获取点对应的速度
     * \param p0 
