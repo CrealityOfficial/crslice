@@ -36,6 +36,7 @@ public:
     Ratio speed_factor; //!< A speed factor that is multiplied with the travel speed. This factor can be used to change the travel speed.
     Ratio speed_back_pressure_factor; // <! The factor the (non-travel) speed should be multiplied with as a consequence of back pressure compensation.
     bool retract; //!< Whether the path is a move path preceded by a retraction move; whether the path is a retracted move path. 
+    bool retract_move;
     bool unretract_before_last_travel_move; //!< Whether the last move of the path should be preceded by an unretraction. Used to unretract in the last travel move before an outer wall
     bool perform_z_hop; //!< Whether to perform a z_hop in this path, which is assumed to be a travel path.
     bool perform_prime; //!< Whether this path is preceded by a prime (blob)

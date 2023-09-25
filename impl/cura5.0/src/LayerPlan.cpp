@@ -1359,6 +1359,12 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
 
         if (wall_0_wipe_dist > 0 && ! is_linked_path)
         { // apply outer wall wipe
+            const GCodePathConfig& travel_config = configs_storage.travel_config_per_extruder[getExtruder()];
+			GCodePath* path = getLatestPathWithConfig(travel_config, SpaceFillType::None);
+			path->retract = true;
+            path->retract_move = true;
+			addTravel_simple(p0.p, path);
+
             p0 = wall[start_idx];
             int distance_traversed = 0;
             for (unsigned int point_idx = 1;; point_idx++)
@@ -2360,94 +2366,115 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             {
                 gcode.writeLine(";;retract;;");
                 //if(extruder.settings.get<RetractionType>("retraction_type") == RetractionType::BAMBOO)
-                if (extruder.settings.get<bool>("retraction_wipe"))
-                {
-                    RetractionConfig retraction_config_1 = retraction_config;
-                    retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")* retraction_config_1.distance;
-                    gcode.writeRetraction(retraction_config_1);
+                //if (extruder.settings.get<bool>("retraction_wipe"))
+                //{
+                //    RetractionConfig retraction_config_1 = retraction_config;
+                //    retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")* retraction_config_1.distance;
+                //    gcode.writeRetraction(retraction_config_1);
 
-                    auto getLastExtrusionPath = [paths](std::vector<Point>& ExtrusionPath, int curIdx)
-                    {
-                        ExtrusionPath.clear();
-                        Point start_point;
-                        if (curIdx < 1)
-                            return true;
-                        bool start = false;
-                        for (int i = curIdx - 1; i >= 0; i--)
-                        {
-                            GCodePath path = paths[i];
-                            if (!path.isTravelPath())
-                            {
-                                ClipperLib::ReversePath(path.points);
-                                ExtrusionPath.insert(ExtrusionPath.end(), path.points.begin(), path.points.end());
-                                start = true;
-                            }
-                            else if (start)
-                            {
-                                start_point = path.points.back();
-                                break;
-                            }
-                        }
-                        if (!ExtrusionPath.empty() && start_point == ExtrusionPath[0])//closePolygon
-                        {
-                            ExtrusionPath.pop_back();
-                            ClipperLib::ReversePath(ExtrusionPath);
-                            return false;
-                        }
-                            
-                        return true;
-                    };
+                //    auto getLastExtrusionPath = [paths](std::vector<Point>& ExtrusionPath, int curIdx)
+                //    {
+                //        ExtrusionPath.clear();
+                //        Point start_point;
+                //        if (curIdx < 1)
+                //            return true;
+                //        bool start = false;
+                //        for (int i = curIdx - 1; i >= 0; i--)
+                //        {
+                //            GCodePath path = paths[i];
+                //            if (!path.isTravelPath())
+                //            {
+                //                ClipperLib::ReversePath(path.points);
+                //                ExtrusionPath.insert(ExtrusionPath.end(), path.points.begin(), path.points.end());
+                //                start = true;
+                //            }
+                //            else if (start)
+                //            {
+                //                start_point = path.points.back();
+                //                break;
+                //            }
+                //        }
+                //        if (!ExtrusionPath.empty() && start_point == ExtrusionPath[0])//closePolygon
+                //        {
+                //            ExtrusionPath.pop_back();
+                //            ClipperLib::ReversePath(ExtrusionPath);
+                //            return false;
+                //        }
+                //            
+                //        return true;
+                //    };
 
-                    std::vector<Point> last_path;
-                    std::vector<std::pair<Point, double>> wipe_path_record;
-                    bool openPolygen = getLastExtrusionPath(last_path, path_idx);
-                    double wipe_length = MM2INT(extruder.settings.get<double>("wipe_length"));
-                    double cur_dis_path = 0;
-                    double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
-                    double speed = path.config->getSpeed() * 0.5; //wipe speed
-                    for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
-                    {
-                        Point src_pos = gcode.getPositionXY();
-                        Point cur_pos = last_path[point_idx];
-                        double len = vSize(cur_pos - src_pos);
-                        if (len == 0.) continue;
-                        double theta = 1.0f;
-                        if (len < wipe_length - cur_dis_path)
-                        {
-                            theta = len / wipe_length;
-                        }
-                        else
-                        {
-                            theta = (wipe_length - cur_dis_path) / wipe_length;
-                            cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
-                        }
-                        wipe_path_record.push_back(std::make_pair(src_pos, theta));
-                        gcode.writeExtrusionG1(speed, cur_pos, openPolygen ? 0 : -dis_Extru * theta, path.config->type);
-                        cur_dis_path += len;
-                        if (cur_dis_path > wipe_length) break;
-                    }
-                    if (openPolygen && !wipe_path_record.empty())
-                    {
-                        std::reverse(wipe_path_record.begin(), wipe_path_record.end());
-                        for (const std::pair<Point, double>& wipe_step : wipe_path_record)
-                        {
-                            gcode.writeExtrusionG1(speed, wipe_step.first, -dis_Extru * wipe_step.second, path.config->type);
-                        }    
-                    }
-                    //gcode.writeRetraction(retraction_config);
-                    //if (path.perform_z_hop)
-                    //{
-                    //    gcode.writeCircle(speed, path.points[0], z_hop_height);
-                    //    z_hop_height = retraction_config.zHop; // back to normal z hop
-                    //}
-                    //else
-                    //{
-                    //    gcode.writeZhopEnd();
-                    //}
-                }
+                //    std::vector<Point> last_path;
+                //    std::vector<std::pair<Point, double>> wipe_path_record;
+                //    bool openPolygen = getLastExtrusionPath(last_path, path_idx);
+                //    double wipe_length = MM2INT(extruder.settings.get<double>("wipe_length"));
+                //    double cur_dis_path = 0;
+                //    double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
+                //    double speed = path.config->getSpeed() * 0.5; //wipe speed
+                //    for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
+                //    {
+                //        Point src_pos = gcode.getPositionXY();
+                //        Point cur_pos = last_path[point_idx];
+                //        double len = vSize(cur_pos - src_pos);
+                //        if (len == 0.) continue;
+                //        double theta = 1.0f;
+                //        if (len < wipe_length - cur_dis_path)
+                //        {
+                //            theta = len / wipe_length;
+                //        }
+                //        else
+                //        {
+                //            theta = (wipe_length - cur_dis_path) / wipe_length;
+                //            cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
+                //        }
+                //        wipe_path_record.push_back(std::make_pair(src_pos, theta));
+                //        gcode.writeExtrusionG1(speed, cur_pos, openPolygen ? 0 : -dis_Extru * theta, path.config->type);
+                //        cur_dis_path += len;
+                //        if (cur_dis_path > wipe_length) break;
+                //    }
+                //    if (openPolygen && !wipe_path_record.empty())
+                //    {
+                //        std::reverse(wipe_path_record.begin(), wipe_path_record.end());
+                //        for (const std::pair<Point, double>& wipe_step : wipe_path_record)
+                //        {
+                //            gcode.writeExtrusionG1(speed, wipe_step.first, -dis_Extru * wipe_step.second, path.config->type);
+                //        }    
+                //    }
+                //    //gcode.writeRetraction(retraction_config);
+                //    //if (path.perform_z_hop)
+                //    //{
+                //    //    gcode.writeCircle(speed, path.points[0], z_hop_height);
+                //    //    z_hop_height = retraction_config.zHop; // back to normal z hop
+                //    //}
+                //    //else
+                //    //{
+                //    //    gcode.writeZhopEnd();
+                //    //}
+                //}
                 //else//default
                 {
-                    gcode.writeRetraction(retraction_config);
+					if (path.retract_move)//参考拓竹：回抽(默认0%)，移动回抽 回抽
+					{
+                        float num = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent");
+						if (extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent").value >0)
+						{
+							RetractionConfig retraction_config_1 = retraction_config;
+							retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
+							gcode.writeRetraction(retraction_config_1);
+						}
+
+						int icount = path.points.size()-1;
+						for (unsigned int point_idx = 1; point_idx < path.points.size(); point_idx++)
+						{
+							double e = -(1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")) *retraction_config.distance * 19.0 / (20.0 * icount);
+							gcode.writeExtrusionG1(path.config->getSpeed()*0.8, path.points[point_idx], e, path.config->type);
+						}
+						continue;
+					}
+					else
+					{
+						gcode.writeRetraction(retraction_config);
+					}
                     if (path.perform_z_hop)
                     {
                         RetractionHopType hop_type = extruder.settings.get<RetractionHopType>("retraction_hop_type");

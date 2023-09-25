@@ -23,6 +23,7 @@ points(std::vector<Point>()),
 done(false),
 spiralize(spiralize),
 fan_speed(GCodePathConfig::FAN_SPEED_DEFAULT),
+retract_move(false),
 estimates(TimeMaterialEstimates())
 {
     speedSlowDownPath = 0.0;
