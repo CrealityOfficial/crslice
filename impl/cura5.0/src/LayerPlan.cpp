@@ -225,6 +225,20 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     tmp_is_change_layer = 0;
     need_smart_brim = false;
 	is_deceleration_speed = false;
+    for (int i = 0; i < storage.meshes.size(); i++)
+    {
+        AABB3D box = storage.meshes.at(i).bounding_box;
+
+        Point p0(box.min.x, box.min.y);
+        Point p1(box.min.x, box.max.y);
+        Point p2(box.max.x, box.max.y);
+        Point p3(box.max.x, box.min.y);
+        Point p4(box.min.x, box.min.y);
+        Polygon p;
+        p.add(p0); p.add(p1); p.add(p2); p.add(p3); p.add(p4); p.add(p0);
+
+        meshes_bbox.emplace_back(p.offset(900));
+    }
 }
 
 LayerPlan::~LayerPlan()
@@ -2537,53 +2551,56 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
 
             // This seems to be the best location to place this, but still not ideal.
-            if (path.mesh_id != current_mesh &&  (application->current_slice->scene.settings.get<bool>("special_object_cancel")))
-            {
-                current_mesh = path.mesh_id;
-                std::stringstream ss;
-                if (current_mesh == "")
-                    current_mesh = "NONMESH";
-                std::stringstream ss_exclude_end;
-                std::stringstream ss_exclude_start;
-                //change layer cura  only start 
-                if (tmp_is_change_layer == 0 && !first_mesh_cancel && path.config->type != PrintFeatureType::SkirtBrim)
-                {
-                    ss << "MESH:" << current_mesh;
-                    gcode.writeComment(ss.str());
-                    ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
-                    gcode.writeComment2(ss_exclude_start.str());
-                    first_mesh_cancel = true;
-                }
-                else if (tmp_is_change_layer != this->layer_nr)
-                {
-                    ss << "MESH:" << current_mesh;
-                    gcode.writeComment(ss.str());
-                    ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
-                    gcode.writeComment2(ss_exclude_start.str());
-                }
-                else 
-                {
-                    ss << "MESH:" << current_mesh;
-                    gcode.writeComment(ss.str());
-                    ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
-                    gcode.writeComment2(ss_exclude_end.str());
-                    if (current_mesh != "NONMESH")
-                    {
-                        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
-                        gcode.writeComment2(ss_exclude_start.str());
-                    }
-
-                }
-                tmp_mesh_name = path.mesh_id;
-                tmp_is_change_layer = this->layer_nr;
-            }
-            if (path.mesh_id != current_mesh)
+            //if (path.mesh_id != current_mesh &&  (application->current_slice->scene.settings.get<bool>("special_object_cancel")))
+            //{
+            //    current_mesh = path.mesh_id;
+            //    std::stringstream ss;
+            //    if (current_mesh == "")
+            //        current_mesh = "NONMESH";
+            //    std::stringstream ss_exclude_end;
+            //    std::stringstream ss_exclude_start;
+            //    //change layer cura  only start 
+            //    if (tmp_is_change_layer == 0 && !first_mesh_cancel && path.config->type != PrintFeatureType::SkirtBrim)
+            //    {
+            //        ss << "MESH:" << current_mesh;
+            //        gcode.writeComment(ss.str());
+            //        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+            //        gcode.writeComment2(ss_exclude_start.str());
+            //        first_mesh_cancel = true;
+            //    }
+            //    else if (tmp_is_change_layer != this->layer_nr)
+            //    {
+            //        ss << "MESH:" << current_mesh;
+            //        gcode.writeComment(ss.str());
+            //        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+            //        gcode.writeComment2(ss_exclude_start.str());
+            //    }
+            //    else 
+            //    {
+            //        ss << "MESH:" << current_mesh;
+            //        gcode.writeComment(ss.str());
+            //        ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+            //        gcode.writeComment2(ss_exclude_end.str());
+            //        if (current_mesh != "NONMESH")
+            //        {
+            //            ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+            //            gcode.writeComment2(ss_exclude_start.str());
+            //        }
+            //    }
+            //    tmp_mesh_name = path.mesh_id;
+            //    tmp_is_change_layer = this->layer_nr;
+            //}
+            if (!application->current_slice->scene.settings.get<bool>("special_object_cancel") && path.mesh_id != current_mesh)
             {
                 current_mesh = path.mesh_id;
                 if (current_mesh == "") current_mesh = "NONMESH";
                 std::stringstream ss;
                 ss << "MESH:" << current_mesh;
                 gcode.writeComment(ss.str());
+            }
+            if (application->current_slice->scene.settings.get<bool>("special_object_cancel") && !path.config->isTravelPath())
+            {
+                tmp_mesh_name = path.mesh_id;
             }
             if (path.config->isTravelPath())
             { // early comp for travel paths, which are handled more simply
@@ -2597,9 +2614,60 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     // Prevent the final travel(s) from resetting to the 'previous' layer height.
                     gcode.setZ(final_travel_z);
                 }
+                bool one_time_write = true;
+                bool judge_jump = false;
+                int poindx_jump = 0;
+                if (path.points.size() > 4 && (application->current_slice->scene.settings.get<bool>("special_object_cancel")) && meshes_bbox.size() > 1)
+                {
+                    int member_ins0 = 0;
+                    int  member_ins1 = 0;
+                    int count_s = 0;
+                    for (int kop = 0; kop < meshes_bbox.size(); kop++)
+                    {
+                        bool sb1 = false;
+                        bool sb = false;
+                        bool sb2 = false;
+                        for (int k = 2; k < path.points.size() - 1; k++)
+                        {
+                            sb1 = (meshes_bbox.at(kop).inside(path.points.at(k - 1)) && meshes_bbox.at(kop).inside(path.points.at(k - 2)));
+                            sb = meshes_bbox.at(kop).inside(path.points.at(k));
+                            sb2 = meshes_bbox.at(kop).inside(path.points.at(k + 1));
+                            if (sb1 == sb && sb != sb2)
+                            {
+                                judge_jump = true;
+                                poindx_jump = k;
+                                break; break;
+                            }
+                            if (sb1 != sb && sb == sb2)
+                            {
+                                judge_jump = true;
+                                poindx_jump = k;
+                                break; break;
+                            }
+                        }
+                    }
+                }
                 for (unsigned int point_idx = 0; point_idx < path.points.size() - 1; point_idx++)
                 {
                     gcode.writeTravel(path.points[point_idx], speed);
+                    if (path.points.size() > 4 && one_time_write
+                        && judge_jump && point_idx == poindx_jump
+                        && (application->current_slice->scene.settings.get<bool>("special_object_cancel")))
+                    {
+                        std::stringstream ss;
+                        ss << "MESH:" << current_mesh;
+                        gcode.writeComment(ss.str());
+                        std::stringstream ss_exclude_end;
+                        ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+                        gcode.writeComment2(ss_exclude_end.str());
+
+                        std::stringstream ss_exclude_start;
+                        std::string tnam = path.mesh_id;
+                        if (tnam == "") tnam = "0_1";
+                        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << tnam;
+                        gcode.writeComment2(ss_exclude_start.str());
+                        one_time_write = false;
+                    }
                 }
                 if (path.unretract_before_last_travel_move)
                 {
