@@ -805,6 +805,24 @@ Slicer::Slicer(Application* _application, Mesh* i_mesh, const coord_t thickness,
     makePolygons(application, *i_mesh, slicing_tolerance, layers);
     LOGI("Make polygons took { %f } seconds", slice_timer.restart());
 
+    const bool keep_open_polygons = application->current_slice->scene.current_mesh_group->settings.get<bool>("keep_open_polygons");
+    if (keep_open_polygons)
+    {
+		const coord_t c_gap = 200;
+		auto getPloygons = [&c_gap](Polygons& ploygon)
+		{
+			ClipperLib::ClipperOffset clipper;
+			clipper.AddPaths(ploygon.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
+			clipper.Execute(ploygon.paths, c_gap);
+		};
+		for (SlicerLayer& alayer : layers)
+		{
+			getPloygons(alayer.openPolylines);
+			alayer.polygons.add(alayer.openPolylines);
+			alayer.openPolylines.clear();
+		}
+    }
+
     //ÇÐÆ¬ÂÖÀªÔ¤´¦Àí
     processPolygons(application ,*mesh, layers);
 }
