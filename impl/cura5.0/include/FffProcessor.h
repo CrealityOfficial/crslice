@@ -6,7 +6,6 @@
 
 #include "FffGcodeWriter.h"
 #include "FffPolygonGenerator.h"
-#include "utils/gettime.h"
 #include "utils/NoCopy.h"
 
 
@@ -25,11 +24,6 @@ public:
      * The polygon generator, which slices the models and generates all polygons to be printed and areas to be filled.
      */
     FffPolygonGenerator polygon_generator;
-
-    /*!
-     * The stop watch used to time how long the different stages take to compute.
-     */
-    TimeKeeper time_keeper; // TODO: use singleton time keeper
 
     /*!
      * Set the target to write gcode to: to a file.

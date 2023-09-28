@@ -62,8 +62,7 @@ namespace cura52
 
     void Scene::processMeshGroup(MeshGroup& mesh_group)
     {
-        FffProcessor& fff_processor = application->processor;
-        fff_processor.time_keeper.restart();
+        application->progressor.restartTime();
 
         TimeKeeper time_keeper_total;
 
@@ -83,6 +82,7 @@ namespace cura52
             return;
         }
 
+        FffProcessor& fff_processor = application->processor;
         if (mesh_group.settings.get<bool>("wireframe_enabled"))
         {
             LOGI("Starting Neith Weaver...");

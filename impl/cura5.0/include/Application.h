@@ -71,6 +71,7 @@ namespace cura52
         Application* application = nullptr;
         FffProcessor processor;
         Progress progressor;
+
         std::string tempDirectory;
         ccglobal::Tracer* tracer = nullptr;
         crslice::FDMDebugger* fDebugger = nullptr;

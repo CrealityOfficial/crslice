@@ -3,12 +3,12 @@
 
 #ifndef PROGRESS_H
 #define PROGRESS_H
-
 #include <string>
+#include "ccglobal/tracer.h"
+#include "utils/gettime.h"
 
 namespace cura52
 {
-    class Application;
 #define N_PROGRESS_STAGES 7
 
     /*!
@@ -38,6 +38,8 @@ namespace cura52
         static std::string names[N_PROGRESS_STAGES]; //!< name of each stage
         double accumulated_times[N_PROGRESS_STAGES]; //!< Time past before each stage
         double total_timing; //!< An estimate of the total time
+
+        TimeKeeper time_keeper; // TODO: use singleton time keeper
         /*!
          * Give an estimate between 0 and 1 of how far the process is.
          *
@@ -47,12 +49,14 @@ namespace cura52
          */
         float calcOverallProgress(Stage stage, float stage_progress);
     public:
-        Application* application = nullptr;
+        ccglobal::Tracer* tracer = nullptr;
 
         Progress();
         ~Progress();
 
         void init(); //!< Initialize some values needed in a fast computation of the progress
+
+        void restartTime();
         /*!
          * Message progress over the CommandSocket and to the terminal (if the command line arg '-p' is provided).
          *

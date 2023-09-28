@@ -25,7 +25,7 @@ namespace cura52
     {
         assert(tracer);
 
-        progressor.application = this;
+        progressor.tracer = tracer;
         processor.gcode_writer.application = this;
         processor.polygon_generator.application = this;
         processor.gcode_writer.gcode.application = this;
@@ -87,8 +87,6 @@ namespace cura52
             std::shared_ptr<Slice> slice(_communication->createSlice());
             if (slice)
             {
-                processor.time_keeper.restart();
-
                 current_slice = slice.get();
                 current_slice->scene.application = this;
                 current_slice->application = this;
