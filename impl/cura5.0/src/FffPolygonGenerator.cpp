@@ -220,16 +220,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     // Clear the mesh face and vertex data, it is no longer needed after this point, and it saves a lot of memory.
     meshgroup->clear();
 
-    if (application->debugger)
-    {
-        Slicer* slicer = slicerList.at(0);
-        application->debugger->sliceLayerCount((int)slicer->layers.size());
-        for (int i = 0; i < (int)slicer->layers.size(); ++i)
-        {
-            SlicerLayer& slicerlayerData = (slicer->layers).at(i);
-            application->debugger->sliceLayerData(i, slicerlayerData.z, slicerlayerData.polygons, slicerlayerData.openPolylines);
-        }
-    }
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
     Mold::process(application, slicerList);
@@ -360,12 +350,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
         delete slicerList[meshIdx];
         application->progressor.messageProgress(Progress::Stage::PARTS, meshIdx + 1, slicerList.size());
-    }
-
-    if (application->debugger)
-    {
-        SliceMeshStorage& meshStorage = storage.meshes.at(0);
-        application->debugger->parts(meshStorage);
     }
 
     return true;

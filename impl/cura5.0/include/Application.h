@@ -12,7 +12,6 @@
 
 #include "FffProcessor.h"
 #include "progress/Progress.h"
-#include "debugger.h"
 #include "crslice/header.h"
 
 #include "ccglobal/tracer.h"
@@ -74,7 +73,6 @@ namespace cura52
         Progress progressor;
         std::string tempDirectory;
         ccglobal::Tracer* tracer = nullptr;
-        Debugger* debugger = nullptr;
         crslice::FDMDebugger* fDebugger = nullptr;
         /*
          * \brief The slice that is currently ongoing.

@@ -121,7 +121,6 @@ set(engine_SRCS # Except main.cpp.
 		${PREFIX5.2}include/TreeSupportSettings.h
         ${PREFIX5.2}include/TreeSupportSettingsT.h
 		${PREFIX5.2}include/utils/inputserial.h
-		${PREFIX5.2}include/debugger.h
         ${PREFIX5.2}include/TreeModelVolumesT.h
         ${PREFIX5.2}include/TreeModelVolumes.h
 
