@@ -593,31 +593,33 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
 
 		    int index = extruder_plans.back().paths.size() - 2;
 		    GCodePath last_path = extruder_plans.back().paths[index];
-            if (last_path.points.size() >3 && last_path.points[0] == last_path.points[last_path.points.size()-1])
-            {
-                ClipperLib::ReversePath(last_path.points);
-            }
-
-            for (int n= extruder_plans.back().paths.size()-3;n>=0;n--)
-            {
-                GCodePath _path = extruder_plans.back().paths[n];
-                if (last_path.config->type == _path.config->type)
-                {
-					if (_path.points.size() > 3 && _path.points[0] == _path.points[_path.points.size() - 1])
+			if (last_path.points.size() < 3 || (last_path.points[0] != last_path.points[last_path.points.size() - 1]))
+			{
+				for (int n = extruder_plans.back().paths.size() - 3; n >= 0; n--)
+				{
+					GCodePath _path = extruder_plans.back().paths[n];
+					if (last_path.config->type == _path.config->type && (_path.points.size() < 3 || _path.points[0] != _path.points[_path.points.size() - 1]))
 					{
 						ClipperLib::ReversePath(_path.points);
+						for (Point& apoint : _path.points)
+						{
+							last_path.points.push_back(apoint);
+						}
 					}
-                    for (Point& apoint:_path.points)
+                    else if (_path.config->type== PrintFeatureType::MoveCombing && !_path.points.empty())
                     {
-                        last_path.points.push_back(apoint);
+						last_path.points.push_back(_path.points[_path.points.size()-1]);
+                        break;
                     }
-                }
-                else
-                {
-                    break;
-                }
+					else
+					{
+						break;
+					}
 
-            }
+				}
+			}
+
+
 
             Point p0(*last_planned_position);
 			int distance_traversed = 0;
@@ -638,7 +640,10 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
 				}
 				else
 				{
-					addTravel_simple(p1);
+                    if (p0p1_dist*10 > wall_0_wipe_dist)
+                    {
+                        addTravel_simple(p1);
+                    }
 					distance_traversed += p0p1_dist;
 				}
 				p0 = p1;
@@ -652,8 +657,6 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
 	GCodePath& ret = addTravel_simple(p, path);
 	was_inside = is_inside;
 	return ret;
-
-
 }
 
 GCodePath& LayerPlan::addTravel_simple(Point p, GCodePath* path)
