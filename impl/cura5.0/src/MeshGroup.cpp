@@ -119,7 +119,7 @@ void MeshGroup::finalize()
 
         if (mesh.settings.get<bool>("support_mesh"))
             mesh_surpport_exist = true;
-        int  boxx = mesh.max().x - mesh.min().x;
+        int  boxx = mesh.max().x - mesh.min().x; //when box size of any oritation == machine size of orientation,   which is resize
         int  boxy = mesh.max().y - mesh.min().y;
 
         const Point3 center = (mesh.max() + mesh.min()) / 2;
