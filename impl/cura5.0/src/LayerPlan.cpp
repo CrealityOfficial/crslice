@@ -585,12 +585,75 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
 		path->perform_z_hop = retraction_enable && extruder->settings.get<bool>("retraction_hop_enabled");
     }
 
-    // must start new travel path as retraction can be enabled or not depending on path length, etc.
-    forceNewPathStart();
+	coord_t wall_0_wipe_dist = storage.meshes.back().settings.get<coord_t>("wall_0_wipe_dist");
+	if (path->retract && wall_0_wipe_dist > 0 && !is_first_travel_of_layer && extruder_plans.back().paths.size() > 1)
+	{ // apply outer wall wipe
+		path->retract_move = true;
+		//{
 
-    GCodePath& ret = addTravel_simple(p, path);
-    was_inside = is_inside;
-    return ret;
+		    int index = extruder_plans.back().paths.size() - 2;
+		    GCodePath last_path = extruder_plans.back().paths[index];
+            if (last_path.points.size() >3 && last_path.points[0] == last_path.points[last_path.points.size()-1])
+            {
+                ClipperLib::ReversePath(last_path.points);
+            }
+
+            for (int n= extruder_plans.back().paths.size()-3;n>=0;n--)
+            {
+                GCodePath _path = extruder_plans.back().paths[n];
+                if (last_path.config->type == _path.config->type)
+                {
+					if (_path.points.size() > 3 && _path.points[0] == _path.points[_path.points.size() - 1])
+					{
+						ClipperLib::ReversePath(_path.points);
+					}
+                    for (Point& apoint:_path.points)
+                    {
+                        last_path.points.push_back(apoint);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+            }
+
+            Point p0(*last_planned_position);
+			int distance_traversed = 0;
+			for (unsigned int point_idx = 0;; point_idx++)
+			{ 
+				if (point_idx > last_path.points.size() && distance_traversed == 0) // Wall has a total circumference of 0. This loop would never end.
+				{
+					break; // No wipe if the wall has no circumference.
+				}
+				Point p1 = last_path.points[(point_idx) % last_path.points.size()];
+				int p0p1_dist = vSize(p1 - p0);
+				if (distance_traversed + p0p1_dist >= wall_0_wipe_dist)
+				{
+					Point vector = p1 - p0;
+					Point half_way = p0 + normal(vector, wall_0_wipe_dist - distance_traversed);
+					addTravel_simple(half_way);
+					break;
+				}
+				else
+				{
+					addTravel_simple(p1);
+					distance_traversed += p0p1_dist;
+				}
+				p0 = p1;
+			}
+		//}
+	}
+
+	// must start new travel path as retraction can be enabled or not depending on path length, etc.
+	forceNewPathStart();
+
+	GCodePath& ret = addTravel_simple(p, path);
+	was_inside = is_inside;
+	return ret;
+
+
 }
 
 GCodePath& LayerPlan::addTravel_simple(Point p, GCodePath* path)
@@ -1371,40 +1434,40 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
             computeDistanceToBridgeStart((start_idx + wall.size() - 1) % wall.size());
         }
 
-        if (wall_0_wipe_dist > 0 && ! is_linked_path)
-        { // apply outer wall wipe
-            const GCodePathConfig& travel_config = configs_storage.travel_config_per_extruder[getExtruder()];
-			GCodePath* path = getLatestPathWithConfig(travel_config, SpaceFillType::None);
-			path->retract = true;
-            path->retract_move = true;
-			addTravel_simple(p0.p, path);
+   //     if (wall_0_wipe_dist > 0 && ! is_linked_path)
+   //     { // apply outer wall wipe
+   ////         const GCodePathConfig& travel_config = configs_storage.travel_config_per_extruder[getExtruder()];
+			////GCodePath* path = getLatestPathWithConfig(travel_config, SpaceFillType::None);
+			////path->retract = true;
+   ////         path->retract_move = true;
+			////addTravel_simple(p0.p, path);
 
-            p0 = wall[start_idx];
-            int distance_traversed = 0;
-            for (unsigned int point_idx = 1;; point_idx++)
-            {
-                if (point_idx > wall.size() && distance_traversed == 0) // Wall has a total circumference of 0. This loop would never end.
-                {
-                    break; // No wipe if the wall has no circumference.
-                }
-                ExtrusionJunction p1 = wall[(start_idx + point_idx) % wall.size()];
-                int p0p1_dist = vSize(p1 - p0);
-                if (distance_traversed + p0p1_dist >= wall_0_wipe_dist)
-                {
-                    Point vector = p1.p - p0.p;
-                    Point half_way = p0.p + normal(vector, wall_0_wipe_dist - distance_traversed);
-                    addTravel_simple(half_way);
-                    break;
-                }
-                else
-                {
-                    addTravel_simple(p1.p);
-                    distance_traversed += p0p1_dist;
-                }
-                p0 = p1;
-            }
-            forceNewPathStart();
-        }
+   //         p0 = wall[start_idx];
+   //         int distance_traversed = 0;
+   //         for (unsigned int point_idx = 1;; point_idx++)
+   //         {
+   //             if (point_idx > wall.size() && distance_traversed == 0) // Wall has a total circumference of 0. This loop would never end.
+   //             {
+   //                 break; // No wipe if the wall has no circumference.
+   //             }
+   //             ExtrusionJunction p1 = wall[(start_idx + point_idx) % wall.size()];
+   //             int p0p1_dist = vSize(p1 - p0);
+   //             if (distance_traversed + p0p1_dist >= wall_0_wipe_dist)
+   //             {
+   //                 Point vector = p1.p - p0.p;
+   //                 Point half_way = p0.p + normal(vector, wall_0_wipe_dist - distance_traversed);
+   //                 addTravel_simple(half_way);
+   //                 break;
+   //             }
+   //             else
+   //             {
+   //                 addTravel_simple(p1.p);
+   //                 distance_traversed += p0p1_dist;
+   //             }
+   //             p0 = p1;
+   //         }
+   //         forceNewPathStart();
+   //     }
     }
     else
     {
@@ -2478,14 +2541,17 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 						}
 
 						int icount = path.points.size()-1;
-						for (unsigned int point_idx = 1; point_idx < path.points.size(); point_idx++)
+						for (unsigned int point_idx = 0; point_idx < path.points.size()-1; point_idx++)
 						{
 							double e = -(1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")) *retraction_config.distance * 19.0 / (20.0 * icount);
 							gcode.writeExtrusionG1(path.config->getSpeed()*0.8, path.points[point_idx], e, path.config->type);
 						}
-						continue;
+                        Point endPoint = path.points[icount];
+                        path.points.clear();
+                        path.points.push_back(endPoint);
+
 					}
-					else
+					//else
 					{
 						gcode.writeRetraction(retraction_config);
 					}
