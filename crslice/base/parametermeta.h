@@ -65,6 +65,8 @@ namespace crslice
 	};
 
 	CRSLICE_API void saveKeysJson(const std::vector<std::string>& keys, const std::string& fileName);
+
+	CRSLICE_API void parseMetasMap(MetasMap& datas);   //from binary
 }
 
 #endif // CRCOMMON_PARAMETERMETA_1690769853657_H

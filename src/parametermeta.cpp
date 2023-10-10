@@ -102,4 +102,47 @@ namespace crslice
 
         saveJson(fileName, content);
     }
+
+#ifdef USE_BINARY_JSON
+#endif
+
+    void parseMetasMap(MetasMap& datas)
+    {
+#ifdef USE_BINARY_JSON
+        const char* base = nullptr;
+
+        rapidjson::Document baseDoc;
+        baseDoc.Parse(base);
+        if (baseDoc.HasParseError())
+        {
+            LOGE("ParameterMetas::initializeBase error. [%d] not contain base.json", (int)baseDoc.GetParseError());
+            return;
+        }
+
+        if (baseDoc.HasMember("subs") && baseDoc["subs"].IsArray())
+        {
+            const rapidjson::Value& value = baseDoc["subs"];
+            for (rapidjson::Value::ConstValueIterator it = value.Begin(); it != value.End(); ++it)
+            {
+                std::string sub = it->GetString();
+
+                const char* subStr = nullptr;
+                rapidjson::Document subDoc;
+                subDoc.Parse(subStr);
+                if (subDoc.HasParseError())
+                {
+                    LOGE("ParameterMetas::initializeBase parse sub. [%s] [%d] error.", sub.c_str(), (int)subDoc.GetParseError());
+                    continue;
+                }
+
+                processSub(subDoc, datas);
+            }
+        }
+        else {
+            LOGE("ParameterMetas::initializeBase base.json no subs.");
+        }
+#else
+        LOGE("ParameterMetas::Binary not support.");
+#endif
+    }
 }

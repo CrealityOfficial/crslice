@@ -31,6 +31,11 @@ set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 include(impl/cura5.0/cura.cmake)
 include(Slice3rBase.cmake)
 
+#binary
+if(Python3_FOUND)
+	list(APPEND DEFS USE_BINARY_JSON)
+endif()
+
 __add_common_library(crslice FOLDER slice OPENMP)
 
 use_threads(crslice)
