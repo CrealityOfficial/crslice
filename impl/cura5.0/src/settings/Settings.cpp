@@ -315,6 +315,10 @@ EGCodeFlavor Settings::get<EGCodeFlavor>(const std::string& key) const
 	{
 		return EGCodeFlavor::MACH3_Creality;
 	}
+	else if (value == "4408")
+	{
+		return EGCodeFlavor::Creality_OS;
+	}
     // Default:
     return EGCodeFlavor::MARLIN;
 }
