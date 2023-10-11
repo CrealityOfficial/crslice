@@ -48,6 +48,8 @@ namespace crslice
             }
 
             ParameterMeta meta;
+
+            meta.name = name;
             processMeta(childValue, meta);
 
             metas.insert(MetasMap::value_type(name, new ParameterMeta(meta)));
