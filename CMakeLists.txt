@@ -65,6 +65,7 @@ if(Python3_FOUND)
 				"${Python3_EXECUTABLE}" ${Script}
 				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/${json}
 				${CMAKE_CURRENT_BINARY_DIR}/${binary_json}
+			DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/${json}
 		)
 	
 		set_source_files_properties(
