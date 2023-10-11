@@ -103,13 +103,10 @@ namespace crslice
         saveJson(fileName, content);
     }
 
-#ifdef USE_BINARY_JSON
-#endif
-
     void parseMetasMap(MetasMap& datas)
     {
 #ifdef USE_BINARY_JSON
-        const char* base = nullptr;
+#include "base.json.h"
 
         rapidjson::Document baseDoc;
         baseDoc.Parse(base);
