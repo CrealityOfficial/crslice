@@ -65,7 +65,8 @@ namespace crslice
         if (value.HasMember(META_DESCRIPTION))
             meta.description = (value[META_DESCRIPTION].GetString());
 
-        //if (value.HasMember("unit")) itemDef->unit = (value["unit"].GetString());
+        if (value.HasMember("unit"))
+            meta.unit = value["unit"].GetString();
         
         if (value.HasMember(META_TYPE))
             meta.type = (value[META_TYPE].GetString());
@@ -73,10 +74,14 @@ namespace crslice
         if (value.HasMember(META_DEFAULT_VALUE))
             meta.default_value = (value[META_DEFAULT_VALUE].GetString());
 
-        //if (value.HasMember("minimum_value")) itemDef->minimum = (value["minimum_value"].GetString());
-        //if (value.HasMember("maximum_value")) itemDef->maximum = (value["maximum_value"].GetString());
-        //if (value.HasMember("minimum_value_warning")) itemDef->miniwarning = (value["minimum_value_warning"].GetString());
-        //if (value.HasMember("maximum_value_warning")) itemDef->maxwarning = (value["maximum_value_warning"].GetString());
+        if (value.HasMember("minimum_value"))
+            meta.minimum_value = (value["minimum_value"].GetString());
+        if (value.HasMember("maximum_value"))
+            meta.maximum_value = (value["maximum_value"].GetString());
+        if (value.HasMember("minimum_value_warning"))
+            meta.minimum_value_warning = (value["minimum_value_warning"].GetString());
+        if (value.HasMember("maximum_value_warning"))
+            meta.maximum_value_warning = (value["maximum_value_warning"].GetString());
         
         if (value.HasMember(META_VALUE))
             meta.value = (value[META_VALUE].GetString());
@@ -101,24 +106,24 @@ namespace crslice
             }
         }
 
-        //if (value.HasMember("options"))
-        //{
-        //    const rapidjson::Value& options = value["options"];
-        //    for (rapidjson::Value::ConstMemberIterator child = options.MemberBegin();
-        //        child != options.MemberEnd(); child++)
-        //    {
-        //        QString name = child->name.GetString();
-        //        QString values = child->value.GetString();
-        //
-        //        itemDef->options.insert(name, values);
-        //    }
-        //}
-        //if (itemDef->type == "optional_extruder" || itemDef->type == "extruder")
-        //{
-        //    itemDef->options.insert(QString("-1"), QString("Not overridden"));
-        //    itemDef->options.insert(QString("0"), QString("Extruder 1"));
-        //    itemDef->options.insert(QString("1"), QString("Extruder 2"));
-        //}
+        if (value.HasMember("options"))
+        {
+            const rapidjson::Value& options = value["options"];
+            for (rapidjson::Value::ConstMemberIterator child = options.MemberBegin();
+                child != options.MemberEnd(); child++)
+            {
+                std::string name = child->name.GetString();
+                std::string values = child->value.GetString();
+        
+                meta.options.insert(OptionValue(name, values));
+            }
+        }
+        if (meta.type == "optional_extruder" || meta.type == "extruder")
+        {
+            meta.options.insert(OptionValue(std::string("-1"), std::string("Not overridden")));
+            meta.options.insert(OptionValue(std::string("0"), std::string("Extruder 1")));
+            meta.options.insert(OptionValue(std::string("1"), std::string("Extruder 2")));
+        }
     }
 
     void processInherit(const std::string& fileName, const std::string& directory, ParameterMetas& metas)

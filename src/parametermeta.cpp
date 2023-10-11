@@ -107,28 +107,59 @@ namespace crslice
     {
 #ifdef USE_BINARY_JSON
 #include "base.json.h"
+#include "blackmagic.json.h"
+#include "command_line_settings.json.h"
+#include "cooling.json.h"
+#include "dual.json.h"
+#include "experimental.json.h"
+#include "infill.json.h"
+#include "machine.json.h"
+#include "material.json.h"
+#include "meshfix.json.h"
+#include "platform_adhesion.json.h"
+#include "resolution.json.h"
+#include "shell.json.h"
+#include "special.json.h"
+#include "speed.json.h"
+#include "support.json.h"
+#include "travel.json.h"
 
         rapidjson::Document baseDoc;
-        baseDoc.Parse(base);
+        baseDoc.Parse((const char*)base);
         if (baseDoc.HasParseError())
         {
-            LOGE("ParameterMetas::initializeBase error. [%d] not contain base.json", (int)baseDoc.GetParseError());
+            LOGE("ParameterMetas::parseMetasMap parse base error. [%d].", (int)baseDoc.GetParseError());
             return;
         }
 
         if (baseDoc.HasMember("subs") && baseDoc["subs"].IsArray())
         {
-            const rapidjson::Value& value = baseDoc["subs"];
-            for (rapidjson::Value::ConstValueIterator it = value.Begin(); it != value.End(); ++it)
+            const unsigned char* subs[16] = {
+                blackmagic,
+                command_line_settings,
+                cooling,
+                dual,
+                experimental,
+                infill,
+                machine,
+                material,
+                meshfix,
+                platform_adhesion,
+                resolution,
+                shell,
+                special,
+                speed,
+                support,
+                travel
+            };
+            for (int i = 0; i < 16; ++i)
             {
-                std::string sub = it->GetString();
-
-                const char* subStr = nullptr;
+                const unsigned char* str = subs[i];
                 rapidjson::Document subDoc;
-                subDoc.Parse(subStr);
+                subDoc.Parse((const char*)str);
                 if (subDoc.HasParseError())
                 {
-                    LOGE("ParameterMetas::initializeBase parse sub. [%s] [%d] error.", sub.c_str(), (int)subDoc.GetParseError());
+                    LOGE("ParameterMetas::initializeBase parse sub. [%d] error.", (int)subDoc.GetParseError());
                     continue;
                 }
 

@@ -16,7 +16,7 @@ __cc_find(rapidjson)
 __assert_target(rapidjson)
 			
 set(ILIBS trimesh2) 
-set(LIBS polyclipping stb rapidjson) 
+set(LIBS polyclipping stb rapidjson cxlog) 
 
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/crslice/ SRCS1)
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/src/ SRCS2)
@@ -36,22 +36,22 @@ if(Python3_FOUND)
 	set(Script ${PYTHON_MODULES}/textlizer.py)
 	
 	set(JSONS base.json
-			  #blackmagic.json
-			  #command_line_settings.json
-			  #cooling.json
-			  #dual.json
-			  #experimental.json
-			  #infill.json
-			  #machine.json
-			  #material.json
-			  #meshfix.json
-			  #platform_adhesion.json
-			  #resolution.json
-			  #shell.json
-			  #special.json
-			  #speed.json
-			  #support.json
-			  #travel.json
+			  blackmagic.json
+			  command_line_settings.json
+			  cooling.json
+			  dual.json
+			  experimental.json
+			  infill.json
+			  machine.json
+			  material.json
+			  meshfix.json
+			  platform_adhesion.json
+			  resolution.json
+			  shell.json
+			  special.json
+			  speed.json
+			  support.json
+			  travel.json
 			  )
 	
 	set(BINARY_JSONS)

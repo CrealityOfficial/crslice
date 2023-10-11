@@ -25,6 +25,14 @@ namespace crslice
 		std::string default_value;
 		std::string value;
 		std::string enabled;
+		
+		std::string unit;
+		std::string minimum_value;
+		std::string maximum_value;
+		std::string minimum_value_warning;
+		std::string maximum_value_warning;
+
+		std::unordered_map<std::string, std::string> options;
 
 		ParameterMeta()
 		{
@@ -40,9 +48,18 @@ namespace crslice
 			default_value = meta.default_value;
 			value = meta.value;
 			enabled = meta.enabled;
+
+			unit = meta.unit;
+			minimum_value = meta.minimum_value;
+			maximum_value = meta.maximum_value;
+			minimum_value_warning = meta.minimum_value_warning;
+			maximum_value_warning = meta.maximum_value_warning;
+
+			options = meta.options;
 		}
 	};
 
+	typedef std::unordered_map<std::string, std::string>::value_type OptionValue;
 	typedef std::unordered_map<std::string, ParameterMeta*> MetasMap;
 	typedef MetasMap::iterator MetasMapIter;
 
