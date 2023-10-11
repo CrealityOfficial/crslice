@@ -879,7 +879,7 @@
 	{
 		"label": "Cost Per Meter",
 		"description": "",
-		"unit": "€/m",
+		"unit": "Y/m",
 		"type": "float",
 		"default_value": "0.00",
 		"parameter_level": "1",
