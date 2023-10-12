@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "FffProcessor.h"
+#include "Scene.h"
 #include "progress/Progress.h"
 #include "crslice/header.h"
 
@@ -81,7 +82,7 @@ namespace cura52
          * If no slice has started yet, this will be a nullptr.
          */
         Slice* current_slice = nullptr;
-
+        Scene* scene = nullptr;
         /*!
          * \brief ThreadPool with lifetime tied to Application
          */
@@ -126,5 +127,8 @@ namespace cura52
 #else
 #define CALLTICK(x) (void)0
 #endif
+
+#define SAFE_MESSAGE(...) \
+	if(application->tracer) application->tracer->formatMessage(__VA_ARGS__)
 
 #endif //APPLICATION_H

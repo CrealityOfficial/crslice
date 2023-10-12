@@ -63,6 +63,7 @@ namespace cura52
     void Scene::processMeshGroup(MeshGroup& mesh_group)
     {
         application->progressor.restartTime();
+        SAFE_MESSAGE("{0}");
 
         TimeKeeper time_keeper_total;
 

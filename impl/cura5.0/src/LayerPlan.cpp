@@ -183,10 +183,10 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     , is_initial_layer(layer_nr == 0 - static_cast<LayerIndex>(Raft::getTotalExtraLayers(storage.application)))
     , is_raft_layer(layer_nr < 0 - static_cast<LayerIndex>(Raft::getFillerLayerCount(storage.application)))
     , layer_thickness(layer_thickness)
-    , has_prime_tower_planned_per_extruder(application->current_slice->scene.extruders.size(), false)
+    , has_prime_tower_planned_per_extruder(application->scene->extruders.size(), false)
     , current_mesh("")
     , last_extruder_previous_layer(start_extruder)
-    , last_planned_extruder(&application->current_slice->scene.extruders[start_extruder])
+    , last_planned_extruder(&application->scene->extruders[start_extruder])
     , first_travel_destination_is_inside(false) // set properly when addTravel is called for the first time (otherwise not set properly)
     , comb_boundary_minimum(computeCombBoundary(CombBoundary::MINIMUM))
     , comb_boundary_preferred(computeCombBoundary(CombBoundary::PREFERRED))
@@ -197,7 +197,7 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     size_t current_extruder = start_extruder;
     was_inside = true; // not used, because the first travel move is bogus
     is_inside = false; // assumes the next move will not be to inside a layer part (overwritten just before going into a layer part)
-    if (application->current_slice->scene.current_mesh_group->settings.get<CombingMode>("retraction_combing") != CombingMode::OFF)
+    if (application->scene->current_mesh_group->settings.get<CombingMode>("retraction_combing") != CombingMode::OFF)
     {
         comb = new Comb(storage, layer_nr, comb_boundary_minimum, comb_boundary_preferred, comb_boundary_offset, travel_avoid_distance, comb_move_inside_distance);
     }
@@ -205,15 +205,15 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     {
         comb = nullptr;
     }
-    for (const ExtruderTrain& extruder : application->current_slice->scene.extruders)
+    for (const ExtruderTrain& extruder : application->scene->extruders)
     {
         layer_start_pos_per_extruder.emplace_back(extruder.settings.get<coord_t>("layer_start_x"), extruder.settings.get<coord_t>("layer_start_y"));
     }
-    extruder_plans.reserve(application->current_slice->scene.extruders.size());
+    extruder_plans.reserve(application->scene->extruders.size());
     extruder_plans.emplace_back(current_extruder, layer_nr, is_initial_layer, is_raft_layer, layer_thickness, fan_speed_layer_time_settings_per_extruder[current_extruder], storage.retraction_config_per_extruder[current_extruder]);
-    extruder_plans.back().slowdown_level = application->current_slice->scene.extruders[current_extruder].settings.get<bool>("cool_infill_speed_slowdown_first") ? 1 : 0;
+    extruder_plans.back().slowdown_level = application->scene->extruders[current_extruder].settings.get<bool>("cool_infill_speed_slowdown_first") ? 1 : 0;
 
-    for (size_t extruder_nr = 0; extruder_nr < application->current_slice->scene.extruders.size(); extruder_nr++)
+    for (size_t extruder_nr = 0; extruder_nr < application->scene->extruders.size(); extruder_nr++)
     { // Skirt and brim.
         skirt_brim_is_processed[extruder_nr] = false;
     }
@@ -242,7 +242,7 @@ ExtruderTrain* LayerPlan::getLastPlannedExtruderTrain()
 Polygons LayerPlan::computeCombBoundary(const CombBoundary boundary_type)
 {
     Polygons comb_boundary;
-    const CombingMode mesh_combing_mode = application->current_slice->scene.current_mesh_group->settings.get<CombingMode>("retraction_combing");
+    const CombingMode mesh_combing_mode = application->scene->current_mesh_group->settings.get<CombingMode>("retraction_combing");
     if (mesh_combing_mode != CombingMode::OFF && (layer_nr >= 0 || mesh_combing_mode != CombingMode::NO_SKIN))
     {
         if (layer_nr < 0)
@@ -350,8 +350,8 @@ bool LayerPlan::setExtruder(const size_t extruder_nr)
         extruder_plans.back().extruder_nr = extruder_nr;
     }
     extruder_plans.emplace_back(extruder_nr, layer_nr, is_initial_layer, is_raft_layer, layer_thickness, fan_speed_layer_time_settings_per_extruder[extruder_nr], storage.retraction_config_per_extruder[extruder_nr]);
-    //assert(extruder_plans.size() <= application->current_slice->scene.extruders.size() && "Never use the same extruder twice on one layer!");
-    last_planned_extruder = &application->current_slice->scene.extruders[extruder_nr];
+    //assert(extruder_plans.size() <= application->scene->extruders.size() && "Never use the same extruder twice on one layer!");
+    last_planned_extruder = &application->scene->extruders[extruder_nr];
 
     { // handle starting pos of the new extruder
         ExtruderTrain* extruder = getLastPlannedExtruderTrain();
@@ -1622,8 +1622,8 @@ void LayerPlan::addLinesMonotonic(const Polygons& area,
 
 void LayerPlan::spiralizeWallSlice(const GCodePathConfig& config, ConstPolygonRef wall, ConstPolygonRef last_wall, const int seam_vertex_idx, const int last_seam_vertex_idx, const bool is_top_layer, const bool is_bottom_layer)
 {
-    const bool smooth_contours = application->current_slice->scene.current_mesh_group->settings.get<bool>("smooth_spiralized_contours");
-    const bool slope_slice = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("special_slope_slice_angle") != 0;
+    const bool smooth_contours = application->scene->current_mesh_group->settings.get<bool>("smooth_spiralized_contours");
+    const bool slope_slice = application->scene->current_mesh_group->settings.get<coord_t>("special_slope_slice_angle") != 0;
     constexpr bool spiralize = true; // In addExtrusionMove calls, enable spiralize and use nominal line width.
     constexpr Ratio width_factor = 1.0_r;
 
@@ -2023,7 +2023,7 @@ void LayerPlan::processFanSpeedAndMinimalLayerTime(Point starting_position)
     for (unsigned int extr_plan_idx = 0; extr_plan_idx < extruder_plans.size(); extr_plan_idx++)
     {
         ExtruderPlan& extruder_plan = extruder_plans[extr_plan_idx];
-        const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_plan.extruder_nr].settings;
+        const Settings& extruder_settings = application->scene->extruders[extruder_plan.extruder_nr].settings;
         double max_cds_fan_speed = extruder_settings.get<double>("cool_special_cds_fan_speed");
         bool force_minimal_layer_time = extr_plan_idx == extruder_plans.size() - 1;
         extruder_plan.processFanSpeedAndMinimalLayerTime(force_minimal_layer_time, starting_position, max_cds_fan_speed);
@@ -2058,8 +2058,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
    
     // flow-rate compensation
     size_t extruder_nr = gcode.getExtruderNr();
-    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
-    const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_nr].settings;
+    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
+    const Settings& extruder_settings = application->scene->extruders[extruder_nr].settings;
     gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
 
 
@@ -2076,7 +2076,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     {
 		Temperature max_bed_temperature;
 		Temperature max_bed_temperature_layer_0;
-		for (ExtruderTrain& aTrain : application->current_slice->scene.extruders)
+		for (ExtruderTrain& aTrain : application->scene->extruders)
 		{
 			if (max_bed_temperature < aTrain.settings.get<Temperature>("material_bed_temperature"))
 			{
@@ -2129,7 +2129,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
             gcode.ResetLastEValueAfterWipe(prev_extruder);
 
-            const ExtruderTrain& prev_extruder_train = application->current_slice->scene.extruders[prev_extruder];
+            const ExtruderTrain& prev_extruder_train = application->scene->extruders[prev_extruder];
             if (prev_extruder_train.settings.get<bool>("retraction_hop_after_extruder_switch"))
             {
                 z_hop_height = storage.extruder_switch_retraction_config_per_extruder[prev_extruder].zHop;
@@ -2140,7 +2140,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 gcode.switchExtruder(extruder_nr, storage.extruder_switch_retraction_config_per_extruder[prev_extruder]);
             }
 
-            const ExtruderTrain& extruder = application->current_slice->scene.extruders[extruder_nr];
+            const ExtruderTrain& extruder = application->scene->extruders[extruder_nr];
 
             if (extruder_plan.prev_extruder_standby_temp)
             { // turn off previous extruder
@@ -2170,7 +2170,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 gcode.insertWipeScript(wipe_config);
                 gcode.ResetLastEValueAfterWipe(extruder_nr);
             }
-            else if (layer_nr != 0 && application->current_slice->scene.extruders[extruder_nr].settings.get<bool>("retract_at_layer_change"))
+            else if (layer_nr != 0 && application->scene->extruders[extruder_nr].settings.get<bool>("retract_at_layer_change"))
             {
                 // only do the retract if the paths are not spiralized
                 if (! mesh_group_settings.get<bool>("magic_spiralize"))
@@ -2195,14 +2195,14 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         extruder_plan.inserts.sort([](const NozzleTempInsert& a, const NozzleTempInsert& b) -> bool { return a.path_idx < b.path_idx; });
 
-        const ExtruderTrain& extruder = application->current_slice->scene.extruders[extruder_nr];
+        const ExtruderTrain& extruder = application->scene->extruders[extruder_nr];
 
         bool update_extrusion_offset = true;
 
         bool isAvoidPoint = false;//统计被过滤的点 用于G2G3的判断
         bool  entireLayerSlowdown = false;
-        /*float*/Acceleration speed_slowtofast_slowdown_revise_acceleration = application->current_slice->scene.settings.get<Acceleration>("speed_slowtofast_slowdown_revise_acceleration");
-        if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
+        /*float*/Acceleration speed_slowtofast_slowdown_revise_acceleration = application->scene->settings.get<Acceleration>("speed_slowtofast_slowdown_revise_acceleration");
+        if (application->scene->settings.get<bool>("speed_slowtofast_slowdown"))
         {//speedSlowDownPath 重新新建的一个变量，标识此段path是否有速度突变
             for (unsigned int path_idx = 0; path_idx < paths.size(); path_idx++)
             {
@@ -2576,7 +2576,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
 
             // This seems to be the best location to place this, but still not ideal.
-            if (path.mesh_id != current_mesh &&  (application->current_slice->scene.settings.get<bool>("special_object_cancel")))
+            if (path.mesh_id != current_mesh &&  (application->scene->settings.get<bool>("special_object_cancel")))
             {
                 current_mesh = path.mesh_id;
                 std::stringstream ss;
@@ -2651,7 +2651,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
             bool judgeVelocityDip = false;
             float speed_quarter;
-            if (application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown"))
+            if (application->scene->settings.get<bool>("speed_slowtofast_slowdown"))
             {
                 for (int i = 1; i <= path_idx; i++)
                 {   
@@ -2664,12 +2664,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                             paths[path_idx - i].config->type == PrintFeatureType::InnerWall || paths[path_idx - i].config->type == PrintFeatureType::OuterWall)
                             && v_previous < 50.0 && this->layer_nr > 0)
                         {   //outwall   force  to  slowdown else  front line all no slow  ,   small  circle   also  faster
-                            //if (path.config->type == PrintFeatureType::OuterWall && application->current_slice->scene.settings.get<bool>("optimize_wall_printing_order"))
+                            //if (path.config->type == PrintFeatureType::OuterWall && application->scene->settings.get<bool>("optimize_wall_printing_order"))
                             //    break;
-                            //if (path.config->type == PrintFeatureType::InnerWall && !application->current_slice->scene.settings.get<bool>("optimize_wall_printing_order"))
+                            //if (path.config->type == PrintFeatureType::InnerWall && !application->scene->settings.get<bool>("optimize_wall_printing_order"))
                             //    break;
 
-                            float speed_slowdown_factor = application->current_slice->scene.settings.get<Ratio>("speed_slowtofast_slowdown_revise_speed_factor");
+                            float speed_slowdown_factor = application->scene->settings.get<Ratio>("speed_slowtofast_slowdown_revise_speed_factor");
                             float speed_span_quarter = (abs(speed  - v_previous )) * speed_slowdown_factor;
 
                             speed_quarter = v_previous + speed_span_quarter;
@@ -2709,8 +2709,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 }
                 if (! coasting) // not same as 'else', cause we might have changed [coasting] in the line above...
                 { // normal path to gcode algorithm
-                    bool arc_configure_enable = application->current_slice->scene.settings.get<bool>("arc_configure_enable");
-                    bool slope_slice_enable = application->current_slice->scene.settings.get<coord_t>("special_slope_slice_angle") != 0;
+                    bool arc_configure_enable = application->scene->settings.get<bool>("arc_configure_enable");
+                    bool slope_slice_enable = application->scene->settings.get<coord_t>("special_slope_slice_angle") != 0;
                     if (arc_configure_enable && !slope_slice_enable)
                     {
                         if (1)
@@ -2726,7 +2726,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                     //ss << "arc_fitting start layer_nr=" << layer_nr;
                                     //gcode.writeComment(ss.str());
                                 }
-                                double tolerance = application->current_slice->scene.settings.get<double>("arc_tolerance");
+                                double tolerance = application->scene->settings.get<double>("arc_tolerance");
 
                                 //填充模式下加大偏差值
                                 if (PrintFeatureType::Infill == path.config->type)
@@ -2773,8 +2773,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                 }
 
                                 float dis = 0;
-                                float dis_threshold = application->current_slice->scene.settings.get<coord_t>("speed_slowtofast_slowdown_revise_distance"); //如果大于这一段距离，则是原来的速度，否则速度50
-                                bool slow2fastSlowdown = application->current_slice->scene.settings.get<bool>("speed_slowtofast_slowdown");
+                                float dis_threshold = application->scene->settings.get<coord_t>("speed_slowtofast_slowdown_revise_distance"); //如果大于这一段距离，则是原来的速度，否则速度50
+                                bool slow2fastSlowdown = application->scene->settings.get<bool>("speed_slowtofast_slowdown");
                                 // BBS: start to generate gcode from arc fitting data which includes line and arc
                                 for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
                                 {
@@ -2921,8 +2921,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
 							if (is_deceleration_speed)//颗粒机 每层起始段减速
 							{
-								float length = application->current_slice->scene.settings.get<coord_t>("layer_deceleration_length");
-								float deceleration_speed = application->current_slice->scene.settings.get<Velocity>("layer_deceleration_speed");
+								float length = application->scene->settings.get<coord_t>("layer_deceleration_length");
+								float deceleration_speed = application->scene->settings.get<Velocity>("layer_deceleration_speed");
 								if (iflag == 0)
 								{
 									start_speed_down(length * 0.6, deceleration_speed);
@@ -2978,7 +2978,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         const Point p1 = path.points[point_idx];
                         length += vSizeMM(p0 - p1);
                         p0 = p1;
-                        if (application->current_slice->scene.settings.get<coord_t>("special_slope_slice_angle") == 0)
+                        if (application->scene->settings.get<coord_t>("special_slope_slice_angle") == 0)
                         {
                             gcode.setZ(std::round(z + layer_thickness * length / totalLength));
                         }
@@ -3072,7 +3072,7 @@ bool LayerPlan::makeRetractSwitchRetract(unsigned int extruder_plan_idx, unsigne
 bool LayerPlan::writePathWithCoasting(GCodeExport& gcode, const size_t extruder_plan_idx, const size_t path_idx, const coord_t layer_thickness)
 {
     ExtruderPlan& extruder_plan = extruder_plans[extruder_plan_idx];
-    const ExtruderTrain& extruder = application->current_slice->scene.extruders[extruder_plan.extruder_nr];
+    const ExtruderTrain& extruder = application->scene->extruders[extruder_plan.extruder_nr];
     const double coasting_volume = extruder.settings.get<double>("coasting_volume");
     if (coasting_volume <= 0)
     {
@@ -3186,7 +3186,7 @@ void LayerPlan::applyBackPressureCompensation()
 {
     for (auto& extruder_plan : extruder_plans)
     {
-        const Settings& extruder_settings = application->current_slice->scene.extruders[extruder_plan.extruder_nr].settings;
+        const Settings& extruder_settings = application->scene->extruders[extruder_plan.extruder_nr].settings;
         const Ratio back_pressure_compensation = extruder_settings.get<Ratio>("speed_equalize_flow_width_factor");
         const Velocity machine_max_feedrate = std::min(extruder_settings.get<Velocity>("machine_max_feedrate_x"), extruder_settings.get<Velocity>("machine_max_feedrate_y"));
         if (back_pressure_compensation != 0.0)

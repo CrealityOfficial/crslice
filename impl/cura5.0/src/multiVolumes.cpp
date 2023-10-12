@@ -17,7 +17,7 @@ namespace cura52
 void carveMultipleVolumes(Application* application, std::vector<Slicer*> &volumes)
 {
     //Go trough all the volumes, and remove the previous volume outlines from our own outline, so we never have overlapped areas.
-    const bool alternate_carve_order = application->current_slice->scene.current_mesh_group->settings.get<bool>("alternate_carve_order");
+    const bool alternate_carve_order = application->scene->current_mesh_group->settings.get<bool>("alternate_carve_order");
     std::vector<Slicer*> ranked_volumes = volumes;
     std::sort(ranked_volumes.begin(), ranked_volumes.end(),
               [](Slicer* volume_1, Slicer* volume_2)

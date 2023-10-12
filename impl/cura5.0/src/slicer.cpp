@@ -787,7 +787,7 @@ Slicer::Slicer(Application* _application, Mesh* i_mesh, const coord_t thickness,
     , application(_application)
 {
     const SlicingTolerance slicing_tolerance = mesh->settings.get<SlicingTolerance>("slicing_tolerance");
-    const coord_t initial_layer_thickness = application->current_slice->scene.current_mesh_group->settings.get<coord_t>("layer_height_0");
+    const coord_t initial_layer_thickness = application->scene->current_mesh_group->settings.get<coord_t>("layer_height_0");
 
     assert(slice_layer_count > 0);
 

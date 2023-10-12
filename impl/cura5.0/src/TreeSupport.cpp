@@ -39,13 +39,13 @@ namespace cura52
 TreeSupport::TreeSupport(const SliceDataStorage& storage)
     :application(storage.application)
 {
-    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
     volumes_ = TreeModelVolumes(storage, mesh_group_settings);
 }
 
 void TreeSupport::generateSupportAreas(SliceDataStorage& storage)
 {
-    const Settings& group_settings = application->current_slice->scene.current_mesh_group->settings;
+    const Settings& group_settings = application->scene->current_mesh_group->settings;
     const bool global_use_tree_support = group_settings.get<bool>("support_enable") && group_settings.get<ESupportStructure>("support_structure") == ESupportStructure::TREE;
 
     if (! (global_use_tree_support
@@ -85,7 +85,7 @@ void TreeSupport::generateSupportAreas(SliceDataStorage& storage)
 
 void TreeSupport::drawCircles(SliceDataStorage& storage, const std::vector<std::vector<Node*>>& contact_nodes)
 {
-    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
     const coord_t branch_radius = mesh_group_settings.get<coord_t>("support_tree_branch_diameter") / 2;
     const size_t wall_count = mesh_group_settings.get<size_t>("support_wall_count");
     Polygon branch_circle = PolygonUtils::makeCircle(Point(0, 0), branch_radius, TAU / CIRCLE_RESOLUTION); // Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
@@ -208,7 +208,7 @@ void TreeSupport::drawCircles(SliceDataStorage& storage, const std::vector<std::
 
 void TreeSupport::dropNodes(std::vector<std::vector<Node*>>& contact_nodes)
 {
-    const Settings& mesh_group_settings = application->current_slice->scene.current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
     // Use Minimum Spanning Tree to connect the points on each layer and move them while dropping them down.
     const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
     const auto support_xy_distance = mesh_group_settings.get<coord_t>("support_xy_distance");

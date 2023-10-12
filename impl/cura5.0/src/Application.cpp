@@ -87,6 +87,8 @@ namespace cura52
             std::shared_ptr<Slice> slice(_communication->createSlice());
             if (slice)
             {
+                this->scene = &slice->scene;
+
                 current_slice = slice.get();
                 current_slice->scene.application = this;
                 current_slice->application = this;

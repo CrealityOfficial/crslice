@@ -23,7 +23,7 @@ namespace cura52
 
 void Wireframe2gcode::writeGCode()
 {
-    Settings& scene_settings = application->current_slice->scene.settings;
+    Settings& scene_settings = application->scene->settings;
     const size_t start_extruder_nr = scene_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr; // TODO: figure out how Wireframe works with dual extrusion
     gcode.preSetup(start_extruder_nr);
     gcode.setInitialAndBuildVolumeTemps(start_extruder_nr);
@@ -243,7 +243,7 @@ void Wireframe2gcode::strategy_retract(WeaveConnectionPart& part, unsigned int s
     WeaveConnectionSegment& segment = part.connection.segments[segment_idx];
     Point3 from = (segment_idx == 0) ? part.connection.from : part.connection.segments[segment_idx - 1].to;
 
-    Settings& scene_settings = application->current_slice->scene.settings;
+    Settings& scene_settings = application->scene->settings;
     RetractionConfig retraction_config;
     // TODO: get these from the settings!
     retraction_config.distance = MM2INT(0.5); // INT2MM(getSettingInt("retraction_amount"))
@@ -494,7 +494,7 @@ Wireframe2gcode::Wireframe2gcode(Weaver& weaver, GCodeExport& gcode)
     , wireFrame(weaver.wireFrame)
     , application(gcode.application)
 {
-    const Settings& scene_settings = application->current_slice->scene.settings;
+    const Settings& scene_settings = application->scene->settings;
     initial_layer_thickness = scene_settings.get<coord_t>("layer_height_0");
     connectionHeight = scene_settings.get<coord_t>("wireframe_height");
     roof_inset = scene_settings.get<coord_t>("wireframe_roof_inset");
@@ -562,10 +562,10 @@ Wireframe2gcode::Wireframe2gcode(Weaver& weaver, GCodeExport& gcode)
 
 void Wireframe2gcode::processStartingCode()
 {
-    const Settings& scene_settings = application->current_slice->scene.settings;
-    const size_t extruder_count = application->current_slice->scene.extruders.size();
+    const Settings& scene_settings = application->scene->settings;
+    const size_t extruder_count = application->scene->extruders.size();
     size_t start_extruder_nr = scene_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr;
-    const Settings& start_extruder_settings = application->current_slice->scene.extruders[start_extruder_nr].settings;
+    const Settings& start_extruder_settings = application->scene->extruders[start_extruder_nr].settings;
 
     if (true)
     {
@@ -642,7 +642,7 @@ void Wireframe2gcode::processSkirt()
     }
     order.optimize();
 
-    const Settings& scene_settings = application->current_slice->scene.settings;
+    const Settings& scene_settings = application->scene->settings;
     for (const PathOrderPath<PolygonPointer>& path : order.paths)
     {
         gcode.writeTravel((*path.vertices)[path.start_vertex], scene_settings.get<Velocity>("speed_travel"));
@@ -660,8 +660,8 @@ void Wireframe2gcode::processSkirt()
 
 void Wireframe2gcode::finalize()
 {
-    gcode.finalize(application->current_slice->scene.settings.get<std::string>("machine_end_gcode").c_str());
-    for (size_t e = 0; e < application->current_slice->scene.extruders.size(); e++)
+    gcode.finalize(application->scene->settings.get<std::string>("machine_end_gcode").c_str());
+    for (size_t e = 0; e < application->scene->extruders.size(); e++)
     {
         gcode.writeTemperatureCommand(e, 0, false);
     }
