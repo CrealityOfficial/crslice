@@ -978,5 +978,39 @@
 		"enabled": "(eval(contex.value(\"top_layers\")) > 0 || eval(contex.value(\"bottom_layers\")) > 0) && getEnumValue(\"top_bottom_pattern\") != 'concentric'",
 		"parameter_level": "4",
 		"settable_per_mesh": "true"
+	},
+	"layer_initial_deceleration_enable":
+	{
+		"label": "layer initial deceleration",
+		"description": "The start of each layer path is decelerated.",
+		"type": "bool",
+		"default_value": "false",
+		"parameter_level": "1",
+		"settable_per_mesh": true
+	},
+	"layer_deceleration_length": 
+	{
+	  "label": "layer deceleration length",
+	  "description": "The starting segment of each layer path decelerates the length of the print.",
+	  "unit": "mm",
+	  "type": "float",
+	  "minimum_value_warning": "0",
+	  "default_value": "10",
+	  "enabled": "eval(contex.value(\"layer_initial_deceleration_enable\"))",
+	  "parameter_level": "2",
+	  "settable_per_mesh": true
+	},
+	"layer_deceleration_speed": 
+	{
+	  "label": "layer deceleration speed",
+	  "description": "The start of each layer path slows down the printing speed.",
+	  "unit": "mm/s",
+	  "type": "float",
+	  "minimum_value_warning": "5",
+	  "minimum_value": "2",
+	  "default_value": "5",
+	  "enabled": "eval(contex.value(\"layer_initial_deceleration_enable\"))",
+	  "parameter_level": "2",
+	  "settable_per_mesh": true
 	}
 }

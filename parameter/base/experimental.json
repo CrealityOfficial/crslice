@@ -1243,5 +1243,20 @@
 		"type": "float",
 		"default_value": "0.5",
 		"enabled": "false"
+	},
+	"poly_order_user_specified": {
+		"label": "polygon order user specified",
+		"description": "polygon order user specified",
+		"type": "bool",
+		"default_value": "false",
+		"enabled": "false"
+	},
+	"poly_order_user_specified_str":
+	{	
+		"label": "polygon order user specified str",
+		"description": "polygon order user specified str",
+		"type": "str",
+		"default_value": "[0.0,0.0]",
+		"enabled": "false"
 	}
 }
