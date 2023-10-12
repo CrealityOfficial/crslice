@@ -55,6 +55,7 @@ bool InsetOrderOptimizer::addToLayer()
     // Settings & configs:
     const auto pack_by_inset = ! settings.get<bool>("optimize_wall_printing_order");
     const auto alternate_walls = settings.get<bool>("material_alternate_walls");
+	const auto wipe_length = settings.get<coord_t>("wipe_length");
 	auto inset_direction = settings.get<InsetDirection>("inset_direction");
 	if (inset_direction == InsetDirection::Flexible_Sequence)
 	{
@@ -170,7 +171,7 @@ bool InsetOrderOptimizer::addToLayer()
     {
         const PathOrderPath<const ExtrusionLine*>& path = order_optimizer.paths[i];
         const bool is_outer_wall = path.vertices->inset_idx == 0; // or thin wall 'gap filler'
-        if (path.vertices->empty() || (!is_outer_wall && wall_path_size == 2 && i == wall_path_size - 1 && !path.vertices->is_closed && path.vertices->getLength() < wall_0_wipe_dist))
+        if (path.vertices->empty() || (!is_outer_wall && wall_path_size == 2 && i == wall_path_size - 1 && !path.vertices->is_closed && path.vertices->getLength() < wipe_length))
             continue;
 
         const bool is_gap_filler = path.vertices->is_odd;

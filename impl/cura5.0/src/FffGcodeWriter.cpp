@@ -2479,15 +2479,15 @@ void FffGcodeWriter::addMeshPartToGCode(const SliceDataStorage& storage, const S
     added_something = added_something | processSkin(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
     INTERRUPT_RETURN("processSkin");
     // After a layer part, make sure the nozzle is inside the comb boundary, so we do not retract on the perimeter.
-    //if (added_something && (! mesh_group_settings.get<bool>("magic_spiralize") || gcode_layer.getLayerNr() < static_cast<LayerIndex>(mesh.settings.get<size_t>("initial_bottom_layers"))))
-    //{
-    //    coord_t innermost_wall_line_width = mesh.settings.get<coord_t>((mesh.settings.get<size_t>("wall_line_count") > 1) ? "wall_line_width_x" : "wall_line_width_0");
-    //    if (gcode_layer.getLayerNr() == 0)
-    //    {
-    //        innermost_wall_line_width *= mesh.settings.get<Ratio>("initial_layer_line_width_factor");
-    //    }
-    //    gcode_layer.moveInsideCombBoundary(innermost_wall_line_width, part);
-    //}
+    if (added_something && (! mesh_group_settings.get<bool>("magic_spiralize") || gcode_layer.getLayerNr() < static_cast<LayerIndex>(mesh.settings.get<size_t>("initial_bottom_layers"))))
+    {
+        coord_t innermost_wall_line_width = mesh.settings.get<coord_t>((mesh.settings.get<size_t>("wall_line_count") > 1) ? "wall_line_width_x" : "wall_line_width_0");
+        if (gcode_layer.getLayerNr() == 0)
+        {
+            innermost_wall_line_width *= mesh.settings.get<Ratio>("initial_layer_line_width_factor");
+        }
+        gcode_layer.moveInsideCombBoundary(innermost_wall_line_width, part);
+    }
 
     gcode_layer.setIsInside(false);
 }
