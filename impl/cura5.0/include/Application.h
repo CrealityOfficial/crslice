@@ -20,7 +20,6 @@
 namespace cura52
 {
     class Communication;
-    class Slice;
     class ThreadPool;
 
     struct SliceResult
@@ -81,7 +80,6 @@ namespace cura52
          *
          * If no slice has started yet, this will be a nullptr.
          */
-        Slice* current_slice = nullptr;
         Scene* scene = nullptr;
         /*!
          * \brief ThreadPool with lifetime tied to Application
@@ -104,6 +102,8 @@ namespace cura52
         void sendProgress(float r);
         bool checkInterrupt(const std::string& message = "");
         void tick(const std::string& tag);
+
+        void compute();
 
         SliceResult sliceResult;
     private:

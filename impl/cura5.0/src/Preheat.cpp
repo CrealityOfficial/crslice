@@ -6,7 +6,6 @@
 #include "Application.h" //To get settings.
 #include "ExtruderTrain.h"
 #include "Preheat.h"
-#include "Slice.h"
 #include "settings/FlowTempGraph.h"
 #include "settings/types/Ratio.h"
 

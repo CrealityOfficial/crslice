@@ -23,9 +23,9 @@ namespace crslice
         return m_haveSlice;
     }
 
-    cura52::Slice* CRSliceFromScene::createSlice()
+    cura52::Scene* CRSliceFromScene::createSlice()
     {
-        cura52::Slice* slice = createSliceFromCrScene(application, m_scene);
+        cura52::Scene* slice = createSliceFromCrScene(application, m_scene);
         m_scene->release();
         m_haveSlice = false;
         return slice;

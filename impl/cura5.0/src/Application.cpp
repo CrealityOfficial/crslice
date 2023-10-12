@@ -11,8 +11,10 @@
 
 #include "ccglobal/log.h"
 
-#include "Slice.h"
 #include "FffProcessor.h"
+#include "Weaver.h"
+#include "Wireframe2gcode.h"
+#include "sliceDataStorage.h"
 #include "progress/Progress.h"
 #include "utils/ThreadPool.h"
 #include "utils/string.h" //For stringcasecompare.
@@ -84,19 +86,16 @@ namespace cura52
         startThreadPool(); // Start the thread pool
         if (_communication->hasSlice())
         {
-            std::shared_ptr<Slice> slice(_communication->createSlice());
+            std::shared_ptr<Scene> slice(_communication->createSlice());
             if (slice)
             {
-                this->scene = &slice->scene;
+                this->scene = slice.get();
+                this->scene->application = this;
 
-                current_slice = slice.get();
-                current_slice->scene.application = this;
-                current_slice->application = this;
+                processor.setTargetFile(scene->gcodeFile.c_str());
 
-                processor.setTargetFile(current_slice->gcodeFile.c_str());
-
-                current_slice->finalize();
-                current_slice->compute();
+                scene->finalize();
+                compute();
                 // Finalize the processor. This adds the end g-code and reports statistics.
                 processor.finalize();
             }
@@ -125,5 +124,77 @@ namespace cura52
         }
         delete thread_pool;
         thread_pool = new ThreadPool(nthreads);
+    }
+
+    void Application::compute()
+    {
+        int index = 0;
+        for (std::vector<MeshGroup>::iterator mesh_group = scene->mesh_groups.begin(); mesh_group != scene->mesh_groups.end(); mesh_group++)
+        {
+            scene->current_mesh_group = mesh_group;
+            for (ExtruderTrain& extruder : scene->extruders)
+            {
+                extruder.settings.setParent(&scene->current_mesh_group->settings);
+            }
+
+
+            {
+                progressor.restartTime();
+                SAFE_MESSAGE("{0}");
+
+                TimeKeeper time_keeper_total;
+
+                bool empty = true;
+                for (Mesh& mesh : mesh_group->meshes)
+                {
+                    if (!mesh.settings.get<bool>("infill_mesh") && !mesh.settings.get<bool>("anti_overhang_mesh"))
+                    {
+                        empty = false;
+                        break;
+                    }
+                }
+                if (empty)
+                {
+                    progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+                    LOGI("Total time elapsed { %f }s.", time_keeper_total.restart());
+                    return;
+                }
+
+                FffProcessor& fff_processor = this->processor;
+                if (mesh_group->settings.get<bool>("wireframe_enabled"))
+                {
+                    LOGI("Starting Neith Weaver...");
+
+                    Weaver weaver;
+                    weaver.application = this;
+
+                    weaver.weave(&*mesh_group);
+
+                    LOGI("Starting Neith Gcode generation...");
+                    Wireframe2gcode gcoder(weaver, fff_processor.gcode_writer.gcode);
+                    gcoder.writeGCode();
+                    LOGI("Finished Neith Gcode generation...");
+                }
+                else // Normal operation (not wireframe).
+                {
+                    SliceDataStorage storage(application);
+                    if (!fff_processor.polygon_generator.generateAreas(storage, &*mesh_group))
+                    {
+                        return;
+                    }
+
+                    progressor.messageProgressStage(Progress::Stage::EXPORT);
+
+                    CALLTICK("writeGCode 0");
+                    fff_processor.gcode_writer.writeGCode(storage);
+                    CALLTICK("writeGCode 1");
+                }
+
+                progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
+                LOGI("Total time elapsed { %f }s.\n", time_keeper_total.restart());
+            }
+
+            ++index;
+        }
     }
 } // namespace cura52

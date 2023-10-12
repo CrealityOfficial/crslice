@@ -1,15 +1,7 @@
 // Copyright (c) 2022 Ultimaker B.V.
 // CuraEngine is released under the terms of the AGPLv3 or higher
 
-#include "Application.h"
-#include "FffProcessor.h" //To start a slice.
 #include "Scene.h"
-#include "Weaver.h"
-#include "Wireframe2gcode.h"
-#include "progress/Progress.h"
-#include "sliceDataStorage.h"
-
-#include "ccglobal/log.h"
 
 namespace cura52
 {
@@ -60,60 +52,46 @@ namespace cura52
         return output.str();
     }
 
-    void Scene::processMeshGroup(MeshGroup& mesh_group)
+    void Scene::reset()
     {
-        application->progressor.restartTime();
-        SAFE_MESSAGE("{0}");
+        extruders.clear();
+        mesh_groups.clear();
+        settings = Settings();
+    }
 
-        TimeKeeper time_keeper_total;
-
-        bool empty = true;
-        for (Mesh& mesh : mesh_group.meshes)
+    void Scene::finalize()
+    {
+        size_t numExtruder = extruders.size();
+        for (size_t i = 0; i < numExtruder; ++i)
         {
-            if (!mesh.settings.get<bool>("infill_mesh") && !mesh.settings.get<bool>("anti_overhang_mesh"))
+            ExtruderTrain& train = extruders[i];
+            train.extruder_nr = i;
+            train.settings.application = application;
+            train.settings.add("extruder_nr", std::to_string(i));
+        }
+
+        for (MeshGroup& meshGroup : mesh_groups)
+        {
+            meshGroup.settings.application = application;
+            for (Mesh& mesh : meshGroup.meshes)
             {
-                empty = false;
-                break;
+                mesh.settings.application = application;
+
+                if (mesh.settings.has("extruder_nr"))
+                {
+                    size_t i = mesh.settings.get<size_t>("extruder_nr");
+                    if (i <= numExtruder)
+                    {
+                        mesh.settings.setParent(&extruders[i].settings);
+                        continue;
+                    }
+                }
+
+                mesh.settings.setParent(&extruders[0].settings);
             }
         }
-        if (empty)
-        {
-            application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
-            LOGI("Total time elapsed { %f }s.", time_keeper_total.restart());
-            return;
-        }
 
-        FffProcessor& fff_processor = application->processor;
-        if (mesh_group.settings.get<bool>("wireframe_enabled"))
-        {
-            LOGI("Starting Neith Weaver...");
-
-            Weaver weaver;
-            weaver.application = application;
-
-            weaver.weave(&mesh_group);
-
-            LOGI("Starting Neith Gcode generation...");
-            Wireframe2gcode gcoder(weaver, fff_processor.gcode_writer.gcode);
-            gcoder.writeGCode();
-            LOGI("Finished Neith Gcode generation...");
-        }
-        else // Normal operation (not wireframe).
-        {
-            SliceDataStorage storage(application);
-            if (!fff_processor.polygon_generator.generateAreas(storage, &mesh_group))
-            {
-                return;
-            }
-
-            application->progressor.messageProgressStage(Progress::Stage::EXPORT);
-
-            CALLTICK("writeGCode 0");
-            fff_processor.gcode_writer.writeGCode(storage);
-            CALLTICK("writeGCode 1");
-        }
-
-        application->progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
-        LOGI("Total time elapsed { %f }s.\n", time_keeper_total.restart());
+        for (MeshGroup& meshGroup : mesh_groups)
+            meshGroup.finalize();
     }
 } // namespace cura52

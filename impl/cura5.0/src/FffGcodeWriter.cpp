@@ -16,7 +16,6 @@
 #include "FffProcessor.h"
 #include "InsetOrderOptimizer.h"
 #include "LayerPlan.h"
-#include "Slice.h"
 #include "WallToolPaths.h"
 #include "bridge.h"
 #include "infill.h"

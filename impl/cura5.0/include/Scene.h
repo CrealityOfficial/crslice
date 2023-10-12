@@ -7,7 +7,6 @@
 #include "ExtruderTrain.h" //To store the extruders in the scene.
 #include "MeshGroup.h" //To store the mesh groups in the scene.
 #include "settings/Settings.h" //To store the global settings.
-#include "ccglobal/tracer.h"
 
 namespace cura52
 {
@@ -22,7 +21,10 @@ namespace cura52
          * \brief The global settings in the scene.
          */
         Settings settings;
+        Application* application = nullptr;
 
+        std::string gcodeFile;
+        std::string ploygonFile;
         /*
          * \brief Which extruder to evaluate each setting on, if different from the
          * normal extruder of the object it's evaluated for.
@@ -39,7 +41,6 @@ namespace cura52
          */
         std::vector<ExtruderTrain> extruders;
         bool machine_center_is_zero = false;
-        Application* application = nullptr;
         /*
          * \brief The mesh group that is being processed right now.
          *
@@ -68,10 +69,15 @@ namespace cura52
         const std::string getAllSettingsString() const;
 
         /*
-         * \brief Generate the 3D printing instructions to print a given mesh group.
-         * \param mesh_group The mesh group to slice.
+         * \brief Empty out the slice instance, restoring it as if it were a new
+         * instance.
+         *
+         * Since you are not allowed to copy, move or assign slice objects, this is
+         * the only way in which you can prepare for the next slice.
          */
-        void processMeshGroup(MeshGroup& mesh_group);
+        void reset();
+
+        void finalize();
     private:
         /*
          * \brief You are not allowed to copy the scene.

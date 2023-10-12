@@ -13,7 +13,6 @@
 #include "PrintFeature.h"
 #include "raft.h"
 #include "Scene.h"
-#include "Slice.h"
 #include "sliceDataStorage.h"
 
 #define CIRCLE_RESOLUTION 32 //The number of vertices in each circle.

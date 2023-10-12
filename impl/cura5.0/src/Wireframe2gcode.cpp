@@ -10,7 +10,6 @@
 #include "ExtruderTrain.h"
 #include "PathOrderOptimizer.h" //For skirt/brim.
 #include "PrintFeature.h"
-#include "Slice.h"
 #include "Weaver.h"
 #include "Wireframe2gcode.h"
 #include "progress/Progress.h"

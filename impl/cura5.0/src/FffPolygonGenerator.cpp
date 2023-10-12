@@ -24,7 +24,6 @@
 #include "raft.h"
 #include "skin.h"
 #include "SkirtBrim.h"
-#include "Slice.h"
 #include "sliceDataStorage.h"
 #include "slicer.h"
 #include "support.h"

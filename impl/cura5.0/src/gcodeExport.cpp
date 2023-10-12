@@ -12,7 +12,6 @@
 #include "ExtruderTrain.h"
 #include "PrintFeature.h"
 #include "RetractionConfig.h"
-#include "Slice.h"
 #include "WipeScriptConfig.h"
 #include "gcodeExport.h"
 #include "settings/types/LayerIndex.h"

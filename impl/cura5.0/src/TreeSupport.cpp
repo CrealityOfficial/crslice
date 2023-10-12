@@ -6,7 +6,6 @@
 // clang-format off
 #include "Application.h" //To get settings.
 #include "ExtruderTrain.h"
-#include "Slice.h"
 #include "sliceDataStorage.h"
 #include "TreeSupport.h"
 #include "progress/Progress.h"

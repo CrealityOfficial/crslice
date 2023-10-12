@@ -10,7 +10,6 @@
 #include "settings/EnumSettings.h"
 #include "settings/types/Angle.h"
 #include "Application.h"
-#include "Slice.h"
 #include "utils/floatpoint.h"
 
 namespace cura52

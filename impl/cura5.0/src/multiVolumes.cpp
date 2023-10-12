@@ -6,7 +6,6 @@
 #include <algorithm>
 
 #include "Application.h"
-#include "Slice.h"
 #include "slicer.h"
 #include "utils/PolylineStitcher.h"
 #include "settings/EnumSettings.h"

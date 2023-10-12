@@ -4,12 +4,9 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
-#include "../utils/IntPoint.h" //For coord_t and Point.
-
 namespace cura52
 {
-    class Slice;
-    class Application;
+    class Scene;
     /*
      * An abstract class to provide a common interface for all methods of
      * communicating instructions from and to CuraEngine.
@@ -27,7 +24,7 @@ namespace cura52
          */
         virtual bool hasSlice() const = 0;
 
-        virtual Slice* createSlice() = 0;
+        virtual Scene* createSlice() = 0;
     };
 
 } //namespace cura52

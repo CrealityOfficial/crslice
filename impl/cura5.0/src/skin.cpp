@@ -4,7 +4,6 @@
 #include <cmath> // std::ceil
 
 #include "Application.h" //To get settings.
-#include "Slice.h"
 #include "ExtruderTrain.h"
 #include "skin.h"
 #include "infill.h"

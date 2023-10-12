@@ -8,7 +8,6 @@
 
 #include "Application.h" //To get the communication channel.
 #include "PrintFeature.h"
-#include "Slice.h"
 #include "Weaver.h"
 #include "progress/Progress.h"
 #include "settings/AdaptiveLayerHeights.h"

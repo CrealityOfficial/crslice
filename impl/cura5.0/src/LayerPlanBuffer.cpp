@@ -8,7 +8,6 @@
 #include "FffProcessor.h"
 #include "LayerPlan.h"
 #include "LayerPlanBuffer.h"
-#include "Slice.h"
 #include "gcodeExport.h"
 
 namespace cura52

@@ -10,7 +10,6 @@
 
 #include "Application.h" //To get settings.
 #include "ExtruderTrain.h"
-#include "Slice.h"
 #include "infill.h"
 #include "infill/ImageBasedDensityProvider.h"
 #include "infill/SierpinskiFillProvider.h"

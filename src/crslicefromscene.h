@@ -1,8 +1,13 @@
 #ifndef CRSLICE_FROM_SCENE_COMMANDLINE_H
 #define CRSLICE_FROM_SCENE_COMMANDLINE_H
 #include "crslice/crscene.h"
-#include "Slice.h"
+#include "Scene.h"
 #include "communication/Communication.h"
+
+namespace cura52
+{
+    class Application;
+}
 
 namespace crslice
 {
@@ -12,7 +17,7 @@ namespace crslice
         CRSliceFromScene(cura52::Application* _application, CrScenePtr scene);
         virtual ~CRSliceFromScene();
 
-        cura52::Slice* createSlice() override;
+        cura52::Scene* createSlice() override;
         bool hasSlice() const override;
 
     private:

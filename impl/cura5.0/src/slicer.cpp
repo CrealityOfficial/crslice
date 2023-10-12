@@ -7,7 +7,6 @@
 #include "ccglobal/log.h"
 
 #include "Application.h"
-#include "Slice.h"
 #include "settings/AdaptiveLayerHeights.h"
 #include "settings/EnumSettings.h"
 #include "settings/types/LayerIndex.h"
@@ -1029,7 +1028,7 @@ void Slicer::makePolygons(Application* application, Mesh& mesh, SlicingTolerance
 
 void Slicer::processPolygons(Application* application,const Mesh& mesh, std::vector<SlicerLayer>& layers)
 {
-    std::string ploygonFile = application->current_slice->ploygonFile;
+    std::string ploygonFile = application->scene->ploygonFile;
 
     std::vector<std::vector<trimesh::vec2>> ploys;
     auto readPloygon = [](const std::string& ploygonFile, std::vector<std::vector<trimesh::vec2>>& ploys)

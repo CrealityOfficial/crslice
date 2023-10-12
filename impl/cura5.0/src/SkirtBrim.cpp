@@ -6,7 +6,6 @@
 #include "Application.h"
 #include "ExtruderTrain.h"
 #include "SkirtBrim.h"
-#include "Slice.h"
 #include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "support.h"

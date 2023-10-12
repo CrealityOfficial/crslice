@@ -4,7 +4,6 @@
 #include "WallsComputation.h"
 #include "Application.h"
 #include "ExtruderTrain.h"
-#include "Slice.h"
 #include "WallToolPaths.h"
 #include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"

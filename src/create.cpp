@@ -42,7 +42,7 @@ namespace crslice
         }
     }
 
-	cura52::Slice* createSliceFromCrScene(cura52::Application* application, CrScenePtr scene)
+	cura52::Scene* createSliceFromCrScene(cura52::Application* application, CrScenePtr scene)
 	{
         if (scene == nullptr || !scene->valid())
         {
@@ -66,9 +66,9 @@ namespace crslice
             return nullptr;
         }
 
-        cura52::Slice* slice = new cura52::Slice(numGroup);
+        cura52::Scene* slice = new cura52::Scene(numGroup);
 
-        slice->scene.machine_center_is_zero = scene->machine_center_is_zero;
+        slice->machine_center_is_zero = scene->machine_center_is_zero;
         slice->gcodeFile = outputFile;
         slice->ploygonFile = scene->m_ploygonFileName;
 
@@ -78,28 +78,28 @@ namespace crslice
         int extruder_nr = 0;
         for (SettingsPtr settings : extruderKVs)
         {
-            slice->scene.extruders.emplace_back(extruder_nr, &slice->scene.settings);
-            cura52::ExtruderTrain& extruder = slice->scene.extruders[extruder_nr];
+            slice->extruders.emplace_back(extruder_nr, &slice->settings);
+            cura52::ExtruderTrain& extruder = slice->extruders[extruder_nr];
             extruder.settings.settings.swap(settings->settings);
             ++extruder_nr;
         }
 
-        if (slice->scene.extruders.size() == 0)
-            slice->scene.extruders.emplace_back(0, &slice->scene.settings); // Always have one extruder.
+        if (slice->extruders.size() == 0)
+            slice->extruders.emplace_back(0, &slice->settings); // Always have one extruder.
 
-        crSetting2CuraSettings(*(scene->m_settings), &(slice->scene.settings));
+        crSetting2CuraSettings(*(scene->m_settings), &(slice->settings));
 
         //CR30 
         {
-            bool machine_is_belt = slice->scene.settings.get<bool>("machine_is_belt");
+            bool machine_is_belt = slice->settings.get<bool>("machine_is_belt");
             Cr30Param cr30Param;
             if (machine_is_belt)
             {
-				slice->scene.settings.add("adhesion_type", "none");
+				slice->settings.add("adhesion_type", "none");
                 //cr30Param.belt_support_enable = slice.scene.settings.get<bool>("belt_support_enable");
-                cr30Param.belt_support_enable = slice->scene.settings.get<bool>("support_enable");
-                cr30Param.machine_depth = slice->scene.settings.get<double>("machine_depth");
-                cr30Param.machine_width = slice->scene.settings.get<double>("machine_width");
+                cr30Param.belt_support_enable = slice->settings.get<bool>("support_enable");
+                cr30Param.machine_depth = slice->settings.get<double>("machine_depth");
+                cr30Param.machine_width = slice->settings.get<double>("machine_width");
                 //cr30Param.support_angle = slice.scene.settings.get<double>("support_angle");//default 45
 
                 //CR30  support
@@ -119,9 +119,9 @@ namespace crslice
                 if (!meshs.empty())
                 {
                     std::vector<trimesh::TriMesh*> outmeshs = machine_is_belt == true ? sliceBelt(meshs, cr30Param, nullptr) : std::vector<trimesh::TriMesh*>(0);
-                    slice->scene.settings.add("support_enable", "false");
-                    slice->scene.settings.add("machine_belt_offset", std::to_string(cr30Param.beltOffsetX));
-                    slice->scene.settings.add("machine_belt_offset_Y", std::to_string(cr30Param.beltOffsetY));
+                    slice->settings.add("support_enable", "false");
+                    slice->settings.add("machine_belt_offset", std::to_string(cr30Param.beltOffsetX));
+                    slice->settings.add("machine_belt_offset_Y", std::to_string(cr30Param.beltOffsetY));
                     if (!outmeshs.empty())
                     {
                         CrGroup* crGroup = numGroup > 0 ? scene->getGroupsIndex(0) : nullptr;
@@ -130,8 +130,8 @@ namespace crslice
                             CrObject& object = crGroup->m_objects[0];
                             for (auto outmesh : outmeshs)
                             {
-                                slice->scene.mesh_groups[0].meshes.emplace_back(cura52::Mesh());
-                                cura52::Mesh& meshsupport = slice->scene.mesh_groups[0].meshes.back();
+                                slice->mesh_groups[0].meshes.emplace_back(cura52::Mesh());
+                                cura52::Mesh& meshsupport = slice->mesh_groups[0].meshes.back();
                                 trimesh2CuraMesh(outmesh, meshsupport, application);
                                 INTERRUPT_BREAK("CRSliceFromScene::sliceNext  trimesh2CuraMesh.");
 
@@ -163,7 +163,7 @@ namespace crslice
             CrGroup* crGroup = scene->getGroupsIndex(i);
             if (crGroup)
             {
-                crSetting2CuraSettings(*(crGroup->m_settings), &(slice->scene.mesh_groups[i].settings));
+                crSetting2CuraSettings(*(crGroup->m_settings), &(slice->mesh_groups[i].settings));
                 int index = 0;
                 for (const CrObject& object : crGroup->m_objects)
                 {
@@ -171,8 +171,8 @@ namespace crslice
                     {
                         INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
 
-                        slice->scene.mesh_groups[i].meshes.emplace_back(cura52::Mesh());
-                        cura52::Mesh& mesh = slice->scene.mesh_groups[i].meshes.back();
+                        slice->mesh_groups[i].meshes.emplace_back(cura52::Mesh());
+                        cura52::Mesh& mesh = slice->mesh_groups[i].meshes.back();
                         std::string name = std::to_string(i) + "_" + std::to_string(index);
                         mesh.mesh_name = name;
                         trimesh2CuraMesh(object.m_mesh.get(), mesh, application);
@@ -183,7 +183,7 @@ namespace crslice
                         ++index;
                     }
                 }
-                slice->scene.mesh_groups[i].m_offset = cura52::FPoint3(crGroup->m_offset.x, crGroup->m_offset.y, crGroup->m_offset.z);
+                slice->mesh_groups[i].m_offset = cura52::FPoint3(crGroup->m_offset.x, crGroup->m_offset.y, crGroup->m_offset.z);
             }
             INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
         }

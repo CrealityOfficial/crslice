@@ -10,7 +10,6 @@
 #include "ExtruderTrain.h"
 #include "LayerPlan.h"
 #include "PathOrderMonotonic.h" //Monotonic ordering of skin lines.
-#include "Slice.h"
 #include "WipeScriptConfig.h"
 #include "pathPlanning/Comb.h"
 #include "pathPlanning/CombPaths.h"

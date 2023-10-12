@@ -6,7 +6,6 @@
 #include "Application.h" //To get settings.
 #include "ExtruderTrain.h"
 #include "raft.h"
-#include "Slice.h"
 #include "sliceDataStorage.h"
 #include "support.h"
 #include "settings/EnumSettings.h" //For EPlatformAdhesion.

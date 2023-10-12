@@ -13,7 +13,6 @@
 #include "Application.h" //To get the extruders.
 #include "BeadingStrategy/BeadingStrategyFactory.h"
 #include "ExtruderTrain.h"
-#include "Slice.h"
 #include "settings/EnumSettings.h"
 #include "settings/EnumSettingsT.h"
 #include "settings/FlowTempGraph.h"
