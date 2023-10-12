@@ -4,6 +4,7 @@
 #include "crobject.h"
 #include "jsonhelper.h"
 #include "jsonloader.h"
+#include "crslice/base/parametermeta.h"
 #include "ccglobal/log.h"
 
 namespace crslice
@@ -179,6 +180,21 @@ namespace crslice
 		}
 	}
 
+	void CrScene::makeSureParameters()
+	{
+		MetasMap datas;
+		parseMetasMap(datas);
+
+		for (MetasMapIter it = datas.begin(); it != datas.end(); ++it)
+		{
+			if (!m_settings->has(it->first))
+			{
+				LOGI("parameter %s not in scene.", it->first.c_str());
+				m_settings->add(it->first, it->second->default_value);
+			}
+		}
+	}
+
 	void CrScene::load(const std::string& fileName)
 	{
 		std::ifstream in;
@@ -202,6 +218,8 @@ namespace crslice
 			}
 		}
 		in.close();
+
+		makeSureParameters();
 	}
 
 	CrGroup* CrScene::getGroupsIndex(int groupID)

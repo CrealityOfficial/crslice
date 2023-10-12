@@ -39,6 +39,8 @@ namespace crslice
 
 		//save ploygon
 		void savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys);
+
+		void makeSureParameters();
 	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;

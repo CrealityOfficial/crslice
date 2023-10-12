@@ -4,6 +4,26 @@
 #include "jsonhelper.h"
 #include "ccglobal/log.h"
 
+#ifdef USE_BINARY_JSON
+#include "base.json.h"
+#include "blackmagic.json.h"
+#include "command_line_settings.json.h"
+#include "cooling.json.h"
+#include "dual.json.h"
+#include "experimental.json.h"
+#include "infill.json.h"
+#include "machine.json.h"
+#include "material.json.h"
+#include "meshfix.json.h"
+#include "platform_adhesion.json.h"
+#include "resolution.json.h"
+#include "shell.json.h"
+#include "special.json.h"
+#include "speed.json.h"
+#include "support.json.h"
+#include "travel.json.h"
+#endif
+
 namespace crslice
 {
 	ParameterMetas::ParameterMetas()
@@ -106,24 +126,6 @@ namespace crslice
     void parseMetasMap(MetasMap& datas)
     {
 #ifdef USE_BINARY_JSON
-#include "base.json.h"
-#include "blackmagic.json.h"
-#include "command_line_settings.json.h"
-#include "cooling.json.h"
-#include "dual.json.h"
-#include "experimental.json.h"
-#include "infill.json.h"
-#include "machine.json.h"
-#include "material.json.h"
-#include "meshfix.json.h"
-#include "platform_adhesion.json.h"
-#include "resolution.json.h"
-#include "shell.json.h"
-#include "special.json.h"
-#include "speed.json.h"
-#include "support.json.h"
-#include "travel.json.h"
-
         rapidjson::Document baseDoc;
         baseDoc.Parse((const char*)base);
         if (baseDoc.HasParseError())
