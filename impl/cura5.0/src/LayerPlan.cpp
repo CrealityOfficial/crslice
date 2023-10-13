@@ -797,7 +797,7 @@ void LayerPlan::addWallLine(const Point& p0,
         return GCodePathConfig::FAN_SPEED_DEFAULT;;
     };
 
-    auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true)
+    auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true, bool overhang = true)
     {
         coord_t distance_to_line_end = vSize(cur_point - line_end);
 
@@ -842,13 +842,17 @@ void LayerPlan::addWallLine(const Point& p0,
                 else
                 {
                     // no coasting required, just normal segment using non-bridge config
+					if (overhang)
+					{
+						speed_factor = std::min(getSpeedFactor(segment_end), speed_factor);
+					}
                     addExtrusionMove(segment_end,
                                      non_bridge_config,
                                      SpaceFillType::Polygons,
                                      segment_flow,
                                      width_factor,
                                      spiralize,
-                                     std::min(getSpeedFactor(segment_end), speed_factor),
+						             speed_factor,
                                      getFanSpeed(non_bridge_config));
                 }
 
@@ -857,13 +861,17 @@ void LayerPlan::addWallLine(const Point& p0,
             else
             {
                 // no coasting required, just normal segment using non-bridge config
+				if (overhang)
+				{
+					speed_factor = std::min(getSpeedFactor(segment_end), speed_factor);
+				}
                 addExtrusionMove(segment_end,
                                  non_bridge_config,
                                  SpaceFillType::Polygons,
                                  segment_flow,
                                  width_factor,
                                  spiralize,
-                                 std::min(getSpeedFactor(segment_end), speed_factor),
+					             speed_factor,
                                  getFanSpeed(non_bridge_config));
             }
             non_bridge_line_volume += vSize(cur_point - segment_end) * segment_flow * width_factor * speed_factor * non_bridge_config.getSpeed();
@@ -932,45 +940,40 @@ void LayerPlan::addWallLine(const Point& p0,
                     b1 = bridge[0];
                 }
 
-                const double bridge_line_len = vSize(b1 - b0);
-                if (bridge_line_len < min_bridge_line_len)
-                {
-                    // treat the short bridge line just like a normal line
-                    GCodePath path = extruder_plans.back().paths.back();
-                    addExtrusionMove(b1,
-                        non_bridge_config, 
-                        SpaceFillType::Polygons,
-                        flow,
-                        path.width_factor, 
-                        spiralize, 
-                        std::min(getSpeedFactor(b1), path.speed_factor),
-                        getFanSpeed(non_bridge_config));
-                    cur_point = b1;
-                }
-                else
-                {
-                    // extrude using non_bridge_config to the start of the next bridge segment
-                    addNonBridgeLine(b0);
+				// extrude using non_bridge_config to the start of the next bridge segment
 
-                    // extrude using bridge_config to the end of the next bridge segment
-                    if (bridge_line_len > min_line_len)
-                    {
-                        addExtrusionMove(b1, bridge_config, SpaceFillType::Polygons, flow, width_factor, false, 1.0_r, getFanSpeed(bridge_config));
-                        non_bridge_line_volume = 0;
-                        cur_point = b1;
-                        // after a bridge segment, start slow and accelerate to avoid under-extrusion due to extruder lag
-                        speed_factor = std::max(std::min(Ratio(bridge_config.getSpeed() / non_bridge_config.getSpeed()), 1.0_r), 0.8_r);
-                    }
-                }
+				addNonBridgeLine(b0,true,false);
 
-                // finished with this segment
-                line_polys.remove(nearest);
-            }
+				const double bridge_line_len = vSize(b1 - cur_point);
 
-            // if we haven't yet reached p1, fill the gap with non_bridge_config line
-            addNonBridgeLine(p1);
-        }
-        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * std::min(getSpeedFactor(p1), speed_factor))
+				if (bridge_line_len >= min_bridge_line_len)
+				{
+					// extrude using bridge_config to the end of the next bridge segment
+
+					if (bridge_line_len > min_line_len)
+					{
+						addExtrusionMove(b1, bridge_config, SpaceFillType::Polygons, flow, width_factor);
+						non_bridge_line_volume = 0;
+						cur_point = b1;
+						// after a bridge segment, start slow and accelerate to avoid under-extrusion due to extruder lag
+						speed_factor = std::max(std::min(Ratio(bridge_config.getSpeed() / non_bridge_config.getSpeed()), 1.0_r), 0.8_r);
+					}
+				}
+				else
+				{
+					// treat the short bridge line just like a normal line
+
+					addNonBridgeLine(b1, true, false);
+				}
+
+				// finished with this segment
+				line_polys.remove(nearest);
+			}
+
+			// if we haven't yet reached p1, fill the gap with non_bridge_config line
+			addNonBridgeLine(p1, true, false);
+		}
+        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len)
         {
             // both p0 and p1 must be above air (the result will be ugly!)
             addExtrusionMove(p1, bridge_config, SpaceFillType::Polygons, flow, width_factor, false, 1.0_r, getFanSpeed(bridge_config));
@@ -979,7 +982,14 @@ void LayerPlan::addWallLine(const Point& p0,
         else
         {
             // no part of the line is above air or the line is too short to print as a bridge line
-            addNonBridgeLine(p1, false);
+			if (bridge_wall_mask.inside(p1, true))
+			{
+				addNonBridgeLine(p1, false,false);
+			} 
+			else
+			{
+				addNonBridgeLine(p1, false);
+			}
         }
     }
 }
