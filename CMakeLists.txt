@@ -85,4 +85,8 @@ __add_common_library(crslice FOLDER slice OPENMP
 
 use_threads(crslice)
 enable_sanitizers(crslice)
+
+if(CC_INSTALL_CRSLICE)
+	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/crslice crslice)
+endif()
 								
