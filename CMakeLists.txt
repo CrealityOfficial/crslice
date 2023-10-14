@@ -16,7 +16,12 @@ __cc_find(rapidjson)
 __assert_target(rapidjson)
 			
 set(ILIBS trimesh2) 
-set(LIBS polyclipping stb rapidjson cxlog) 
+set(LIBS polyclipping stb rapidjson)
+
+__cc_find(cxlog)
+if(TARGET cxlog)
+	list(APPEND LIBS cxlog)
+endif() 
 
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/crslice/ SRCS1)
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/src/ SRCS2)
