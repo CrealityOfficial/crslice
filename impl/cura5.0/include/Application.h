@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "FffProcessor.h"
+#include "FffGcodeWriter.h"
+#include "FffPolygonGenerator.h"
 #include "Scene.h"
 #include "progress/Progress.h"
 #include "crslice/header.h"
@@ -69,7 +70,17 @@ namespace cura52
         ~Application();
 
         Application* application = nullptr;
-        FffProcessor processor;
+
+        /*!
+         * The gcode writer, which generates paths in layer plans in a buffer, which converts these paths into gcode commands.
+         */
+        FffGcodeWriter gcode_writer;
+
+        /*!
+         * The polygon generator, which slices the models and generates all polygons to be printed and areas to be filled.
+         */
+        FffPolygonGenerator polygon_generator;
+
         Progress progressor;
 
         std::string tempDirectory;

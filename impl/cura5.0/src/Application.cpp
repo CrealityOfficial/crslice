@@ -11,11 +11,9 @@
 
 #include "ccglobal/log.h"
 
-#include "FffProcessor.h"
 #include "Weaver.h"
 #include "Wireframe2gcode.h"
 #include "sliceDataStorage.h"
-#include "progress/Progress.h"
 #include "utils/ThreadPool.h"
 #include "utils/string.h" //For stringcasecompare.
 
@@ -28,11 +26,11 @@ namespace cura52
         assert(tracer);
 
         progressor.tracer = tracer;
-        processor.gcode_writer.application = this;
-        processor.polygon_generator.application = this;
-        processor.gcode_writer.gcode.application = this;
-        processor.gcode_writer.layer_plan_buffer.application = this;
-        processor.gcode_writer.layer_plan_buffer.preheat_config.application = this;
+        gcode_writer.application = this;
+        polygon_generator.application = this;
+        gcode_writer.gcode.application = this;
+        gcode_writer.layer_plan_buffer.application = this;
+        gcode_writer.layer_plan_buffer.preheat_config.application = this;
 
         application = this;
     }
@@ -92,12 +90,13 @@ namespace cura52
                 this->scene = slice.get();
                 this->scene->application = this;
 
-                processor.setTargetFile(scene->gcodeFile.c_str());
+                gcode_writer.setTargetFile(scene->gcodeFile.c_str());
 
                 scene->finalize();
                 compute();
                 // Finalize the processor. This adds the end g-code and reports statistics.
-                processor.finalize();
+                gcode_writer.finalize();
+                gcode_writer.closeGcodeWriterFile();
             }
         }
 		CALLTICK("slice 1");
@@ -160,7 +159,6 @@ namespace cura52
                     return;
                 }
 
-                FffProcessor& fff_processor = this->processor;
                 if (mesh_group->settings.get<bool>("wireframe_enabled"))
                 {
                     LOGI("Starting Neith Weaver...");
@@ -171,14 +169,14 @@ namespace cura52
                     weaver.weave(&*mesh_group);
 
                     LOGI("Starting Neith Gcode generation...");
-                    Wireframe2gcode gcoder(weaver, fff_processor.gcode_writer.gcode);
+                    Wireframe2gcode gcoder(weaver, gcode_writer.gcode);
                     gcoder.writeGCode();
                     LOGI("Finished Neith Gcode generation...");
                 }
                 else // Normal operation (not wireframe).
                 {
                     SliceDataStorage storage(application);
-                    if (!fff_processor.polygon_generator.generateAreas(storage, &*mesh_group))
+                    if (!polygon_generator.generateAreas(storage, &*mesh_group))
                     {
                         return;
                     }
@@ -186,7 +184,7 @@ namespace cura52
                     progressor.messageProgressStage(Progress::Stage::EXPORT);
 
                     CALLTICK("writeGCode 0");
-                    fff_processor.gcode_writer.writeGCode(storage);
+                    gcode_writer.writeGCode(storage);
                     CALLTICK("writeGCode 1");
                 }
 
