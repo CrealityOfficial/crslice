@@ -22,6 +22,11 @@
 #include "speed.json.h"
 #include "support.json.h"
 #include "travel.json.h"
+
+#include "extruder_keys.json.h"
+#include "machine_keys.json.h"
+#include "material_keys.json.h"
+#include "profile_keys.json.h"
 #endif
 
 namespace crslice
@@ -161,7 +166,7 @@ namespace crslice
                 subDoc.Parse((const char*)str);
                 if (subDoc.HasParseError())
                 {
-                    LOGE("ParameterMetas::initializeBase parse sub. [%d] error.", (int)subDoc.GetParseError());
+                    LOGE("parseMetasMap parse sub. [%d] error.", (int)subDoc.GetParseError());
                     continue;
                 }
 
@@ -169,10 +174,37 @@ namespace crslice
             }
         }
         else {
-            LOGE("ParameterMetas::initializeBase base.json no subs.");
+            LOGE("parseMetasMap base.json no subs.");
         }
 #else
-        LOGE("ParameterMetas::Binary not support.");
+        LOGE("parseMetasMap::Binary not support.");
+#endif
+    }
+
+    void getMetaKeys(MetaGroup metaGroup, std::vector<std::string>& keys)
+    {
+        keys.clear();
+#ifdef USE_BINARY_JSON
+        const unsigned char* data = machine_keys;
+        if (metaGroup == MetaGroup::emg_extruder)
+            data = extruder_keys;
+        else if (metaGroup == MetaGroup::emg_material)
+            data = material_keys;
+        else if (metaGroup == MetaGroup::emg_profile)
+            data = profile_keys;
+
+        const unsigned char* str = data;
+        rapidjson::Document keyDoc;
+        keyDoc.Parse((const char*)str);
+        if (keyDoc.HasParseError())
+        {
+            LOGE("getMetaKeys parse sub. [%d] error.", (int)keyDoc.GetParseError());
+            return;
+        }
+
+        processKeys(keyDoc, keys);
+#else
+        LOGE("getMetaKeys::Binary not support.");
 #endif
     }
 }

@@ -11,6 +11,7 @@ namespace crslice
 
 	void processSub(const rapidjson::Document& doc, MetasMap& metas);
 	void processMeta(const rapidjson::Value& value, ParameterMeta& meta);
+	void processKeys(const rapidjson::Document& doc, std::vector<std::string>& keys);
 
 	void processInherit(const std::string& fileName, const std::string& directory, ParameterMetas& metas);
 

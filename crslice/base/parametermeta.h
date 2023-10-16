@@ -84,6 +84,15 @@ namespace crslice
 	CRSLICE_API void saveKeysJson(const std::vector<std::string>& keys, const std::string& fileName);
 
 	CRSLICE_API void parseMetasMap(MetasMap& datas);   //from binary
+
+	enum class MetaGroup {
+		emg_machine,
+		emg_extruder,
+		emg_material,
+		emg_profile
+	};
+
+	CRSLICE_API void getMetaKeys(MetaGroup metaGroup, std::vector<std::string>& keys);
 }
 
 #endif // CRCOMMON_PARAMETERMETA_1690769853657_H

@@ -128,6 +128,31 @@ namespace crslice
         }
     }
 
+    void processKeys(const rapidjson::Document& doc, std::vector<std::string>& keys)
+    {
+        for (rapidjson::Value::ConstMemberIterator child = doc.MemberBegin();
+            child != doc.MemberEnd(); child++)
+        {
+            std::string name = child->name.GetString();
+            const rapidjson::Value& childValue = child->value;
+
+            if (name == "keys")
+            {
+                if (!childValue.IsArray())
+                    return;
+
+                int size = childValue.Size();
+                keys.reserve(size);
+
+                for (int i = 0; i < size; i++)
+                {
+                    keys.push_back(childValue[i].GetString());
+                }
+                return;
+            }
+        }
+    }
+
     void processInherit(const std::string& fileName, const std::string& directory, ParameterMetas& metas)
     {
 
