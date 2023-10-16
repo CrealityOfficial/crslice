@@ -580,7 +580,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
             //pathParam.materialLenth;
             pathParam.material_diameter = setting->get<double>("material_diameter"); //材料直径
             pathParam.material_density = setting->get<double>("material_density");  //材料密度
-            pathParam.materialDensity = PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
+            pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
             pathParam.lineWidth = setting->get<double>("line_width");
             pathParam.layerHeight = setting->get<double>("layer_height");
             //pathParam.unitPrice;
@@ -1336,12 +1336,12 @@ float getAngelOfTwoVector(const Point& endP, const Point& startP)
 {
 	Point newP(startP.X+1000,startP.Y);
 	float theta = atan2(endP.X - startP.Y, endP.X - startP.X) - atan2(newP.Y - startP.Y, newP.X - startP.X);
-	if (theta > PI)
-		theta -= 2 * PI;
-	if (theta < -PI)
-		theta += 2 * PI;
+	if (theta > M_PI)
+		theta -= 2 * M_PI;
+	if (theta < - M_PI)
+		theta += 2 * M_PI;
 
-	theta = theta * 180.0 / PI;
+	theta = theta * 180.0 / M_PI;
 	if (theta < 0)
 	{
 		theta = 360 + theta;
