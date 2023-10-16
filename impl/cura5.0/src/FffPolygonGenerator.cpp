@@ -222,7 +222,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
-    Mold::process(application, slicerList);
+    Mold::process(meshgroup, slicerList);
     for (unsigned int mesh_idx = 0; mesh_idx < slicerList.size(); mesh_idx++)
     {
         Mesh& mesh = meshgroup->meshes[mesh_idx];
@@ -232,13 +232,13 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         }
     }
 
-    MultiVolumes::carveCuttingMeshes(application, slicerList, meshgroup->meshes);
+    MultiVolumes::carveCuttingMeshes(meshgroup, slicerList);
 
     application->progressor.messageProgressStage(Progress::Stage::PARTS);
 
     if (meshgroup->settings.get<bool>("carve_multiple_volumes"))
     {
-        carveMultipleVolumes(application, slicerList);
+        carveMultipleVolumes(meshgroup, slicerList);
     }
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");

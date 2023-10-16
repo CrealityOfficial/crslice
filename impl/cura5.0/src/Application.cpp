@@ -37,11 +37,6 @@ namespace cura52
 
     Application::~Application()
     {
-        if (thread_pool)
-        {
-            delete thread_pool;
-            thread_pool = nullptr;
-        }
     }
 
     void Application::sendProgress(float r)
@@ -52,7 +47,7 @@ namespace cura52
 
     ThreadPool* Application::pool()
     {
-        return thread_pool;
+        return thread_pool.get();
     }
 
     bool Application::checkInterrupt(const std::string& message)
@@ -126,8 +121,7 @@ namespace cura52
         {
             return; // Keep the previous ThreadPool
         }
-        delete thread_pool;
-        thread_pool = new ThreadPool(nthreads);
+          thread_pool.reset(new ThreadPool(nthreads));
     }
 
     void Application::compute()

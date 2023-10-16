@@ -9,6 +9,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "FffGcodeWriter.h"
 #include "FffPolygonGenerator.h"
@@ -95,7 +96,7 @@ namespace cura52
         /*!
          * \brief ThreadPool with lifetime tied to Application
          */
-        ThreadPool* thread_pool = nullptr;
+        std::unique_ptr<ThreadPool> thread_pool;
 
         void runCommulication(Communication* communication);
         /*!
