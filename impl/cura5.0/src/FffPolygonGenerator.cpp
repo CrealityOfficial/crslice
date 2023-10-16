@@ -102,7 +102,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
     LOGI("Slicing model...");
 
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
+    const Settings& mesh_group_settings = meshgroup->settings;
 
     // regular layers
     int slice_layer_count = 0; // Use signed int because we need to subtract the initial layer in a calculation temporarily.
@@ -133,7 +133,8 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         const coord_t variable_layer_height_max_variation = mesh_group_settings.get<coord_t>("adaptive_layer_height_variation");
         const coord_t variable_layer_height_variation_step = mesh_group_settings.get<coord_t>("adaptive_layer_height_variation_step");
         const coord_t adaptive_threshold = mesh_group_settings.get<coord_t>("adaptive_layer_height_threshold");
-        adaptive_layer_heights = new AdaptiveLayerHeights(application, layer_thickness, variable_layer_height_max_variation, variable_layer_height_variation_step, adaptive_threshold);
+        adaptive_layer_heights = new AdaptiveLayerHeights(meshgroup, 
+            layer_thickness, variable_layer_height_max_variation, variable_layer_height_variation_step, adaptive_threshold);
 
         // Get the amount of layers
         slice_layer_count = adaptive_layer_heights->getLayerCount();
@@ -222,22 +223,20 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
     Mold::process(application, slicerList);
-
-    Scene& scene = *application->scene;
     for (unsigned int mesh_idx = 0; mesh_idx < slicerList.size(); mesh_idx++)
     {
-        Mesh& mesh = scene.current_mesh_group->meshes[mesh_idx];
+        Mesh& mesh = meshgroup->meshes[mesh_idx];
         if (mesh.settings.get<bool>("conical_overhang_enabled") && ! mesh.settings.get<bool>("anti_overhang_mesh"))
         {
             ConicalOverhang::apply(slicerList[mesh_idx], mesh);
         }
     }
 
-    MultiVolumes::carveCuttingMeshes(application, slicerList, scene.current_mesh_group->meshes);
+    MultiVolumes::carveCuttingMeshes(application, slicerList, meshgroup->meshes);
 
     application->progressor.messageProgressStage(Progress::Stage::PARTS);
 
-    if (scene.current_mesh_group->settings.get<bool>("carve_multiple_volumes"))
+    if (meshgroup->settings.get<bool>("carve_multiple_volumes"))
     {
         carveMultipleVolumes(application, slicerList);
     }
@@ -249,7 +248,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     storage.print_layer_count = 0;
     for (unsigned int meshIdx = 0; meshIdx < slicerList.size(); meshIdx++)
     {
-        Mesh& mesh = scene.current_mesh_group->meshes[meshIdx];
+        Mesh& mesh = meshgroup->meshes[meshIdx];
         Slicer* slicer = slicerList[meshIdx];
         if (! mesh.settings.get<bool>("anti_overhang_mesh") && ! mesh.settings.get<bool>("infill_mesh") && ! mesh.settings.get<bool>("cutting_mesh"))
         {
@@ -267,7 +266,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
         Slicer* slicer = slicerList[meshIdx];
-        Mesh& mesh = scene.current_mesh_group->meshes[meshIdx];
+        Mesh& mesh = meshgroup->meshes[meshIdx];
 
         // always make a new SliceMeshStorage, so that they have the same ordering / indexing as meshgroup.meshes
         storage.meshes.emplace_back(&meshgroup->meshes[meshIdx], slicer->layers.size()); // new mesh in storage had settings from the Mesh

@@ -274,6 +274,7 @@ std::vector<WipeScriptConfig> SliceDataStorage::initializeWipeConfigs()
 
 SliceDataStorage::SliceDataStorage(Application* _application)
     : application(_application)
+    , settings(_application->scene->current_mesh_group->settings)
     , primeTower(_application)
     , print_layer_count(0)
     , wipe_config_per_extruder(initializeWipeConfigs())
@@ -281,8 +282,7 @@ SliceDataStorage::SliceDataStorage(Application* _application)
     , extruder_switch_retraction_config_per_extruder(initializeRetractionConfigs())
     , max_print_height_second_to_last_extruder(-1)
 {
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
-    Point3 machine_max(mesh_group_settings.get<coord_t>("machine_width"), mesh_group_settings.get<coord_t>("machine_depth"), mesh_group_settings.get<coord_t>("machine_height"));
+    Point3 machine_max(settings.get<coord_t>("machine_width"), settings.get<coord_t>("machine_depth"), settings.get<coord_t>("machine_height"));
     Point3 machine_min(0, 0, 0);
     machine_size.include(machine_min);
     machine_size.include(machine_max);
@@ -374,8 +374,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed() const
     std::vector<bool> ret;
     ret.resize(application->scene->extruders.size(), false);
 
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
-    const EPlatformAdhesion adhesion_type = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type");
+    const EPlatformAdhesion adhesion_type = settings.get<EPlatformAdhesion>("adhesion_type");
     if (adhesion_type == EPlatformAdhesion::SKIRT || adhesion_type == EPlatformAdhesion::BRIM)
     {
         for (size_t extruder_nr = 0; extruder_nr < application->scene->extruders.size(); extruder_nr++)
@@ -388,16 +387,16 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed() const
     }
     else if (adhesion_type == EPlatformAdhesion::RAFT || adhesion_type == EPlatformAdhesion::SIMPLERAFT)
     {
-        ret[mesh_group_settings.get<ExtruderTrain&>("raft_base_extruder_nr").extruder_nr] = true;
-        const size_t num_interface_layers = mesh_group_settings.get<ExtruderTrain&>("raft_interface_extruder_nr").settings.get<size_t>("raft_interface_layers");
+        ret[settings.get<ExtruderTrain&>("raft_base_extruder_nr").extruder_nr] = true;
+        const size_t num_interface_layers = settings.get<ExtruderTrain&>("raft_interface_extruder_nr").settings.get<size_t>("raft_interface_layers");
         if (num_interface_layers > 0)
         {
-            ret[mesh_group_settings.get<ExtruderTrain&>("raft_interface_extruder_nr").extruder_nr] = true;
+            ret[settings.get<ExtruderTrain&>("raft_interface_extruder_nr").extruder_nr] = true;
         }
-        const size_t num_surface_layers = mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr").settings.get<size_t>("raft_surface_layers");
+        const size_t num_surface_layers = settings.get<ExtruderTrain&>("raft_surface_extruder_nr").settings.get<size_t>("raft_surface_layers");
         if (num_surface_layers > 0)
         {
-            ret[mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr").extruder_nr] = true;
+            ret[settings.get<ExtruderTrain&>("raft_surface_extruder_nr").extruder_nr] = true;
         }
     }
 
@@ -409,15 +408,15 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed() const
     {
         if (mesh.settings.get<bool>("support_enable") || mesh.settings.get<bool>("support_mesh"))
         {
-            ret[mesh_group_settings.get<ExtruderTrain&>("support_extruder_nr_layer_0").extruder_nr] = true;
-            ret[mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr").extruder_nr] = true;
-            if (mesh_group_settings.get<bool>("support_roof_enable"))
+            ret[settings.get<ExtruderTrain&>("support_extruder_nr_layer_0").extruder_nr] = true;
+            ret[settings.get<ExtruderTrain&>("support_infill_extruder_nr").extruder_nr] = true;
+            if (settings.get<bool>("support_roof_enable"))
             {
-                ret[mesh_group_settings.get<ExtruderTrain&>("support_roof_extruder_nr").extruder_nr] = true;
+                ret[settings.get<ExtruderTrain&>("support_roof_extruder_nr").extruder_nr] = true;
             }
-            if (mesh_group_settings.get<bool>("support_bottom_enable"))
+            if (settings.get<bool>("support_bottom_enable"))
             {
-                ret[mesh_group_settings.get<ExtruderTrain&>("support_bottom_extruder_nr").extruder_nr] = true;
+                ret[settings.get<ExtruderTrain&>("support_bottom_extruder_nr").extruder_nr] = true;
             }
         }
     }
@@ -445,8 +444,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
 	std::vector<bool> ret;
 	ret.resize(extruders.size(), false);
 
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
-    const EPlatformAdhesion adhesion_type = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type");
+    const EPlatformAdhesion adhesion_type = settings.get<EPlatformAdhesion>("adhesion_type");
 
     bool include_adhesion = true;
     bool include_helper_parts = true;
@@ -482,7 +480,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
             const LayerIndex raft_layers = Raft::getTotalExtraLayers(application);
             if (layer_nr == -raft_layers) // Base layer.
             {
-                ret[mesh_group_settings.get<ExtruderTrain&>("raft_base_extruder_nr").extruder_nr] = true;
+                ret[settings.get<ExtruderTrain&>("raft_base_extruder_nr").extruder_nr] = true;
                 // When using a raft, all prime blobs need to be on the lowest layer (the build plate).
                 for (size_t extruder_nr = 0; extruder_nr < extruders.size(); ++extruder_nr)
                 {
@@ -494,11 +492,11 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
             }
             else if (layer_nr == -raft_layers + 1) // Interface layer.
             {
-                ret[mesh_group_settings.get<ExtruderTrain&>("raft_interface_extruder_nr").extruder_nr] = true;
+                ret[settings.get<ExtruderTrain&>("raft_interface_extruder_nr").extruder_nr] = true;
             }
             else if (layer_nr < -static_cast<LayerIndex>(Raft::getFillerLayerCount(application))) // Any of the surface layers.
             {
-                ret[mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr").extruder_nr] = true;
+                ret[settings.get<ExtruderTrain&>("raft_surface_extruder_nr").extruder_nr] = true;
             }
         }
     }
@@ -515,23 +513,23 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
             {
                 if (! support_layer.support_infill_parts.empty())
                 {
-                    ret[mesh_group_settings.get<ExtruderTrain&>("support_extruder_nr_layer_0").extruder_nr] = true;
+                    ret[settings.get<ExtruderTrain&>("support_extruder_nr_layer_0").extruder_nr] = true;
                 }
             }
             else
             {
                 if (! support_layer.support_infill_parts.empty())
                 {
-                    ret[mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr").extruder_nr] = true;
+                    ret[settings.get<ExtruderTrain&>("support_infill_extruder_nr").extruder_nr] = true;
                 }
             }
             if (! support_layer.support_bottom.empty())
             {
-                ret[mesh_group_settings.get<ExtruderTrain&>("support_bottom_extruder_nr").extruder_nr] = true;
+                ret[settings.get<ExtruderTrain&>("support_bottom_extruder_nr").extruder_nr] = true;
             }
             if (! support_layer.support_roof.empty())
             {
-                ret[mesh_group_settings.get<ExtruderTrain&>("support_roof_extruder_nr").extruder_nr] = true;
+                ret[settings.get<ExtruderTrain&>("support_roof_extruder_nr").extruder_nr] = true;
             }
         }
     }
@@ -559,14 +557,13 @@ bool SliceDataStorage::getExtruderPrimeBlobEnabled(const size_t extruder_nr) con
     const ExtruderTrain& train = application->scene->extruders[extruder_nr];
     return train.settings.get<bool>("prime_blob_enable");
 }
+
 Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
 {
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
-
     Polygons border;
     border.emplace_back();
     PolygonRef outline = border.back();
-    switch (mesh_group_settings.get<BuildPlateShape>("machine_shape"))
+    switch (settings.get<BuildPlateShape>("machine_shape"))
     {
     case BuildPlateShape::ELLIPTIC:
     {
@@ -587,7 +584,7 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
         break;
     }
 
-    Polygons disallowed_areas = mesh_group_settings.get<Polygons>("machine_disallowed_areas");
+    Polygons disallowed_areas = settings.get<Polygons>("machine_disallowed_areas");
     disallowed_areas = disallowed_areas.unionPolygons(); // union overlapping disallowed areas
     for (PolygonRef poly : disallowed_areas)
         for (Point& p : poly)
@@ -603,7 +600,7 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
             continue;
         }
         Settings& extruder_settings = application->scene->extruders[extruder_nr].settings;
-        if (!(extruder_settings.get<bool>("prime_blob_enable") && mesh_group_settings.get<bool>("extruder_prime_pos_abs")))
+        if (!(extruder_settings.get<bool>("prime_blob_enable") && settings.get<bool>("extruder_prime_pos_abs")))
         {
             continue;
         }
@@ -644,7 +641,7 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
     disallowed_all_extruders.processEvenOdd(ClipperLib::pftNonZero); // prevent overlapping disallowed areas from XORing
 
     Polygons border_all_extruders = border; // each extruders border areas must be limited to the global border, which is the union of all extruders borders
-    if (mesh_group_settings.has("nozzle_offsetting_for_disallowed_areas") && mesh_group_settings.get<bool>("nozzle_offsetting_for_disallowed_areas"))
+    if (settings.has("nozzle_offsetting_for_disallowed_areas") && settings.get<bool>("nozzle_offsetting_for_disallowed_areas"))
     {
         for (size_t extruder_nr = 0; extruder_nr < extruder_is_used.size(); extruder_nr++)
         {
@@ -676,10 +673,8 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
 
 Polygon SliceDataStorage::getMachineBorder(bool adhesion_offset) const
 {
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
-
     Polygon border{};
-    switch (mesh_group_settings.get<BuildPlateShape>("machine_shape"))
+    switch (settings.get<BuildPlateShape>("machine_shape"))
     {
     case BuildPlateShape::ELLIPTIC:
     {
@@ -705,10 +700,10 @@ Polygon SliceDataStorage::getMachineBorder(bool adhesion_offset) const
     }
 
     coord_t adhesion_size = 0; // Make sure there is enough room for the platform adhesion around support.
-    const ExtruderTrain& base_train = mesh_group_settings.get<ExtruderTrain&>("raft_base_extruder_nr");
-    const ExtruderTrain& interface_train = mesh_group_settings.get<ExtruderTrain&>("raft_interface_extruder_nr");
-    const ExtruderTrain& surface_train = mesh_group_settings.get<ExtruderTrain&>("raft_surface_extruder_nr");
-    const ExtruderTrain& skirt_brim_train = mesh_group_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr");
+    const ExtruderTrain& base_train = settings.get<ExtruderTrain&>("raft_base_extruder_nr");
+    const ExtruderTrain& interface_train = settings.get<ExtruderTrain&>("raft_interface_extruder_nr");
+    const ExtruderTrain& surface_train = settings.get<ExtruderTrain&>("raft_surface_extruder_nr");
+    const ExtruderTrain& skirt_brim_train = settings.get<ExtruderTrain&>("skirt_brim_extruder_nr");
     coord_t extra_skirt_line_width = 0;
     const std::vector<bool> is_extruder_used = getExtrudersUsed();
     for (size_t extruder_nr = 0; extruder_nr < application->scene->extruders.size(); extruder_nr++)
@@ -720,7 +715,7 @@ Polygon SliceDataStorage::getMachineBorder(bool adhesion_offset) const
         const ExtruderTrain& other_extruder = application->scene->extruders[extruder_nr];
         extra_skirt_line_width += other_extruder.settings.get<coord_t>("skirt_brim_line_width") * other_extruder.settings.get<Ratio>("initial_layer_line_width_factor");
     }
-    switch (mesh_group_settings.get<EPlatformAdhesion>("adhesion_type"))
+    switch (settings.get<EPlatformAdhesion>("adhesion_type"))
     {
     case EPlatformAdhesion::BRIM:
         adhesion_size =

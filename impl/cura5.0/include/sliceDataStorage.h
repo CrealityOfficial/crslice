@@ -306,6 +306,7 @@ public:
 class SliceDataStorage
 {
 public:
+    Settings& settings;
     Application* application = nullptr;
     size_t print_layer_count; //!< The total number of layers (except the raft and filler layers)
 

@@ -8,7 +8,7 @@
 
 namespace cura52 {
 
-    class Application;
+    class MeshGroup;
     class AdaptiveLayer
     {
     public:
@@ -41,7 +41,6 @@ namespace cura52 {
     class AdaptiveLayerHeights
     {
     public:
-        Application* application = nullptr;
         /**
          * The base layer height.
          */
@@ -94,7 +93,8 @@ namespace cura52 {
          * \param threshold Threshold to compare the tangent of the steepest slope
          * to.
          */
-        AdaptiveLayerHeights(Application* _application, const coord_t base_layer_height, const coord_t variation, const coord_t step_size, const coord_t threshold);
+        AdaptiveLayerHeights(MeshGroup* meshGroup, 
+            const coord_t base_layer_height, const coord_t variation, const coord_t step_size, const coord_t threshold);
 
     private:
 
@@ -105,6 +105,7 @@ namespace cura52 {
         std::vector<int> face_min_z_values;
         std::vector<int> face_max_z_values;
 
+        MeshGroup* data;
         /*!
          * Calculate the allowed layer heights depending on variation and step input
          */
