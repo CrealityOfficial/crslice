@@ -7,7 +7,7 @@
 #include "settings/EnumSettings.h" //For ESurfaceMode.
 #include "settings/Settings.h"
 #include "progress/Progress.h"
-#include "utils/ThreadPool.h"
+#include "Application.h"
 
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h" //Simplifying the layers after creating them.

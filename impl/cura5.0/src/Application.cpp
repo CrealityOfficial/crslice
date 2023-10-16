@@ -50,6 +50,11 @@ namespace cura52
             tracer->progress(r);
     }
 
+    ThreadPool* Application::pool()
+    {
+        return thread_pool;
+    }
+
     bool Application::checkInterrupt(const std::string& message)
     {
         if (m_error)

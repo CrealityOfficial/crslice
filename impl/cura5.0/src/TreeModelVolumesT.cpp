@@ -4,12 +4,8 @@
 #include "sliceDataStorage.h"
 #include "TreeModelVolumesT.h"
 #include "ExtruderTrain.h"
-#include "utils/ThreadPool.h"
+#include "Application.h"
 #include "TreeSupportT.h"
-
-
-
-
 
 namespace cura54
 {

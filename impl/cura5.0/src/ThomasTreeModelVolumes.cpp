@@ -6,7 +6,7 @@
 #include "settings/EnumSettings.h"
 #include "progress/Progress.h"
 #include "sliceDataStorage.h"
-#include "utils/ThreadPool.h"
+#include "Application.h"
 #include "utils/algorithm.h"
 #include "ccglobal/log.h"
 namespace cura52

@@ -13,6 +13,7 @@
 #include "FffGcodeWriter.h"
 #include "FffPolygonGenerator.h"
 #include "Scene.h"
+#include "utils/ThreadPool.h"
 #include "progress/Progress.h"
 #include "crslice/header.h"
 
@@ -21,7 +22,6 @@
 namespace cura52
 {
     class Communication;
-    class ThreadPool;
 
     struct SliceResult
     {
@@ -52,7 +52,7 @@ namespace cura52
      * maintains communication with other applications and uses that to schedule
      * slices.
      */
-    class Application
+    class Application : public ParallelContext
     {
     public:
         /*!
@@ -111,12 +111,15 @@ namespace cura52
         void startThreadPool(int nworkers = 0);
 
         void sendProgress(float r);
-        bool checkInterrupt(const std::string& message = "");
         void tick(const std::string& tag);
 
         void compute();
 
         SliceResult sliceResult;
+
+    public:
+        ThreadPool* pool() override;
+        bool checkInterrupt(const std::string& message = "") override;
     private:
         bool m_error;
     };
