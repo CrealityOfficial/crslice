@@ -2528,6 +2528,63 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
     extruder_attr[extruder].currentTemperature = temperature;
 }
 
+void GCodeExport::writeTopHeaterCommand(const size_t extruder, const Temperature& _temperature, const bool wait)
+{
+	Temperature temperature = _temperature;
+
+	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
+	{
+		if (current_limit_Temp > 0.0f)
+			temperature = std::min(temperature, current_limit_Temp);
+	}
+
+	if (wait)
+	{
+		*output_stream << "M109";
+		extruder_attr[extruder].waited_for_temperature = true;
+
+		if (application->fDebugger)
+			application->fDebugger->setTEMP(PrecisionedDouble{ 1, temperature }.value);
+	}
+	else
+	{
+		*output_stream << "M104";
+		extruder_attr[extruder].waited_for_temperature = false;
+
+		if (application->fDebugger)
+			application->fDebugger->setTEMP(PrecisionedDouble{ 1, temperature }.value);
+	}
+
+	if (application->fDebugger)
+		application->fDebugger->getNotPath();
+	if (extruder != current_extruder)
+	{
+		*output_stream << " T" << extruder;
+
+		if (application->fDebugger)
+			application->fDebugger->setExtruder(extruder);
+	}
+#ifdef ASSERT_INSANE_OUTPUT
+	assert(temperature >= 0);
+#endif // ASSERT_INSANE_OUTPUT
+	* output_stream << " S" << PrecisionedDouble{ 1, temperature } << new_line;
+
+	if (application->fDebugger)
+		application->fDebugger->getNotPath();
+	if (extruder != current_extruder && always_write_active_tool)
+	{
+		// Some firmwares (ie Smoothieware) change tools every time a "T" command is read - even on a M104 line, so we need to switch back to the active tool.
+		*output_stream << "T" << current_extruder << new_line;
+
+		if (application->fDebugger)
+		{
+			application->fDebugger->setExtruder(current_extruder);
+			application->fDebugger->getNotPath();
+		}
+
+	}
+}
+
 void GCodeExport::writeBedTemperatureCommand(const Temperature& temperature, const bool wait)
 {
     if (flavor == EGCodeFlavor::ULTIGCODE)

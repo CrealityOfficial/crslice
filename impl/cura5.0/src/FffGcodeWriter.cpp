@@ -755,6 +755,15 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
 			gcode.writeLine(tmp.str().c_str());
 		}
 
+		if (scene.settings.get<bool>("have_band"))
+		{
+			Temperature temperature = scene.settings.get<double>("material_heater_band");
+			if (temperature.value >= 0)
+			{
+				gcode.writeTopHeaterCommand(1, temperature, false);
+			}
+		}
+
         if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
         {
 			Temperature max_bed_temperature;
