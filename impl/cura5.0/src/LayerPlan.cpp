@@ -2649,7 +2649,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
 
             bool judgeVelocityDip = false;
-            float speed_quarter;
+            float speed_quarter = 0.0f;
             if (application->scene->settings.get<bool>("speed_slowtofast_slowdown"))
             {
                 for (int i = 1; i <= path_idx; i++)

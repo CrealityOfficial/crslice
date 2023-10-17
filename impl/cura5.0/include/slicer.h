@@ -239,7 +239,7 @@ namespace cura52
              *
              * The polyline_idx and end flags are calculated from this on demand.
              */
-            Index m_idx = -1;
+            Index m_idx = (size_t)(-1);
         };
 
         /*!

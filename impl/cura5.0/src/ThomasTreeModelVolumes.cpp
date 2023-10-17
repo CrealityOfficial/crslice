@@ -329,7 +329,7 @@ const Polygons& ThomasTreeModelVolumes::getAvoidance(coord_t radius, LayerIndex 
     const RadiusLayerPair key{ radius, layer_idx };
 
     std::unordered_map<RadiusLayerPair, Polygons>* cache_ptr = nullptr;
-    std::mutex* mutex_ptr;
+    std::mutex* mutex_ptr = nullptr;
     if (!to_model && type == AvoidanceType::FAST)
     {
         cache_ptr = &avoidance_cache_;

@@ -753,9 +753,9 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
         if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
         {
 			Temperature max_bed_temperature;
-			for (const ExtruderTrain& train : application->scene->extruders)
+			for (const ExtruderTrain& _train : application->scene->extruders)
 			{
-				Temperature current_bed_temperature = train.settings.get<double>("material_bed_temperature_layer_0");
+				Temperature current_bed_temperature = _train.settings.get<double>("material_bed_temperature_layer_0");
 				if (max_bed_temperature < current_bed_temperature)
 				{
 					max_bed_temperature = current_bed_temperature;
@@ -898,9 +898,9 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     // in case of shared nozzle assume that the machine-start gcode reset the extruders as per machine description
     if (application->scene->settings.get<bool>("machine_extruders_share_nozzle"))
     {
-        for (const ExtruderTrain& train : application->scene->extruders)
+        for (const ExtruderTrain& _train : application->scene->extruders)
         {
-            gcode.resetExtruderToPrimed(train.extruder_nr, train.settings.get<double>("machine_extruders_shared_nozzle_initial_retraction"));
+            gcode.resetExtruderToPrimed(_train.extruder_nr, _train.settings.get<double>("machine_extruders_shared_nozzle_initial_retraction"));
         }
     }
 
@@ -908,9 +908,9 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     if (mesh_group_settings.get<bool>("machine_heated_build_volume"))
     {
 		Temperature max_build_volume_temperature;
-		for (const ExtruderTrain& train : application->scene->extruders)
+		for (const ExtruderTrain& _train : application->scene->extruders)
 		{
-			Temperature current_extruder_temperature = train.settings.get<double>("build_volume_temperature");
+			Temperature current_extruder_temperature = _train.settings.get<double>("build_volume_temperature");
 			if (max_build_volume_temperature < current_extruder_temperature)
 			{
 				max_build_volume_temperature = current_extruder_temperature;
@@ -930,9 +930,9 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     }
     else if (gcode.getFlavor() == EGCodeFlavor::GRIFFIN)
     { // initialize extruder trains
-        ExtruderTrain& train = application->scene->extruders[start_extruder_nr];
+        ExtruderTrain& _train = application->scene->extruders[start_extruder_nr];
         processInitialLayerTemperature(storage, start_extruder_nr);
-        gcode.writePrimeTrain(train.settings.get<Velocity>("speed_travel"));
+        gcode.writePrimeTrain(_train.settings.get<Velocity>("speed_travel"));
         extruder_prime_layer_nr[start_extruder_nr] = std::numeric_limits<int>::min(); // set to most negative number so that layer processing never primes this extruder any more.
         const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[start_extruder_nr];
         gcode.writeRetraction(retraction_config);
@@ -1761,11 +1761,11 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                             line.start_idx = getSupportedVertex(mesh_last_layer_outline, line, start_idx[idx]);
                             if (line.start_idx != -1 && !part_order_optimizer.bFound[idx])
                             {
-                                Polygon path = line.toPolygon();
+                                Polygon _path = line.toPolygon();
                                 Point lastLayerNearestZSeam = matchZSeam[idx];
-                                Point pre_pt = path[(line.start_idx - 1 + path.size())% path.size()];
-                                Point cur_pt = path[line.start_idx];
-                                Point next_pt = path[(line.start_idx + 1) % path.size()];
+                                Point pre_pt = _path[(line.start_idx - 1 + _path.size())% _path.size()];
+                                Point cur_pt = _path[line.start_idx];
+                                Point next_pt = _path[(line.start_idx + 1) % _path.size()];
                                 Point result;
                                 if (getProjection(lastLayerNearestZSeam, cur_pt, pre_pt, result))
                                 {
