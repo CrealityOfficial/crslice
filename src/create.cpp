@@ -1,13 +1,15 @@
 #include "create.h"
-#include "Application.h"
 
 #include "crgroup.h"
 #include "mesh/trimecr30.h"
 #include "ccglobal/log.h"
+#include <assert.h>
+
+#include "communication/slicecontext.h"
 
 namespace crslice
 {
-    void trimesh2CuraMesh(trimesh::TriMesh* mesh, cura52::Mesh& curaMesh, cura52::Application* application)
+    void trimesh2CuraMesh(trimesh::TriMesh* mesh, cura52::Mesh& curaMesh, cura52::SliceContext* application)
     {
         curaMesh.faces.reserve(mesh->faces.size());
         curaMesh.vertices.reserve(mesh->vertices.size());
@@ -30,7 +32,7 @@ namespace crslice
             }
         }
 
-        if (!application->checkInterrupt())
+        if (!application->checkInterrupt(""))
             curaMesh.finish();
     }
 
@@ -42,7 +44,7 @@ namespace crslice
         }
     }
 
-	cura52::Scene* createSliceFromCrScene(cura52::Application* application, CrScenePtr scene)
+	cura52::Scene* createSliceFromCrScene(cura52::SliceContext* application, CrScenePtr scene)
 	{
         if (scene == nullptr || !scene->valid())
         {
@@ -188,7 +190,7 @@ namespace crslice
             INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
         }
 
-        if (sliceValible == false || application->checkInterrupt())
+        if (sliceValible == false || application->checkInterrupt(""))
         {
             LOGE("scene convert failed.");
             delete slice;

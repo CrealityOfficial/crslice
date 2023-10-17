@@ -78,7 +78,7 @@ public:
     static void generateInfillSupport(SliceMeshStorage& mesh);
 
 public:
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
 
 protected:
     /*!

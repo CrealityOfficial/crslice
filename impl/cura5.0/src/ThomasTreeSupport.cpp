@@ -1943,7 +1943,7 @@ void ThomasTreeSupport::createLayerPathing(std::vector<std::set<TreeSupportEleme
         }
 
         progress_total += data_size_inverse * TREE_PROGRESS_AREA_CALC;
-		this->application->progressor.messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+		this->application->messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
 
     }
 
@@ -2296,7 +2296,7 @@ void ThomasTreeSupport::generateBranchAreas(std::vector<std::pair<LayerIndex, Tr
             {
                 std::lock_guard<std::mutex> critical_section_progress(critical_sections);
                 progress_total += TREE_PROGRESS_GENERATE_BRANCH_AREAS / progress_report_steps;
-				this->application->progressor.messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+				this->application->messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
             }
         }
     });
@@ -2358,7 +2358,7 @@ void ThomasTreeSupport::smoothBranchAreas(std::vector<std::unordered_map<TreeSup
     }
 
     progress_total += TREE_PROGRESS_SMOOTH_BRANCH_AREAS / 2;
-	this->application->progressor.messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL); // It is just assumed that both smoothing loops together are one third of the time spent in this function. This was guessed. As the whole function is only 10%, and the smoothing is hard to predict a progress report in the loop may be not useful.
+	this->application->messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL); // It is just assumed that both smoothing loops together are one third of the time spent in this function. This was guessed. As the whole function is only 10%, and the smoothing is hard to predict a progress report in the loop may be not useful.
 
     // smooth downwards
     std::unordered_set<TreeSupportElement*> updated_last_iteration;
@@ -2414,7 +2414,7 @@ void ThomasTreeSupport::smoothBranchAreas(std::vector<std::unordered_map<TreeSup
     }
 
     progress_total += TREE_PROGRESS_SMOOTH_BRANCH_AREAS / 2;
-	this->application->progressor.messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+	this->application->messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
 }
 
 
@@ -2519,7 +2519,7 @@ void ThomasTreeSupport::finalizeInterfaceAndSupportAreas(std::vector<Polygons>& 
         {
             std::lock_guard<std::mutex> critical_section_progress(critical_sections);
             progress_total += TREE_PROGRESS_FINALIZE_BRANCH_AREAS / support_layer_storage.size();
-			this->application->progressor.messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+			this->application->messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
         }
 
         {

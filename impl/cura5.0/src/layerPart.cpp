@@ -7,11 +7,12 @@
 #include "settings/EnumSettings.h" //For ESurfaceMode.
 #include "settings/Settings.h"
 #include "progress/Progress.h"
-#include "Application.h"
 
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h" //Simplifying the layers after creating them.
 
+#include "utils/ThreadPool.h"
+#include "communication/slicecontext.h"
 /*
 The layer-part creation step is the first step in creating actual useful data for 3D printing.
 It takes the result of the Slice step, which is an unordered list of polygons, and makes groups of polygons,
@@ -26,107 +27,107 @@ It's also the first step that stores the result in the "data storage" so all oth
 
 namespace cura52 {
 
-void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer, size_t layer_nr)
-{
-    PolylineStitcher<Polygons, Polygon, Point>::stitch(layer->openPolylines, storageLayer.openPolyLines, layer->polygons, settings.get<coord_t>("wall_line_width_0"));
-
-    storageLayer.openPolyLines = Simplify(settings).polyline(storageLayer.openPolyLines);
-
-    const bool union_all_remove_holes = settings.get<bool>("meshfix_union_all_remove_holes");
-    if (union_all_remove_holes)
+    void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer, size_t layer_nr)
     {
-        for(unsigned int i=0; i<layer->polygons.size(); i++)
-        {
-            if (layer->polygons[i].orientation())
-                layer->polygons[i].reverse();
-        }
-    }
+        PolylineStitcher<Polygons, Polygon, Point>::stitch(layer->openPolylines, storageLayer.openPolyLines, layer->polygons, settings.get<coord_t>("wall_line_width_0"));
 
-    std::vector<PolygonsPart> result;
-    const bool union_layers = settings.get<bool>("meshfix_union_all");
-    const ESurfaceMode surface_only = settings.get<ESurfaceMode>("magic_mesh_surface_mode");
-    if (surface_only == ESurfaceMode::SURFACE && !union_layers)
-    { // Don't do anything with overlapping areas; no union nor xor
-        result.reserve(layer->polygons.size());
-        for (const PolygonRef poly : layer->polygons)
+        storageLayer.openPolyLines = Simplify(settings).polyline(storageLayer.openPolyLines);
+
+        const bool union_all_remove_holes = settings.get<bool>("meshfix_union_all_remove_holes");
+        if (union_all_remove_holes)
         {
-            result.emplace_back();
-            result.back().add(poly);
-        }
-    }
-    else
-    {
-        result = layer->polygons.splitIntoParts(union_layers || union_all_remove_holes);
-    }
-    const coord_t hole_offset = settings.get<coord_t>("hole_xy_offset");
-    const size_t bottom_layers = settings.get<size_t>("bottom_layers");
-    bool magic_spiralize = settings.get<bool>("magic_spiralize");
-    for(auto & part : result)
-    {
-        storageLayer.parts.emplace_back();
-        if (magic_spiralize && layer_nr >= bottom_layers)
-        {
-            // holes remove
-            Polygons outline;
-            for (const PolygonRef poly : part)
+            for (unsigned int i = 0; i < layer->polygons.size(); i++)
             {
-                if (poly.orientation())
-                {
-                    outline.add(poly);
-                }
+                if (layer->polygons[i].orientation())
+                    layer->polygons[i].reverse();
             }
-            storageLayer.parts.back().outline.add(outline.unionPolygons());
         }
-        else if (hole_offset != 0)
-        {
-            // holes are to be expanded or shrunk
-            Polygons outline;
-            Polygons holes;
-            for (const PolygonRef poly : part)
+
+        std::vector<PolygonsPart> result;
+        const bool union_layers = settings.get<bool>("meshfix_union_all");
+        const ESurfaceMode surface_only = settings.get<ESurfaceMode>("magic_mesh_surface_mode");
+        if (surface_only == ESurfaceMode::SURFACE && !union_layers)
+        { // Don't do anything with overlapping areas; no union nor xor
+            result.reserve(layer->polygons.size());
+            for (const PolygonRef poly : layer->polygons)
             {
-                if (poly.orientation())
-                {
-                    outline.add(poly);
-                }
-                else
-                {
-                    holes.add(poly.offset(hole_offset));
-                }
+                result.emplace_back();
+                result.back().add(poly);
             }
-            storageLayer.parts.back().outline.add(outline.difference(holes.unionPolygons()));
         }
         else
         {
-            storageLayer.parts.back().outline = part;
+            result = layer->polygons.splitIntoParts(union_layers || union_all_remove_holes);
         }
-        storageLayer.parts.back().boundaryBox.calculate(storageLayer.parts.back().outline);
-        if (storageLayer.parts.back().outline.empty())
+        const coord_t hole_offset = settings.get<coord_t>("hole_xy_offset");
+        const size_t bottom_layers = settings.get<size_t>("bottom_layers");
+        bool magic_spiralize = settings.get<bool>("magic_spiralize");
+        for (auto& part : result)
         {
-            storageLayer.parts.pop_back();
+            storageLayer.parts.emplace_back();
+            if (magic_spiralize && layer_nr >= bottom_layers)
+            {
+                // holes remove
+                Polygons outline;
+                for (const PolygonRef poly : part)
+                {
+                    if (poly.orientation())
+                    {
+                        outline.add(poly);
+                    }
+                }
+                storageLayer.parts.back().outline.add(outline.unionPolygons());
+            }
+            else if (hole_offset != 0)
+            {
+                // holes are to be expanded or shrunk
+                Polygons outline;
+                Polygons holes;
+                for (const PolygonRef poly : part)
+                {
+                    if (poly.orientation())
+                    {
+                        outline.add(poly);
+                    }
+                    else
+                    {
+                        holes.add(poly.offset(hole_offset));
+                    }
+                }
+                storageLayer.parts.back().outline.add(outline.difference(holes.unionPolygons()));
+            }
+            else
+            {
+                storageLayer.parts.back().outline = part;
+            }
+            storageLayer.parts.back().boundaryBox.calculate(storageLayer.parts.back().outline);
+            if (storageLayer.parts.back().outline.empty())
+            {
+                storageLayer.parts.pop_back();
+            }
         }
     }
-}
-void createLayerParts(Application* application, SliceMeshStorage& mesh, Slicer* slicer)
-{
-    const auto total_layers = slicer->layers.size();
-    assert(mesh.layers.size() == total_layers);
-
-    cura52::parallel_for<size_t>(application, 0, total_layers, [slicer, &mesh](size_t layer_nr)
+    void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, Slicer* slicer)
     {
-        SliceLayer& layer_storage = mesh.layers[layer_nr];
-        SlicerLayer& slice_layer = slicer->layers[layer_nr];
-        createLayerWithParts(mesh.settings, layer_storage, &slice_layer, layer_nr);
-    });
+        const auto total_layers = slicer->layers.size();
+        assert(mesh.layers.size() == total_layers);
 
-    for (LayerIndex layer_nr = total_layers - 1; layer_nr >= 0; layer_nr--)
-    {
-        SliceLayer& layer_storage = mesh.layers[layer_nr];
-        if (layer_storage.parts.size() > 0 || (mesh.settings.get<ESurfaceMode>("magic_mesh_surface_mode") != ESurfaceMode::NORMAL && layer_storage.openPolyLines.size() > 0))
+        cura52::parallel_for<size_t>(application, 0, total_layers, [slicer, &mesh](size_t layer_nr)
+            {
+                SliceLayer& layer_storage = mesh.layers[layer_nr];
+                SlicerLayer& slice_layer = slicer->layers[layer_nr];
+                createLayerWithParts(mesh.settings, layer_storage, &slice_layer, layer_nr);
+            });
+
+        for (LayerIndex layer_nr = total_layers - 1; layer_nr >= 0; layer_nr--)
         {
-            mesh.layer_nr_max_filled_layer = layer_nr; // last set by the highest non-empty layer
-            break;
+            SliceLayer& layer_storage = mesh.layers[layer_nr];
+            if (layer_storage.parts.size() > 0 || (mesh.settings.get<ESurfaceMode>("magic_mesh_surface_mode") != ESurfaceMode::NORMAL && layer_storage.openPolyLines.size() > 0))
+            {
+                mesh.layer_nr_max_filled_layer = layer_nr; // last set by the highest non-empty layer
+                break;
+            }
         }
     }
-}
 
 }//namespace cura52

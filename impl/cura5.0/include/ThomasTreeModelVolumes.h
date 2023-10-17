@@ -20,7 +20,7 @@ namespace cura52
 {
 
 class SliceDataStorage;
-class Application;
+class SliceContext;
 class LayerIndex;
 class Settings;
 class Progress;
@@ -294,7 +294,7 @@ class ThomasTreeModelVolumes
     Polygons calculateMachineBorderCollision(Polygon machine_border);
     
 private:
-	Application* application = nullptr;
+    SliceContext* application = nullptr;
 	
 	/*!
      * \brief The maximum distance that the center point of a tree branch may move in consecutive layers if it has to avoid the model.

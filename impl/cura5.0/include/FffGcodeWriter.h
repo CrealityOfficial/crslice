@@ -24,7 +24,7 @@ namespace cura52
     class SliceMeshStorage;
     class SliceLayer;
     class SliceLayerPart;
-    class Application;
+    class SliceContext;
     /*!
      * Secondary stage in Fused Filament Fabrication processing: The generated polygons are used in the gcode generation.
      * Some polygons in the SliceDataStorage signify areas which are to be filled with parallel lines,
@@ -86,7 +86,7 @@ namespace cura52
         std::string slice_uuid; //!< The UUID of the current slice.
     public:
 
-        Application* application = nullptr;
+        SliceContext* application = nullptr;
         /*
          * \brief Construct a g-code writer.
          *

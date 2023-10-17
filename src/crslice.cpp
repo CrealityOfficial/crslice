@@ -29,9 +29,9 @@ namespace crslice
 		app.tempDirectory = scene->m_tempDirectory;
 		app.fDebugger = scene->m_debugger;
 
-		CRSliceFromScene crScene(&app, scene);
-		app.runCommulication(&crScene);
-        sliceResult = { app.sliceResult.print_time,app.sliceResult.filament_len ,app.sliceResult.filament_volume,app.sliceResult.layer_count,
-            app.sliceResult.x,app.sliceResult.y,app.sliceResult.z };
+		CRSliceFromScene factory(&app, scene);
+		cura52::SliceResult result = app.runSceneFactory(&factory);
+        sliceResult = { result.print_time, result.filament_len, result.filament_volume, result.layer_count,
+			result.x, result.y, result.z };
 	}
 }

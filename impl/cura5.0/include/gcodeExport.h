@@ -265,8 +265,7 @@ public:
                               const std::vector<std::string>& mat_ids = std::vector<std::string>());
 
     //for cloud result
-    void getFileHeaderC(const std::vector<bool>& extruder_is_used,
-						SliceResult& sliceResult,
+    SliceResult getFileHeaderC(const std::vector<bool>& extruder_is_used,
 						const Duration* print_time = nullptr,
 						const std::vector<double>& filament_used = std::vector<double>(),
 						const std::vector<std::string>& mat_ids = std::vector<std::string>());

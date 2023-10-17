@@ -3,7 +3,6 @@
 
 #include "ccglobal/log.h"
 
-#include "Application.h" //To get settings.
 #include "ExtruderTrain.h"
 #include "infill/DensityProvider.h" // for destructor
 #include "infill/LightningGenerator.h"
@@ -13,6 +12,7 @@
 #include "sliceDataStorage.h"
 #include "utils/math.h" //For PI.
 
+#include "communication/slicecontext.h"
 
 namespace cura52
 {
@@ -261,20 +261,20 @@ Point SliceMeshStorage::getZSeamHint() const
 std::vector<RetractionConfig> SliceDataStorage::initializeRetractionConfigs()
 {
     std::vector<RetractionConfig> ret;
-    ret.resize(application->scene->extruders.size()); // initializes with constructor RetractionConfig()
+    ret.resize(application->extruderCount()); // initializes with constructor RetractionConfig()
     return ret;
 }
 
 std::vector<WipeScriptConfig> SliceDataStorage::initializeWipeConfigs()
 {
     std::vector<WipeScriptConfig> ret;
-    ret.resize(application->scene->extruders.size());
+    ret.resize(application->extruderCount());
     return ret;
 }
 
-SliceDataStorage::SliceDataStorage(Application* _application)
+SliceDataStorage::SliceDataStorage(SliceContext* _application)
     : application(_application)
-    , settings(_application->scene->current_mesh_group->settings)
+    , settings(_application->currentGroup()->settings)
     , primeTower(_application)
     , print_layer_count(0)
     , wipe_config_per_extruder(initializeWipeConfigs())
@@ -286,7 +286,7 @@ SliceDataStorage::SliceDataStorage(Application* _application)
     Point3 machine_min(0, 0, 0);
     machine_size.include(machine_min);
     machine_size.include(machine_max);
-    if (application->scene->machine_center_is_zero)
+    if (application->isCenterZero())
     {
         machine_size.offset(Point3(-machine_size.max.x / 2, -machine_size.max.y / 2, 0));
     }
@@ -372,12 +372,12 @@ Polygons SliceDataStorage::getLayerOutlines(const LayerIndex layer_nr, const boo
 std::vector<bool> SliceDataStorage::getExtrudersUsed() const
 {
     std::vector<bool> ret;
-    ret.resize(application->scene->extruders.size(), false);
+    ret.resize(application->extruderCount(), false);
 
     const EPlatformAdhesion adhesion_type = settings.get<EPlatformAdhesion>("adhesion_type");
     if (adhesion_type == EPlatformAdhesion::SKIRT || adhesion_type == EPlatformAdhesion::BRIM)
     {
-        for (size_t extruder_nr = 0; extruder_nr < application->scene->extruders.size(); extruder_nr++)
+        for (size_t extruder_nr = 0; extruder_nr < application->extruderCount(); extruder_nr++)
         {
             if (! skirt_brim[extruder_nr].empty())
             {
@@ -434,7 +434,7 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed() const
 
 std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) const
 {
-    const std::vector<ExtruderTrain>& extruders = application->scene->extruders;
+    const std::vector<ExtruderTrain>& extruders = application->extruders();
 	if (layer_nr > 0)
 	{
 		std::vector<bool> ret;
@@ -549,12 +549,12 @@ std::vector<bool> SliceDataStorage::getExtrudersUsed(const LayerIndex layer_nr) 
 
 bool SliceDataStorage::getExtruderPrimeBlobEnabled(const size_t extruder_nr) const
 {
-    if (extruder_nr >= application->scene->extruders.size())
+    if (extruder_nr >= application->extruderCount())
     {
         return false;
     }
 
-    const ExtruderTrain& train = application->scene->extruders[extruder_nr];
+    const ExtruderTrain& train = application->extruders()[extruder_nr];
     return train.settings.get<bool>("prime_blob_enable");
 }
 
@@ -599,7 +599,7 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
         {
             continue;
         }
-        Settings& extruder_settings = application->scene->extruders[extruder_nr].settings;
+        Settings& extruder_settings = application->extruders()[extruder_nr].settings;
         if (!(extruder_settings.get<bool>("prime_blob_enable") && settings.get<bool>("extruder_prime_pos_abs")))
         {
             continue;
@@ -624,7 +624,7 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
         {
             continue;
         }
-        Settings& extruder_settings = application->scene->extruders[extruder_nr].settings;
+        Settings& extruder_settings = application->extruders()[extruder_nr].settings;
         Point translation(extruder_settings.get<coord_t>("machine_nozzle_offset_x"), extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
         Polygons extruder_border = disallowed_areas;
         extruder_border.translate(translation);
@@ -649,7 +649,7 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
             {
                 continue;
             }
-            Settings& extruder_settings = application->scene->extruders[extruder_nr].settings;
+            Settings& extruder_settings = application->extruders()[extruder_nr].settings;
             Point translation(extruder_settings.get<coord_t>("machine_nozzle_offset_x"), extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
             for (size_t other_extruder_nr = 0; other_extruder_nr < extruder_is_used.size(); other_extruder_nr++)
             {
@@ -658,7 +658,7 @@ Polygons SliceDataStorage::getMachineBorder(int checking_extruder_nr) const
                 {
                     continue;
                 }
-                Settings& other_extruder_settings = application->scene->extruders[other_extruder_nr].settings;
+                Settings& other_extruder_settings = application->extruders()[other_extruder_nr].settings;
                 Point other_translation(other_extruder_settings.get<coord_t>("machine_nozzle_offset_x"), other_extruder_settings.get<coord_t>("machine_nozzle_offset_y"));
                 Polygons translated_border = border;
                 translated_border.translate(translation - other_translation);
@@ -706,13 +706,13 @@ Polygon SliceDataStorage::getMachineBorder(bool adhesion_offset) const
     const ExtruderTrain& skirt_brim_train = settings.get<ExtruderTrain&>("skirt_brim_extruder_nr");
     coord_t extra_skirt_line_width = 0;
     const std::vector<bool> is_extruder_used = getExtrudersUsed();
-    for (size_t extruder_nr = 0; extruder_nr < application->scene->extruders.size(); extruder_nr++)
+    for (size_t extruder_nr = 0; extruder_nr < application->extruderCount(); extruder_nr++)
     {
         if (extruder_nr == skirt_brim_train.extruder_nr || ! is_extruder_used[extruder_nr]) // Unused extruders and the primary adhesion extruder don't generate an extra skirt line.
         {
             continue;
         }
-        const ExtruderTrain& other_extruder = application->scene->extruders[extruder_nr];
+        const ExtruderTrain& other_extruder = application->extruders()[extruder_nr];
         extra_skirt_line_width += other_extruder.settings.get<coord_t>("skirt_brim_line_width") * other_extruder.settings.get<Ratio>("initial_layer_line_width_factor");
     }
     switch (settings.get<EPlatformAdhesion>("adhesion_type"))

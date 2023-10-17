@@ -2,7 +2,6 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher
 
 #include "TreeSupportT.h"
-#include "Application.h" //To get settings.
 #include "TreeSupportTipGenerator.h"
 #include "TreeSupportUtils.h"
 #include "infill.h"
@@ -28,6 +27,7 @@
 #include <string>
 #include <thread>
 
+#include "communication/slicecontext.h"""
 //#include <scripta/logger.h>
 
 
@@ -1375,7 +1375,7 @@ void TreeSupportT::createLayerPathing(std::vector<std::set<TreeSupportElementT*>
         }
 
         progress_total += data_size_inverse * TREE_PROGRESS_AREA_CALC;
-        this->application->progressor.messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+        this->application->messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
        // Progress::messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
     }
 
@@ -1786,7 +1786,7 @@ void TreeSupportT::generateBranchAreas(std::vector<std::pair<LayerIndex, TreeSup
                         std::lock_guard<std::mutex> critical_section_progress(critical_sections);
                         progress_total += TREE_PROGRESS_GENERATE_BRANCH_AREAS / progress_report_steps;
                        // Progress::messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
-                        this->application->progressor.messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+                        this->application->messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
                     }
                 }
             }
@@ -1861,7 +1861,7 @@ void TreeSupportT::smoothBranchAreas(std::vector<std::unordered_map<TreeSupportE
     //Progress::messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
     // ^^^ It is just assumed that both smoothing loops together are one third of the time spent in this function. This was guessed.
     //     As the whole function is only 10%, and the smoothing is hard to predict a progress report in the loop may be not useful.
-    this->application->progressor.messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+    this->application->messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
     // Smooth downwards.
     std::unordered_set<TreeSupportElementT*> updated_last_iteration;
   //  for (const auto layer_idx : ranges::views::iota(0UL, std::max<size_t>(layer_tree_polygons.size(), 1UL) - 1UL) | ranges::views::reverse)
@@ -1924,7 +1924,7 @@ void TreeSupportT::smoothBranchAreas(std::vector<std::unordered_map<TreeSupportE
 
     progress_total += TREE_PROGRESS_SMOOTH_BRANCH_AREAS / 2;
     //Progress::messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
-    this->application->progressor.messageProgress(cura52::Progress::Stage::SUPPORT, progress_total* progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+    this->application->messageProgress(cura52::Progress::Stage::SUPPORT, progress_total* progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
 }
 
 void TreeSupportT::dropNonGraciousAreas
@@ -2252,7 +2252,7 @@ void TreeSupportT::finalizeInterfaceAndSupportAreas(std::vector<Polygons>& suppo
                 std::lock_guard<std::mutex> critical_section_progress(critical_sections);
                 progress_total += TREE_PROGRESS_FINALIZE_BRANCH_AREAS / support_layer_storage.size();
                // Progress::messageProgress(Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
-                this->application->progressor.messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+                this->application->messageProgress(cura52::Progress::Stage::SUPPORT, progress_total * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
             }
 
             {

@@ -19,7 +19,7 @@ namespace cura52
     class AdaptiveLayer;
     class Mesh;
     class MeshVertex;
-    class Application;
+    class SliceContext;
 
     class SlicerSegment
     {
@@ -490,11 +490,11 @@ namespace cura52
     {
     public:
         std::vector<SlicerLayer> layers;
-        Application* application = nullptr;
+        SliceContext* application = nullptr;
 
         const Mesh* mesh = nullptr; //!< The sliced mesh
 
-        Slicer(Application* application, Mesh* mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers);
+        Slicer(SliceContext* application, Mesh* mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers);
 
 
     private:
@@ -538,10 +538,10 @@ namespace cura52
         * \param[in] slicing_tolerance The way the slicing tolerance should be applied (MIDDLE/INCLUSIVE/EXCLUSIVE).
         * \param[in, out] layers The polygon are created here.
         */
-        static void makePolygons(Application* application, Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers);
+        static void makePolygons(SliceContext* application, Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers);
         
         //
-        static void processPolygons(Application* application,const Mesh& mesh, std::vector<SlicerLayer>& layers);
+        static void processPolygons(SliceContext* application,const Mesh& mesh, std::vector<SlicerLayer>& layers);
 
         /*! Creates a vector of layers and set their z value.
         * \param[in] mesh The mesh which is analyzed.
@@ -565,7 +565,7 @@ namespace cura52
         */
         static void buildSegments
         (
-            Application* application,
+            SliceContext* application,
             const Mesh& mesh,
             const std::vector<std::pair<int32_t, int32_t>>& zbboxes,
             const SlicingTolerance& slicing_tolerance,

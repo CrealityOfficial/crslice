@@ -5,11 +5,11 @@
 
 namespace cura52
 {
-	class Application;
+	class SliceContext;
 }
 namespace crslice
 {
-	cura52::Scene* createSliceFromCrScene(cura52::Application* application, CrScenePtr scene);
+	cura52::Scene* createSliceFromCrScene(cura52::SliceContext* application, CrScenePtr scene);
 }
 
 #endif // CRSLICE_CRGROUP_CREATE_1669515380929_H

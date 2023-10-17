@@ -30,7 +30,7 @@ namespace cura52
 class Mesh;
 class SierpinskiFillProvider;
 class LightningGenerator;
-class Application;
+class SliceContext;
 /*!
  * A SkinPart is a connected area designated as top and/or bottom skin. 
  * Surrounding each non-bridged skin area with an outline may result in better top skins.
@@ -245,7 +245,7 @@ class SubDivCube; // forward declaration to prevent dependency loop
 class SliceMeshStorage
 {
 public:
-    Application* appliction = nullptr;
+    SliceContext* appliction = nullptr;
     Settings& settings;
     std::vector<SliceLayer> layers;
     std::string mesh_name;
@@ -307,7 +307,7 @@ class SliceDataStorage
 {
 public:
     Settings& settings;
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
     size_t print_layer_count; //!< The total number of layers (except the raft and filler layers)
 
     Point3 model_size, model_min, model_max;
@@ -344,7 +344,7 @@ public:
      * \brief Creates a new slice data storage that stores the slice data of the
      * current mesh group.
      */
-    SliceDataStorage(Application* _application);
+    SliceDataStorage(SliceContext* _application);
 
     ~SliceDataStorage()
     {

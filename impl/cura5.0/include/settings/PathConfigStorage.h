@@ -16,7 +16,7 @@ class ExtruderTrain;
 struct LayerIndex;
 class SliceDataStorage;
 class SliceMeshStorage;
-class Application;
+class SliceContext;
 /*!
  * A class to represent all configurations for all features types of printed lines in a meshgroup.
  */
@@ -69,7 +69,7 @@ public:
     GCodePathConfig support_bottom_config; //!< The config to use to print the dense bottoms of support
 
     std::vector<MeshPathConfigs> mesh_configs; //!< For each meash the config for all its feature types
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
     /*!
      * \warning Note that the layer_nr might be below zero for raft (filler) layers
      */

@@ -5,7 +5,7 @@
 
 namespace crslice
 {
-    CRSliceFromScene::CRSliceFromScene(cura52::Application* _application, CrScenePtr scene)
+    CRSliceFromScene::CRSliceFromScene(cura52::SliceContext* _application, CrScenePtr scene)
         : m_haveSlice(true)
         , m_scene(scene)
         , application(_application)

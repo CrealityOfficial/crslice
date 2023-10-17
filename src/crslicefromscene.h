@@ -2,19 +2,19 @@
 #define CRSLICE_FROM_SCENE_COMMANDLINE_H
 #include "crslice/crscene.h"
 #include "Scene.h"
-#include "communication/Communication.h"
+#include "communication/scenefactory.h"
 
 namespace cura52
 {
-    class Application;
+    class SliceContext;
 }
 
 namespace crslice
 {
-    class CRSliceFromScene : public cura52::Communication
+    class CRSliceFromScene : public cura52::SceneFactory
     {
     public:
-        CRSliceFromScene(cura52::Application* _application, CrScenePtr scene);
+        CRSliceFromScene(cura52::SliceContext* _application, CrScenePtr scene);
         virtual ~CRSliceFromScene();
 
         cura52::Scene* createSlice() override;
@@ -24,7 +24,7 @@ namespace crslice
         bool m_haveSlice;
         CrScenePtr m_scene;
 
-        cura52::Application* application;
+        cura52::SliceContext* application;
     };
 
 } //namespace crslice

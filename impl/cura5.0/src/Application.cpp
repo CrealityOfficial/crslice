@@ -7,8 +7,6 @@
 #include <memory>
 #include <string>
 
-#include "communication/Communication.h"
-
 #include "ccglobal/log.h"
 
 #include "Weaver.h"
@@ -74,17 +72,23 @@ namespace cura52
             fDebugger->tick(tag);
     }
 
-    void Application::runCommulication(Communication* _communication)
+    void Application::message(const char* msg)
     {
-        if (!_communication)
-            return;
+        if (tracer)
+            tracer->message(msg);
+    }
+
+    SliceResult Application::runSceneFactory(SceneFactory* factory)
+    {
+        if (!factory)
+            return m_result;
 
         CALLTICK("slice 0");
         progressor.init();
         startThreadPool(); // Start the thread pool
-        if (_communication->hasSlice())
+        if (factory->hasSlice())
         {
-            std::shared_ptr<Scene> slice(_communication->createSlice());
+            std::shared_ptr<Scene> slice(factory->createSlice());
             if (slice)
             {
                 this->scene = slice.get();
@@ -100,28 +104,85 @@ namespace cura52
             }
         }
 		CALLTICK("slice 1");
+
+        return m_result;
+    }
+
+    int Application::extruderCount()
+    {
+        return (int)scene->extruders.size();
+    }
+
+    const std::vector<ExtruderTrain>& Application::extruders() const 
+    {
+        return scene->extruders;
+    }
+
+    std::vector<ExtruderTrain>& Application::extruders()
+    {
+        return scene->extruders;
+    }
+
+    const Settings& Application::sceneSettings()
+    {
+        return scene->settings;
+    }
+
+    bool Application::isCenterZero()
+    {
+        return scene->machine_center_is_zero;
+    }
+
+    std::string Application::polygonFile()
+    {
+        return scene->ploygonFile;
+    }
+
+    MeshGroup* Application::currentGroup()
+    {
+        return &*scene->current_mesh_group;
+    }
+
+    bool Application::isFirstGroup()
+    {
+        return scene->current_mesh_group == scene->mesh_groups.begin();
+    }
+
+    void Application::setResult(const SliceResult& result)
+    {
+        m_result = result;
+    }
+
+    void Application::messageProgress(Progress::Stage stage, int progress_in_stage, int progress_in_stage_max)
+    {
+        progressor.messageProgress(stage, progress_in_stage, progress_in_stage_max);
+    }
+
+    void Application::messageProgressStage(Progress::Stage stage)
+    {
+        progressor.messageProgressStage(stage);
     }
 
     void Application::startThreadPool(int nworkers)
     {
-        size_t nthreads;
+        int nthreads = 1;
         if (nworkers <= 0)
         {
             if (thread_pool)
             {
                 return; // Keep the previous ThreadPool
             }
-            nthreads = std::thread::hardware_concurrency() - 1;
+            nthreads = (int)std::thread::hardware_concurrency() - 1;
         }
         else
         {
             nthreads = nworkers - 1; // Minus one for the main thread
         }
-        if (thread_pool && thread_pool->thread_count() == nthreads)
+        if (thread_pool && (int)thread_pool->thread_count() == nthreads)
         {
             return; // Keep the previous ThreadPool
         }
-          thread_pool.reset(new ThreadPool(nthreads));
+          thread_pool.reset(new ThreadPool((size_t)nthreads));
     }
 
     void Application::compute()
@@ -134,7 +195,6 @@ namespace cura52
             {
                 extruder.settings.setParent(&scene->current_mesh_group->settings);
             }
-
 
             {
                 progressor.restartTime();

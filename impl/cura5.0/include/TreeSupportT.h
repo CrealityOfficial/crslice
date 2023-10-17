@@ -335,7 +335,7 @@ private:
      * Required for the progress bar the behave as expected when areas have to be calculated multiple times
      */
     double progress_offset = 0;
-    cura52::Application* application = nullptr;
+    cura52::SliceContext* application = nullptr;
 };
 
 

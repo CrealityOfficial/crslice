@@ -17,7 +17,7 @@
 
 namespace cura52
 {
-
+    class SliceContext;
     /*!
      * \brief Very minimal and low level thread pool.
      *
@@ -95,15 +95,6 @@ namespace cura52
         return static_cast<Signed>(last) - static_cast<Signed>(first);
     }
 
-    class ParallelContext
-    {
-    public:
-        virtual ~ParallelContext() {}
-
-        virtual ThreadPool* pool() = 0;
-        virtual bool checkInterrupt(const std::string& msg) = 0;
-    };
-
     /*! An implementation of parallel for.
      * There are still a lot of compilers that claim to be fully C++17 compatible, but don't implement the Parallel Execution TS of the accompanying standard library.
      * This means that we mostly have to fall back to the things that C++11/14 provide when it comes to threading/parallelism/etc.
@@ -117,7 +108,7 @@ namespace cura52
      * \param chunks_per_worker Maximum number of tasks that are queue at once (defaults to 4 times the number of workers).
      */
     template<typename T, typename F>
-    void parallel_for(ParallelContext* context, T first, T last, F&& loop_body, size_t chunk_size_factor = 1, const size_t chunks_per_worker = 8)
+    void parallel_for(SliceContext* context, T first, T last, F&& loop_body, size_t chunk_size_factor = 1, const size_t chunks_per_worker = 8)
     {
         using lock_t = ThreadPool::lock_t;
 
@@ -205,7 +196,7 @@ namespace cura52
      *  Overload for iterating over containers with random access iterators.
      */
     template<typename Container, typename F>
-    auto parallel_for(ParallelContext* context, Container& container, F&& loop_body, size_t chunk_size_factor = 1, size_t chunks_per_worker = 8)
+    auto parallel_for(SliceContext* context, Container& container, F&& loop_body, size_t chunk_size_factor = 1, size_t chunks_per_worker = 8)
         -> std::void_t<decltype(container.end() - container.begin())>
     {
         parallel_for(context, container.begin(), container.end(), std::forward<F>(loop_body), chunk_size_factor, chunks_per_worker);
@@ -234,7 +225,7 @@ namespace cura52
      * \param max_pending_per_worker Number of allocated slots per worker for items waiting to be consumed.
      */
     template<typename P, typename C>
-    void run_multiple_producers_ordered_consumer(ParallelContext* context, ptrdiff_t first, ptrdiff_t last, P&& producer, C&& consumer, size_t max_pending_per_worker = 8)
+    void run_multiple_producers_ordered_consumer(SliceContext* context, ptrdiff_t first, ptrdiff_t last, P&& producer, C&& consumer, size_t max_pending_per_worker = 8)
     {
         ThreadPool* thread_pool = context->pool();
         assert(thread_pool);

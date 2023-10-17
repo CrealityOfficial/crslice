@@ -2,17 +2,18 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "WallsComputation.h"
-#include "Application.h"
 #include "ExtruderTrain.h"
 #include "WallToolPaths.h"
 #include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "utils/Simplify.h" // We're simplifying the spiralized insets.
 
+#include "communication/slicecontext.h"
+
 namespace cura52
 {
 
-WallsComputation::WallsComputation(const Settings& settings, const LayerIndex layer_nr, Application* _application)
+WallsComputation::WallsComputation(const Settings& settings, const LayerIndex layer_nr, SliceContext* _application)
     : settings(settings)
     , layer_nr(layer_nr)
     , application(_application)

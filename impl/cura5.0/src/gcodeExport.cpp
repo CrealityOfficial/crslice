@@ -621,12 +621,12 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
     return prefix.str();
 }
 
-void GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
-							     SliceResult& sliceResult,
+SliceResult GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
 							     const Duration* print_time,
 							     const std::vector<double>& filament_used,
 							     const std::vector<std::string>& mat_ids)
 {
+    SliceResult sliceResult;
     sliceResult.layer_count = layer_nr;
 
     const size_t extruder_count = application->scene->extruders.size();
@@ -695,6 +695,7 @@ void GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_used,
         sliceResult.filament_volume = PI * radius * radius * density * sliceResult.filament_len;
     }
 
+    return sliceResult;
 }
 
 void GCodeExport::setLayerNr(unsigned int layer_nr_)

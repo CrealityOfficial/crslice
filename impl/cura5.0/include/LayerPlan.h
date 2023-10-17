@@ -249,7 +249,7 @@ public:
     bool need_smart_brim;
 	bool is_deceleration_speed;
 private:
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
     const SliceDataStorage& storage; //!< The polygon data obtained from FffPolygonProcessor
     const LayerIndex layer_nr; //!< The layer number of this layer plan
     const bool is_initial_layer; //!< Whether this is the first layer (which might be raft)

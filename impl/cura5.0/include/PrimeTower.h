@@ -14,7 +14,7 @@ namespace cura52
 
 class SliceDataStorage;
 class LayerPlan;
-class Application;
+class SliceContext;
 /*!
  * Class for everything to do with the prime tower:
  * - Generating the areas.
@@ -43,7 +43,7 @@ private:
     std::vector<ExtrusionMoves> pattern_per_extruder_layer0; //!< For each extruder the pattern to print on the first layer
 
 public:
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
     bool enabled; //!< Whether the prime tower is enabled.
     bool would_have_actual_tower; //!< Whether there is an actual tower.
     bool multiple_extruders_on_first_layer; //!< Whether multiple extruders are allowed on the first layer of the prime tower (e.g. when a raft is there)
@@ -65,7 +65,7 @@ public:
      *
      * \param storage A storage where it retrieves the prime tower settings.
      */
-    PrimeTower(Application* application);
+    PrimeTower(SliceContext* application);
 
     /*!
      * Generate the prime tower area to be used on each layer

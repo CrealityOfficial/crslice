@@ -356,7 +356,7 @@ namespace cura54
 
         static cura52::Polygons calculateMachineBorderCollision(const cura52::Polygons&& machine_border);
 
-        cura52::Application* application = nullptr;
+        cura52::SliceContext* application = nullptr;
         /*!
          * \brief The maximum distance that the center point of a tree branch may move in consecutive layers if it has to avoid the model.
          */

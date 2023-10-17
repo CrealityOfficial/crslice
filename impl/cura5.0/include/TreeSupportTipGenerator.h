@@ -300,7 +300,7 @@ private:
     std::mutex critical_move_bounds;
     std::mutex critical_roof_tips;
 
-    cura52::Application* application = nullptr;
+    cura52::SliceContext* application = nullptr;
 
 };
 

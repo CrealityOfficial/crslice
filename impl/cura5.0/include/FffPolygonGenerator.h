@@ -14,7 +14,7 @@ class MeshGroup;
 class ProgressStageEstimator;
 class SliceDataStorage;
 class SliceMeshStorage;
-class Application;
+class SliceContext;
 /*!
  * Primary stage in Fused Filament Fabrication processing: Polygons are generated.
  * The model is sliced and each slice consists of polygons representing the outlines: the boundaries between inside and outside the object.
@@ -35,7 +35,7 @@ public:
      */
     bool generateAreas(SliceDataStorage& storage, MeshGroup* object);
   
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
 private:
     /*!
      * \brief Helper function to get the actual height of the draft shield.

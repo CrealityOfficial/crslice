@@ -19,27 +19,27 @@ It's also the first step that stores the result in the "data storage" so all oth
 namespace cura52
 {
 
-class Settings;
-class SliceLayer;
-class Slicer;
-class SlicerLayer;
-class SliceMeshStorage;
-class Application;
-/*!
- * \brief Split a layer into parts.
- * \param settings The settings to get the settings from (whether to union or
- * not).
- * \param storageLayer Where to store the parts.
- * \param layer The layer to split.
- */
-void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer);
+	class Settings;
+	class SliceLayer;
+	class Slicer;
+	class SlicerLayer;
+	class SliceMeshStorage;
+	class SliceContext;
+	/*!
+	 * \brief Split a layer into parts.
+	 * \param settings The settings to get the settings from (whether to union or
+	 * not).
+	 * \param storageLayer Where to store the parts.
+	 * \param layer The layer to split.
+	 */
+	void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer);
 
-/*!
- * \brief Split all layers into parts.
- * \param mesh The mesh of which to split the layers into parts.
- * \param slicer The slicer to get the layers from.
- */
-void createLayerParts(Application* application, SliceMeshStorage& mesh, Slicer* slicer);
+	/*!
+	 * \brief Split all layers into parts.
+	 * \param mesh The mesh of which to split the layers into parts.
+	 * \param slicer The slicer to get the layers from.
+	 */
+	void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, Slicer* slicer);
 
 }//namespace cura52
 

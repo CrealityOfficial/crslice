@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <limits>
 
-#include "Application.h" //To get settings.
 #include "ExtruderTrain.h"
 #include "gcodeExport.h"
 #include "infill.h"
@@ -15,20 +14,21 @@
 #include "Scene.h"
 #include "sliceDataStorage.h"
 
+#include "communication/slicecontext.h"
+
 #define CIRCLE_RESOLUTION 32 //The number of vertices in each circle.
 
 
 namespace cura52 
 {
 
-PrimeTower::PrimeTower(Application* _application)
+PrimeTower::PrimeTower(SliceContext* _application)
     : wipe_from_middle(false)
     , application(_application)
 {
-    const Scene& scene = *application->scene;
-
+    MeshGroup* mesh_group = application->currentGroup();
     {
-        EPlatformAdhesion adhesion_type = scene.current_mesh_group->settings.get<EPlatformAdhesion>("adhesion_type");
+        EPlatformAdhesion adhesion_type = mesh_group->settings.get<EPlatformAdhesion>("adhesion_type");
 
         //When we have multiple extruders sharing the same heater/nozzle, we expect that all the extruders have been
         //'primed' by the print-start gcode script, but we don't know which one has been left at the tip of the nozzle
@@ -38,26 +38,25 @@ PrimeTower::PrimeTower(Application* _application)
         //used (sacrifying for this purpose the usual single-extruder first layer, that would be better for prime-tower
         //adhesion).
 
-        multiple_extruders_on_first_layer = scene.current_mesh_group->settings.get<bool>("machine_extruders_share_nozzle") && ((adhesion_type != EPlatformAdhesion::SKIRT) && (adhesion_type != EPlatformAdhesion::BRIM));
+        multiple_extruders_on_first_layer = mesh_group->settings.get<bool>("machine_extruders_share_nozzle") && ((adhesion_type != EPlatformAdhesion::SKIRT) && (adhesion_type != EPlatformAdhesion::BRIM));
     }
 
-    enabled = scene.current_mesh_group->settings.get<bool>("prime_tower_enable")
-           && scene.current_mesh_group->settings.get<coord_t>("prime_tower_min_volume") > 10
-           && scene.current_mesh_group->settings.get<coord_t>("prime_tower_size") > 10;
+    enabled = mesh_group->settings.get<bool>("prime_tower_enable")
+           && mesh_group->settings.get<coord_t>("prime_tower_min_volume") > 10
+           && mesh_group->settings.get<coord_t>("prime_tower_size") > 10;
     would_have_actual_tower = enabled;  // Assume so for now.
 
-    extruder_count = scene.extruders.size();
+    extruder_count = application->extruderCount();
     extruder_order.resize(extruder_count);
     for (unsigned int extruder_nr = 0; extruder_nr < extruder_count; extruder_nr++)
     {
         extruder_order[extruder_nr] = extruder_nr; //Start with default order, then sort.
     }
     //Sort from high adhesion to low adhesion.
-    const Scene* scene_pointer = &scene; //Communicate to lambda via pointer to prevent copy.
-    std::stable_sort(extruder_order.begin(), extruder_order.end(), [scene_pointer](const unsigned int& extruder_nr_a, const unsigned int& extruder_nr_b) -> bool
+    std::stable_sort(extruder_order.begin(), extruder_order.end(), [this](const unsigned int& extruder_nr_a, const unsigned int& extruder_nr_b) -> bool
     {
-        const Ratio adhesion_a = scene_pointer->extruders[extruder_nr_a].settings.get<Ratio>("material_adhesion_tendency");
-        const Ratio adhesion_b = scene_pointer->extruders[extruder_nr_b].settings.get<Ratio>("material_adhesion_tendency");
+        const Ratio adhesion_a = application->extruders()[extruder_nr_a].settings.get<Ratio>("material_adhesion_tendency");
+        const Ratio adhesion_b = application->extruders()[extruder_nr_b].settings.get<Ratio>("material_adhesion_tendency");
         return adhesion_a < adhesion_b;
     });
 }
@@ -69,7 +68,7 @@ void PrimeTower::generateGroundpoly()
         return;
     }
 
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->currentGroup()->settings;
     const coord_t tower_size = mesh_group_settings.get<coord_t>("prime_tower_size");
     
     const Settings& brim_extruder_settings = mesh_group_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").settings;
@@ -126,8 +125,7 @@ void PrimeTower::generatePaths(const SliceDataStorage& storage)
 
 void PrimeTower::generatePaths_denseInfill()
 {
-    const Scene& scene = *application->scene;
-    const Settings& mesh_group_settings = scene.current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->currentGroup()->settings;
     const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
     pattern_per_extruder.resize(extruder_count);
     pattern_per_extruder_layer0.resize(extruder_count);
@@ -135,9 +133,9 @@ void PrimeTower::generatePaths_denseInfill()
     coord_t cumulative_inset = 0; //Each tower shape is going to be printed inside the other. This is the inset we're doing for each extruder.
     for (size_t extruder_nr : extruder_order)
     {
-        const coord_t line_width = scene.extruders[extruder_nr].settings.get<coord_t>("prime_tower_line_width");
-        const coord_t required_volume = MM3_2INT(scene.extruders[extruder_nr].settings.get<double>("prime_tower_min_volume"));
-        const Ratio flow = scene.extruders[extruder_nr].settings.get<Ratio>("prime_tower_flow");
+        const coord_t line_width = application->extruders()[extruder_nr].settings.get<coord_t>("prime_tower_line_width");
+        const coord_t required_volume = MM3_2INT(application->extruders()[extruder_nr].settings.get<double>("prime_tower_min_volume"));
+        const Ratio flow = application->extruders()[extruder_nr].settings.get<Ratio>("prime_tower_flow");
         coord_t current_volume = 0;
         ExtrusionMoves& pattern = pattern_per_extruder[extruder_nr];
 
@@ -164,7 +162,7 @@ void PrimeTower::generatePaths_denseInfill()
         else
         {
             //Generate the pattern for the first layer.
-            coord_t line_width_layer0 = line_width * scene.extruders[extruder_nr].settings.get<Ratio>("initial_layer_line_width_factor");
+            coord_t line_width_layer0 = line_width * application->extruders()[extruder_nr].settings.get<Ratio>("initial_layer_line_width_factor");
             ExtrusionMoves& pattern_layer0 = pattern_per_extruder_layer0[extruder_nr];
 
             // Generate a concentric infill pattern in the form insets for the prime tower's first layer instead of using
@@ -181,7 +179,7 @@ void PrimeTower::generatePaths_denseInfill()
 
 	if (pattern_per_extruder.size() > 1)
 	{
-		if (scene.current_mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE)
+		if (application->currentGroup()->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE)
 		{
 			pattern_per_extruder[0].polygons.add(pattern_per_extruder[1].polygons);
 			pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
@@ -227,7 +225,7 @@ void PrimeTower::addToGcode(const SliceDataStorage& storage, LayerPlan& gcode_la
         return;
     }
 
-    bool post_wipe = application->scene->extruders[prev_extruder].settings.get<bool>("prime_tower_wipe_enabled");
+    bool post_wipe = application->extruders()[prev_extruder].settings.get<bool>("prime_tower_wipe_enabled");
 
     // Do not wipe on the first layer, we will generate non-hollow prime tower there for better bed adhesion.
     if (prev_extruder == new_extruder || layer_nr == 0)
@@ -247,9 +245,9 @@ void PrimeTower::addToGcode(const SliceDataStorage& storage, LayerPlan& gcode_la
     if (post_wipe)
     {
         //Make sure we wipe the old extruder on the prime tower.
-        const Settings& previous_settings = application->scene->extruders[prev_extruder].settings;
+        const Settings& previous_settings = application->extruders()[prev_extruder].settings;
         const Point previous_nozzle_offset = Point(previous_settings.get<coord_t>("machine_nozzle_offset_x"), previous_settings.get<coord_t>("machine_nozzle_offset_y"));
-        const Settings& new_settings = application->scene->extruders[new_extruder].settings;
+        const Settings& new_settings = application->extruders()[new_extruder].settings;
         const Point new_nozzle_offset = Point(new_settings.get<coord_t>("machine_nozzle_offset_x"), new_settings.get<coord_t>("machine_nozzle_offset_y"));
         gcode_layer.addTravel(post_wipe_point - previous_nozzle_offset + new_nozzle_offset);
     }
@@ -296,7 +294,7 @@ void PrimeTower::gotoStartLocation(LayerPlan& gcode_layer, const int extruder_nr
 
     const ClosestPolygonPoint wipe_location = prime_tower_start_locations[current_start_location_idx];
 
-    const ExtruderTrain& train = application->scene->extruders[extruder_nr];
+    const ExtruderTrain& train = application->extruders()[extruder_nr];
     const coord_t inward_dist = train.settings.get<coord_t>("machine_nozzle_size") * 3 / 2 ;
     const coord_t start_dist = train.settings.get<coord_t>("machine_nozzle_size") * 2;
     const Point prime_end = PolygonUtils::moveInsideDiagonally(wipe_location, inward_dist);

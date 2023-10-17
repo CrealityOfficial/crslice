@@ -13,7 +13,7 @@ namespace cura52
 
     class SliceLayer;
     class SliceLayerPart;
-    class Application;
+    class SliceContext;
     /*!
      * Function container for computing the outer walls / insets / perimeters polygons of a layer
      */
@@ -27,7 +27,7 @@ namespace cura52
          * \param settings The per-mesh settings object to get setting values from.
          * \param layer_nr The layer index that these walls are generated for.
          */
-        WallsComputation(const Settings& settings, const LayerIndex layer_nr, Application* application);
+        WallsComputation(const Settings& settings, const LayerIndex layer_nr, SliceContext* application);
 
         /*!
          * \brief Generates the walls / inner area for all parts in a layer.
@@ -45,7 +45,7 @@ namespace cura52
          * Normally this is a mesh's settings.
          */
         const Settings& settings;
-        Application* application;
+        SliceContext* application;
         /*!
          * \brief The layer that these walls are generated for.
          */

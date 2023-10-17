@@ -50,7 +50,6 @@ namespace cura52
  */
 class SliceDataStorage;
 class SliceMeshStorage;
-class Application;
 
 class ThomasTreeSupport
 {
@@ -360,7 +359,7 @@ private:
      */
     void drawAreas(std::vector<std::set<TreeSupportElement*>>& move_bounds, SliceDataStorage& storage);
 private:
-	Application* application = nullptr;
+    SliceContext* application = nullptr;
 
     /*!
      * \brief Settings with the indexes of meshes that use these settings.

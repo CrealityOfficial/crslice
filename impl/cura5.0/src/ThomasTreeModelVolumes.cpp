@@ -683,7 +683,7 @@ void ThomasTreeModelVolumes::calculateCollision(std::deque<RadiusLayerPair> keys
             if (precalculated && precalculation_progress < TREE_PROGRESS_PRECALC_COLL)
             {
                 precalculation_progress += TREE_PROGRESS_PRECALC_COLL / keys.size();
-				this->application->progressor.messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+				this->application->messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
             }
         }
 
@@ -813,7 +813,7 @@ void ThomasTreeModelVolumes::calculateAvoidance(std::deque<RadiusLayerPair> keys
                 if (precalculated && precalculation_progress < TREE_PROGRESS_PRECALC_COLL + TREE_PROGRESS_PRECALC_AVO)
                 {
                     precalculation_progress += support_rests_on_model ? 0.4 : 1 * TREE_PROGRESS_PRECALC_AVO / (keys.size() * 3);
-					this->application->progressor.messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+					this->application->messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
                 }
             }
 
@@ -867,7 +867,7 @@ void ThomasTreeModelVolumes::calculatePlaceables(std::deque<RadiusLayerPair> key
             if (precalculated && precalculation_progress < TREE_PROGRESS_PRECALC_COLL + TREE_PROGRESS_PRECALC_AVO)
             {
                 precalculation_progress += 0.2 * TREE_PROGRESS_PRECALC_AVO / (keys.size());
-				this->application->progressor.messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+				this->application->messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
             }
         }
 
@@ -946,7 +946,7 @@ void ThomasTreeModelVolumes::calculateAvoidanceToModel(std::deque<RadiusLayerPai
             if (precalculated && precalculation_progress < TREE_PROGRESS_PRECALC_COLL + TREE_PROGRESS_PRECALC_AVO)
             {
                 precalculation_progress += 0.4 * TREE_PROGRESS_PRECALC_AVO / (keys.size() * 3);
-				this->application->progressor.messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
+				this->application->messageProgress(Progress::Stage::SUPPORT, precalculation_progress * progress_multiplier + progress_offset, TREE_PROGRESS_TOTAL);
             }
         }
 

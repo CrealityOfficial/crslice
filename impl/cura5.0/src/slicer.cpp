@@ -6,7 +6,6 @@
 
 #include "ccglobal/log.h"
 
-#include "Application.h"
 #include "settings/AdaptiveLayerHeights.h"
 #include "settings/EnumSettings.h"
 #include "settings/types/LayerIndex.h"
@@ -17,7 +16,8 @@
 #include "utils/gettime.h"
 #include "trimesh2/Vec.h"
 
-
+#include <fstream>
+#include "communication/slicecontext.h"
 
 namespace cura52
 {
@@ -781,12 +781,12 @@ void SlicerLayer::makePolygons(const Mesh* mesh)
     openPolylines.removeDegenerateVertsPolyline();
 }
 
-Slicer::Slicer(Application* _application, Mesh* i_mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers)
+Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers)
     : mesh(i_mesh)
     , application(_application)
 {
     const SlicingTolerance slicing_tolerance = mesh->settings.get<SlicingTolerance>("slicing_tolerance");
-    const coord_t initial_layer_thickness = application->scene->current_mesh_group->settings.get<coord_t>("layer_height_0");
+    const coord_t initial_layer_thickness = application->currentGroup()->settings.get<coord_t>("layer_height_0");
 
     assert(slice_layer_count > 0);
 
@@ -808,7 +808,7 @@ Slicer::Slicer(Application* _application, Mesh* i_mesh, const coord_t thickness,
     processPolygons(application ,*mesh, layers);
 }
 
-void Slicer::buildSegments(Application* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
+void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
 {
     cura52::parallel_for(application, layers,
                        [&](auto layer_it)
@@ -975,7 +975,7 @@ std::vector<SlicerLayer>
     return layers_res;
 }
 
-void Slicer::makePolygons(Application* application, Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers)
+void Slicer::makePolygons(SliceContext* application, Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers)
 {
     cura52::parallel_for(application, layers, [&mesh](auto layer_it) { layer_it->makePolygons(&mesh); });
 
@@ -1026,9 +1026,9 @@ void Slicer::makePolygons(Application* application, Mesh& mesh, SlicingTolerance
     mesh.expandXY(xy_offset);
 }
 
-void Slicer::processPolygons(Application* application,const Mesh& mesh, std::vector<SlicerLayer>& layers)
+void Slicer::processPolygons(SliceContext* application,const Mesh& mesh, std::vector<SlicerLayer>& layers)
 {
-    std::string ploygonFile = application->scene->ploygonFile;
+    std::string ploygonFile = application->polygonFile();
 
     std::vector<std::vector<trimesh::vec2>> ploys;
     auto readPloygon = [](const std::string& ploygonFile, std::vector<std::vector<trimesh::vec2>>& ploys)
