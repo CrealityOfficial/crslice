@@ -26,6 +26,7 @@ namespace crslice
 
         trimesh::TriMesh * supportMesh = new trimesh::TriMesh();
         float r = supportSize * sqrtf(2.0f) * 0.9f / 2.0f;
+        (void)r;
 
         int vertexNum = 12 * 3 * size;
         supportMesh->vertices.resize(vertexNum);

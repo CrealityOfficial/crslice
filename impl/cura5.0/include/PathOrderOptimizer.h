@@ -447,7 +447,7 @@ protected:
      */
     size_t findStartLocation(const PathOrderPath<PathType>& path, const Point& target_pos, const int& path_idx = -1)
     {
-        constexpr float EPSILON = 25.0;
+        constexpr float _epsilon = 25.0;
         if(!path.is_closed)
         {
             //For polylines, the seam settings are not applicable. Simply choose the position closest to target_pos then.
@@ -511,7 +511,7 @@ protected:
 
         if (seam_config.simplify_curvature > 0 && simple_poly.size() > 2)
         {
-            const coord_t max_simplify_dist = perimeter > 10 * seam_config.simplify_curvature ? seam_config.simplify_curvature : EPSILON;
+            const coord_t max_simplify_dist = perimeter > 10 * seam_config.simplify_curvature ? seam_config.simplify_curvature : _epsilon;
             simple_poly = Simplify(max_simplify_dist, max_simplify_dist / 2, 0).polygon(simple_poly);
         }
         if(simple_poly.empty()) //Simplify removed everything because it's all too small.
@@ -613,7 +613,7 @@ protected:
                 }
             }
 
-            if (!is_check_best_pt && seam_config.type != EZSeamType::SKIRT_BRIM && fabs(best_score - score) <= EPSILON)
+            if (!is_check_best_pt && seam_config.type != EZSeamType::SKIRT_BRIM && fabs(best_score - score) <= _epsilon)
             {
                 // add breaker for two candidate starting location with similar score
                 // if we don't do this then we (can) get an un-even seam

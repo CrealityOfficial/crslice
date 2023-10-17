@@ -31,7 +31,6 @@ namespace crslice
 
 		int vertexNum = 2 * hPart;
 		std::vector<trimesh::vec3> points(vertexNum);
-		int faceNum = 4 * hPart - 4;
 
 		int vertexIndex = 0;
 		for (int i = 0; i < hPart; ++i)
