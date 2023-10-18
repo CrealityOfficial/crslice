@@ -78,12 +78,10 @@ namespace cura52
         startThreadPool(); // Start the thread pool
         if (factory->hasSlice())
         {
-            std::shared_ptr<Scene> slice(factory->createSlice());
-            if (slice)
+            scene.reset(factory->createSlice());
+            if (scene)
             {
                 tick("slice 0");
-
-                this->scene = slice.get();
 
                 gcode_writer.setTargetFile(scene->gcodeFile.c_str());
 

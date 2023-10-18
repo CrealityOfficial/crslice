@@ -109,7 +109,7 @@ namespace cura52
          *
          * If no slice has started yet, this will be a nullptr.
          */
-        Scene* scene = nullptr;
+        std::shared_ptr<Scene> scene;
     };
 
 } //Cura namespace.
