@@ -3,17 +3,11 @@
 
 #include "Application.h"
 
-#include <chrono>
-#include <memory>
-#include <string>
-
-#include "ccglobal/log.h"
-
 #include "Weaver.h"
 #include "Wireframe2gcode.h"
 #include "sliceDataStorage.h"
-#include "utils/ThreadPool.h"
-#include "utils/string.h" //For stringcasecompare.
+
+#include "communication/scenefactory.h"
 
 namespace cura52
 {
@@ -29,18 +23,10 @@ namespace cura52
         gcode_writer.gcode.application = this;
         gcode_writer.layer_plan_buffer.application = this;
         gcode_writer.layer_plan_buffer.preheat_config.application = this;
-
-        application = this;
     }
 
     Application::~Application()
     {
-    }
-
-    void Application::sendProgress(float r)
-    {
-        if(tracer)
-            tracer->progress(r);
     }
 
     ThreadPool* Application::pool()
@@ -68,8 +54,8 @@ namespace cura52
 
     void Application::tick(const std::string& tag)
     {
-        if (fDebugger)
-            fDebugger->tick(tag);
+        if (scene && scene->fDebugger)
+            scene->fDebugger->tick(tag);
     }
 
     void Application::message(const char* msg)
@@ -78,12 +64,16 @@ namespace cura52
             tracer->message(msg);
     }
 
+    crslice::FDMDebugger* Application::debugger()
+    {
+        return scene->fDebugger;
+    }
+
     SliceResult Application::runSceneFactory(SceneFactory* factory)
     {
         if (!factory)
             return m_result;
 
-        CALLTICK("slice 0");
         progressor.init();
         startThreadPool(); // Start the thread pool
         if (factory->hasSlice())
@@ -91,19 +81,20 @@ namespace cura52
             std::shared_ptr<Scene> slice(factory->createSlice());
             if (slice)
             {
+                tick("slice 0");
+
                 this->scene = slice.get();
-                this->scene->application = this;
 
                 gcode_writer.setTargetFile(scene->gcodeFile.c_str());
 
-                scene->finalize();
                 compute();
                 // Finalize the processor. This adds the end g-code and reports statistics.
                 gcode_writer.finalize();
                 gcode_writer.closeGcodeWriterFile();
+
+                tick("slice 1");
             }
         }
-		CALLTICK("slice 1");
 
         return m_result;
     }
@@ -148,6 +139,16 @@ namespace cura52
         return scene->current_mesh_group == scene->mesh_groups.begin();
     }
 
+    int Application::groupCount()
+    {
+        return (int)scene->mesh_groups.size();
+    }
+
+    FPoint3 Application::groupOffset()
+    {
+        return scene->mesh_groups.back().m_offset;
+    }
+
     void Application::setResult(const SliceResult& result)
     {
         m_result = result;
@@ -187,6 +188,42 @@ namespace cura52
 
     void Application::compute()
     {
+        //build setting
+        size_t numExtruder = scene->extruders.size();
+        for (size_t i = 0; i < numExtruder; ++i)
+        {
+            ExtruderTrain& train = scene->extruders[i];
+            train.extruder_nr = i;
+            train.settings.application = this;
+            train.settings.add("extruder_nr", std::to_string(i));
+        }
+
+        for (MeshGroup& meshGroup : scene->mesh_groups)
+        {
+            meshGroup.settings.application = this;
+            for (Mesh& mesh : meshGroup.meshes)
+            {
+                mesh.settings.application = this;
+
+                if (mesh.settings.has("extruder_nr"))
+                {
+                    size_t i = mesh.settings.get<size_t>("extruder_nr");
+                    if (i <= numExtruder)
+                    {
+                        mesh.settings.setParent(&scene->extruders[i].settings);
+                        continue;
+                    }
+                }
+
+                mesh.settings.setParent(&scene->extruders[0].settings);
+            }
+        }
+
+        for (MeshGroup& meshGroup : scene->mesh_groups)
+            meshGroup.finalize();
+
+
+        // slice
         int index = 0;
         for (std::vector<MeshGroup>::iterator mesh_group = scene->mesh_groups.begin(); mesh_group != scene->mesh_groups.end(); mesh_group++)
         {
@@ -198,7 +235,8 @@ namespace cura52
 
             {
                 progressor.restartTime();
-                SAFE_MESSAGE("{0}");
+                
+                formatMessage("{0}");
 
                 TimeKeeper time_keeper_total;
 
@@ -234,7 +272,7 @@ namespace cura52
                 }
                 else // Normal operation (not wireframe).
                 {
-                    SliceDataStorage storage(application);
+                    SliceDataStorage storage(this);
                     if (!polygon_generator.generateAreas(storage, &*mesh_group))
                     {
                         return;
@@ -242,9 +280,9 @@ namespace cura52
 
                     progressor.messageProgressStage(Progress::Stage::EXPORT);
 
-                    CALLTICK("writeGCode 0");
+                    tick("writeGCode 0");
                     gcode_writer.writeGCode(storage);
-                    CALLTICK("writeGCode 1");
+                    tick("writeGCode 1");
                 }
 
                 progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup

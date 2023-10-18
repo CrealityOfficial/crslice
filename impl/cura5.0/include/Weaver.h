@@ -12,7 +12,7 @@ namespace cura52
 
 class MeshGroup;
 class Polygons;
-class Application;
+class SliceContext;
 
 /*!
  * The main weaver / WirePrint / wireframe printing class, which computes the basic paths to be followed.
@@ -34,7 +34,7 @@ public:
      */
     void weave(MeshGroup* objects);
 
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
 private:
     WireFrame wireFrame;
     

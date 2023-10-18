@@ -3,8 +3,6 @@
 
 #include "sliceDataStorage.h"
 #include "TreeModelVolumes.h"
-#include "ExtruderTrain.h"
-#include "utils/ThreadPool.h"
 #include "TreeSupportT.h"
 
 

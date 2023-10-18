@@ -2,7 +2,6 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "ThomasTreeSupport.h"
-#include "Application.h" //To get settings.
 #include "infill.h"
 #include "infill/SierpinskiFillProvider.h"
 #include "progress/Progress.h"
@@ -23,6 +22,9 @@
 #ifdef WIN32
 #include <windows.h> //todo Remove!  ONLY FOR PUBLIC BETA!!
 #endif
+
+#include "communication/slicecontext.h"
+
 namespace cura52
 {
 

@@ -7,6 +7,7 @@
 #include "ExtruderTrain.h" //To store the extruders in the scene.
 #include "MeshGroup.h" //To store the mesh groups in the scene.
 #include "settings/Settings.h" //To store the global settings.
+#include "crslice/header.h"
 
 namespace cura52
 {
@@ -21,8 +22,8 @@ namespace cura52
          * \brief The global settings in the scene.
          */
         Settings settings;
-        Application* application = nullptr;
 
+        crslice::FDMDebugger* fDebugger = nullptr;
         std::string gcodeFile;
         std::string ploygonFile;
         /*
@@ -76,8 +77,6 @@ namespace cura52
          * the only way in which you can prepare for the next slice.
          */
         void reset();
-
-        void finalize();
     private:
         /*
          * \brief You are not allowed to copy the scene.

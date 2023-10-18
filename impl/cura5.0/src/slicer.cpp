@@ -7,13 +7,10 @@
 #include "ccglobal/log.h"
 
 #include "settings/AdaptiveLayerHeights.h"
-#include "settings/EnumSettings.h"
 #include "settings/types/LayerIndex.h"
 #include "slicer.h"
 #include "utils/Simplify.h"
 #include "utils/SparsePointGridInclusive.h"
-#include "utils/ThreadPool.h"
-#include "utils/gettime.h"
 #include "trimesh2/Vec.h"
 
 #include <fstream>

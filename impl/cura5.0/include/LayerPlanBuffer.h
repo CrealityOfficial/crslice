@@ -14,7 +14,7 @@ namespace cura52
 
 class ExtruderPlan;
 class LayerPlan;
-class Application;
+class SliceContext;
 /*!
  * Class for buffering multiple layer plans (\ref LayerPlan) / extruder plans within those layer plans, so that temperature commands can be inserted in earlier layer plans.
  * 
@@ -47,7 +47,7 @@ class LayerPlanBuffer
      */
     std::list<LayerPlan*> buffer;
 public:
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
     Preheat preheat_config; //!< the nozzle and material temperature settings for each extruder train.
 
     LayerPlanBuffer(GCodeExport& gcode)

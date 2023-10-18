@@ -222,7 +222,6 @@ public:
 class SupportStorage
 {
 public:
-    Application* appliction = nullptr;
     bool generated; //!< whether generateSupportGrid(.) has completed (successfully)
 
     int layer_nr_max_filled_layer; //!< the layer number of the uppermost layer with content

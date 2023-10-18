@@ -6,9 +6,16 @@
 
 #include "MeshGroup.h"
 #include "ExtruderTrain.h"
+#include "settings/EnumSettings.h"
 #include "progress/Progress.h"
 
 #include <stdarg.h>
+#include "ccglobal/log.h"
+
+namespace crslice
+{
+    class FDMDebugger;
+}
 
 namespace cura52
 {
@@ -56,12 +63,15 @@ namespace cura52
         virtual std::string polygonFile() = 0;
         
         virtual MeshGroup* currentGroup() = 0;
+        virtual int groupCount() = 0;
         virtual bool isFirstGroup() = 0;
+        virtual FPoint3 groupOffset() = 0;
 
         virtual ThreadPool* pool() = 0;
         virtual bool checkInterrupt(const std::string& msg) = 0;
         virtual void tick(const std::string& tag) = 0;
         virtual void message(const char* msg) = 0;
+        virtual crslice::FDMDebugger* debugger() = 0;
 
         void formatMessage(const char* format, ...)
         {
@@ -80,6 +90,8 @@ namespace cura52
     };
 
 } //namespace cura52
+
+#include "utils/ThreadPool.h"
 
 #if 1   // USE_INTERRUPT
 #define INTERRUPT_RETURN(x) 	if (application->checkInterrupt(x)) return

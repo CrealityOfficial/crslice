@@ -29,7 +29,7 @@ namespace cura52
 struct LayerIndex;
 class RetractionConfig;
 struct WipeScriptConfig;
-class Application;
+class SliceContext;
 struct SliceResult;
 
 enum LimitType
@@ -237,7 +237,7 @@ protected:
     double eToMm3(double e, size_t extruder);
 
 public:  
-    Application* application = nullptr;
+    SliceContext* application = nullptr;
 
     GCodeExport();
     ~GCodeExport();

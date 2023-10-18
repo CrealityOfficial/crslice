@@ -8,15 +8,9 @@
 #include <stdio.h>
 #include <string> //Parsing strings (stod, stoul).
 
-#include "ccglobal/log.h"
-
-#include "Application.h" //To get the extruders.
 #include "BeadingStrategy/BeadingStrategyFactory.h"
-#include "ExtruderTrain.h"
-#include "settings/EnumSettings.h"
 #include "settings/EnumSettingsT.h"
 #include "settings/FlowTempGraph.h"
-#include "settings/Settings.h"
 #include "settings/types/Angle.h"
 #include "settings/types/Duration.h" //For duration and time settings.
 #include "settings/types/LayerIndex.h" //For layer index settings.
@@ -24,7 +18,10 @@
 #include "settings/types/Temperature.h" //For temperature settings.
 #include "settings/types/Velocity.h" //For velocity settings.
 #include "utils/FMatrix4x3.h"
+#include "utils/polygon.h"
 #include "utils/string.h" //For Escaped.
+
+#include "communication/slicecontext.h"
 
 namespace cura52
 {
@@ -53,12 +50,6 @@ std::string Settings::get<std::string>(const std::string& key) const
     if (settings.find(key) != settings.end())
     {
         return settings.at(key);
-    }
-
-    const std::unordered_map<std::string, ExtruderTrain*>& limit_to_extruder = application->scene->limit_to_extruder;
-    if (limit_to_extruder.find(key) != limit_to_extruder.end())
-    {
-        return limit_to_extruder.at(key)->settings.getWithoutLimiting(key);
     }
 
     if (parent)
@@ -109,13 +100,13 @@ ExtruderTrain& Settings::get<ExtruderTrain&>(const std::string& key) const
         extruder_nr = get<size_t>("extruder_nr");
     }
 
-    if (extruder_nr < 0 || extruder_nr >= application->scene->extruders.size())
+    if (extruder_nr < 0 || extruder_nr >= application->extruderCount())
     {
         LOGI("Settings::get<ExtruderTrain&>  [%s] [%d]", key.c_str(), extruder_nr);
         extruder_nr = 0;
     }
 
-    return application->scene->extruders[extruder_nr];
+    return application->extruders()[extruder_nr];
 }
 
 template<>

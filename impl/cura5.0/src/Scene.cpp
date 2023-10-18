@@ -2,6 +2,7 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher
 
 #include "Scene.h"
+#include "Application.h"
 
 namespace cura52
 {
@@ -57,41 +58,5 @@ namespace cura52
         extruders.clear();
         mesh_groups.clear();
         settings = Settings();
-    }
-
-    void Scene::finalize()
-    {
-        size_t numExtruder = extruders.size();
-        for (size_t i = 0; i < numExtruder; ++i)
-        {
-            ExtruderTrain& train = extruders[i];
-            train.extruder_nr = i;
-            train.settings.application = application;
-            train.settings.add("extruder_nr", std::to_string(i));
-        }
-
-        for (MeshGroup& meshGroup : mesh_groups)
-        {
-            meshGroup.settings.application = application;
-            for (Mesh& mesh : meshGroup.meshes)
-            {
-                mesh.settings.application = application;
-
-                if (mesh.settings.has("extruder_nr"))
-                {
-                    size_t i = mesh.settings.get<size_t>("extruder_nr");
-                    if (i <= numExtruder)
-                    {
-                        mesh.settings.setParent(&extruders[i].settings);
-                        continue;
-                    }
-                }
-
-                mesh.settings.setParent(&extruders[0].settings);
-            }
-        }
-
-        for (MeshGroup& meshGroup : mesh_groups)
-            meshGroup.finalize();
     }
 } // namespace cura52

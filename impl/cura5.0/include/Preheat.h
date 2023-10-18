@@ -13,14 +13,14 @@
 namespace cura52
 {
     class Ratio;
-    class Application;
+    class SliceContext;
     /*!
      * Class for computing heatup and cooldown times used for computing the time the printer needs to heat up to a printing temperature.
      */
     class Preheat
     {
     public:
-        Application* application = nullptr;
+        SliceContext* application = nullptr;
 
         /*!
          * The type of result when computing when to start heating up a nozzle before it's going to be used again.

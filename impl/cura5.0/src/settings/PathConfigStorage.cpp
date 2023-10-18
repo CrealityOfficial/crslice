@@ -2,12 +2,10 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "settings/PathConfigStorage.h"
-#include "settings/Settings.h" // MAX_INFILL_COMBINE
-#include "Application.h"
-#include "ExtruderTrain.h"
 #include "raft.h"
 #include "sliceDataStorage.h" // SliceDataStorage
-#include "settings/EnumSettings.h" //For EPlatformAdhesion.
+
+#include "communication/slicecontext.h"
 
 namespace cura52
 {

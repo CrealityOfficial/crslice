@@ -37,7 +37,6 @@
 #include "infill/SierpinskiFillProvider.h"
 #include "infill/SubDivCube.h"
 #include "infill/UniformDensityProvider.h"
-#include "progress/Progress.h"
 #include "progress/ProgressEstimator.h"
 #include "progress/ProgressEstimatorLinear.h"
 #include "progress/ProgressStageEstimator.h"
@@ -45,8 +44,6 @@
 #include "settings/types/Angle.h"
 #include "settings/types/LayerIndex.h"
 #include "utils/algorithm.h"
-#include "utils/ThreadPool.h"
-#include "utils/gettime.h"
 #include "utils/math.h"
 #include "utils/Simplify.h"
 

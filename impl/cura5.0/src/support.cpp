@@ -8,21 +8,18 @@
 
 #include "ccglobal/log.h"
 
-#include "Application.h" //To get settings.
-#include "ExtruderTrain.h"
 #include "infill.h"
 #include "infill/ImageBasedDensityProvider.h"
 #include "infill/SierpinskiFillProvider.h"
 #include "infill/UniformDensityProvider.h"
-#include "progress/Progress.h"
-#include "settings/EnumSettings.h" //For EFillMethod.
 #include "settings/types/Angle.h" //To compute overhang distance from the angle.
 #include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "slicer.h"
 #include "support.h"
-#include "utils/ThreadPool.h"
 #include "utils/math.h"
+
+#include "communication/slicecontext.h"
 
 namespace cura52
 {

@@ -9,12 +9,12 @@
 
 #include "pathPlanning/CombPaths.h"
 #include "pathPlanning/LinePolygonsCrossings.h"
-#include "Application.h"
-#include "ExtruderTrain.h"
 #include "utils/linearAlg2D.h"
 #include "utils/PolygonsPointIndex.h"
 #include "sliceDataStorage.h"
 #include "utils/SVG.h"
+
+#include "ExtruderTrain.h"
 
 namespace cura52 {
 

@@ -3,9 +3,9 @@
 
 #include "sliceDataStorage.h"
 #include "TreeModelVolumesT.h"
-#include "ExtruderTrain.h"
-#include "Application.h"
 #include "TreeSupportT.h"
+
+#include "communication/slicecontext.h"
 
 namespace cura54
 {

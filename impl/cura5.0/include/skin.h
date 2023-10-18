@@ -14,6 +14,7 @@ class Polygons;
 class SkinPart;
 class SliceLayerPart;
 class SliceMeshStorage;
+class SliceContext;
 
 /*!
  * Class containing all skin and infill area computation functions

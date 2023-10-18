@@ -4,14 +4,10 @@
 #include "layerPart.h"
 #include "sliceDataStorage.h"
 #include "slicer.h"
-#include "settings/EnumSettings.h" //For ESurfaceMode.
-#include "settings/Settings.h"
-#include "progress/Progress.h"
 
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h" //Simplifying the layers after creating them.
 
-#include "utils/ThreadPool.h"
 #include "communication/slicecontext.h"
 /*
 The layer-part creation step is the first step in creating actual useful data for 3D printing.

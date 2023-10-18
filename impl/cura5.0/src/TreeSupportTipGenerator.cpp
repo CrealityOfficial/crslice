@@ -1,12 +1,9 @@
 #include "TreeSupportTipGenerator.h"
-#include "Application.h" //To get settings.
 #include "infill/SierpinskiFillProvider.h"
-#include "settings/EnumSettings.h"
 #include "utils/algorithm.h"
 #include "utils/Simplify.h"
 #include "utils/math.h" //For round_up_divide and PI.
 #include "utils/polygonUtils.h" //For moveInside.
-#include "utils/ThreadPool.h"
 #include "TreeSupportUtils.h"
 
 #include <chrono>
@@ -16,8 +13,7 @@
 #include <string>
 #include "TreeSupportT.h"
 
-
-
+#include "communication/slicecontext.h"
 
 namespace cura54
 {

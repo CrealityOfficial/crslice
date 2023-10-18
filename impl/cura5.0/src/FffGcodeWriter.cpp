@@ -10,17 +10,14 @@
 #include <boost/uuid/uuid_io.hpp> //For generating a UUID.
 #include "ccglobal/log.h"
 #include "narrow_infill.h"
-#include "ExtruderTrain.h"
 #include "FffGcodeWriter.h"
 #include "InsetOrderOptimizer.h"
 #include "LayerPlan.h"
 #include "WallToolPaths.h"
 #include "bridge.h"
 #include "infill.h"
-#include "progress/Progress.h"
 #include "raft.h"
 #include "utils/Simplify.h" //Removing micro-segments created by offsetting.
-#include "utils/ThreadPool.h"
 #include "utils/linearAlg2D.h"
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
@@ -597,7 +594,7 @@ size_t FffGcodeWriter::getStartExtruder(const SliceDataStorage& storage)
             }
         }
     }
-    assert(start_extruder_nr < application->scene->extruders.size() && "start_extruder_nr must be a valid extruder");
+    assert(start_extruder_nr < application->extruderCount() && "start_extruder_nr must be a valid extruder");
     return start_extruder_nr;
 }
 

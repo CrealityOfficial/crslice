@@ -10,20 +10,16 @@
 #include <vector>
 #include <memory>
 
-#include "communication/scenefactory.h"
 #include "communication/slicecontext.h"
 
 #include "FffGcodeWriter.h"
 #include "FffPolygonGenerator.h"
 #include "Scene.h"
-#include "utils/ThreadPool.h"
-#include "progress/Progress.h"
 #include "crslice/header.h"
-
-#include "ccglobal/tracer.h"
 
 namespace cura52
 {
+    class SceneFactory;
     /*!
      * A singleton class that serves as the starting point for all slicing.
      *
@@ -48,30 +44,6 @@ namespace cura52
          */
         virtual ~Application();
 
-        Application* application = nullptr;
-
-        /*!
-         * The gcode writer, which generates paths in layer plans in a buffer, which converts these paths into gcode commands.
-         */
-        FffGcodeWriter gcode_writer;
-
-        /*!
-         * The polygon generator, which slices the models and generates all polygons to be printed and areas to be filled.
-         */
-        FffPolygonGenerator polygon_generator;
-
-        Progress progressor;
-
-        std::string tempDirectory;
-        ccglobal::Tracer* tracer = nullptr;
-        crslice::FDMDebugger* fDebugger = nullptr;
-        /*
-         * \brief The slice that is currently ongoing.
-         *
-         * If no slice has started yet, this will be a nullptr.
-         */
-        Scene* scene = nullptr;
-
         SliceResult runSceneFactory(SceneFactory* factory);
         /*!
          * \brief Start the global thread pool.
@@ -84,10 +56,6 @@ namespace cura52
          * \param nworkers The number of workers (including the main thread) that are ran.
          */
         void startThreadPool(int nworkers = 0);
-
-        void sendProgress(float r);
-
-        void compute();
     protected:
         int extruderCount() override;
         const std::vector<ExtruderTrain>& extruders() const override;
@@ -97,17 +65,22 @@ namespace cura52
         std::string polygonFile() override;
 
         MeshGroup* currentGroup() override;
+        int groupCount() override;
         bool isFirstGroup() override;
+        FPoint3 groupOffset() override;
 
         ThreadPool* pool() override;
         bool checkInterrupt(const std::string& message = "") override;
         void tick(const std::string& tag) override;
         void message(const char* msg) override;
+        crslice::FDMDebugger* debugger() override;
 
         void messageProgress(Progress::Stage stage, int progress_in_stage, int progress_in_stage_max) override;
         void messageProgressStage(Progress::Stage stage) override;
 
         void setResult(const SliceResult& result) override;
+
+        void compute();
     private:
         bool m_error;
 
@@ -117,27 +90,28 @@ namespace cura52
         std::unique_ptr<ThreadPool> thread_pool;
 
         SliceResult m_result;
+
+        /*!
+          * The gcode writer, which generates paths in layer plans in a buffer, which converts these paths into gcode commands.
+          */
+        FffGcodeWriter gcode_writer;
+
+        /*!
+         * The polygon generator, which slices the models and generates all polygons to be printed and areas to be filled.
+         */
+        FffPolygonGenerator polygon_generator;
+
+        Progress progressor;
+
+        ccglobal::Tracer* tracer = nullptr;
+        /*
+         * \brief The slice that is currently ongoing.
+         *
+         * If no slice has started yet, this will be a nullptr.
+         */
+        Scene* scene = nullptr;
     };
 
 } //Cura namespace.
-
-#if 1   // USE_INTERRUPT
-#define INTERRUPT_RETURN(x) 	if (application->checkInterrupt(x)) return
-#define INTERRUPT_RETURN_FALSE(x) 	if (application->checkInterrupt(x)) return false
-#define INTERRUPT_BREAK(x) 	if (application->checkInterrupt(x)) break
-#else
-#define INTERRUPT_RETURN(x) 	(void)0
-#define INTERRUPT_RETURN_FALSE(x)  (void)0
-#define INTERRUPT_BREAK(x) (void)0
-#endif
-
-#if 1
-#define CALLTICK(x) application->tick(x) 
-#else
-#define CALLTICK(x) (void)0
-#endif
-
-#define SAFE_MESSAGE(...) \
-	if(application->tracer) application->tracer->formatMessage(__VA_ARGS__)
 
 #endif //APPLICATION_H

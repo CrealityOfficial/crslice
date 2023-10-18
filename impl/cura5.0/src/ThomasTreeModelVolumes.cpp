@@ -3,12 +3,11 @@
 
 #include "ThomasTreeModelVolumes.h"
 #include "ThomasTreeSupport.h"
-#include "settings/EnumSettings.h"
-#include "progress/Progress.h"
 #include "sliceDataStorage.h"
-#include "Application.h"
 #include "utils/algorithm.h"
-#include "ccglobal/log.h"
+
+#include "communication/slicecontext.h"
+
 namespace cura52
 {
 

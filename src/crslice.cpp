@@ -26,8 +26,6 @@ namespace crslice
 		}
 
 		cura52::Application app(tracer);
-		app.tempDirectory = scene->m_tempDirectory;
-		app.fDebugger = scene->m_debugger;
 
 		CRSliceFromScene factory(&app, scene);
 		cura52::SliceResult result = app.runSceneFactory(&factory);

@@ -4,15 +4,13 @@
 #include <cmath> // sqrt
 #include <fstream> // debug IO
 
-#include "ccglobal/log.h"
-
-#include "Application.h" //To get the communication channel.
 #include "PrintFeature.h"
 #include "Weaver.h"
-#include "progress/Progress.h"
 #include "settings/AdaptiveLayerHeights.h"
 #include "settings/types/Angle.h"
 #include "slicer.h"
+
+#include "communication/slicecontext.h"
 
 namespace cura52
 {
@@ -23,7 +21,7 @@ void Weaver::weave(MeshGroup* meshgroup)
 
     const coord_t maxz = meshgroup->max().z;
 
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->currentGroup()->settings;
     const coord_t initial_layer_thickness = mesh_group_settings.get<coord_t>("layer_height_0");
     const coord_t connection_height = mesh_group_settings.get<coord_t>("wireframe_height");
     const size_t layer_count = (maxz - initial_layer_thickness) / connection_height + 1;
@@ -82,10 +80,10 @@ void Weaver::weave(MeshGroup* meshgroup)
             starting_point_in_layer = (Point(0, 0) + meshgroup->max() + meshgroup->min()) / 2;
         }
 
-        application->progressor.messageProgressStage(Progress::Stage::INSET_SKIN);
+        application->messageProgressStage(Progress::Stage::INSET_SKIN);
         for (LayerIndex layer_idx = starting_layer_idx + 1; layer_idx < LayerIndex(layer_count); layer_idx++)
         {
-            application->progressor.messageProgress(Progress::Stage::INSET_SKIN, layer_idx + 1, layer_count); // abuse the progress system of the normal mode of CuraEngine
+            application->messageProgress(Progress::Stage::INSET_SKIN, layer_idx + 1, layer_count); // abuse the progress system of the normal mode of CuraEngine
 
             Polygons parts1;
             for (cura52::Slicer* slicer : slicerList)
@@ -115,10 +113,10 @@ void Weaver::weave(MeshGroup* meshgroup)
 
     LOGI("Finding horizontal parts...");
     {
-        application->progressor.messageProgressStage(Progress::Stage::SUPPORT);
+        application->messageProgressStage(Progress::Stage::SUPPORT);
         for (unsigned int layer_idx = 0; layer_idx < wireFrame.layers.size(); layer_idx++)
         {
-            application->progressor.messageProgress(Progress::Stage::SUPPORT, layer_idx + 1, wireFrame.layers.size()); // abuse the progress system of the normal mode of CuraEngine
+            application->messageProgress(Progress::Stage::SUPPORT, layer_idx + 1, wireFrame.layers.size()); // abuse the progress system of the normal mode of CuraEngine
 
             WeaveLayer& layer = wireFrame.layers[layer_idx];
 
@@ -170,7 +168,7 @@ void Weaver::weave(MeshGroup* meshgroup)
 
 void Weaver::createHorizontalFill(WeaveLayer& layer, Polygons& layer_above)
 {
-    const coord_t bridgable_dist = application->scene->current_mesh_group->settings.get<coord_t>("wireframe_height");
+    const coord_t bridgable_dist = application->currentGroup()->settings.get<coord_t>("wireframe_height");
 
     //     Polygons& polys_below = lower_top_parts;
     Polygons& polys_here = layer.supported;
@@ -203,7 +201,7 @@ void Weaver::fillRoofs(Polygons& supporting, Polygons& to_be_supported, int dire
 
     Polygons roofs = supporting.difference(to_be_supported);
 
-    const coord_t roof_inset = application->scene->current_mesh_group->settings.get<coord_t>("wireframe_roof_inset");
+    const coord_t roof_inset = application->currentGroup()->settings.get<coord_t>("wireframe_roof_inset");
     roofs = roofs.offset(-roof_inset).offset(roof_inset);
 
     if (roofs.size() == 0)
@@ -270,7 +268,7 @@ void Weaver::fillFloors(Polygons& supporting, Polygons& to_be_supported, int dir
 
     Polygons floors = to_be_supported.difference(supporting);
 
-    const coord_t roof_inset = application->scene->current_mesh_group->settings.get<coord_t>("wireframe_roof_inset");
+    const coord_t roof_inset = application->currentGroup()->settings.get<coord_t>("wireframe_roof_inset");
     floors = floors.offset(-roof_inset).offset(roof_inset);
 
     if (floors.size() == 0)
@@ -319,7 +317,7 @@ void Weaver::fillFloors(Polygons& supporting, Polygons& to_be_supported, int dir
 
 void Weaver::connections2moves(WeaveRoofPart& inset)
 {
-    const coord_t line_width = application->scene->current_mesh_group->settings.get<coord_t>("wall_line_width_x");
+    const coord_t line_width = application->currentGroup()->settings.get<coord_t>("wall_line_width_x");
 
     constexpr bool include_half_of_last_down = true;
 
@@ -395,7 +393,7 @@ void Weaver::connect(Polygons& parts0, int z0, Polygons& parts1, int z1, WeaveCo
 
 void Weaver::chainify_polygons(Polygons& parts1, Point start_close_to, Polygons& result)
 {
-    const Settings& mesh_group_settings = application->scene->current_mesh_group->settings;
+    const Settings& mesh_group_settings = application->currentGroup()->settings;
     const coord_t connection_height = mesh_group_settings.get<coord_t>("wireframe_height");
     const coord_t nozzle_outer_diameter = mesh_group_settings.get<coord_t>("machine_nozzle_tip_outer_diameter"); //  ___     ___
     const AngleRadians nozzle_expansion_angle = mesh_group_settings.get<AngleRadians>("machine_nozzle_expansion_angle"); //     \_U_/
