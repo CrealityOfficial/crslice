@@ -4,6 +4,8 @@
 #include "crslice/settings.h"
 #include "jsonhelper.h"
 
+#include "ccglobal/serial.h"
+
 namespace crslice
 {
 
@@ -115,6 +117,37 @@ namespace crslice
         {
             saveStr((*it).first, out);
             saveStr((*it).second, out);
+        }
+    }
+
+    void Settings::load(std::fstream& in)
+    {
+        int count = 0;
+        ccglobal::cxndLoadT(in, count);
+
+        for (int i = 0; i < count; ++i)
+        {
+            std::string key;
+            ccglobal::cxndLoadStr(in, key);
+            std::string value;
+            ccglobal::cxndLoadStr(in, value);
+
+            //LOGI("load [%s] [%s]", key.c_str(), value.c_str());
+            if(!key.empty() && !value.empty())
+                add(key, value);
+        }
+    }
+
+    void Settings::save(std::fstream& out)
+    {
+        int count = (int)settings.size();
+        ccglobal::cxndSaveT(out, count);
+
+        for (std::unordered_map<std::string, std::string>::iterator it = settings.begin();
+            it != settings.end(); ++it)
+        {
+            ccglobal::cxndSaveStr(out, (*it).first);
+            ccglobal::cxndSaveStr(out, (*it).second);
         }
     }
 

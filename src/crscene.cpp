@@ -7,8 +7,71 @@
 #include "crslice/base/parametermeta.h"
 #include "ccglobal/log.h"
 
+#include "ccglobal/serial.h"
+
 namespace crslice
 {
+	class CrSceneSerial : public ccglobal::Serializeable
+	{
+	public:
+		CrSceneSerial(CrScene* _scene) 
+			: scene(_scene)
+		{
+
+		}
+
+		virtual ~CrSceneSerial() {
+
+		}
+
+		int version() override { // 100 - 200
+			return 100;
+		}
+
+		bool save(std::fstream& out, ccglobal::Tracer* tracer) override {
+			scene->m_settings->save(out);
+			int extruderCount = (int)scene->m_extruders.size();
+			ccglobal::cxndSaveT(out, extruderCount);
+			for (int i = 0; i < extruderCount; ++i)
+				scene->m_extruders.at(i)->save(out);
+
+			int groupCount = (int)scene->m_groups.size();
+			ccglobal::cxndSaveT(out, groupCount);
+			for (int i = 0; i < groupCount; ++i)
+				scene->m_groups.at(i)->save(out, version());
+
+			return true;
+		}
+
+		bool load(std::fstream& in, int ver, ccglobal::Tracer* tracer){
+			if (ver < 100 || ver > 200)
+				return false;
+
+			scene->m_settings->load(in);
+			int extruderCount = 0;
+			ccglobal::cxndLoadT(in, extruderCount);
+			for (int i = 0; i < extruderCount; ++i)
+			{
+				SettingsPtr setting(new Settings());
+				setting->load(in);
+				scene->m_extruders.push_back(setting);
+			}
+
+			int groupCount = 0;
+			ccglobal::cxndLoadT(in, groupCount);
+			for (int i = 0; i < groupCount; ++i)
+			{
+				scene->addOneGroup();
+				scene->m_groups.at(i)->load(in, ver);
+			}
+
+			return true;
+		}
+
+	protected:
+		CrScene* scene;
+	};
+
 	CrScene::CrScene()
 		:m_debugger(nullptr)
 	{
@@ -139,6 +202,10 @@ namespace crslice
 
 	void CrScene::save(const std::string& fileName)
 	{
+		CrSceneSerial serial(this);
+		ccglobal::cxndSave(serial, fileName);  //version 
+
+#if 0
 		std::ofstream out;
 		out.open(fileName, std::ios_base::binary);
 		if (out.is_open())
@@ -155,6 +222,7 @@ namespace crslice
 				m_groups.at(i)->save(out);
 		}
 		out.close();
+#endif
 	}
 
 	void CrScene::savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys)
@@ -197,6 +265,10 @@ namespace crslice
 
 	void CrScene::load(const std::string& fileName)
 	{
+		CrSceneSerial serial(this);
+		if (ccglobal::cxndLoad(serial, fileName))  //version 
+			return;
+
 		std::ifstream in;
 		in.open(fileName, std::ios_base::binary);
 		if (in.is_open())

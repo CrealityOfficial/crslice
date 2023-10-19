@@ -90,6 +90,9 @@ namespace crslice
 
         void load(std::ifstream& in);
         void save(std::ofstream& out);
+
+        void load(std::fstream& in);   //for version
+        void save(std::fstream& out);  //for version
     private:
         /*!
          * Optionally, a parent setting container to ask for the value of a setting

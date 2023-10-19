@@ -2,6 +2,8 @@
 
 #include "jsonhelper.h"
 #include "ccglobal/log.h"
+#include "ccglobal/serial.h"
+
 namespace crslice
 {
 	CrGroup::CrGroup()
@@ -73,5 +75,25 @@ namespace crslice
 		templateSave<int>(objectCount, out);
 		for (int i = 0; i < objectCount; ++i)
 			m_objects.at(i).save(out);
+	}
+
+	void CrGroup::load(std::fstream& in, int version)
+	{
+		m_settings->load(in);
+		int objectCount = 0;
+		ccglobal::cxndLoadT(in, objectCount);
+		if (objectCount > 0)
+			m_objects.resize(objectCount);
+		for (int i = 0; i < objectCount; ++i)
+			m_objects.at(i).load(in, version);
+	}
+
+	void CrGroup::save(std::fstream& out, int version)
+	{
+		m_settings->save(out);
+		int objectCount = (int)m_objects.size();
+		ccglobal::cxndSaveT(out, objectCount);
+		for (int i = 0; i < objectCount; ++i)
+			m_objects.at(i).save(out, version);
 	}
 }

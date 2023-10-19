@@ -1,6 +1,8 @@
 #include "crobject.h"
 #include "jsonhelper.h"
 
+#include "ccglobal/serial.h"
+
 namespace crslice
 {
 	CrObject::CrObject()
@@ -36,6 +38,43 @@ namespace crslice
 		{
 			templateSave(m_mesh->faces, out);
 			templateSave(m_mesh->vertices, out);
+		}
+	}
+
+	void CrObject::load(std::fstream& in, int version)
+	{
+		m_settings->load(in);
+		int have = 0;
+		ccglobal::cxndLoadT(in, have);
+
+		if (have)
+		{
+			m_mesh.reset(new trimesh::TriMesh());
+			ccglobal::cxndLoadVectorT(in, m_mesh->faces);
+			ccglobal::cxndLoadVectorT(in, m_mesh->vertices);
+
+			if (version >= 100)
+			{
+				ccglobal::cxndLoadVectorT(in, m_mesh->flags);
+			}
+		}
+	}
+
+	void CrObject::save(std::fstream& out, int version)
+	{
+		m_settings->save(out);
+		int have = m_mesh ? 1 : 0;
+		ccglobal::cxndSaveT(out, have);
+
+		if (m_mesh)
+		{
+			ccglobal::cxndSaveVectorT(out, m_mesh->faces);
+			ccglobal::cxndSaveVectorT(out, m_mesh->vertices);
+
+			if (version >= 100)
+			{
+				ccglobal::cxndSaveVectorT(out, m_mesh->flags);
+			}
 		}
 	}
 }

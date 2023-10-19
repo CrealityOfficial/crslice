@@ -14,6 +14,9 @@ namespace crslice
 		void load(std::ifstream& in);
 		void save(std::ofstream& out);
 
+		void load(std::fstream& in, int version);   //for version
+		void save(std::fstream& out, int version);  //for version
+
 		TriMeshPtr m_mesh;
 		SettingsPtr m_settings;
 	};
