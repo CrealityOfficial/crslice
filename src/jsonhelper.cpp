@@ -17,7 +17,7 @@ namespace crslice
         std::ifstream ifs(fileName.c_str());
         if (!ifs.is_open())
         {
-            LOGE("Couldn't open JSON file: %", fileName.c_str());
+            LOGE("Couldn't open JSON file: %s", fileName.c_str());
             return false;
         }
 

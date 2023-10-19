@@ -127,7 +127,7 @@ namespace crslice
         std::ifstream ifs(json_filename.c_str());
         if (!ifs.is_open())
         {
-            LOGE("Couldn't open JSON file: %", json_filename.c_str());
+            LOGE("Couldn't open JSON file: %s", json_filename.c_str());
             return 1;
         }
         rapidjson::IStreamWrapper isw(ifs);
@@ -215,7 +215,7 @@ namespace crslice
             const rapidjson::Value& setting_object = setting->value;
             if (!setting_object.IsObject())
             {
-                LOGE("JSON setting %s is not an object! %s", name.c_str());
+                LOGE("JSON setting %s is not an object!", name.c_str());
                 continue;
             }
 
@@ -312,7 +312,7 @@ namespace crslice
         std::ifstream ifs(jsonFileName.c_str());
         if (!ifs.is_open())
         {
-            LOGE("Couldn't open JSON file: %", jsonFileName.c_str());
+            LOGE("Couldn't open JSON file: %s", jsonFileName.c_str());
             return 1;
         }
 
