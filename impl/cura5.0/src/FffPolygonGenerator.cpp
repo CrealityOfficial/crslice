@@ -807,8 +807,11 @@ void FffPolygonGenerator::processWalls(SliceMeshStorage& mesh, size_t layer_nr)
     SliceLayer* layer_upper = nullptr;
     if (layer_nr + 1 < mesh.layers.size())
         layer_upper = &mesh.layers[layer_nr + 1];
+    SliceLayer* layer_lower = nullptr;
+    if (layer_nr  > 0)
+        layer_lower = &mesh.layers[layer_nr - 1];
     WallsComputation walls_computation(mesh.settings, layer_nr, mesh.appliction);
-    walls_computation.generateWalls(layer, layer_upper);
+    walls_computation.generateWalls(layer, layer_upper, layer_lower);
 }
 
 bool FffPolygonGenerator::isEmptyLayer(SliceDataStorage& storage, const unsigned int layer_idx)

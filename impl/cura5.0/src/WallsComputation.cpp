@@ -9,6 +9,12 @@
 #include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "utils/Simplify.h" // We're simplifying the spiralized insets.
+#include "Slice3rBase/ExPolygon.hpp"
+#include "Slice3rBase/BoundingBox.hpp"
+
+#include "narrow_infill.h"
+
+
 
 namespace cura52
 {
@@ -26,7 +32,107 @@ WallsComputation::WallsComputation(const Settings& settings, const LayerIndex la
  *
  * generateWalls only reads and writes data for the current layer
  */
-void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upper)
+
+void WallsComputation::split_top_surfaces(Slic3r::ExPolygons& orig_polygons, Slic3r::ExPolygons& top_fills,
+    Slic3r::ExPolygons& non_top_polygons, Slic3r::ExPolygons& fill_clip, Slic3r::ExPolygons& upper_slices, Slic3r::ExPolygons& lower_slices)  {
+    //// other perimeters
+    //coord_t perimeter_width = this->perimeter_flow.scaled_width();
+    //coord_t perimeter_spacing = this->perimeter_flow.scaled_spacing();
+    //// external perimeters
+    //coord_t ext_perimeter_width = this->ext_perimeter_flow.scaled_width();
+    //coord_t ext_perimeter_spacing = this->ext_perimeter_flow.scaled_spacing();
+    //bool has_gap_fill = this->config->gap_infill_speed.value > 0;
+    // split the polygons with top/not_top
+    // get the offset from solid surface anchor
+    //coord_t offset_top_surface =
+    //    scale_(1.5 * (config->wall_loops.value == 0
+    //        ? 0.
+    //        : unscaled(double(ext_perimeter_width +
+    //            perimeter_spacing * int(int(config->wall_loops.value) - int(1))))));
+    //// if possible, try to not push the extra perimeters inside the sparse infill
+    //if (offset_top_surface >
+    //    0.9 * (config->wall_loops.value <= 1 ? 0. : (perimeter_spacing * (config->wall_loops.value - 1))))
+    //    offset_top_surface -=
+    //    coord_t(0.9 * (config->wall_loops.value <= 1 ? 0. : (perimeter_spacing * (config->wall_loops.value - 1))));
+    //else
+    //    offset_top_surface = 0;
+    //// don't takes into account too thin areas
+    //// skip if the exposed area is smaller than "min_width_top_surface"
+    //double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), config->min_width_top_surface.get_abs_value(perimeter_width));
+    coord_t perimeter_width = 449;
+    coord_t perimeter_spacing = 407;
+    double min_width_top_surface = 134;
+    coord_t ext_perimeter_spacing = 377;
+    bool has_gap_fill = true;
+    coord_t offset_top_surface = 874;
+    Slic3r::Polygons grown_upper_slices = Slic3r::offset(upper_slices, min_width_top_surface);
+
+    // get boungding box of last
+    Slic3r::BoundingBox last_box = Slic3r::get_extents(orig_polygons);
+    last_box.offset(SCALED_EPSILON);
+
+    // get the Polygons upper the polygon this layer
+    Slic3r::Polygons upper_polygons_series_clipped =
+        Slic3r::ClipperUtils::clip_clipper_polygons_with_subject_bbox(grown_upper_slices, last_box);
+
+    // set the clip to a virtual "second perimeter"
+    fill_clip = offset_ex(orig_polygons, -double(ext_perimeter_spacing));
+    // get the real top surface
+    Slic3r::ExPolygons grown_lower_slices;
+    Slic3r::ExPolygons bridge_checker;
+    auto nozzle_diameter = settings.get<size_t>("machine_nozzle_size");
+    // Check whether surface be bridge or not
+    if (!lower_slices.empty()) {
+        // BBS: get the Polygons below the polygon this layer
+        Slic3r::Polygons lower_polygons_series_clipped =
+            Slic3r::ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_slices, last_box);
+        double bridge_offset = std::max(double(ext_perimeter_spacing), (double(perimeter_width)));
+        // SoftFever: improve bridging
+        const float bridge_margin =
+            std::min(float(scale_(BRIDGE_INFILL_MARGIN)), float(scale_(nozzle_diameter * BRIDGE_INFILL_MARGIN / 0.4)));
+        bridge_checker = Slic3r::offset_ex(diff_ex(orig_polygons, lower_polygons_series_clipped, Slic3r::ApplySafetyOffset::Yes),
+            1.5 * bridge_offset + bridge_margin + perimeter_spacing / 2);
+    }
+    Slic3r::ExPolygons delete_bridge = Slic3r::diff_ex(orig_polygons, bridge_checker, Slic3r::ApplySafetyOffset::Yes);
+
+    Slic3r::ExPolygons top_polygons = Slic3r::diff_ex(delete_bridge, upper_polygons_series_clipped, Slic3r::ApplySafetyOffset::Yes);
+    // get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the
+    // min_width_top_surface we removed a bit before)
+    Slic3r::ExPolygons temp_gap = Slic3r::diff_ex(top_polygons, fill_clip);
+    Slic3r::ExPolygons inner_polygons =
+        Slic3r::diff_ex(orig_polygons,
+            Slic3r::offset_ex(top_polygons, offset_top_surface + min_width_top_surface - double(ext_perimeter_spacing / 2)),
+            Slic3r::ApplySafetyOffset::Yes);
+    // get the enlarged top surface, by using inner_polygons instead of upper_slices, and clip it for it to be exactly
+    // the polygons to fill.
+    top_polygons = Slic3r::diff_ex(fill_clip, inner_polygons, Slic3r::ApplySafetyOffset::Yes);
+    // increase by half peri the inner space to fill the frontier between last and stored.
+    top_fills = Slic3r::union_ex(top_fills, top_polygons);
+    //set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't go outside even with a 100% overlap.
+    //double infill_spacing_unscaled = this->config->sparse_infill_line_width.get_abs_value(nozzle_diameter);
+    double infill_spacing_unscaled = 0.45 ;
+    double sssAS = scale_(infill_spacing_unscaled / 2);
+    //if (infill_spacing_unscaled == 0) infill_spacing_unscaled = Slic3r::Flow::auto_extrusion_width(frInfill, nozzle_diameter);
+    fill_clip = Slic3r::offset_ex(orig_polygons, double(ext_perimeter_spacing / 2) - sssAS);
+    // ExPolygons oldLast = last;
+
+    non_top_polygons = Slic3r::intersection_ex(inner_polygons, orig_polygons);
+    if (has_gap_fill)
+        non_top_polygons = Slic3r::union_ex(non_top_polygons, temp_gap);
+    //{
+    //    std::stringstream stri;
+    //    stri << this->layer_id << "_1_"<< i <<"_only_one_peri"<< ".svg";
+    //    SVG svg(stri.str());
+    //    svg.draw(to_polylines(top_fills), "green");
+    //    svg.draw(to_polylines(inner_polygons), "yellow");
+    //    svg.draw(to_polylines(top_polygons), "cyan");
+    //    svg.draw(to_polylines(oldLast), "orange");
+    //    svg.draw(to_polylines(last), "red");
+    //    svg.Close();
+    //}
+}
+
+void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upper, SliceLayer* layer_lower)
 {
     size_t wall_count = settings.get<size_t>("wall_line_count");
     if (wall_count == 0) // Early out if no walls are to be generated
@@ -73,6 +179,7 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
     {
         const bool roofing_only_one_wall = settings.get<bool>("roofing_only_one_wall");
         Polygons upLayerPart;
+        Polygons lowLayerPart;
         if (roofing_only_one_wall && layer_upper != nullptr)
         {
             for (const SliceLayerPart& part2 : layer_upper->parts)
@@ -83,17 +190,50 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
                 }
             }
         }
+        if (roofing_only_one_wall && layer_lower != nullptr)
+        {
+            for (const SliceLayerPart& part2 : layer_lower->parts)
+            {
+                if (part->boundaryBox.hit(part2.boundaryBox))
+                {
+                    lowLayerPart.add(part2.outline);
+                }
+            }
+        }
         Polygons layer_different_area = part->outline.difference(upLayerPart);
+        Polygons layer_inter_area = part->outline.intersection(upLayerPart.offset(-line_width_0));
         if (wall_count > 1 && roofing_only_one_wall && !first_layer && layer_different_area.area() > line_width_0 * line_width_0)
         {
             WallToolPaths OuterWall_tool_paths(part->outline, line_width_0, line_width_x, 1, wall_0_inset, settings);
             part->wall_toolpaths = OuterWall_tool_paths.getToolPaths();
             Polygons non_OuterWall_area = OuterWall_tool_paths.getInnerContour();
             Polygons roof_area = non_OuterWall_area.difference(upLayerPart);
-            coord_t half_min_roof_width = (line_width_0 + (wall_count - 1) * line_width_x) / 2;
-            roof_area = roof_area.offset(-half_min_roof_width).offset(half_min_roof_width + line_width_0).intersection(non_OuterWall_area);
-            Polygons inside_area = non_OuterWall_area.difference(roof_area);
 
+
+            //Slic3r::ExPolygons top_fills;
+            //Slic3r::ExPolygons fill_clip;
+            //Slic3r::ExPolygons non_top_polygons;
+            //Slic3r::ExPolygon last = convert(part->outline);
+            //Slic3r::ExPolygons lasts;
+            //lasts.emplace_back(last);
+            //Slic3r::ExPolygon upper_slice = convert(upLayerPart);
+            //Slic3r::ExPolygons upper_slices;
+            //upper_slices.emplace_back(upper_slice);
+            //Slic3r::ExPolygon lower_slice = convert(lowLayerPart);
+            //Slic3r::ExPolygons lower_slices;
+            //lower_slices.emplace_back(lower_slice);
+            //split_top_surfaces(lasts, top_fills, non_top_polygons, fill_clip, upper_slices, lower_slices);  //this function need to study carefully  , which belong in to orca . param lower layer is vi
+            //if (!top_fills.empty())
+
+            ////offjob  co-worker files in feishu that is about  topsurface 
+            coord_t half_min_roof_width = (line_width_0 + (wall_count - 1) * line_width_x) / 2;
+            roof_area = roof_area.intersection(non_OuterWall_area);
+            if (result_is_narrow_infill_area(roof_area) && roof_area.offset(-half_min_roof_width).size() < roof_area.paths.size())
+                roof_area = roof_area.offset(-half_min_roof_width).offset(half_min_roof_width + line_width_0).intersection(non_OuterWall_area);  //narrow polygon get 0  no small  scraps in surface
+            else
+                roof_area = roof_area.intersection(non_OuterWall_area);  // for better polygons , beacause of offset have some bad influence on utimate plygons
+            Polygons inside_area = non_OuterWall_area.difference(roof_area);
+           
             if (!inside_area.empty())
             {
                 WallToolPaths innerWall_tool_paths(inside_area, line_width_x, line_width_x, wall_count - 1, 0, settings);
@@ -101,12 +241,14 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
                 for (VariableWidthLines& paths : innerWall_toolpaths)
                 {
                     for (ExtrusionLine& path : paths)
+                    {
                         path.inset_idx++;
+                    }
                 }
                 part->wall_toolpaths.insert(part->wall_toolpaths.end(), innerWall_toolpaths.begin(), innerWall_toolpaths.end());
                 part->inner_area = innerWall_tool_paths.getInnerContour();
             }
-            part->inner_area.add(roof_area);
+            part->inner_area.add(roof_area);  //top suface inner wall
         }
         else
         {
@@ -124,12 +266,12 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
  *
  * generateWalls only reads and writes data for the current layer
  */
-void WallsComputation::generateWalls(SliceLayer* layer, SliceLayer* layer_upper)
+void WallsComputation::generateWalls(SliceLayer* layer, SliceLayer* layer_upper, SliceLayer* layer_lower)
 {
     for(SliceLayerPart& part : layer->parts)
     {
         INTERRUPT_BREAK("WallsComputation::generateWalls. ");
-        generateWalls(&part, layer_upper);
+        generateWalls(&part, layer_upper,  layer_lower);
     }
 
     //Remove the parts which did not generate a wall. As these parts are too small to print,

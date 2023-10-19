@@ -7,6 +7,7 @@
 #include "settings/Settings.h"
 #include "settings/types/LayerIndex.h"
 #include "utils/Coord_t.h"
+#include "Slice3rBase/ClipperUtils.hpp"
 
 namespace cura52
 {
@@ -36,7 +37,7 @@ namespace cura52
          *
          * \param layer The layer for which to generate the walls and inner area.
          */
-        void generateWalls(SliceLayer* layer, SliceLayer* layer_upper = nullptr);
+        void generateWalls(SliceLayer* layer, SliceLayer* layer_upper = nullptr, SliceLayer* layer_lower = nullptr);
 
     private:
         /*!
@@ -51,12 +52,14 @@ namespace cura52
          */
         const LayerIndex layer_nr;
 
+        void split_top_surfaces(Slic3r:: ExPolygons& orig_polygons, Slic3r::ExPolygons& top_fills,
+            Slic3r::ExPolygons& non_top_polygons, Slic3r::ExPolygons& fill_clip, Slic3r::ExPolygons& upper_slices, Slic3r::ExPolygons& lower_slices);
         /*!
          * Generates the walls / inner area for a single layer part.
          *
          * \param part The part for which to generate the insets.
          */
-        void generateWalls(SliceLayerPart* part, SliceLayer* layer_upper = nullptr);
+        void generateWalls(SliceLayerPart* part, SliceLayer* layer_upper = nullptr, SliceLayer* layer_lower = nullptr);
 
         /*!
          * Generates the outer inset / perimeter used in spiralize mode for a single layer part. The spiral inset is
