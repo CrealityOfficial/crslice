@@ -135,7 +135,7 @@ public:
      * \param force_minimal_layer_time Whether we should apply speed changes and perhaps a head lift in order to meet the minimal layer time
      * \param starting_position The position the head was before starting this extruder plan
      */
-    void processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed);
+    void processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed,bool cool_fan_enabled = false);
 
     /*!
      * Set the extrude speed factor. This is used for printing slower than normal.
@@ -246,6 +246,7 @@ public:
 	float maxvolumetricspeed;
     int tmp_is_change_layer;
     bool first_mesh_cancel;
+	std::vector<Polygons> meshes_bbox;
     bool need_smart_brim;
 	bool is_deceleration_speed;
 private:

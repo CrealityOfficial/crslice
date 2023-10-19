@@ -609,6 +609,14 @@ bool AreaSupport::isSupportNecessary(SliceDataStorage& storage)
     const coord_t max_tower_supported_diameter = mesh_group_settings.get<coord_t>("support_tower_maximum_supported_diameter");
     const coord_t max_tower_supported_area = max_tower_supported_diameter * max_tower_supported_diameter;
 
+	for (SliceMeshStorage& amesh:storage.meshes)//通过插件添加支撑
+	{
+		if (amesh.settings.get<bool>("support_mesh"))
+		{
+			return false;
+		}
+	}
+
     auto bSharpTailExist = [&](const SliceMeshStorage& mesh, int layer_idx)
     {
         if (layer_idx < 1)

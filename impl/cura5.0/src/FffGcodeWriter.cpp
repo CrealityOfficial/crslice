@@ -744,6 +744,15 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
 			tmp << "(UAO,1" << start_extruder_nr << ")";
 			gcode.writeLine(tmp.str().c_str());
 		}
+		
+		if (application->sceneSettings().get<bool>("have_band"))
+		{
+			Temperature temperature = application->sceneSettings().get<double>("material_heater_band");
+			if (temperature.value >= 0)
+			{
+				gcode.writeTopHeaterCommand(1, temperature, false);
+			}
+		}
 
         if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
         {

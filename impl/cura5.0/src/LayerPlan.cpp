@@ -226,6 +226,20 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     tmp_is_change_layer = 0;
     need_smart_brim = false;
 	is_deceleration_speed = false;
+	for (int i = 0; i < storage.meshes.size(); i++)
+	{
+		AABB3D box = storage.meshes.at(i).bounding_box;
+
+		Point p0(box.min.x, box.min.y);
+		Point p1(box.min.x, box.max.y);
+		Point p2(box.max.x, box.max.y);
+		Point p3(box.max.x, box.min.y);
+		Point p4(box.min.x, box.min.y);
+		Polygon p;
+		p.add(p0); p.add(p1); p.add(p2); p.add(p3); p.add(p4); p.add(p0);
+
+		meshes_bbox.emplace_back(p.offset(900));
+	}
 }
 
 LayerPlan::~LayerPlan()
@@ -772,6 +786,11 @@ void LayerPlan::addWallLine(const Point& p0,
 
     auto getFanSpeed = [&](const GCodePathConfig& config)
     {
+        const bool cool_fan_enabled = settings.get<bool>("cool_fan_enabled");
+        if (!cool_fan_enabled)
+        {
+            return GCodePathConfig::FAN_SPEED_DEFAULT;
+        }
         if (!overhang_bridge_force_cooling)
             return GCodePathConfig::FAN_SPEED_DEFAULT;
         if (config.isBridgePath() || overhang_distance > overhang_threshold * config.getLineWidth())
@@ -779,7 +798,7 @@ void LayerPlan::addWallLine(const Point& p0,
         return GCodePathConfig::FAN_SPEED_DEFAULT;;
     };
 
-    auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true)
+    auto addNonBridgeLine = [&](const Point& line_end, bool changFlow = true, bool overhang = true)
     {
         coord_t distance_to_line_end = vSize(cur_point - line_end);
 
@@ -824,13 +843,17 @@ void LayerPlan::addWallLine(const Point& p0,
                 else
                 {
                     // no coasting required, just normal segment using non-bridge config
+					if (overhang)
+					{
+						speed_factor = std::min(getSpeedFactor(segment_end), speed_factor);
+					}
                     addExtrusionMove(segment_end,
                                      non_bridge_config,
                                      SpaceFillType::Polygons,
                                      segment_flow,
                                      width_factor,
                                      spiralize,
-                                     std::min(getSpeedFactor(segment_end), speed_factor),
+						             speed_factor,
                                      getFanSpeed(non_bridge_config));
                 }
 
@@ -839,13 +862,17 @@ void LayerPlan::addWallLine(const Point& p0,
             else
             {
                 // no coasting required, just normal segment using non-bridge config
+				if (overhang)
+				{
+					speed_factor = std::min(getSpeedFactor(segment_end), speed_factor);
+				}
                 addExtrusionMove(segment_end,
                                  non_bridge_config,
                                  SpaceFillType::Polygons,
                                  segment_flow,
                                  width_factor,
                                  spiralize,
-                                 std::min(getSpeedFactor(segment_end), speed_factor),
+					             speed_factor,
                                  getFanSpeed(non_bridge_config));
             }
             non_bridge_line_volume += vSize(cur_point - segment_end) * segment_flow * width_factor * speed_factor * non_bridge_config.getSpeed();
@@ -914,45 +941,40 @@ void LayerPlan::addWallLine(const Point& p0,
                     b1 = bridge[0];
                 }
 
-                const double bridge_line_len = vSize(b1 - b0);
-                if (bridge_line_len < min_bridge_line_len)
-                {
-                    // treat the short bridge line just like a normal line
-                    GCodePath path = extruder_plans.back().paths.back();
-                    addExtrusionMove(b1,
-                        non_bridge_config, 
-                        SpaceFillType::Polygons,
-                        flow,
-                        path.width_factor, 
-                        spiralize, 
-                        std::min(getSpeedFactor(b1), path.speed_factor),
-                        getFanSpeed(non_bridge_config));
-                    cur_point = b1;
-                }
-                else
-                {
-                    // extrude using non_bridge_config to the start of the next bridge segment
-                    addNonBridgeLine(b0);
+				// extrude using non_bridge_config to the start of the next bridge segment
 
-                    // extrude using bridge_config to the end of the next bridge segment
-                    if (bridge_line_len > min_line_len)
-                    {
-                        addExtrusionMove(b1, bridge_config, SpaceFillType::Polygons, flow, width_factor, false, 1.0_r, getFanSpeed(bridge_config));
-                        non_bridge_line_volume = 0;
-                        cur_point = b1;
-                        // after a bridge segment, start slow and accelerate to avoid under-extrusion due to extruder lag
-                        speed_factor = std::max(std::min(Ratio(bridge_config.getSpeed() / non_bridge_config.getSpeed()), 1.0_r), 0.8_r);
-                    }
-                }
+				addNonBridgeLine(b0,true,false);
 
-                // finished with this segment
-                line_polys.remove(nearest);
-            }
+				const double bridge_line_len = vSize(b1 - cur_point);
 
-            // if we haven't yet reached p1, fill the gap with non_bridge_config line
-            addNonBridgeLine(p1);
-        }
-        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * std::min(getSpeedFactor(p1), speed_factor))
+				if (bridge_line_len >= min_bridge_line_len)
+				{
+					// extrude using bridge_config to the end of the next bridge segment
+
+					if (bridge_line_len > min_line_len)
+					{
+						addExtrusionMove(b1, bridge_config, SpaceFillType::Polygons, flow, width_factor);
+						non_bridge_line_volume = 0;
+						cur_point = b1;
+						// after a bridge segment, start slow and accelerate to avoid under-extrusion due to extruder lag
+						speed_factor = std::max(std::min(Ratio(bridge_config.getSpeed() / non_bridge_config.getSpeed()), 1.0_r), 0.8_r);
+					}
+				}
+				else
+				{
+					// treat the short bridge line just like a normal line
+
+					addNonBridgeLine(b1, true, false);
+				}
+
+				// finished with this segment
+				line_polys.remove(nearest);
+			}
+
+			// if we haven't yet reached p1, fill the gap with non_bridge_config line
+			addNonBridgeLine(p1, true, false);
+		}
+        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len)
         {
             // both p0 and p1 must be above air (the result will be ugly!)
             addExtrusionMove(p1, bridge_config, SpaceFillType::Polygons, flow, width_factor, false, 1.0_r, getFanSpeed(bridge_config));
@@ -961,7 +983,14 @@ void LayerPlan::addWallLine(const Point& p0,
         else
         {
             // no part of the line is above air or the line is too short to print as a bridge line
-            addNonBridgeLine(p1, false);
+			if (bridge_wall_mask.inside(p1, true))
+			{
+				addNonBridgeLine(p1, false,false);
+			} 
+			else
+			{
+				addNonBridgeLine(p1, false);
+			}
         }
     }
 }
@@ -1330,7 +1359,10 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
                 if (p1.overhang_distance > 0 && !speed_sections.empty())
                     result_speed_factor = std::min(small_feature_speed_factor, getSpeedFactorP(destination, p1.overhang_distance, non_bridge_config.getSpeed(), speed_sections));
                 constexpr bool spiralize = false;
+
                 double fan_speed_s = getLayerNr() < settings.get<LayerIndex>("cool_fan_full_layer") ? non_bridge_config.getFanSpeed() : small_feature_fan_speed;
+                bool cool_fan_enabled = settings.get<bool>("cool_fan_enabled");
+                cool_fan_enabled ? fan_speed_s : fan_speed_s = 0.0f;
                 addExtrusionMove(destination, non_bridge_config, SpaceFillType::Polygons, flow_ratio, line_width* nominal_line_width_multiplier, spiralize, result_speed_factor, fan_speed_s);
             }
             else
@@ -1917,7 +1949,7 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
     return estimates;
 }
 
-void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed)
+void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_time, Point starting_position, double max_cds_fan_speed, bool cool_fan_enabled)
 {
     Duration cool_min_layer_time = fan_speed_layer_time_settings.cool_min_layer_time;
     if (cool_min_layer_time_correct != 0.)
@@ -2004,7 +2036,7 @@ void ExtruderPlan::processFanSpeedAndMinimalLayerTime(bool force_minimal_layer_t
     double low_speed_print_time = 0;
     for (GCodePath& path : paths)
     {
-        if (full_fan_layer && !path.isTravelPath())
+        if (full_fan_layer && !path.isTravelPath() && cool_fan_enabled)
             path.fan_speed = 100.0;
         if (cds_fan_speed > 0 && (path.speed_factor < 1.0 || path.config->isBridgePath()))
         {
@@ -2026,7 +2058,8 @@ void LayerPlan::processFanSpeedAndMinimalLayerTime(Point starting_position)
         const Settings& extruder_settings = application->extruders()[extruder_plan.extruder_nr].settings;
         double max_cds_fan_speed = extruder_settings.get<double>("cool_special_cds_fan_speed");
         bool force_minimal_layer_time = extr_plan_idx == extruder_plans.size() - 1;
-        extruder_plan.processFanSpeedAndMinimalLayerTime(force_minimal_layer_time, starting_position, max_cds_fan_speed);
+        const bool cool_fan_enabled = extruder_settings.get<bool>("cool_fan_enabled");
+        extruder_plan.processFanSpeedAndMinimalLayerTime(force_minimal_layer_time, starting_position, max_cds_fan_speed, cool_fan_enabled);
         if (! extruder_plan.paths.empty() && ! extruder_plan.paths.back().points.empty())
         {
             starting_position = extruder_plan.paths.back().points.back();
@@ -2576,53 +2609,56 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
             }
 
             // This seems to be the best location to place this, but still not ideal.
-            if (path.mesh_id != current_mesh &&  (application->sceneSettings().get<bool>("special_object_cancel")))
-            {
-                current_mesh = path.mesh_id;
-                std::stringstream ss;
-                if (current_mesh == "")
-                    current_mesh = "NONMESH";
-                std::stringstream ss_exclude_end;
-                std::stringstream ss_exclude_start;
-                //change layer cura  only start 
-                if (tmp_is_change_layer == 0 && !first_mesh_cancel && path.config->type != PrintFeatureType::SkirtBrim)
-                {
-                    ss << "MESH:" << current_mesh;
-                    gcode.writeComment(ss.str());
-                    ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
-                    gcode.writeComment2(ss_exclude_start.str());
-                    first_mesh_cancel = true;
-                }
-                else if (tmp_is_change_layer != this->layer_nr)
-                {
-                    ss << "MESH:" << current_mesh;
-                    gcode.writeComment(ss.str());
-                    ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
-                    gcode.writeComment2(ss_exclude_start.str());
-                }
-                else 
-                {
-                    ss << "MESH:" << current_mesh;
-                    gcode.writeComment(ss.str());
-                    ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
-                    gcode.writeComment2(ss_exclude_end.str());
-                    if (current_mesh != "NONMESH")
-                    {
-                        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
-                        gcode.writeComment2(ss_exclude_start.str());
-                    }
-
-                }
-                tmp_mesh_name = path.mesh_id;
-                tmp_is_change_layer = this->layer_nr;
-            }
-            if (path.mesh_id != current_mesh)
+            //if (path.mesh_id != current_mesh &&  (application->current_slice->scene.settings.get<bool>("special_object_cancel")))
+            //{
+            //    current_mesh = path.mesh_id;
+            //    std::stringstream ss;
+            //    if (current_mesh == "")
+            //        current_mesh = "NONMESH";
+            //    std::stringstream ss_exclude_end;
+            //    std::stringstream ss_exclude_start;
+            //    //change layer cura  only start 
+            //    if (tmp_is_change_layer == 0 && !first_mesh_cancel && path.config->type != PrintFeatureType::SkirtBrim)
+            //    {
+            //        ss << "MESH:" << current_mesh;
+            //        gcode.writeComment(ss.str());
+            //        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+            //        gcode.writeComment2(ss_exclude_start.str());
+            //        first_mesh_cancel = true;
+            //    }
+            //    else if (tmp_is_change_layer != this->layer_nr)
+            //    {
+            //        ss << "MESH:" << current_mesh;
+            //        gcode.writeComment(ss.str());
+            //        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+            //        gcode.writeComment2(ss_exclude_start.str());
+            //    }
+            //    else 
+            //    {
+            //        ss << "MESH:" << current_mesh;
+            //        gcode.writeComment(ss.str());
+            //        ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+            //        gcode.writeComment2(ss_exclude_end.str());
+            //        if (current_mesh != "NONMESH")
+            //        {
+            //            ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << path.mesh_id;
+            //            gcode.writeComment2(ss_exclude_start.str());
+            //        }
+            //    }
+            //    tmp_mesh_name = path.mesh_id;
+            //    tmp_is_change_layer = this->layer_nr;
+            //}
+            if (!application->sceneSettings().get<bool>("special_object_cancel") && path.mesh_id != current_mesh)
             {
                 current_mesh = path.mesh_id;
                 if (current_mesh == "") current_mesh = "NONMESH";
                 std::stringstream ss;
                 ss << "MESH:" << current_mesh;
                 gcode.writeComment(ss.str());
+            }
+            if (application->sceneSettings().get<bool>("special_object_cancel") && !path.config->isTravelPath())
+            {
+                tmp_mesh_name = path.mesh_id;
             }
             if (path.config->isTravelPath())
             { // early comp for travel paths, which are handled more simply
@@ -2636,9 +2672,60 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     // Prevent the final travel(s) from resetting to the 'previous' layer height.
                     gcode.setZ(final_travel_z);
                 }
+                bool one_time_write = true;
+                bool judge_jump = false;
+                int poindx_jump = 0;
+                if (path.points.size() > 4 && (application->sceneSettings().get<bool>("special_object_cancel")) && meshes_bbox.size() > 1)
+                {
+                    int member_ins0 = 0;
+                    int  member_ins1 = 0;
+                    int count_s = 0;
+                    for (int kop = 0; kop < meshes_bbox.size(); kop++)
+                    {
+                        bool sb1 = false;
+                        bool sb = false;
+                        bool sb2 = false;
+                        for (int k = 2; k < path.points.size() - 1; k++)
+                        {
+                            sb1 = (meshes_bbox.at(kop).inside(path.points.at(k - 1)) && meshes_bbox.at(kop).inside(path.points.at(k - 2)));
+                            sb = meshes_bbox.at(kop).inside(path.points.at(k));
+                            sb2 = meshes_bbox.at(kop).inside(path.points.at(k + 1));
+                            if (sb1 == sb && sb != sb2)
+                            {
+                                judge_jump = true;
+                                poindx_jump = k;
+                                break; break;
+                            }
+                            if (sb1 != sb && sb == sb2)
+                            {
+                                judge_jump = true;
+                                poindx_jump = k;
+                                break; break;
+                            }
+                        }
+                    }
+                }
                 for (unsigned int point_idx = 0; point_idx < path.points.size() - 1; point_idx++)
                 {
                     gcode.writeTravel(path.points[point_idx], speed);
+                    if (path.points.size() > 4 && one_time_write
+                        && judge_jump && point_idx == poindx_jump
+                        && (application->sceneSettings().get<bool>("special_object_cancel")))
+                    {
+                        std::stringstream ss;
+                        ss << "MESH:" << current_mesh;
+                        gcode.writeComment(ss.str());
+                        std::stringstream ss_exclude_end;
+                        ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+                        gcode.writeComment2(ss_exclude_end.str());
+
+                        std::stringstream ss_exclude_start;
+                        std::string tnam = path.mesh_id;
+                        if (tnam == "") tnam = "0_1";
+                        ss_exclude_start << "EXCLUDE_OBJECT_START NAME=" << tnam;
+                        gcode.writeComment2(ss_exclude_start.str());
+                        one_time_write = false;
+                    }
                 }
                 if (path.unretract_before_last_travel_move)
                 {
