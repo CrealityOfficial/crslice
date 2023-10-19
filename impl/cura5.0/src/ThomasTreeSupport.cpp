@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <string>
 #include <thread>
-#include <utils/ThreadPool.h>
 #include <utils/algorithm.h>
 #ifdef WIN32
 #include <windows.h> //todo Remove!  ONLY FOR PUBLIC BETA!!
