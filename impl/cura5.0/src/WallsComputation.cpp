@@ -7,7 +7,7 @@
 #include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "utils/Simplify.h" // We're simplifying the spiralized insets.
-
+#include "narrow_infill.h"
 #include "communication/slicecontext.h"
 
 namespace cura52
@@ -86,12 +86,20 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
         Polygons layer_different_area = part->outline.difference(upLayerPart);
         if (wall_count > 1 && roofing_only_one_wall && !first_layer && layer_different_area.area() > line_width_0 * line_width_0)
         {
+            ////offjob  co-worker files in feishu that is about  topsurface 
             WallToolPaths OuterWall_tool_paths(part->outline, line_width_0, line_width_x, 1, wall_0_inset, settings);
             part->wall_toolpaths = OuterWall_tool_paths.getToolPaths();
             Polygons non_OuterWall_area = OuterWall_tool_paths.getInnerContour();
             Polygons roof_area = non_OuterWall_area.difference(upLayerPart);
             coord_t half_min_roof_width = (line_width_0 + (wall_count - 1) * line_width_x) / 2;
-            roof_area = roof_area.offset(-half_min_roof_width).offset(half_min_roof_width + line_width_0).intersection(non_OuterWall_area);
+            roof_area = roof_area.intersection(non_OuterWall_area);
+            if (result_is_narrow_infill_area(roof_area) && roof_area.offset(-half_min_roof_width).size() < roof_area.paths.size())
+                roof_area = roof_area.offset(-half_min_roof_width).offset(half_min_roof_width + line_width_0).intersection(non_OuterWall_area);  //narrow polygon get 0  no small  scraps in surface
+            else
+                roof_area = roof_area.intersection(non_OuterWall_area);  // for better polygons , beacause of offset have some bad influence on utimate plygons
+            // for more accuracy study  infer orca fun split_top_surfaces() judege the roof surface
+            //this function need to study carefully  , which belong in to orca . param lower layer is vi
+
             Polygons inside_area = non_OuterWall_area.difference(roof_area);
 
             if (!inside_area.empty())
@@ -106,7 +114,7 @@ void WallsComputation::generateWalls(SliceLayerPart* part, SliceLayer* layer_upp
                 part->wall_toolpaths.insert(part->wall_toolpaths.end(), innerWall_toolpaths.begin(), innerWall_toolpaths.end());
                 part->inner_area = innerWall_tool_paths.getInnerContour();
             }
-            part->inner_area.add(roof_area);
+            part->inner_area.add(roof_area); //top suface inner wall
         }
         else
         {
