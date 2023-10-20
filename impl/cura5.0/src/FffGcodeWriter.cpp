@@ -3534,7 +3534,7 @@ void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage,
     }
 
     double fan_speed = GCodePathConfig::FAN_SPEED_DEFAULT;
-
+	const double cool_fan_speed_max = application->sceneSettings().get<double>("cool_fan_speed_max");
     if (layer_nr > 0 && skin_config == &mesh_config.skin_config && support_layer_nr >= 0 && mesh.settings.get<bool>("support_fan_enable"))
     {
         // skin isn't a bridge but is it above support and we need to modify the fan speed?
@@ -3572,13 +3572,13 @@ void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage,
 
         if (supported)
         {
-            fan_speed = mesh.settings.get<Ratio>("support_supported_skin_fan_speed") * 100.0;
+            fan_speed = mesh.settings.get<Ratio>("support_supported_skin_fan_speed") * cool_fan_speed_max;
         }
     }
     const bool overhang_bridge_force_cooling = mesh.settings.get<bool>("cool_overhang_bridge_force_cooling");
     if(overhang_bridge_force_cooling && is_bridge_skin)
     {
-        fan_speed = mesh.settings.get<Ratio>("cool_overhang_fan_speed") * 100.0;
+        fan_speed = mesh.settings.get<Ratio>("cool_overhang_fan_speed") * cool_fan_speed_max;
     }
 
     const bool monotonic = mesh.settings.get<bool>("skin_monotonic");
