@@ -151,7 +151,7 @@ namespace cura52
                 //float layer_widthTest = 0.449999392f;
             }
             std::vector<Slic3r::ExtendedPoint> extended_point =
-                Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width / 1000.0);
+                Slic3r::estimate_points_properties<true, true, true, true>(points, extrusion_quality_estimator.prev_layer_boundaries[0], layer_width / 1000.0, 2.0f);
             for (Slic3r::ExtendedPoint& pt : extended_point)
             {
                 pt.position *= 1000;
