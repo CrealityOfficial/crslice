@@ -196,8 +196,9 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         return true; // This is NOT an error state!
     }
 
+    int meshCount = (int)meshgroup->meshes.size();
     std::vector<Slicer*> slicerList;
-    for (unsigned int mesh_idx = 0; mesh_idx < meshgroup->meshes.size(); mesh_idx++)
+    for (int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
     {
         INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
@@ -221,7 +222,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
     Mold::process(meshgroup, slicerList);
-    for (unsigned int mesh_idx = 0; mesh_idx < slicerList.size(); mesh_idx++)
+    for (int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
     {
         Mesh& mesh = meshgroup->meshes[mesh_idx];
         if (mesh.settings.get<bool>("conical_overhang_enabled") && ! mesh.settings.get<bool>("anti_overhang_mesh"))
@@ -244,7 +245,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     generateMultipleVolumesOverlap(slicerList);
 
     storage.print_layer_count = 0;
-    for (unsigned int meshIdx = 0; meshIdx < slicerList.size(); meshIdx++)
+    for (int meshIdx = 0; meshIdx < meshCount; meshIdx++)
     {
         Mesh& mesh = meshgroup->meshes[meshIdx];
         Slicer* slicer = slicerList[meshIdx];
@@ -258,8 +259,8 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
     storage.support.supportLayers.resize(storage.print_layer_count);
 
-    storage.meshes.reserve(slicerList.size()); // causes there to be no resize in meshes so that the pointers in sliceMeshStorage._config to retraction_config don't get invalidated.
-    for (unsigned int meshIdx = 0; meshIdx < slicerList.size(); meshIdx++)
+    storage.meshes.reserve(meshCount); // causes there to be no resize in meshes so that the pointers in sliceMeshStorage._config to retraction_config don't get invalidated.
+    for (int meshIdx = 0; meshIdx < meshCount; meshIdx++)
     {
         INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
@@ -345,7 +346,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         }
 
         delete slicerList[meshIdx];
-        application->messageProgress(Progress::Stage::PARTS, meshIdx + 1, slicerList.size());
+        application->messageProgress(Progress::Stage::PARTS, meshIdx + 1, meshCount);
     }
 
     return true;
