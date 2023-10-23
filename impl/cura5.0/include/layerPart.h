@@ -21,10 +21,11 @@ namespace cura52
 
 	class Settings;
 	class SliceLayer;
-	class Slicer;
-	class SlicerLayer;
 	class SliceMeshStorage;
 	class SliceContext;
+
+	struct SlicedLayer;
+	class SlicedData;
 	/*!
 	 * \brief Split a layer into parts.
 	 * \param settings The settings to get the settings from (whether to union or
@@ -32,14 +33,14 @@ namespace cura52
 	 * \param storageLayer Where to store the parts.
 	 * \param layer The layer to split.
 	 */
-	void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer);
+	void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicedLayer* layer);
 
 	/*!
 	 * \brief Split all layers into parts.
 	 * \param mesh The mesh of which to split the layers into parts.
 	 * \param slicer The slicer to get the layers from.
 	 */
-	void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, Slicer* slicer);
+	void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, SlicedData* data);
 
 }//namespace cura52
 

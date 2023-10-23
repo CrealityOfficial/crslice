@@ -5,27 +5,33 @@
 
 #include <algorithm>
 
-#include "slicer.h"
 #include "utils/PolylineStitcher.h"
+#include "slice/sliceddata.h"
 #include "MeshGroup.h"
 #include "settings/EnumSettings.h"
 
 namespace cura52
 {
 
-    void carveMultipleVolumes(MeshGroup* meshGroup, std::vector<Slicer*>& volumes)
+    void carveMultipleVolumes(MeshGroup* meshGroup, std::vector<SlicedData>& volumes)
     {
         //Go trough all the volumes, and remove the previous volume outlines from our own outline, so we never have overlapped areas.
         const bool alternate_carve_order = meshGroup->settings.get<bool>("alternate_carve_order");
-        std::vector<Slicer*> ranked_volumes = volumes;
+        int meshCount = (int)meshGroup->meshes.size();
+        assert(meshCount == (int)volumes.size());
+
+        std::vector<SlicedData*> ranked_volumes;
+        for(SlicedData& volume : volumes)
+            ranked_volumes.push_back(&volume);
+
         std::sort(ranked_volumes.begin(), ranked_volumes.end(),
-            [](Slicer* volume_1, Slicer* volume_2)
+            [](SlicedData* volume_1, SlicedData* volume_2)
             {
                 return volume_1->mesh->settings.get<int>("infill_mesh_order") < volume_2->mesh->settings.get<int>("infill_mesh_order");
             });
-        for (unsigned int volume_1_idx = 1; volume_1_idx < volumes.size(); volume_1_idx++)
+        for (unsigned int volume_1_idx = 1; volume_1_idx < meshCount; volume_1_idx++)
         {
-            Slicer& volume_1 = *ranked_volumes[volume_1_idx];
+            SlicedData& volume_1 = *ranked_volumes[volume_1_idx];
             if (volume_1.mesh->settings.get<bool>("infill_mesh")
                 || volume_1.mesh->settings.get<bool>("anti_overhang_mesh")
                 || volume_1.mesh->settings.get<bool>("support_mesh")
@@ -36,7 +42,7 @@ namespace cura52
             }
             for (unsigned int volume_2_idx = 0; volume_2_idx < volume_1_idx; volume_2_idx++)
             {
-                Slicer& volume_2 = *ranked_volumes[volume_2_idx];
+                SlicedData& volume_2 = *ranked_volumes[volume_2_idx];
                 if (volume_2.mesh->settings.get<bool>("infill_mesh")
                     || volume_2.mesh->settings.get<bool>("anti_overhang_mesh")
                     || volume_2.mesh->settings.get<bool>("support_mesh")
@@ -51,8 +57,8 @@ namespace cura52
                 }
                 for (unsigned int layerNr = 0; layerNr < volume_1.layers.size(); layerNr++)
                 {
-                    SlicerLayer& layer1 = volume_1.layers[layerNr];
-                    SlicerLayer& layer2 = volume_2.layers[layerNr];
+                    SlicedLayer& layer1 = volume_1.layers[layerNr];
+                    SlicedLayer& layer2 = volume_2.layers[layerNr];
                     if (alternate_carve_order && layerNr % 2 == 0 && volume_1.mesh->settings.get<int>("infill_mesh_order") == volume_2.mesh->settings.get<int>("infill_mesh_order"))
                     {
                         layer2.polygons = layer2.polygons.difference(layer1.polygons);
@@ -68,53 +74,62 @@ namespace cura52
 
     //Expand each layer a bit and then keep the extra overlapping parts that overlap with other volumes.
     //This generates some overlap in dual extrusion, for better bonding in touching parts.
-    void generateMultipleVolumesOverlap(std::vector<Slicer*>& volumes)
+    void generateMultipleVolumesOverlap(MeshGroup* meshGroup, std::vector<SlicedData>& volumes)
     {
         if (volumes.size() < 2)
         {
             return;
         }
 
-        int offset_to_merge_other_merged_volumes = 20;
-        for (Slicer* volume : volumes)
-        {
-            ClipperLib::PolyFillType fill_type = volume->mesh->settings.get<bool>("meshfix_union_all") ? ClipperLib::pftNonZero : ClipperLib::pftEvenOdd;
+        int meshCount = (int)meshGroup->meshes.size();
+        assert(meshCount == (int)volumes.size());
 
-            coord_t overlap = volume->mesh->settings.get<coord_t>("multiple_mesh_overlap");
-            if (volume->mesh->settings.get<bool>("infill_mesh")
-                || volume->mesh->settings.get<bool>("anti_overhang_mesh")
-                || volume->mesh->settings.get<bool>("support_mesh")
+        int offset_to_merge_other_merged_volumes = 20;
+        for (int i = 0; i < meshCount; ++i)
+        {
+            Mesh* mesh = &meshGroup->meshes.at(i);
+            SlicedData* volume = &volumes.at(i);
+
+            ClipperLib::PolyFillType fill_type = mesh->settings.get<bool>("meshfix_union_all") ? ClipperLib::pftNonZero : ClipperLib::pftEvenOdd;
+
+            coord_t overlap = mesh->settings.get<coord_t>("multiple_mesh_overlap");
+            if (mesh->settings.get<bool>("infill_mesh")
+                || mesh->settings.get<bool>("anti_overhang_mesh")
+                || mesh->settings.get<bool>("support_mesh")
                 || overlap == 0)
             {
                 continue;
             }
-            AABB3D aabb(volume->mesh->getAABB());
+            AABB3D aabb(mesh->getAABB());
             aabb.expandXY(overlap); // expand to account for the case where two models and their bounding boxes are adjacent along the X or Y-direction
             for (unsigned int layer_nr = 0; layer_nr < volume->layers.size(); layer_nr++)
             {
                 Polygons all_other_volumes;
-                for (Slicer* other_volume : volumes)
+                for (int j = 0; j < meshCount; ++j)
                 {
-                    if (other_volume->mesh->settings.get<bool>("infill_mesh")
-                        || other_volume->mesh->settings.get<bool>("anti_overhang_mesh")
-                        || other_volume->mesh->settings.get<bool>("support_mesh")
-                        || !other_volume->mesh->getAABB().hit(aabb)
+                    Mesh* other_volume_mesh = &meshGroup->meshes.at(j);
+                    SlicedData* other_volume = &volumes.at(j);
+
+                    if (other_volume_mesh->settings.get<bool>("infill_mesh")
+                        || other_volume_mesh->settings.get<bool>("anti_overhang_mesh")
+                        || other_volume_mesh->settings.get<bool>("support_mesh")
+                        || !other_volume_mesh->getAABB().hit(aabb)
                         || other_volume == volume
                         )
                     {
                         continue;
                     }
-                    SlicerLayer& other_volume_layer = other_volume->layers[layer_nr];
+                    SlicedLayer& other_volume_layer = other_volume->layers[layer_nr];
                     all_other_volumes = all_other_volumes.unionPolygons(other_volume_layer.polygons.offset(offset_to_merge_other_merged_volumes), fill_type);
                 }
 
-                SlicerLayer& volume_layer = volume->layers[layer_nr];
+                SlicedLayer& volume_layer = volume->layers[layer_nr];
                 volume_layer.polygons = volume_layer.polygons.unionPolygons(all_other_volumes.intersection(volume_layer.polygons.offset(overlap / 2)), fill_type);
             }
         }
     }
 
-    void MultiVolumes::carveCuttingMeshes(MeshGroup* meshGroup, std::vector<Slicer*>& volumes)
+    void MultiVolumes::carveCuttingMeshes(MeshGroup* meshGroup, std::vector<SlicedData>& volumes)
     {
         const std::vector<Mesh>& meshes = meshGroup->meshes;
         for (unsigned int carving_mesh_idx = 0; carving_mesh_idx < volumes.size(); carving_mesh_idx++)
@@ -124,7 +139,7 @@ namespace cura52
             {
                 continue;
             }
-            Slicer& cutting_mesh_volume = *volumes[carving_mesh_idx];
+            SlicedData& cutting_mesh_volume = volumes[carving_mesh_idx];
             for (unsigned int layer_nr = 0; layer_nr < cutting_mesh_volume.layers.size(); layer_nr++)
             {
                 Polygons& cutting_mesh_polygons = cutting_mesh_volume.layers[layer_nr].polygons;
@@ -168,7 +183,7 @@ namespace cura52
                     {
                         continue;
                     }
-                    Slicer& carved_volume = *volumes[carved_mesh_idx];
+                    SlicedData& carved_volume = volumes[carved_mesh_idx];
                     Polygons& carved_mesh_layer = carved_volume.layers[layer_nr].polygons;
 
                     Polygons intersection = cutting_mesh_polygons.intersection(carved_mesh_layer);

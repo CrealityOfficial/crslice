@@ -15,16 +15,16 @@
 #include "settings/types/Angle.h" //To compute overhang distance from the angle.
 #include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"
-#include "slicer.h"
 #include "support.h"
 #include "utils/math.h"
 
 #include "communication/slicecontext.h"
+#include "slice/sliceddata.h"
 
 namespace cura52
 {
 
-bool AreaSupport::handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const Slicer* slicer)
+bool AreaSupport::handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const SlicedData* data)
 {
     if (! mesh_settings.get<bool>("anti_overhang_mesh") && ! mesh_settings.get<bool>("support_mesh"))
     {
@@ -37,10 +37,10 @@ bool AreaSupport::handleSupportModifierMesh(SliceDataStorage& storage, const Set
         SUPPORT_VANILLA
     };
     ModifierType modifier_type = (mesh_settings.get<bool>("anti_overhang_mesh")) ? ANTI_OVERHANG : ((mesh_settings.get<bool>("support_mesh_drop_down")) ? SUPPORT_DROP_DOWN : SUPPORT_VANILLA);
-    for (unsigned int layer_nr = 0; layer_nr < slicer->layers.size(); layer_nr++)
+    for (unsigned int layer_nr = 0; layer_nr < data->layers.size(); layer_nr++)
     {
         SupportLayer& support_layer = storage.support.supportLayers[layer_nr];
-        const SlicerLayer& slicer_layer = slicer->layers[layer_nr];
+        const SlicedLayer& slicer_layer = data->layers[layer_nr];
         switch (modifier_type)
         {
         case ANTI_OVERHANG:

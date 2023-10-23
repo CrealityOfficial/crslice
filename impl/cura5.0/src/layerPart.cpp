@@ -3,11 +3,11 @@
 
 #include "layerPart.h"
 #include "sliceDataStorage.h"
-#include "slicer.h"
 
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h" //Simplifying the layers after creating them.
 
+#include "slice/sliceddata.h"
 #include "communication/slicecontext.h"
 /*
 The layer-part creation step is the first step in creating actual useful data for 3D printing.
@@ -23,7 +23,7 @@ It's also the first step that stores the result in the "data storage" so all oth
 
 namespace cura52 {
 
-    void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicerLayer* layer, size_t layer_nr)
+    void createLayerWithParts(const Settings& settings, SliceLayer& storageLayer, SlicedLayer* layer, size_t layer_nr)
     {
         PolylineStitcher<Polygons, Polygon, Point>::stitch(layer->openPolylines, storageLayer.openPolyLines, layer->polygons, settings.get<coord_t>("wall_line_width_0"));
 
@@ -103,15 +103,15 @@ namespace cura52 {
             }
         }
     }
-    void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, Slicer* slicer)
+    void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, SlicedData* data)
     {
-        const auto total_layers = slicer->layers.size();
+        const auto total_layers = data->layers.size();
         assert(mesh.layers.size() == total_layers);
 
-        cura52::parallel_for<size_t>(application, 0, total_layers, [slicer, &mesh](size_t layer_nr)
+        cura52::parallel_for<size_t>(application, 0, total_layers, [data, &mesh](size_t layer_nr)
             {
                 SliceLayer& layer_storage = mesh.layers[layer_nr];
-                SlicerLayer& slice_layer = slicer->layers[layer_nr];
+                SlicedLayer& slice_layer = data->layers[layer_nr];
                 createLayerWithParts(mesh.settings, layer_storage, &slice_layer, layer_nr);
             });
 

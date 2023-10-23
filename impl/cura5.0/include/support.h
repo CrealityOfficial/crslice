@@ -11,7 +11,7 @@ struct LayerIndex;
 class Settings;
 class SliceDataStorage;
 class SliceMeshStorage;
-class Slicer;
+class SlicedData;
 
 class AreaSupport
 {
@@ -27,7 +27,7 @@ public:
      * \return Whether the mesh is used up in support and no normal mesh
      * processing is needed.
      */
-    static bool handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const Slicer* slicer);
+    static bool handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const SlicedData* data);
 
     static bool isSupportNecessary(SliceDataStorage& storage);
     /*!

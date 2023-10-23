@@ -24,7 +24,6 @@
 #include "skin.h"
 #include "SkirtBrim.h"
 #include "sliceDataStorage.h"
-#include "slicer.h"
 #include "support.h"
 #include "TopSurface.h"
 #include "TreeSupport.h"
@@ -47,6 +46,8 @@
 #include "utils/math.h"
 #include "utils/Simplify.h"
 
+#include "slice/meshslice.h"
+#include "slice/sliceddata.h"
 #include "communication/slicecontext.h"
 // clang-format on
 
@@ -197,7 +198,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     }
 
     int meshCount = (int)meshgroup->meshes.size();
-    std::vector<Slicer*> slicerList;
+    std::vector<SlicedData> slicedDatas(meshCount);
     for (int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
     {
         INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
@@ -210,9 +211,8 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         }
 
         Mesh& mesh = meshgroup->meshes[mesh_idx];
-        Slicer* slicer = new Slicer(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, adaptive_layer_height_values);
 
-        slicerList.push_back(slicer);
+        sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, adaptive_layer_height_values, slicedDatas.at(mesh_idx));
         application->messageProgress(Progress::Stage::SLICING, mesh_idx + 1, meshgroup->meshes.size());
     }
 
@@ -221,37 +221,37 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
-    Mold::process(meshgroup, slicerList);
+    Mold::process(meshgroup, slicedDatas);
     for (int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
     {
         Mesh& mesh = meshgroup->meshes[mesh_idx];
         if (mesh.settings.get<bool>("conical_overhang_enabled") && ! mesh.settings.get<bool>("anti_overhang_mesh"))
         {
-            ConicalOverhang::apply(slicerList[mesh_idx], mesh);
+            ConicalOverhang::apply(slicedDatas[mesh_idx], mesh);
         }
     }
 
-    MultiVolumes::carveCuttingMeshes(meshgroup, slicerList);
+    MultiVolumes::carveCuttingMeshes(meshgroup, slicedDatas);
 
     application->messageProgressStage(Progress::Stage::PARTS);
 
     if (meshgroup->settings.get<bool>("carve_multiple_volumes"))
     {
-        carveMultipleVolumes(meshgroup, slicerList);
+        carveMultipleVolumes(meshgroup, slicedDatas);
     }
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
-    generateMultipleVolumesOverlap(slicerList);
+    generateMultipleVolumesOverlap(meshgroup, slicedDatas);
 
     storage.print_layer_count = 0;
     for (int meshIdx = 0; meshIdx < meshCount; meshIdx++)
     {
         Mesh& mesh = meshgroup->meshes[meshIdx];
-        Slicer* slicer = slicerList[meshIdx];
+        const SlicedData& slicedData = slicedDatas.at(meshIdx);
         if (! mesh.settings.get<bool>("anti_overhang_mesh") && ! mesh.settings.get<bool>("infill_mesh") && ! mesh.settings.get<bool>("cutting_mesh"))
         {
-            storage.print_layer_count = std::max(storage.print_layer_count, slicer->layers.size());
+            storage.print_layer_count = std::max(storage.print_layer_count, slicedData.layers.size());
         }
     }
 
@@ -264,19 +264,19 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     {
         INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
-        Slicer* slicer = slicerList[meshIdx];
+        SlicedData& slicedData = slicedDatas.at(meshIdx);
         Mesh& mesh = meshgroup->meshes[meshIdx];
 
         // always make a new SliceMeshStorage, so that they have the same ordering / indexing as meshgroup.meshes
-        storage.meshes.emplace_back(&meshgroup->meshes[meshIdx], slicer->layers.size()); // new mesh in storage had settings from the Mesh
+        storage.meshes.emplace_back(&meshgroup->meshes[meshIdx], slicedData.layers.size()); // new mesh in storage had settings from the Mesh
         SliceMeshStorage& meshStorage = storage.meshes.back();
         meshStorage.appliction = storage.application;
 
         // only create layer parts for normal meshes
-        const bool is_support_modifier = AreaSupport::handleSupportModifierMesh(storage, mesh.settings, slicer);
+        const bool is_support_modifier = AreaSupport::handleSupportModifierMesh(storage, mesh.settings, &slicedData);
         if (! is_support_modifier)
         {
-            createLayerParts(application, meshStorage, slicer);
+            createLayerParts(application, meshStorage, &slicedData);
         }
 
         // Do not add and process support _modifier_ meshes further, and ONLY skip support _modifiers_. They have been
@@ -345,7 +345,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
             }
         }
 
-        delete slicerList[meshIdx];
         application->messageProgress(Progress::Stage::PARTS, meshIdx + 1, meshCount);
     }
 

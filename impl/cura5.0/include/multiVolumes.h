@@ -9,17 +9,16 @@
 /* This file contains code to help fixing up and changing layers that are built from multiple volumes. */
 namespace cura52
 {
-
     class Mesh;
-    class Slicer;
+    class SlicedData;
     class MeshGroup;
-    void carveMultipleVolumes(MeshGroup* meshGroup, std::vector<Slicer*>& meshes);
+    void carveMultipleVolumes(MeshGroup* meshGroup, std::vector<SlicedData>& datas);
 
     /*!
      * Expand each layer a bit and then keep the extra overlapping parts that overlap with other volumes.
      * This generates some overlap in dual extrusion, for better bonding in touching parts.
      */
-    void generateMultipleVolumesOverlap(std::vector<Slicer*>& meshes);
+    void generateMultipleVolumesOverlap(MeshGroup* meshGroup, std::vector<SlicedData>& datas);
 
     class MultiVolumes
     {
@@ -37,7 +36,7 @@ namespace cura52
          * \param[in,out] volumes The outline data of each mesh
          * \param meshes The meshes which contain the settings for each volume
          */
-        static void carveCuttingMeshes(MeshGroup* meshGroup, std::vector<Slicer*>& volumes);
+        static void carveCuttingMeshes(MeshGroup* meshGroup, std::vector<SlicedData>& datas);
     };
 
 }//namespace cura52

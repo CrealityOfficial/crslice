@@ -2,20 +2,22 @@
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "Mold.h"
-#include "slicer.h"
 #include "MeshGroup.h"
 #include "ExtruderTrain.h"
 #include "settings/types/Ratio.h"
 #include "utils/IntPoint.h"
 
+#include "slice/sliceddata.h"
+
 namespace cura52
 {
 
-    void Mold::process(MeshGroup* meshGroup, std::vector<Slicer*>& slicer_list)
+    void Mold::process(MeshGroup* meshGroup, std::vector<SlicedData>& datas)
     {
+        unsigned int meshCount = datas.size();
         { // check whether we even need to process molds
             bool has_any_mold = false;
-            for (unsigned int mesh_idx = 0; mesh_idx < slicer_list.size(); mesh_idx++)
+            for (unsigned int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
             {
                 Mesh& mesh = meshGroup->meshes[mesh_idx];
                 if (mesh.settings.get<bool>("mold_enabled"))
@@ -32,27 +34,27 @@ namespace cura52
 
         unsigned int layer_count = 0;
         { // compute layer_count
-            for (unsigned int mesh_idx = 0; mesh_idx < slicer_list.size(); mesh_idx++)
+            for (unsigned int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
             {
-                Slicer& slicer = *slicer_list[mesh_idx];
-                unsigned int layer_count_here = slicer.layers.size();
+                SlicedData& data = datas[mesh_idx];
+                unsigned int layer_count_here = data.layers.size();
                 layer_count = std::max(layer_count, layer_count_here);
             }
         }
 
         const coord_t layer_height = meshGroup->settings.get<coord_t>("layer_height");
         std::vector<Polygons> mold_outline_above_per_mesh; // the outer outlines of the layer above without the original model(s) being cut out
-        mold_outline_above_per_mesh.resize(slicer_list.size());
+        mold_outline_above_per_mesh.resize(meshCount);
         for (int layer_nr = layer_count - 1; layer_nr >= 0; layer_nr--)
         {
             Polygons all_original_mold_outlines; // outlines of all models for which to generate a mold (insides of all molds)
 
             // first generate outlines
-            for (unsigned int mesh_idx = 0; mesh_idx < slicer_list.size(); mesh_idx++)
+            for (unsigned int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
             {
                 const Mesh& mesh = meshGroup->meshes[mesh_idx];
-                Slicer& slicer = *slicer_list[mesh_idx];
-                if (!mesh.settings.get<bool>("mold_enabled") || layer_nr >= static_cast<int>(slicer.layers.size()))
+                SlicedData& data = datas[mesh_idx];
+                if (!mesh.settings.get<bool>("mold_enabled") || layer_nr >= static_cast<int>(data.layers.size()))
                 {
                     continue;
                 }
@@ -70,7 +72,7 @@ namespace cura52
                 const size_t roof_layer_count = roof_height / layer_height;
 
 
-                SlicerLayer& layer = slicer.layers[layer_nr];
+                SlicedLayer& layer = data.layers[layer_nr];
                 Polygons model_outlines = layer.polygons.unionPolygons(layer.openPolylines.offsetPolyLine(open_polyline_width / 2));
                 layer.openPolylines.clear();
                 all_original_mold_outlines.add(model_outlines);
@@ -89,7 +91,7 @@ namespace cura52
                 if (roof_layer_count > 0 && layer_nr > 0)
                 {
                     unsigned int layer_nr_below = std::max(0, static_cast<int>(layer_nr - roof_layer_count));
-                    Polygons roofs = slicer.layers[layer_nr_below].polygons.offset(width, ClipperLib::jtRound); // TODO: don't compute offset twice!
+                    Polygons roofs = data.layers[layer_nr_below].polygons.offset(width, ClipperLib::jtRound); // TODO: don't compute offset twice!
                     layer.polygons = layer.polygons.unionPolygons(roofs);
                 }
 
@@ -100,15 +102,15 @@ namespace cura52
             // cut out molds from all objects after generating mold outlines for all objects so that molds won't overlap into the casting cutout of another mold
 
             // carve molds out of all other models
-            for (unsigned int mesh_idx = 0; mesh_idx < slicer_list.size(); mesh_idx++)
+            for (unsigned int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
             {
                 const Mesh& mesh = meshGroup->meshes[mesh_idx];
                 if (!mesh.settings.get<bool>("mold_enabled"))
                 {
                     continue; // only cut original models out of all molds
                 }
-                Slicer& slicer = *slicer_list[mesh_idx];
-                SlicerLayer& layer = slicer.layers[layer_nr];
+                SlicedData& data = datas[mesh_idx];
+                SlicedLayer& layer = data.layers[layer_nr];
                 layer.polygons = layer.polygons.difference(all_original_mold_outlines);
             }
         }

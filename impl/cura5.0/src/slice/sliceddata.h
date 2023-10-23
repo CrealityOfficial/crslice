@@ -7,6 +7,7 @@
 
 namespace cura52
 {
+	class Mesh;
 	struct SlicedLayer
 	{
 		int z = -1;
@@ -21,6 +22,8 @@ namespace cura52
 		~SlicedData();
 
 		std::vector<SlicedLayer> layers;
+
+		Mesh* mesh = nullptr; // for convinient
 	};
 } //namespace cura52
 
