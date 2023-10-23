@@ -819,9 +819,6 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
 			alayer.openPolylines.clear();
 		}
     }
-
-    //ÇÐÆ¬ÂÖÀªÔ¤´¦Àí
-    processPolygons(application ,*mesh, layers);
 }
 
 void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
@@ -1040,74 +1037,6 @@ void Slicer::makePolygons(SliceContext* application, Mesh& mesh, SlicingToleranc
                                });
 
     mesh.expandXY(xy_offset);
-}
-
-void Slicer::processPolygons(SliceContext* application,const Mesh& mesh, std::vector<SlicerLayer>& layers)
-{
-    std::string ploygonFile = application->polygonFile();
-
-    std::vector<std::vector<trimesh::vec2>> ploys;
-    auto readPloygon = [](const std::string& ploygonFile, std::vector<std::vector<trimesh::vec2>>& ploys)
-    {
-        std::fstream in(ploygonFile, std::ios::in | std::ios::binary);
-        if (in.is_open())
-        {
-            int pNum = 0;
-            in.read((char*)&pNum, sizeof(int));
-            if (pNum > 0)
-            {
-                ploys.resize(pNum);
-                for (int i = 0; i < pNum; ++i)
-                {
-                    int num = 0;
-                    in.read((char*)&num, sizeof(int));
-                    ploys[i].resize(num);
-                    //in.read((char*)&ploys.at(i), sizeof(trimesh::vec2) * num);
-                    for (int j = 0; j < num; j++)
-                    {
-                        in.read((char*)&ploys[i][j].x, sizeof(float));
-                        in.read((char*)&ploys[i][j].y, sizeof(float));
-                    }
-                }
-            }
-        }
-    };
-
-    readPloygon(ploygonFile, ploys);
-    if (ploys.empty())
-    {
-        return;
-    }
-    Polygons ploygon;
-    for (auto& ploy :  ploys)
-    {
-        ClipperLib::Path path;
-        for (auto& point : ploy)
-        {
-            path.push_back(ClipperLib::IntPoint(MM2INT(point.x), MM2INT(point.y)));
-        }
-        if (!path.empty())
-        {
-            ploygon.add(path);
-        }
-    }
-
-    //double c_gap = 500;
-    const coord_t c_gap = mesh.settings.get<coord_t>("mesh_split_gap");
-
-    auto getPloygons = [&c_gap](Polygons& ploygon)
-    {
-        ClipperLib::ClipperOffset clipper;
-        clipper.AddPaths(ploygon.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
-        clipper.Execute(ploygon.paths, c_gap);
-    };
-    getPloygons(ploygon);
-
-    for (SlicerLayer& layer : layers)
-    {
-        layer.polygons = layer.polygons.difference(ploygon);
-    }
-
 }
 
 std::vector<std::pair<int32_t, int32_t>> Slicer::buildZHeightsForFaces(const Mesh& mesh)

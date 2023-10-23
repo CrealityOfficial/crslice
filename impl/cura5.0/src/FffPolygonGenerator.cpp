@@ -11,14 +11,10 @@
 
 // Code smell: Order of the includes is important here, probably due to some forward declarations which might be masking some undefined behaviours
 // clang-format off
-#include "ConicalOverhang.h"
-#include "ExtruderTrain.h"
 #include "FffPolygonGenerator.h"
 #include "infill.h"
 #include "layerPart.h"
 #include "MeshGroup.h"
-#include "Mold.h"
-#include "multiVolumes.h"
 #include "PrintFeature.h"
 #include "raft.h"
 #include "skin.h"
@@ -46,7 +42,9 @@
 #include "utils/math.h"
 #include "utils/Simplify.h"
 
-#include "slice/meshslice.h"
+#include "slice/slicestep.h"
+#include "poly/polystep.h"
+
 #include "slice/sliceddata.h"
 #include "communication/slicecontext.h"
 // clang-format on
@@ -220,29 +218,10 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     meshgroup->clear();
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
-
-    Mold::process(meshgroup, slicedDatas);
-    for (int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
-    {
-        Mesh& mesh = meshgroup->meshes[mesh_idx];
-        if (mesh.settings.get<bool>("conical_overhang_enabled") && ! mesh.settings.get<bool>("anti_overhang_mesh"))
-        {
-            ConicalOverhang::apply(slicedDatas[mesh_idx], mesh);
-        }
-    }
-
-    MultiVolumes::carveCuttingMeshes(meshgroup, slicedDatas);
-
-    application->messageProgressStage(Progress::Stage::PARTS);
-
-    if (meshgroup->settings.get<bool>("carve_multiple_volumes"))
-    {
-        carveMultipleVolumes(meshgroup, slicedDatas);
-    }
+    polyProccess(application, meshgroup, slicedDatas);
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
-
-    generateMultipleVolumesOverlap(meshgroup, slicedDatas);
+    application->messageProgressStage(Progress::Stage::PARTS);
 
     storage.print_layer_count = 0;
     for (int meshIdx = 0; meshIdx < meshCount; meshIdx++)

@@ -539,9 +539,6 @@ namespace cura52
         * \param[in, out] layers The polygon are created here.
         */
         static void makePolygons(SliceContext* application, Mesh& mesh, SlicingTolerance slicing_tolerance, std::vector<SlicerLayer>& layers);
-        
-        //
-        static void processPolygons(SliceContext* application,const Mesh& mesh, std::vector<SlicerLayer>& layers);
 
         /*! Creates a vector of layers and set their z value.
         * \param[in] mesh The mesh which is analyzed.
