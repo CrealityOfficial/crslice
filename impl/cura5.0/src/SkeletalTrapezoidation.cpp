@@ -5,7 +5,7 @@
 
 #include "ccglobal/log.h"
 
-#include "settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include <functional>
 #include <queue>
 #include <sstream>

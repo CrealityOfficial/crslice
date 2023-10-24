@@ -13,7 +13,7 @@
 #include "pathPlanning/Comb.h"
 #include "pathPlanning/CombPaths.h"
 #include "raft.h" // getTotalExtraLayers
-#include "settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "utils/Simplify.h"
 #include "utils/linearAlg2D.h"

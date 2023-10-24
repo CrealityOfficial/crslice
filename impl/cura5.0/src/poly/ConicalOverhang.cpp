@@ -6,7 +6,7 @@
 #include "mesh.h"
 #include "slice/sliceddata.h"
 #include "utils/Simplify.h" //Simplifying at every step to prevent getting lots of vertices from all the insets.
-#include "settings/types/Angle.h" //To process the overhang angle.
+#include "types/Angle.h" //To process the overhang angle.
 
 namespace cura52
 {

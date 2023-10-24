@@ -6,7 +6,7 @@
 
 #include "BeadingStrategy.h"
 
-#include "../settings/types/Ratio.h"
+#include "types/Ratio.h"
 
 namespace cura52
 {

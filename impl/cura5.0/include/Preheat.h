@@ -7,8 +7,8 @@
 #include <cassert>
 #include <algorithm> // max
 
-#include "settings/types/Duration.h"
-#include "settings/types/Temperature.h"
+#include "types/Duration.h"
+#include "types/Temperature.h"
 
 namespace cura52
 {

@@ -5,7 +5,7 @@
 
 #include "settings/EnumSettingsT.h"
 #include "settings/Settings.h"
-#include "settings/types/Angle.h"
+#include "types/Angle.h"
 #include "TreeSupportElement.h"
 #include "utils/Coord_t.h"
 #include "utils/Simplify.h"

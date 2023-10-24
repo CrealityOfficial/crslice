@@ -4,7 +4,7 @@
 #include "WallsComputation.h"
 #include "ExtruderTrain.h"
 #include "WallToolPaths.h"
-#include "settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "utils/Simplify.h" // We're simplifying the spiralized insets.
 #include "narrow_infill.h"

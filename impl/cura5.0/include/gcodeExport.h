@@ -13,12 +13,14 @@
 #include <memory>
 
 #include "utils/AABB3D.h" //To track the used build volume for the Griffin header.
-#include "settings/EnumSettings.h"
 #include "settings/Settings.h" //For MAX_EXTRUDERS.
-#include "settings/types/Temperature.h" //Bed temperature.
-#include "settings/types/Velocity.h"
-#include "settings/types/Duration.h"
-#include "PrintFeature.h"
+
+#include "types/EnumSettings.h"
+#include "types/Temperature.h" //Bed temperature.
+#include "types/Velocity.h"
+#include "types/Duration.h"
+#include "types/PrintFeature.h"
+
 #include "utils/IntPoint.h"
 #include "utils/NoCopy.h"
 

@@ -5,7 +5,7 @@
 #include "infill.h"
 #include "infill/SierpinskiFillProvider.h"
 #include "progress/Progress.h"
-#include "settings/EnumSettings.h"
+#include "types/EnumSettings.h"
 #include "support.h" //For precomputeCrossInfillTree
 #include "utils/Simplify.h"
 #include "utils/math.h" //For round_up_divide and PI.

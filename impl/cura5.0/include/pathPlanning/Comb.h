@@ -7,7 +7,7 @@
 #include <memory> // shared_ptr
 #include <limits> // To find the maximum for coord_t.
 
-#include "../settings/types/LayerIndex.h" // To store the layer on which we comb.
+#include "types/LayerIndex.h" // To store the layer on which we comb.
 #include "../utils/polygon.h"
 #include "../utils/polygonUtils.h"
 

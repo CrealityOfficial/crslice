@@ -7,8 +7,8 @@
 #include <limits>
 
 #include "settings/AdaptiveLayerHeights.h"
-#include "settings/EnumSettings.h"
-#include "settings/types/Angle.h"
+#include "types/EnumSettings.h"
+#include "types/Angle.h"
 #include "utils/floatpoint.h"
 #include "MeshGroup.h"
 

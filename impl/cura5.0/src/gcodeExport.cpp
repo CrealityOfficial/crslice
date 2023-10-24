@@ -5,14 +5,10 @@
 #include <cmath>
 #include <iomanip>
 #include "gcodeExport.h"
-#include "PrintFeature.h"
 #include "RetractionConfig.h"
 #include "WipeScriptConfig.h"
-#include "settings/types/LayerIndex.h"
 #include "utils/Date.h"
 #include "utils/string.h" // MMtoStream, PrecisionedDouble
-#include "settings/types/Angle.h" 
-#include "settings/types/Ratio.h"
 
 #include "crsliceinfo.h"
 #include "progress/timeestimateklipper.h"

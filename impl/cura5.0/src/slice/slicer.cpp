@@ -7,7 +7,7 @@
 #include "ccglobal/log.h"
 
 #include "settings/AdaptiveLayerHeights.h"
-#include "settings/types/LayerIndex.h"
+#include "types/LayerIndex.h"
 #include "slicer.h"
 #include "utils/Simplify.h"
 #include "utils/SparsePointGridInclusive.h"
@@ -1101,6 +1101,5 @@ coord_t Slicer::interpolate(const coord_t x, const coord_t x0, const coord_t x1,
     num += num > 0 ? dx_01 / 4 : -dx_01 / 4; // add in offset to round result
     return y0 + num / dx_01;
 }
-
 
 } // namespace cura52

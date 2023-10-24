@@ -15,7 +15,7 @@
 #include "utils/PolygonsSegmentIndex.h"
 #include "utils/ExtrusionJunction.h"
 #include "utils/ExtrusionLine.h"
-#include "settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include "SkeletalTrapezoidationEdge.h"
 #include "SkeletalTrapezoidationJoint.h"
 #include "BeadingStrategy/BeadingStrategy.h"

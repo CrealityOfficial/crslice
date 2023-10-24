@@ -8,10 +8,9 @@
 #include "ccglobal/log.h"
 
 #include "MeshGroup.h"
-#include "settings/types/Ratio.h" //For the shrinkage percentage and scale factor.
+#include "types/Ratio.h" //For the shrinkage percentage and scale factor.
 #include "utils/FMatrix4x3.h" //To transform the input meshes for shrinkage compensation and to align in command line mode.
 #include "utils/floatpoint.h" //To accept incoming meshes with floating point vertices.
-#include "utils/gettime.h"
 #include "utils/string.h"
 
 namespace cura52

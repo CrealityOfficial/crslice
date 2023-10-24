@@ -6,7 +6,7 @@
 #include <functional>
 
 #include "sliceDataStorage.h"
-#include "settings/types/Angle.h" //For the infill angle.
+#include "types/Angle.h" //For the infill angle.
 #include "utils/math.h"
 #include "utils/polygonUtils.h"
 

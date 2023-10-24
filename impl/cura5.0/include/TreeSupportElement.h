@@ -3,8 +3,8 @@
 #define TREESUPPORTELEMENT_H
 
 #include "ThomasTreeModelVolumes.h"
-#include "settings/EnumSettings.h"
-#include "settings/types/LayerIndex.h" // 注意头文件包含顺序，可能有误
+#include "types/EnumSettings.h"
+#include "types/LayerIndex.h" // 注意头文件包含顺序，可能有误
 #include "utils/Coord_t.h"
 #include "utils/polygon.h"
 #include "utils/TreeSupportBaseCircle.h"

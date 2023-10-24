@@ -4,7 +4,7 @@
 #ifndef INFILL_SUBDIVCUBE_H
 #define INFILL_SUBDIVCUBE_H
 
-#include "../settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include "../utils/IntPoint.h"
 #include "../utils/Point3.h"
 

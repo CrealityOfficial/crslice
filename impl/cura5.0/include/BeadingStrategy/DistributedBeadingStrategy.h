@@ -4,7 +4,7 @@
 #ifndef DISTRIBUTED_BEADING_STRATEGY_H
 #define DISTRIBUTED_BEADING_STRATEGY_H
 
-#include "../settings/types/Ratio.h" // For the wall transition threshold.
+#include "types/Ratio.h" // For the wall transition threshold.
 #include "BeadingStrategy.h"
 
 namespace cura52

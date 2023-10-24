@@ -8,7 +8,7 @@
 #include "TreeSupportSettingsT.h"
 #include "boost/functional/hash.hpp" // For combining hashes
 #include "polyclipping/clipper.hpp"
-#include "settings/EnumSettings.h"
+#include "types/EnumSettings.h"
 #include "sliceDataStorage.h"
 #include "utils/Coord_t.h"
 #include "utils/polygon.h"

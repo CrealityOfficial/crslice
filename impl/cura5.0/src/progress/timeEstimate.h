@@ -8,9 +8,9 @@
 #include <vector>
 #include <unordered_map>
 
-#include "PrintFeature.h"
-#include "settings/types/Duration.h" //Print time estimates.
-#include "settings/types/Velocity.h" //Speeds and accelerations at which we print.
+#include "types/PrintFeature.h"
+#include "types/Duration.h" //Print time estimates.
+#include "types/Velocity.h" //Speeds and accelerations at which we print.
 
 namespace cura52
 {

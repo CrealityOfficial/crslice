@@ -7,7 +7,6 @@
 #include "raft.h"
 #include "sliceDataStorage.h"
 #include "support.h"
-#include "settings/EnumSettings.h" //For EPlatformAdhesion.
 #include "utils/math.h"
 
 #include "communication/slicecontext.h"

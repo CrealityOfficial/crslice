@@ -19,8 +19,8 @@
 
 #include <initializer_list>
 
-#include "../settings/types/Angle.h" //For angles between vertices.
-#include "../settings/types/Ratio.h"
+#include "types/Angle.h" //For angles between vertices.
+#include "types/Ratio.h"
 #include "IntPoint.h"
 
 #define CHECK_POLY_ACCESS

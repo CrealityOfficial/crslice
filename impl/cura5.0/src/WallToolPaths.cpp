@@ -13,7 +13,7 @@
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h"
 #include "utils/inputserial.h"
-#include "settings/EnumSettings.h"
+#include "types/EnumSettings.h"
 
 namespace cura52
 {                              

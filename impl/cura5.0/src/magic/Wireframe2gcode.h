@@ -8,9 +8,9 @@
 
 #include "weaveDataStorage.h"
 #include "RetractionConfig.h"
-#include "settings/types/Angle.h" //For the nozzle expansion angle setting.
-#include "settings/types/Ratio.h"
-#include "settings/types/Duration.h"
+#include "types/Angle.h" //For the nozzle expansion angle setting.
+#include "types/Ratio.h"
+#include "types/Duration.h"
 #include "utils/NoCopy.h"
 
 namespace cura52

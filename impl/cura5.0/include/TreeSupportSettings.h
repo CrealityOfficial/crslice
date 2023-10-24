@@ -3,9 +3,9 @@
 #ifndef TREESUPPORTSETTINGS_H
 #define TREESUPPORTSETTINGS_H
 
-#include "settings/EnumSettings.h"
 #include "settings/Settings.h"
-#include "settings/types/Angle.h"
+#include "types/Angle.h"
+#include "types/EnumSettings.h"
 #include "TreeSupportElement.h"
 #include "utils/Coord_t.h"
 #include "utils/Simplify.h"

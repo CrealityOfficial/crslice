@@ -6,9 +6,6 @@
 #include "skin.h"
 #include "infill.h"
 #include "sliceDataStorage.h"
-#include "settings/EnumSettings.h" //For EFillMethod.
-#include "settings/types/Angle.h" //For the infill support angle.
-#include "settings/types/Ratio.h"
 #include "utils/math.h"
 #include "utils/polygonUtils.h"
 #include "WallToolPaths.h"

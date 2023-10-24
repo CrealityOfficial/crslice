@@ -12,8 +12,8 @@
 #include "SupportInfillPart.h"
 #include "TopSurface.h"
 #include "settings/Settings.h" //For MAX_EXTRUDERS.
-#include "settings/types/Angle.h" //Infill angles.
-#include "settings/types/LayerIndex.h"
+#include "types/Angle.h" //Infill angles.
+#include "types/LayerIndex.h"
 #include "utils/AABB.h"
 #include "utils/AABB3D.h"
 #include "utils/IntPoint.h"

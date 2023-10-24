@@ -18,7 +18,7 @@
 #include "pathPlanning/NozzleTempInsert.h"
 #include "pathPlanning/TimeMaterialEstimates.h"
 #include "settings/PathConfigStorage.h"
-#include "settings/types/LayerIndex.h"
+#include "types/LayerIndex.h"
 #include "utils/polygon.h"
 
 #include "InsetOrderOptimizer.h"

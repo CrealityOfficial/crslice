@@ -3,7 +3,7 @@
 
 #include "Preheat.h"
 #include "settings/FlowTempGraph.h"
-#include "settings/types/Ratio.h"
+#include "types/Ratio.h"
 
 #include "communication/slicecontext.h"
 

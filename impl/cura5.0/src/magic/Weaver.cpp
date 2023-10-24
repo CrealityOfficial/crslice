@@ -4,11 +4,8 @@
 #include <cmath> // sqrt
 #include <fstream> // debug IO
 
-#include "PrintFeature.h"
 #include "Weaver.h"
 #include "settings/AdaptiveLayerHeights.h"
-#include "settings/types/Angle.h"
-#include "settings/types/LayerIndex.h"
 #include "utils/polygonUtils.h"
 
 #include "communication/slicecontext.h"

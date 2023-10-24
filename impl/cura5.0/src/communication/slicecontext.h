@@ -6,8 +6,8 @@
 
 #include "MeshGroup.h"
 #include "ExtruderTrain.h"
-#include "settings/EnumSettings.h"
 #include "progress/Progress.h"
+#include "types/header.h"
 
 #include <stdarg.h>
 #include "ccglobal/log.h"

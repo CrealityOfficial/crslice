@@ -6,7 +6,6 @@
 #include "Wireframe2gcode.h"
 
 #include "PathOrderOptimizer.h" //For skirt/brim.
-#include "PrintFeature.h"
 #include "Weaver.h"
 #include "gcodeExport.h"
 #include "weaveDataStorage.h"

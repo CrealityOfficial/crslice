@@ -4,7 +4,7 @@
 
 //#include "ThomasTreeModelVolumesT.h"
 #include "settings/EnumSettingsT.h"
-#include "settings/types/LayerIndex.h" // 注意头文件包含顺序，可能有误
+#include "types/LayerIndex.h" // 注意头文件包含顺序，可能有误
 #include "utils/Coord_t.h"
 #include "utils/polygon.h"
 #include "utils/TreeSupportBaseCircleT.h"

@@ -12,8 +12,6 @@
 #include "infill/ImageBasedDensityProvider.h"
 #include "infill/SierpinskiFillProvider.h"
 #include "infill/UniformDensityProvider.h"
-#include "settings/types/Angle.h" //To compute overhang distance from the angle.
-#include "settings/types/Ratio.h"
 #include "sliceDataStorage.h"
 #include "support.h"
 #include "utils/math.h"

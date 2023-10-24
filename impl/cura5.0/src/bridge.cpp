@@ -3,7 +3,6 @@
 
 #include "bridge.h"
 #include "sliceDataStorage.h"
-#include "settings/types/Ratio.h"
 #include "utils/AABB.h"
 #include "utils/polygon.h"
 #include "limits.h"

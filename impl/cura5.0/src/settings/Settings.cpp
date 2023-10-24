@@ -11,12 +11,6 @@
 #include "BeadingStrategy/BeadingStrategyFactory.h"
 #include "settings/EnumSettingsT.h"
 #include "settings/FlowTempGraph.h"
-#include "settings/types/Angle.h"
-#include "settings/types/Duration.h" //For duration and time settings.
-#include "settings/types/LayerIndex.h" //For layer index settings.
-#include "settings/types/Ratio.h" //For ratio settings and percentages.
-#include "settings/types/Temperature.h" //For temperature settings.
-#include "settings/types/Velocity.h" //For velocity settings.
 #include "utils/FMatrix4x3.h"
 #include "utils/polygon.h"
 #include "utils/string.h" //For Escaped.

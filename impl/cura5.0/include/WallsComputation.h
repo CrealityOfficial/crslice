@@ -5,7 +5,7 @@
 #define WALLS_COMPUTATION_H
 
 #include "settings/Settings.h"
-#include "settings/types/LayerIndex.h"
+#include "types/LayerIndex.h"
 #include "utils/Coord_t.h"
 
 namespace cura52

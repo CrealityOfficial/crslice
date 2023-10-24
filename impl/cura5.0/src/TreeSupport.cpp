@@ -6,8 +6,6 @@
 // clang-format off
 #include "sliceDataStorage.h"
 #include "TreeSupport.h"
-#include "settings/types/Angle.h" //Creating the correct branch angles.
-#include "settings/types/Ratio.h"
 #include "utils/IntPoint.h" //To normalize vectors.
 #include "utils/math.h" //For round_up_divide and PI.
 #include "utils/MinimumSpanningTree.h" //For connecting the correct nodes together to form an efficient tree.

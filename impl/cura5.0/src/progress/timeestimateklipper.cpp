@@ -7,7 +7,7 @@
 
 #include "utils/math.h"
 #include "settings/Settings.h"
-#include "settings/types/Ratio.h"
+#include "types/Ratio.h"
 
 
 namespace cura52

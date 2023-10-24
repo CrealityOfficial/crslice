@@ -4,7 +4,7 @@
 #ifndef ZSEAMCONFIG_H
 #define ZSEAMCONFIG_H
 
-#include "EnumSettings.h" //For EZSeamType and EZSeamCornerPrefType.
+#include "types/EnumSettings.h" //For EZSeamType and EZSeamCornerPrefType.
 #include "../utils/IntPoint.h" //To store the preferred seam position.
 
 namespace cura52

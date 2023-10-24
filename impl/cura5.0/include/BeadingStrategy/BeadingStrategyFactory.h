@@ -4,7 +4,7 @@
 #ifndef BEADING_STRATEGY_FACTORY_H
 #define BEADING_STRATEGY_FACTORY_H
 
-#include "../settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include "BeadingStrategy.h"
 
 namespace cura52

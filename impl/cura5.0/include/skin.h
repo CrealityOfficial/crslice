@@ -4,7 +4,7 @@
 #ifndef SKIN_H
 #define SKIN_H
 
-#include "settings/types/LayerIndex.h"
+#include "types/LayerIndex.h"
 #include "utils/Coord_t.h"
 
 namespace cura52 

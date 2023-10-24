@@ -4,12 +4,11 @@
 #ifndef RETRACTION_CONFIG_H
 #define RETRACTION_CONFIG_H
 
-#include "settings/types/Velocity.h"
+#include "types/Velocity.h"
 #include "utils/Coord_t.h"
 
 namespace cura52
 {
-
     /*!
      * The retraction configuration used in the GCodePathConfig of each feature (and the travel config)
      */
@@ -25,7 +24,6 @@ namespace cura52
         double retraction_extrusion_window; //!< Window of mm extruded filament in which to limit the amount of retractions
         size_t retraction_count_max; //!< The maximum amount of retractions allowed to occur in the RetractionConfig::retraction_extrusion_window
     };
-
 
 }//namespace cura52
 

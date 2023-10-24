@@ -4,7 +4,7 @@
 #include "Mold.h"
 #include "MeshGroup.h"
 #include "ExtruderTrain.h"
-#include "settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include "utils/IntPoint.h"
 
 #include "slice/sliceddata.h"

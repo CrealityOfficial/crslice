@@ -8,7 +8,7 @@
 #include "utils/PolylineStitcher.h"
 #include "slice/sliceddata.h"
 #include "MeshGroup.h"
-#include "settings/EnumSettings.h"
+#include "types/EnumSettings.h"
 
 namespace cura52
 {

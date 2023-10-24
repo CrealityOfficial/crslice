@@ -10,8 +10,8 @@
 #include <unordered_set>
 
 #include "TreeSupportSettings.h"
-#include "settings/EnumSettings.h" //To store whether X/Y or Z distance gets priority.
-#include "settings/types/LayerIndex.h" //Part of the RadiusLayerPair.
+#include "types/EnumSettings.h" //To store whether X/Y or Z distance gets priority.
+#include "types/LayerIndex.h" //Part of the RadiusLayerPair.
 #include "sliceDataStorage.h"
 #include "utils/Simplify.h"
 #include "utils/polygon.h" //For polygon parameters.

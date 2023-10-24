@@ -8,7 +8,7 @@
 #include <optional>
 
 #include "SierpinskiFill.h"
-#include "../settings/EnumSettings.h" //For EFillMethod.
+#include "types/EnumSettings.h" //For EFillMethod.
 
 namespace cura52
 {

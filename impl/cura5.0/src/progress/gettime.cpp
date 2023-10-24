@@ -1,7 +1,7 @@
 //Copyright (c) 2022 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#include "utils/gettime.h"
+#include "gettime.h"
 
 #ifdef _WIN32
 #include <windows.h>

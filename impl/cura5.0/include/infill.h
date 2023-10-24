@@ -6,8 +6,8 @@
 
 #include "infill/LightningGenerator.h"
 #include "infill/ZigzagConnectorProcessor.h"
-#include "settings/EnumSettings.h" //For infill types.
-#include "settings/types/Angle.h"
+#include "types/EnumSettings.h" //For infill types.
+#include "types/Angle.h"
 #include "settings/Settings.h"
 #include "utils/ExtrusionLine.h"
 #include "utils/IntPoint.h"

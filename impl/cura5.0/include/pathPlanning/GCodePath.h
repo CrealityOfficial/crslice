@@ -5,9 +5,9 @@
 #define PATH_PLANNING_G_CODE_PATH_H
 
 #include "../SpaceFillType.h"
-#include "../settings/types/Ratio.h"
+#include "types/Ratio.h"
 #include "../utils/IntPoint.h"
-#include "settings/types/Velocity.h"
+#include "types/Velocity.h"
 #include "TimeMaterialEstimates.h"
 
 namespace cura52 

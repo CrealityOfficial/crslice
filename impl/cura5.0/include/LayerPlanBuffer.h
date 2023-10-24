@@ -7,7 +7,7 @@
 #include <list>
 
 #include "Preheat.h"
-#include "settings/types/Duration.h"
+#include "types/Duration.h"
 
 namespace cura52 
 {

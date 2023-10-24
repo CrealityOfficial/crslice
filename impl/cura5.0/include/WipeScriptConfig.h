@@ -6,8 +6,8 @@
 
 #include "utils/Coord_t.h"
 #include "RetractionConfig.h"
-#include "settings/types/Duration.h"
-#include "settings/types/Velocity.h"
+#include "types/Duration.h"
+#include "types/Velocity.h"
 
 namespace cura52 
 {
