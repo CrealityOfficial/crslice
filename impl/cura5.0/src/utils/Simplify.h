@@ -50,7 +50,7 @@ namespace cura52
          * area in total to change more than this, it cannot be removed.
          */
         Simplify(const coord_t max_resolution, const coord_t max_deviation, const coord_t max_area_deviation);
-        Simplify::Simplify(const Settings& settings);
+        Simplify(const Settings& settings);
         /*!
          * Simplify a batch of polygons.
          * \param polygons The polygons to simplify.

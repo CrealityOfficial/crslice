@@ -4,8 +4,8 @@
 #ifndef LIGHTNING_DISTANCE_FIELD_H
 #define LIGHTNING_DISTANCE_FIELD_H
 
-#include "../utils/polygon.h" //Using outlines to fill and tracking overhang.
-#include "../utils/SquareGrid.h" //Tracking for each location the distance to overhang.
+#include "utils/polygon.h" //Using outlines to fill and tracking overhang.
+#include "utils/SquareGrid.h" //Tracking for each location the distance to overhang.
 
 namespace cura52
 {

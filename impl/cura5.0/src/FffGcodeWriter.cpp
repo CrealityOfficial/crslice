@@ -286,13 +286,19 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         Velocity speed1 = mesh_group->settings.get<Velocity>("speed_wall_0");
         Velocity speed2 = mesh_group->settings.get<Velocity>("speed_wall_x");
         Velocity speed3 = mesh_group->settings.get<Velocity>("speed_infill");
-        Velocity init_limit_speed = std::min(std::min(speed1, speed2), speed3);
+        Velocity init_limit_speed = std::max(std::max(speed1, speed2), speed3);
 
         //init_limit_acc
         Acceleration acc1 = mesh_group->settings.get<Acceleration>("acceleration_infill");
         Acceleration acc2 = mesh_group->settings.get<Acceleration>("acceleration_wall_0");
         Acceleration acc3 = mesh_group->settings.get<Acceleration>("acceleration_wall_x");
-        Acceleration init_limit_acc = std::min(std::min(acc1, acc2), acc3);
+        Acceleration acc4 = mesh_group->settings.get<Acceleration>("acceleration_roofing");
+        Acceleration acc5 = mesh_group->settings.get<Acceleration>("acceleration_topbottom");
+        Acceleration acc6 = mesh_group->settings.get<Acceleration>("acceleration_travel");
+        Acceleration acc7 = mesh_group->settings.get<Acceleration>("acceleration_print_layer_0");
+        Acceleration acc8 = mesh_group->settings.get<Acceleration>("acceleration_travel_layer_0");
+
+        Acceleration init_limit_acc = std::max(std::max(std::max(std::max(std::max(std::max(std::max(acc1, acc2), acc3),acc4),acc5),acc6),acc7),acc8);
 
         //init_limit_temp
         Temperature init_limit_temp = mesh_group->settings.get<Temperature>("material_print_temperature");

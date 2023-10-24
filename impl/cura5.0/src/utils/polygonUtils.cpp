@@ -13,7 +13,7 @@
 
 #ifdef DEBUG
 #include "utils/AABB.h"
-#include "utils/SVG.h"
+#include "tools/SVG.h"
 #include "ccglobal/log.h"
 #endif
 

@@ -454,7 +454,10 @@ namespace cura52
         void calculatMaxSpeedLimitToHeight(const FlowTempGraph& speed_limit_to_height);
 
     private:
-        bool detect_limit(LimitType limitType);
+     bool detect_limit(LimitType limitType);
+     bool detect_limit_acc(LimitType limitType);
+     bool detect_limit_temp(LimitType limitType);
+     bool detect_limit_speed(LimitType limitType);
     private:
         /*!
          * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.

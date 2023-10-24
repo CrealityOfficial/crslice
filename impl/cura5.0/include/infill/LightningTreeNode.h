@@ -9,8 +9,8 @@
 #include <optional>
 #include <vector>
 
-#include "../utils/polygonUtils.h"
-#include "../utils/polygon.h"
+#include "utils/polygonUtils.h"
+#include "utils/polygon.h"
 
 namespace cura52
 {
