@@ -5,7 +5,6 @@
 
 #include "timeestimateklipper.h"
 
-#include "timeEstimate.h"
 #include "utils/math.h"
 #include "settings/Settings.h"
 #include "settings/types/Ratio.h"

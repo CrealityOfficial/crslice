@@ -1,13 +1,11 @@
 //Copyright (c) 2022 Ultimaker B.V.
 //CuraEngine is released under the terms of the AGPLv3 or higher.
 
-#include "progress/ProgressStageEstimator.h"
+#include "ProgressStageEstimator.h"
 
 
 namespace cura52
 {
-
-
     ProgressStageEstimator::ProgressStageEstimator(std::vector< double >& relative_time_estimates)
         : total_estimated_time(0)
         , accumulated_estimate(0)

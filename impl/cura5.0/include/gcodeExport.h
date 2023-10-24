@@ -13,11 +13,12 @@
 #include <memory>
 
 #include "utils/AABB3D.h" //To track the used build volume for the Griffin header.
-#include "timeEstimate.h"
 #include "settings/EnumSettings.h"
 #include "settings/Settings.h" //For MAX_EXTRUDERS.
 #include "settings/types/Temperature.h" //Bed temperature.
 #include "settings/types/Velocity.h"
+#include "settings/types/Duration.h"
+#include "PrintFeature.h"
 #include "utils/IntPoint.h"
 #include "utils/NoCopy.h"
 
@@ -31,7 +32,7 @@ class RetractionConfig;
 struct WipeScriptConfig;
 class SliceContext;
 struct SliceResult;
-
+class TimeEstimateCalculator;
 enum LimitType
 {
     LIMIT_MESS,

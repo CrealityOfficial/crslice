@@ -19,6 +19,7 @@
 #include "utils/linearAlg2D.h"
 #include "utils/polygonUtils.h"
 #include "Slice3rBase/ArcFitter.hpp"
+#include "progress/timeEstimate.h"
 
 #include "settings/FlowTempGraph.h"
 

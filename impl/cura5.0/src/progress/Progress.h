@@ -5,7 +5,7 @@
 #define PROGRESS_H
 #include <string>
 #include "ccglobal/tracer.h"
-#include "utils/gettime.h"
+#include "progress/gettime.h"
 
 namespace cura52
 {

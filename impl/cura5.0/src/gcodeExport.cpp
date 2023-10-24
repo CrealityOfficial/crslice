@@ -4,11 +4,10 @@
 #include <assert.h>
 #include <cmath>
 #include <iomanip>
-
+#include "gcodeExport.h"
 #include "PrintFeature.h"
 #include "RetractionConfig.h"
 #include "WipeScriptConfig.h"
-#include "gcodeExport.h"
 #include "settings/types/LayerIndex.h"
 #include "utils/Date.h"
 #include "utils/string.h" // MMtoStream, PrecisionedDouble
@@ -16,7 +15,7 @@
 #include "settings/types/Ratio.h"
 
 #include "crsliceinfo.h"
-#include "timeestimateklipper.h"
+#include "progress/timeestimateklipper.h"
 
 #include "communication/slicecontext.h"
 #include "crslice/header.h"
@@ -108,9 +107,7 @@ GCodeExport::~GCodeExport()
 void GCodeExport::preSetup(const size_t start_extruder)
 {
     if (application->sceneSettings().get<bool>("klipper_time_estimate_enable"))
-        estimateCalculator.reset(new TimeEstimateKlipper()); //?¦Ì???????????
-    //else 
-   //   estimateCalculator.reset(new TimeEstimateCalculator());  //
+        estimateCalculator.reset(new TimeEstimateKlipper());
 
     current_extruder = start_extruder;
 

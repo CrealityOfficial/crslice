@@ -1,6 +1,6 @@
 #ifndef CURA52_TIMEESTIMATEKLIPPER_1685609041425_H
 #define CURA52_TIMEESTIMATEKLIPPER_1685609041425_H
-#include "timeEstimate.h"
+#include "progress/timeEstimate.h"
 
 namespace cura52
 {

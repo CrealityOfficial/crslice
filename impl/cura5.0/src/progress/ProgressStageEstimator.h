@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "ProgressEstimator.h"
+#include "progress/ProgressEstimator.h"
 
 namespace cura52
 {
