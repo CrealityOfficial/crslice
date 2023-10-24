@@ -4,7 +4,7 @@
 #include "BeadingStrategy/LimitedBeadingStrategy.h"
 
 #include <cassert>
-#include "utils/macros.h"
+#include "tools/macros.h"
 
 #include "ccglobal/log.h"
 
