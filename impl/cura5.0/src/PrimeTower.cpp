@@ -4,10 +4,11 @@
 #include <algorithm>
 #include <limits>
 
+#include "pathPlanning/LayerPlan.h"
+
 #include "ExtruderTrain.h"
 #include "gcodeExport.h"
 #include "infill.h"
-#include "LayerPlan.h"
 #include "PrimeTower.h"
 #include "raft.h"
 #include "Scene.h"

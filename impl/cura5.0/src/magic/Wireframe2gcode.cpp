@@ -4,11 +4,11 @@
 #include <cmath> // sqrt
 #include <fstream> // debug IO
 #include "Wireframe2gcode.h"
-
-#include "PathOrderOptimizer.h" //For skirt/brim.
 #include "Weaver.h"
-#include "gcodeExport.h"
 #include "weaveDataStorage.h"
+
+#include "pathPlanning/PathOrderOptimizer.h" //For skirt/brim.
+#include "gcodeExport.h"
 
 #include "communication/slicecontext.h"
 

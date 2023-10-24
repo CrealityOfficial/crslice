@@ -16,8 +16,9 @@
 #include "support/TreeSupportT.h"
 #include "support/ThomasTreeSupport.h"
 
+#include "pathPlanning/layerPart.h"
+
 #include "infill.h"
-#include "layerPart.h"
 #include "MeshGroup.h"
 #include "raft.h"
 #include "skin.h"

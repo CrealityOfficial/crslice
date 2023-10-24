@@ -11,8 +11,10 @@
 #include "ccglobal/log.h"
 #include "narrow_infill.h"
 #include "FffGcodeWriter.h"
-#include "InsetOrderOptimizer.h"
-#include "LayerPlan.h"
+
+#include "pathPlanning/InsetOrderOptimizer.h"
+#include "pathPlanning/LayerPlan.h"
+
 #include "WallToolPaths.h"
 #include "bridge.h"
 #include "infill.h"

@@ -9,7 +9,7 @@
 
 #include "FanSpeedLayerTime.h"
 #include "gcodeExport.h"
-#include "LayerPlanBuffer.h"
+#include "pathPlanning/LayerPlanBuffer.h"
 #include "settings/PathConfigStorage.h" //For the MeshPathConfigs subclass.
 #include "utils/ExtrusionLine.h" //Processing variable-width paths.
 #include "tools/NoCopy.h"
