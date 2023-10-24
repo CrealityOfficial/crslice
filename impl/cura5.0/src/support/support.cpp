@@ -322,7 +322,7 @@ void AreaSupport::combineSupportInfillLayers(SliceDataStorage& storage)
     const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
     // How many support infill layers to combine to obtain the requested sparse thickness.
     const ExtruderTrain& infill_extruder = mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr");
-    const size_t combine_layers_amount = std::max(uint64_t(1), round_divide(infill_extruder.settings.get<coord_t>("support_infill_sparse_thickness"), std::max(layer_height, coord_t(1))));
+    const float combine_layers_amount = std::max(float(1), (float)infill_extruder.settings.get<coord_t>("support_infill_sparse_thickness")/layer_height);
     if (combine_layers_amount <= 1)
     {
         return;
@@ -332,14 +332,15 @@ void AreaSupport::combineSupportInfillLayers(SliceDataStorage& storage)
     divisible index. Otherwise we get some parts that have infill at divisible
     layers and some at non-divisible layers. Those layers would then miss each
     other. */
-    size_t min_layer = combine_layers_amount - 1;
-    min_layer -= min_layer % combine_layers_amount; // Round upwards to the nearest layer divisible by infill_sparse_combine.
+    size_t min_layer = (size_t)combine_layers_amount - 1;
+    min_layer -= min_layer % (size_t)combine_layers_amount; // Round upwards to the nearest layer divisible by infill_sparse_combine.
     size_t max_layer = total_layer_count < storage.support.supportLayers.size() ? total_layer_count : storage.support.supportLayers.size();
     max_layer = max_layer - 1;
-    max_layer -= max_layer % combine_layers_amount; // Round downwards to the nearest layer divisible by infill_sparse_combine.
+    max_layer -= max_layer % (size_t)combine_layers_amount; // Round downwards to the nearest layer divisible by infill_sparse_combine.
 
-    for (size_t layer_idx = min_layer; layer_idx <= max_layer; layer_idx += combine_layers_amount) // Skip every few layers, but extrude more.
+    for (float layer_fdx = min_layer; layer_fdx <= max_layer; layer_fdx += combine_layers_amount) // Skip every few layers, but extrude more.
     {
+		size_t layer_idx = layer_fdx;
         if (layer_idx >= storage.support.supportLayers.size())
         {
             break;
@@ -412,7 +413,7 @@ void AreaSupport::combineSupportInfillLayers(SliceDataStorage& storage)
             }
         }
 
-		for (int n = layer_idx + 1;n< layer_idx + combine_layers_amount;n++)
+		for (int n = layer_fdx + 1;n< (int)(layer_fdx + combine_layers_amount);n++)
 		{
 			if (n<= max_layer)
 			{

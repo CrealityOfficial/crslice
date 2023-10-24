@@ -200,6 +200,8 @@ const std::string GCodeExport::flavorToString(const EGCodeFlavor& flavor) const
         return "RepRap";
 	case EGCodeFlavor::MACH3_Creality:
 		return "MACH3(Creality)";
+	case EGCodeFlavor::Creality_OS:
+		return "Creality OS";
     case EGCodeFlavor::MARLIN:
     default:
         return "Marlin";
@@ -516,7 +518,8 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 
             prefix << ";NOZZLE_DIAMETER:" << application->extruders()[0].settings.get<double>("machine_nozzle_size") << new_line;
         }
-        else if (flavor == EGCodeFlavor::REPRAP || flavor == EGCodeFlavor::MARLIN || flavor == EGCodeFlavor::MARLIN_VOLUMATRIC || flavor == EGCodeFlavor::MACH3_Creality || flavor == EGCodeFlavor::PLC)
+        else if (flavor == EGCodeFlavor::REPRAP || flavor == EGCodeFlavor::MARLIN || flavor == EGCodeFlavor::MARLIN_VOLUMATRIC || 
+				 flavor == EGCodeFlavor::MACH3_Creality || flavor == EGCodeFlavor::Creality_OS || flavor == EGCodeFlavor::PLC)
         {
             prefix << ";Filament used:";
             if (filament_used.size() > 0)
