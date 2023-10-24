@@ -5,7 +5,7 @@
 #ifndef INFILL_IMAGE_BASED_DENSITY_PROVIDER_H
 #define INFILL_IMAGE_BASED_DENSITY_PROVIDER_H
 
-#include "../utils/AABB.h"
+#include "utils/AABB.h"
 
 #include "DensityProvider.h"
 

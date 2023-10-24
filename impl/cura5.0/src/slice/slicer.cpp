@@ -4,10 +4,8 @@
 #include <algorithm> // remove_if
 #include <stdio.h>
 
-#include "ccglobal/log.h"
+#include "magic/AdaptiveLayerHeights.h"
 
-#include "settings/AdaptiveLayerHeights.h"
-#include "types/LayerIndex.h"
 #include "slicer.h"
 #include "utils/Simplify.h"
 #include "utils/SparsePointGridInclusive.h"

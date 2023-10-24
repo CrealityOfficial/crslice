@@ -12,7 +12,6 @@
 #include "utils/linearAlg2D.h"
 #include "utils/PolygonsPointIndex.h"
 #include "sliceDataStorage.h"
-#include "utils/SVG.h"
 
 #include "ExtruderTrain.h"
 

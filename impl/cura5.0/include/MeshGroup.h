@@ -5,7 +5,7 @@
 #define MESH_GROUP_H
 
 #include "mesh.h"
-#include "utils/NoCopy.h"
+#include "tools/NoCopy.h"
 
 namespace cura52
 {

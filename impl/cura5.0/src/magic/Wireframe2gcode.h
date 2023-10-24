@@ -11,7 +11,7 @@
 #include "types/Angle.h" //For the nozzle expansion angle setting.
 #include "types/Ratio.h"
 #include "types/Duration.h"
-#include "utils/NoCopy.h"
+#include "tools/NoCopy.h"
 
 namespace cura52
 {

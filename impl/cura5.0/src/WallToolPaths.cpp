@@ -12,7 +12,6 @@
 #include "ExtruderTrain.h"
 #include "utils/PolylineStitcher.h"
 #include "utils/Simplify.h"
-#include "utils/inputserial.h"
 #include "types/EnumSettings.h"
 
 namespace cura52

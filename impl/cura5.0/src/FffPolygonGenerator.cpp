@@ -7,11 +7,15 @@
 #include <map> // multimap (ordered map allowing duplicate keys)
 #include <numeric>
 
-#include "ccglobal/log.h"
-
 // Code smell: Order of the includes is important here, probably due to some forward declarations which might be masking some undefined behaviours
 // clang-format off
 #include "FffPolygonGenerator.h"
+
+#include "support/support.h"
+#include "support/TreeSupport.h"
+#include "support/TreeSupportT.h"
+#include "support/ThomasTreeSupport.h"
+
 #include "infill.h"
 #include "layerPart.h"
 #include "MeshGroup.h"
@@ -19,11 +23,7 @@
 #include "skin.h"
 #include "SkirtBrim.h"
 #include "sliceDataStorage.h"
-#include "support.h"
 #include "TopSurface.h"
-#include "TreeSupport.h"
-#include "TreeSupportT.h"
-#include "ThomasTreeSupport.h"
 #include "WallsComputation.h"
 #include "infill/DensityProvider.h"
 #include "infill/ImageBasedDensityProvider.h"
@@ -34,7 +34,7 @@
 #include "progress/ProgressEstimator.h"
 #include "progress/ProgressEstimatorLinear.h"
 #include "progress/ProgressStageEstimator.h"
-#include "settings/AdaptiveLayerHeights.h"
+#include "magic/AdaptiveLayerHeights.h"
 #include "utils/algorithm.h"
 #include "utils/math.h"
 #include "utils/Simplify.h"

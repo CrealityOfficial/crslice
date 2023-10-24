@@ -15,7 +15,7 @@
 #include "types/header.h"
 
 #include "utils/IntPoint.h"
-#include "utils/NoCopy.h"
+#include "tools/NoCopy.h"
 
 namespace cura52
 {

@@ -6,8 +6,8 @@
 
 #include <vector>
 
-#include "../GCodePathConfig.h"
-#include "../utils/Coord_t.h"
+#include "GCodePathConfig.h"
+#include "utils/Coord_t.h"
 
 namespace cura52
 {

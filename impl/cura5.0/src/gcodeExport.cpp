@@ -7,8 +7,9 @@
 #include "gcodeExport.h"
 #include "RetractionConfig.h"
 #include "WipeScriptConfig.h"
-#include "utils/Date.h"
-#include "utils/string.h" // MMtoStream, PrecisionedDouble
+
+#include "tools/Date.h"
+#include "tools/string.h" // MMtoStream, PrecisionedDouble
 
 #include "crsliceinfo.h"
 #include "progress/timeestimateklipper.h"

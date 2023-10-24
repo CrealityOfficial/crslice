@@ -12,7 +12,7 @@
 #include "LayerPlanBuffer.h"
 #include "settings/PathConfigStorage.h" //For the MeshPathConfigs subclass.
 #include "utils/ExtrusionLine.h" //Processing variable-width paths.
-#include "utils/NoCopy.h"
+#include "tools/NoCopy.h"
 
 namespace cura52
 {

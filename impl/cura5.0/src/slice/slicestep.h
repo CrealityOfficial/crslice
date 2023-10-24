@@ -1,7 +1,7 @@
 #ifndef CRSLICE_MESHSLICE_STEP_1668840402293_H
 #define CRSLICE_MESHSLICE_STEP_1668840402293_H
 #include "utils/Coord_t.h"
-#include "settings/AdaptiveLayerHeights.h"
+#include "magic/AdaptiveLayerHeights.h"
 
 namespace cura52 {
 	class SliceContext;

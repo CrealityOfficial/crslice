@@ -5,7 +5,7 @@
 #include <fstream> // debug IO
 
 #include "Weaver.h"
-#include "settings/AdaptiveLayerHeights.h"
+#include "magic/AdaptiveLayerHeights.h"
 #include "utils/polygonUtils.h"
 
 #include "communication/slicecontext.h"

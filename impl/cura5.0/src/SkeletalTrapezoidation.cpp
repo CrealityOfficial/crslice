@@ -15,11 +15,7 @@
 #include "BoostInterface.hpp"
 
 #include "utils/VoronoiUtils.h"
-
 #include "utils/linearAlg2D.h"
-
-#include "utils/macros.h"
-
 #include "utils/VoronoiUtilsCgal.h"
 
 #define SKELETAL_TRAPEZOIDATION_BEAD_SEARCH_MAX 1000 // A limit to how long it'll keep searching for adjacent beads. Increasing will re-use beadings more often (saving performance), but search longer for beading (costing performance).

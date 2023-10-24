@@ -4,16 +4,16 @@
 #ifndef PATH_PLANNING_COMB_PATH_H
 #define PATH_PLANNING_COMB_PATH_H
 
-#include "../utils/IntPoint.h"
+#include "utils/IntPoint.h"
 
 namespace cura52
 {
 
-class CombPath : public  std::vector<Point> //!< A single path either inside or outise the parts
-{
-public:
-    bool cross_boundary = false; //!< Whether the path crosses a boundary.
-};
+    class CombPath : public  std::vector<Point> //!< A single path either inside or outise the parts
+    {
+    public:
+        bool cross_boundary = false; //!< Whether the path crosses a boundary.
+    };
 
 }//namespace cura52
 

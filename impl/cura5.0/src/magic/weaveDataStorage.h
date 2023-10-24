@@ -5,7 +5,7 @@
 #define WEAVE_DATA_STORAGE_H
 
 #include "utils/polygon.h"
-#include "utils/NoCopy.h"
+#include "tools/NoCopy.h"
 
 namespace cura52 {
 

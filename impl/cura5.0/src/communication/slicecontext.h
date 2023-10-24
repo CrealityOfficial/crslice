@@ -91,7 +91,7 @@ namespace cura52
 
 } //namespace cura52
 
-#include "utils/ThreadPool.h"
+#include "tools/ThreadPool.h"
 
 #if 1   // USE_INTERRUPT
 #define INTERRUPT_RETURN(x) 	if (application->checkInterrupt(x)) return
