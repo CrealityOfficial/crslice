@@ -10,7 +10,6 @@
 
 #include "BeadingStrategy/BeadingStrategyFactory.h"
 #include "settings/EnumSettingsT.h"
-#include "settings/FlowTempGraph.h"
 #include "utils/FMatrix4x3.h"
 #include "utils/polygon.h"
 #include "utils/string.h" //For Escaped.

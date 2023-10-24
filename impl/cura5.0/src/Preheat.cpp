@@ -2,7 +2,6 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher
 
 #include "Preheat.h"
-#include "settings/FlowTempGraph.h"
 #include "types/Ratio.h"
 
 #include "communication/slicecontext.h"

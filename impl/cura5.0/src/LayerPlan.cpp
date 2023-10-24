@@ -21,8 +21,6 @@
 #include "Slice3rBase/ArcFitter.hpp"
 #include "progress/timeEstimate.h"
 
-#include "settings/FlowTempGraph.h"
-
 #include "communication/slicecontext.h"
 
 namespace cura52

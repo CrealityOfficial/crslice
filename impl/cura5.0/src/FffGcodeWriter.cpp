@@ -22,8 +22,6 @@
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
 
-#include "settings/GetLimitList.h"
-
 #include "communication/slicecontext.h"
 
 namespace cura52

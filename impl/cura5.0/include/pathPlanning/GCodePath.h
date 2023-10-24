@@ -4,7 +4,7 @@
 #ifndef PATH_PLANNING_G_CODE_PATH_H
 #define PATH_PLANNING_G_CODE_PATH_H
 
-#include "../SpaceFillType.h"
+#include "types/SpaceFillType.h"
 #include "types/Ratio.h"
 #include "../utils/IntPoint.h"
 #include "types/Velocity.h"
