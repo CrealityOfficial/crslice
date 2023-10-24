@@ -407,11 +407,24 @@ void AreaSupport::combineSupportInfillLayers(SliceDataStorage& storage)
                             lower_infill_area_per_combine[0] = lower_infill_area_per_combine[0].difference(intersection); // remove thickened area from lower (single thickness) layer
                         }
                     }
-
+					infill_area_per_combine.clear();
+					infill_area_per_combine.push_back(Polygons());
                     infill_area_per_combine.push_back(result);
                 }
             }
         }
+
+		for (int n = layer_idx + 1;n< layer_idx + combine_layers_amount;n++)
+		{
+			if (n<= max_layer)
+			{
+				for (SupportInfillPart& part : storage.support.supportLayers[n].support_infill_parts)
+				{
+					part.infill_area_per_combine_per_density.clear();
+					part.wall_toolpaths.clear();
+				}
+			}
+		}
     }
 }
 

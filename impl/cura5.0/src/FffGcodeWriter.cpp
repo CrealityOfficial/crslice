@@ -3927,7 +3927,9 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
 
         if (! wall_toolpaths.empty())
         {
-            const GCodePathConfig& config = gcode_layer.configs_storage.support_infill_config[0];
+			const size_t combine_layers_amount = std::max(uint64_t(1), round_divide(storage.application->sceneSettings().get<coord_t>("support_infill_sparse_thickness"), 
+												 std::max(storage.application->sceneSettings().get<coord_t>("layer_height"), coord_t(1))));
+            const GCodePathConfig& config = gcode_layer.configs_storage.support_infill_config[combine_layers_amount];
             constexpr bool retract_before_outer_wall = false;
             constexpr coord_t wipe_dist = 0;
             const ZSeamConfig z_seam_config(EZSeamType::SHORTEST, gcode_layer.getLastPlannedPositionOrStartingPosition(), EZSeamCornerPrefType::Z_SEAM_CORNER_PREF_NONE, false);
