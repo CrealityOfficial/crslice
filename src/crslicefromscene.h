@@ -1,7 +1,7 @@
 #ifndef CRSLICE_FROM_SCENE_COMMANDLINE_H
 #define CRSLICE_FROM_SCENE_COMMANDLINE_H
 #include "crslice/crscene.h"
-#include "Scene.h"
+#include "communication/Scene.h"
 #include "communication/scenefactory.h"
 
 namespace cura52

@@ -189,9 +189,9 @@ inline Polylines to_polylines(const ExPolygon &src)
     pl.points = src.contour.points;
     pl.points.push_back(pl.points.front());
     for (Polygons::const_iterator ith = src.holes.begin(); ith != src.holes.end(); ++ith) {
-        Polyline &pl = polylines[idx ++];
-        pl.points = ith->points;
-        pl.points.push_back(ith->points.front());
+        Polyline &pl2 = polylines[idx ++];
+        pl2.points = ith->points;
+        pl2.points.push_back(ith->points.front());
     }
     assert(idx == polylines.size());
     return polylines;
@@ -207,9 +207,9 @@ inline Polylines to_polylines(const ExPolygons &src)
         pl.points = it->contour.points;
         pl.points.push_back(pl.points.front());
         for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
-            Polyline &pl = polylines[idx ++];
-            pl.points = ith->points;
-            pl.points.push_back(ith->points.front());
+            Polyline &pl2 = polylines[idx ++];
+            pl2.points = ith->points;
+            pl2.points.push_back(ith->points.front());
         }
     }
     assert(idx == polylines.size());
@@ -225,9 +225,9 @@ inline Polylines to_polylines(ExPolygon &&src)
     pl.points = std::move(src.contour.points);
     pl.points.push_back(pl.points.front());
     for (Polygons::const_iterator ith = src.holes.begin(); ith != src.holes.end(); ++ith) {
-        Polyline &pl = polylines[idx ++];
-        pl.points = std::move(ith->points);
-        pl.points.push_back(ith->points.front());
+        Polyline &pl2 = polylines[idx ++];
+        pl2.points = std::move(ith->points);
+        pl2.points.push_back(ith->points.front());
     }
     assert(idx == polylines.size());
     return polylines;
@@ -243,9 +243,9 @@ inline Polylines to_polylines(ExPolygons &&src)
         pl.points = std::move(it->contour.points);
         pl.points.push_back(pl.points.front());
         for (Polygons::const_iterator ith = it->holes.begin(); ith != it->holes.end(); ++ith) {
-            Polyline &pl = polylines[idx ++];
-            pl.points = std::move(ith->points);
-            pl.points.push_back(ith->points.front());
+            Polyline &pl2 = polylines[idx ++];
+            pl2.points = std::move(ith->points);
+            pl2.points.push_back(ith->points.front());
         }
     }
     assert(idx == polylines.size());

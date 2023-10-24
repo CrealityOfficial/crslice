@@ -1,5 +1,5 @@
 #include "crslice/crslice.h"
-#include "Application.h"
+#include "communication/Application.h"
 
 #include "ccglobal/log.h"
 #include "crslicefromscene.h"
