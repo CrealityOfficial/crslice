@@ -3,8 +3,9 @@
 
 #include "Application.h"
 
-#include "Weaver.h"
-#include "Wireframe2gcode.h"
+#include "magic/Weaver.h"
+#include "magic/Wireframe2gcode.h"
+
 #include "sliceDataStorage.h"
 
 #include "communication/scenefactory.h"
