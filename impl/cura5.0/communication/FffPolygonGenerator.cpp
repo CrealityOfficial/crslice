@@ -10,13 +10,13 @@
 // Code smell: Order of the includes is important here, probably due to some forward declarations which might be masking some undefined behaviours
 // clang-format off
 #include "FffPolygonGenerator.h"
+#include "layerPart.h"
 
 #include "support/support.h"
 #include "support/TreeSupport.h"
 #include "support/TreeSupportT.h"
 #include "support/ThomasTreeSupport.h"
 
-#include "pathPlanning/layerPart.h"
 #include "infill/infill.h"
 
 #include "magic/raft.h"
@@ -253,10 +253,15 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         meshStorage.appliction = storage.application;
 
         // only create layer parts for normal meshes
-        const bool is_support_modifier = AreaSupport::handleSupportModifierMesh(storage, mesh.settings, &slicedData);
+        const bool is_support_modifier = mesh.settings.get<bool>("anti_overhang_mesh") || mesh.settings.get<bool>("support_mesh");
+
         if (! is_support_modifier)
         {
             createLayerParts(application, meshStorage, &slicedData);
+        }
+        else
+        {
+            handleSupportModifierMesh(storage, mesh.settings, &slicedData);
         }
 
         // Do not add and process support _modifier_ meshes further, and ONLY skip support _modifiers_. They have been

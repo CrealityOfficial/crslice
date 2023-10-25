@@ -16,19 +16,6 @@ namespace cura52
     class AreaSupport
     {
     public:
-        /*!
-         * \brief Move support mesh outlines from slicer data into the support
-         * storage.
-         *
-         * \param[out] storage Where to store the support areas.
-         * \param mesh_settings Where to get the settings from what kind of support
-         * mesh it is.
-         * \param slicer Where to get the outlines from.
-         * \return Whether the mesh is used up in support and no normal mesh
-         * processing is needed.
-         */
-        static bool handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const SlicedData* data);
-
         static bool isSupportNecessary(SliceDataStorage& storage);
         /*!
          * \brief Generate the overhang areas for all models.

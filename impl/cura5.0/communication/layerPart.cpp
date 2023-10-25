@@ -103,6 +103,7 @@ namespace cura52 {
             }
         }
     }
+
     void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, SlicedData* data)
     {
         const auto total_layers = data->layers.size();
@@ -121,6 +122,36 @@ namespace cura52 {
             if (layer_storage.parts.size() > 0 || (mesh.settings.get<ESurfaceMode>("magic_mesh_surface_mode") != ESurfaceMode::NORMAL && layer_storage.openPolyLines.size() > 0))
             {
                 mesh.layer_nr_max_filled_layer = layer_nr; // last set by the highest non-empty layer
+                break;
+            }
+        }
+    }
+
+    void handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const SlicedData* data)
+    {
+        enum ModifierType
+        {
+            ANTI_OVERHANG,
+            SUPPORT_DROP_DOWN,
+            SUPPORT_VANILLA
+        };
+
+        ModifierType modifier_type = (mesh_settings.get<bool>("anti_overhang_mesh")) ? ANTI_OVERHANG :
+            ((mesh_settings.get<bool>("support_mesh_drop_down")) ? SUPPORT_DROP_DOWN : SUPPORT_VANILLA);
+        for (unsigned int layer_nr = 0; layer_nr < data->layers.size(); layer_nr++)
+        {
+            SupportLayer& support_layer = storage.support.supportLayers[layer_nr];
+            const SlicedLayer& slicer_layer = data->layers[layer_nr];
+            switch (modifier_type)
+            {
+            case ANTI_OVERHANG:
+                support_layer.anti_overhang.add(slicer_layer.polygons);
+                break;
+            case SUPPORT_DROP_DOWN:
+                support_layer.support_mesh_drop_down.add(slicer_layer.polygons);
+                break;
+            case SUPPORT_VANILLA:
+                support_layer.support_mesh.add(slicer_layer.polygons);
                 break;
             }
         }

@@ -22,6 +22,7 @@ namespace cura52
 	class Settings;
 	class SliceLayer;
 	class SliceMeshStorage;
+	class SliceDataStorage;
 	class SliceContext;
 
 	struct SlicedLayer;
@@ -42,6 +43,18 @@ namespace cura52
 	 */
 	void createLayerParts(SliceContext* application, SliceMeshStorage& mesh, SlicedData* data);
 
+	/*!
+	 * \brief Move support mesh outlines from slicer data into the support
+	 * storage.
+	 *
+	 * \param[out] storage Where to store the support areas.
+	 * \param mesh_settings Where to get the settings from what kind of support
+	 * mesh it is.
+	 * \param slicer Where to get the outlines from.
+	 * \return Whether the mesh is used up in support and no normal mesh
+	 * processing is needed.
+	 */
+	void handleSupportModifierMesh(SliceDataStorage& storage, const Settings& mesh_settings, const SlicedData* data);
 }//namespace cura52
 
 #endif//LAYERPART_H
