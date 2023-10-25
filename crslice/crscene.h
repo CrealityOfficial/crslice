@@ -25,6 +25,7 @@ namespace crslice
 		void setGroupSettings(int groupID, SettingsPtr settings);
 		void setSceneSettings(SettingsPtr settings);
 		void setSceneJsonFile(const std::string& fileName);
+		void addSceneParameter(const std::string& key, const std::string& value);
 		void setTempDirectory(const std::string& directory);
 
 		void release();

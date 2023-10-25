@@ -173,6 +173,11 @@ namespace crslice
 		}
 	}
 
+	void CrScene::addSceneParameter(const std::string& key, const std::string& value)
+	{
+		m_settings->add(key, value);
+	}
+
 	void CrScene::setTempDirectory(const std::string& directory)
 	{
 		m_tempDirectory = directory;
