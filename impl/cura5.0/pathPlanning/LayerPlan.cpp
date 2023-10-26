@@ -1880,18 +1880,12 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
 {
     estimates.reset();
     TimeMaterialEstimates ret;
-    TimeEstimateCalculator travel_time_calculator;
-    travel_time_calculator.currentPosition = TimeEstimateCalculator::Position(INT2MM(starting_position.X), INT2MM(starting_position.Y), INT2MM(layer_nr * layer_thickness), 0);
-
+   
     Point p0 = starting_position;
 
     bool was_retracted = false; // wrong assumption; won't matter that much. (TODO)
-    double fitting = 0.024517 * pow(min_layertime, 4) - 1.0104 * pow(min_layertime, 3) + 15.453 * pow(min_layertime, 2) - 105.71 * min_layertime + 323.81;
-    int count = 0;
     for (GCodePath& path : paths)
     {
-        travel_time_calculator.max_xy_jerk = path.config->getJerk();
-        travel_time_calculator.acceleration = path.config->getAcceleration();
         path.estimates.reset();
         bool is_extrusion_path = false;
         double* path_time_estimate;
@@ -1932,21 +1926,17 @@ TimeMaterialEstimates ExtruderPlan::computeNaiveTimeEstimates(Point starting_pos
         }
         for (Point& p1 : path.points)
         {
-            count+=1;
-            travel_time_calculator.plan(TimeEstimateCalculator::Position(INT2MM(p1.X), INT2MM(p1.Y), INT2MM(layer_nr * layer_thickness), 0), (path.config->getSpeed() * path.speed_factor), path.config->type);
-
+            double length = vSizeMM(p0 - p1);
+            if (is_extrusion_path)
+            {
+                material_estimate += length * INT2MM(layer_thickness) * INT2MM(path.config->getLineWidth());
+            }
+            double thisTime = length / (path.config->getSpeed() * path.speed_factor);
+            *path_time_estimate += thisTime;
             p0 = p1;
         }
-
+        estimates += path.estimates;
     }
-    if (level == 0 && count < 200)
-        estimates.extrude_time -= count/fitting;
-    std::vector<Duration> estimates_aaa = travel_time_calculator.calculate();
-    for (int i = 0; i < estimates_aaa.size(); i++)
-    {
-        estimates.extrude_time += estimates_aaa[i];
-    }
-
     return estimates;
 }
 
