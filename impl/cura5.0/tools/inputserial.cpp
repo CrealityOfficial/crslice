@@ -1,6 +1,6 @@
 #include "inputserial.h"
 #include "skeletal/SkeletalTrapezoidation.h"
-#include "BeadingStrategy/BeadingStrategyFactory.h"
+#include "skeletal/BeadingStrategyFactory.h"
 
 using namespace crslice;
 namespace cura52

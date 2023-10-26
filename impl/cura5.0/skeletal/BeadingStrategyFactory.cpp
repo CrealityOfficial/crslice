@@ -1,17 +1,17 @@
 // Copyright (c) 2022 Ultimaker B.V.
 // CuraEngine is released under the terms of the AGPLv3 or higher
 
-#include "BeadingStrategy/BeadingStrategyFactory.h"
+#include "BeadingStrategyFactory.h"
 
 #include <limits>
 
 #include "ccglobal/log.h"
 
-#include "BeadingStrategy/DistributedBeadingStrategy.h"
-#include "BeadingStrategy/LimitedBeadingStrategy.h"
-#include "BeadingStrategy/OuterWallInsetBeadingStrategy.h"
-#include "BeadingStrategy/RedistributeBeadingStrategy.h"
-#include "BeadingStrategy/WideningBeadingStrategy.h"
+#include "DistributedBeadingStrategy.h"
+#include "LimitedBeadingStrategy.h"
+#include "OuterWallInsetBeadingStrategy.h"
+#include "RedistributeBeadingStrategy.h"
+#include "WideningBeadingStrategy.h"
 
 namespace cura52
 {

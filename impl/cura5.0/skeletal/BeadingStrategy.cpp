@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include "BeadingStrategy/BeadingStrategy.h"
+#include "BeadingStrategy.h"
 
 namespace cura52
 {

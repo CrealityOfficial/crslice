@@ -18,7 +18,6 @@
 #include "types/Ratio.h"
 #include "SkeletalTrapezoidationEdge.h"
 #include "SkeletalTrapezoidationJoint.h"
-#include "BeadingStrategy/BeadingStrategy.h"
 #include "SkeletalTrapezoidationGraph.h"
 
 namespace cura52

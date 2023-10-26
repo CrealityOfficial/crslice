@@ -10,52 +10,52 @@
 namespace cura52
 {
 
-/*!
- * This struct represents one vertex in an extruded path.
- *
- * It contains information on how wide the extruded path must be at this point,
- * and which perimeter it represents.
- */
-struct ExtrusionJunction
-{
     /*!
-     * The position of the centreline of the path when it reaches this junction.
-     * This is the position that should end up in the g-code eventually.
-     */
-    Point p;
-
-    /*!
-     * The width of the extruded path at this junction.
-     */
-    coord_t w;
-
-    /*!
-     * Which perimeter this junction is part of.
+     * This struct represents one vertex in an extruded path.
      *
-     * Perimeters are counted from the outside inwards. The outer wall has index
-     * 0.
+     * It contains information on how wide the extruded path must be at this point,
+     * and which perimeter it represents.
      */
-    size_t perimeter_index;
+    struct ExtrusionJunction
+    {
+        /*!
+         * The position of the centreline of the path when it reaches this junction.
+         * This is the position that should end up in the g-code eventually.
+         */
+        Point p;
 
-    coord_t overhang_distance;
+        /*!
+         * The width of the extruded path at this junction.
+         */
+        coord_t w;
 
-    ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index, const coord_t overhang_distance = 0);
+        /*!
+         * Which perimeter this junction is part of.
+         *
+         * Perimeters are counted from the outside inwards. The outer wall has index
+         * 0.
+         */
+        size_t perimeter_index;
 
-    bool operator==(const ExtrusionJunction& other) const;
-};
+        coord_t overhang_distance;
 
-inline Point operator-(const ExtrusionJunction& a, const ExtrusionJunction& b)
-{
-    return a.p - b.p;
-}
+        ExtrusionJunction(const Point p, const coord_t w, const coord_t perimeter_index, const coord_t overhang_distance = 0);
 
-// Identity function, used to be able to make templated algorithms that do their operations on 'point-like' input.
-inline const Point& make_point(const ExtrusionJunction& ej)
-{
-    return ej.p;
-}
+        bool operator==(const ExtrusionJunction& other) const;
+    };
 
-using LineJunctions = std::vector<ExtrusionJunction>; //<! The junctions along a line without further information. See \ref ExtrusionLine for a more extensive class.
+    inline Point operator-(const ExtrusionJunction& a, const ExtrusionJunction& b)
+    {
+        return a.p - b.p;
+    }
+
+    // Identity function, used to be able to make templated algorithms that do their operations on 'point-like' input.
+    inline const Point& make_point(const ExtrusionJunction& ej)
+    {
+        return ej.p;
+    }
+
+    using LineJunctions = std::vector<ExtrusionJunction>; //<! The junctions along a line without further information. See \ref ExtrusionLine for a more extensive class.
 
 }
 #endif // UTILS_EXTRUSION_JUNCTION_H

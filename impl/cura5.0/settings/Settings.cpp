@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <string> //Parsing strings (stod, stoul).
 
-#include "BeadingStrategy/BeadingStrategyFactory.h"
 #include "types/EnumSettingsT.h"
 #include "utils/FMatrix4x3.h"
 #include "utils/polygon.h"
