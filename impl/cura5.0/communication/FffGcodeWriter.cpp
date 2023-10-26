@@ -15,8 +15,6 @@
 
 #include "infill/infill.h"
 
-#include "skeletal/WallToolPaths.h"
-
 #include "magic/bridge.h"
 #include "magic/raft.h"
 

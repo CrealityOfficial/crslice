@@ -8,7 +8,6 @@
 #include "communication/sliceDataStorage.h"
 #include "utils/math.h"
 #include "utils/polygonUtils.h"
-#include "skeletal/WallToolPaths.h"
 
 #include "communication/slicecontext.h"
 
