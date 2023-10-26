@@ -17,6 +17,7 @@
 #include "support/TreeSupportT.h"
 #include "support/ThomasTreeSupport.h"
 
+
 #include "infill/infill.h"
 
 #include "magic/raft.h"
@@ -395,8 +396,13 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 	CALLTICK("support 0");
     application->messageProgressStage(Progress::Stage::SUPPORT);
 
+	if (mesh_group_settings.get<bool>("support_enable"))
+	{
+		application->message("{5}");
+	}
     if (!mesh_group_settings.get<bool>("support_enable") && AreaSupport::isSupportNecessary(storage)) {
-        application->message("need_support_structure");
+        //application->message("need_support_structure");
+		application->message("{12}");
     }
 
     AreaSupport::generateOverhangAreas(storage);
@@ -459,6 +465,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     if (! isEmptyLayer(storage, 0) || storage.primeTower.enabled)
     {
         LOGD("Processing platform adhesion");
+		application->message("{6}");
         processPlatformAdhesion(storage);
     }
 
@@ -541,7 +548,8 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 		[&](size_t layer_number)
 		{
 			INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
-
+			std::string msg = "{3}{11}" + mesh.mesh_name + "{10}" + std::to_string(layer_number);
+			application->message(msg.c_str());
 			processWalls(mesh, layer_number);
 			guarded_progress++;
 		});
@@ -589,6 +597,8 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 
                                     if (! magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
                                     {
+										std::string msg = "{4}{11}" + mesh.mesh_name + "{10}" + std::to_string(layer_number);
+										application->message(msg.c_str());
                                         processSkinsAndInfill(mesh, layer_number, process_infill);
                                     }
                                     guarded_progress++;

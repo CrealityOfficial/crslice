@@ -235,7 +235,7 @@ namespace cura52
             {
                 progressor.restartTime();
                 
-                formatMessage("{0}");
+                //formatMessage("{0}");
 
                 TimeKeeper time_keeper_total;
 
@@ -283,7 +283,7 @@ namespace cura52
                     gcode_writer.writeGCode(storage);
                     tick("writeGCode 1");
                 }
-
+				message("{9}");
                 progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
                 LOGI("Total time elapsed { %f }s.\n", time_keeper_total.restart());
             }

@@ -792,6 +792,8 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
 
     std::vector<std::pair<int32_t, int32_t>> zbbox = buildZHeightsForFaces(*mesh);
 
+	std::string msg = "{1}" + mesh->mesh_name;
+	application->message(msg.c_str());
     buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
 
     LOGI("Slice of mesh took { %f } seconds", slice_timer.restart());
@@ -1025,11 +1027,13 @@ void Slicer::makePolygons(SliceContext* application, Mesh& mesh, SlicingToleranc
 
     cura52::parallel_for<size_t>(application, 0,
                                layers.size(),
-                               [&mesh, &layers, layer_apply_initial_xy_offset, xy_offset, xy_offset_0, offset_rectify](size_t layer_nr)
+                               [&application, &mesh, &layers, layer_apply_initial_xy_offset, xy_offset, xy_offset_0, offset_rectify](size_t layer_nr)
                                {
                                    const coord_t xy_offset_local = (layer_nr <= layer_apply_initial_xy_offset) ? xy_offset_0 - offset_rectify : xy_offset - offset_rectify;
                                    if (xy_offset_local != 0)
                                    {
+									   std::string msg = "{2}{11}" + mesh.mesh_name+ "{10}"+ std::to_string(layer_nr);
+									   application->message(msg.c_str());
                                        layers[layer_nr].polygons = layers[layer_nr].polygons.offset(xy_offset_local, ClipperLib::JoinType::jtRound);
                                    }
                                });

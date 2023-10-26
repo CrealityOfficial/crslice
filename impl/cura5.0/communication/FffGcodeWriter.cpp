@@ -243,6 +243,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     if (!mesh_group->settings.get<bool>("magic_spiralize") && mesh_group->settings.get<EZSeamType>("z_seam_type") == EZSeamType::SHARPEST_CORNER)
     {
+		application->message("{7}");
         processZSeam(storage, total_layers);
     }
 
@@ -334,7 +335,8 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         for (int layer_nr = process_layer_starting_layer_nr; layer_nr < (int)total_layers; layer_nr++)
         {
             application->messageProgress(Progress::Stage::EXPORT, std::max(0, layer_nr) + 1, total_layers);
-            //layer_plan_buffer.handle(processLayer(storage, layer_nr, total_layers,last_planned_position), gcode);
+			std::string msg = "{8}{10}" + std::to_string(layer_nr);
+			application->message(msg.c_str());
             LayerPlan& gcode_layer = processLayer(storage, layer_nr, total_layers, last_planned_position);
             last_planned_position = gcode_layer.getLastPosition();
             layer_plan_buffer.handle(gcode_layer, gcode);
