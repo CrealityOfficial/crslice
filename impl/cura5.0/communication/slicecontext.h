@@ -8,6 +8,7 @@
 #include "ExtruderTrain.h"
 #include "progress/Progress.h"
 #include "types/header.h"
+#include "tools/Cache.h"
 
 #include <stdarg.h>
 #include "ccglobal/log.h"
@@ -72,6 +73,7 @@ namespace cura52
         virtual void tick(const std::string& tag) = 0;
         virtual void message(const char* msg) = 0;
         virtual crslice::FDMDebugger* debugger() = 0;
+        virtual Cache* cache() = 0;
 
         void formatMessage(const char* format, ...)
         {

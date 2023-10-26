@@ -45,17 +45,6 @@ namespace cura52
         virtual ~Application();
 
         SliceResult runSceneFactory(SceneFactory* factory);
-        /*!
-         * \brief Start the global thread pool.
-         *
-         * If `nworkers` <= 0 and there is no pre-existing thread pool, a thread
-         * pool with hardware_concurrency() workers is initialized.
-         * The thread pool is restarted when the number of thread differs from
-         * previous invocations.
-         *
-         * \param nworkers The number of workers (including the main thread) that are ran.
-         */
-        void startThreadPool(int nworkers = 0);
     protected:
         int extruderCount() override;
         const std::vector<ExtruderTrain>& extruders() const override;
@@ -74,6 +63,7 @@ namespace cura52
         void tick(const std::string& tag) override;
         void message(const char* msg) override;
         crslice::FDMDebugger* debugger() override;
+        Cache* cache() override;
 
         void messageProgress(Progress::Stage stage, int progress_in_stage, int progress_in_stage_max) override;
         void messageProgressStage(Progress::Stage stage) override;
@@ -81,6 +71,23 @@ namespace cura52
         void setResult(const SliceResult& result) override;
 
         void compute();
+
+        /*!
+         * \brief Start the global thread pool.
+         *
+         * If `nworkers` <= 0 and there is no pre-existing thread pool, a thread
+         * pool with hardware_concurrency() workers is initialized.
+         * The thread pool is restarted when the number of thread differs from
+         * previous invocations.
+         *
+         * \param nworkers The number of workers (including the main thread) that are ran.
+         */
+        void startThreadPool(int nworkers = 0);
+
+        /*!
+        * init cache
+        */
+        void initCache();
     private:
         bool m_error;
 
@@ -110,6 +117,8 @@ namespace cura52
          * If no slice has started yet, this will be a nullptr.
          */
         std::shared_ptr<Scene> scene;
+
+        std::unique_ptr<Cache> m_cache;
     };
 
 } //Cura namespace.

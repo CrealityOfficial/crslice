@@ -7,6 +7,7 @@
 #include "magic/Wireframe2gcode.h"
 
 #include "sliceDataStorage.h"
+#include <boost/filesystem.hpp>
 
 #include "communication/scenefactory.h"
 
@@ -70,6 +71,11 @@ namespace cura52
         return scene->fDebugger;
     }
 
+    Cache* Application::cache()
+    {
+        return m_cache.get();
+    }
+
     SliceResult Application::runSceneFactory(SceneFactory* factory)
     {
         if (!factory)
@@ -83,6 +89,7 @@ namespace cura52
             if (scene)
             {
                 tick("slice 0");
+                initCache();
 
                 gcode_writer.setTargetFile(scene->gcodeFile.c_str());
 
@@ -289,6 +296,22 @@ namespace cura52
             }
 
             ++index;
+        }
+    }
+
+    void Application::initCache()
+    {
+        if (scene.get())
+        {
+            const Settings& settings = scene->settings;
+            if (settings.has("fdm_slice_debug") && settings.get<bool>("fdm_slice_debug"))
+            {
+                std::string path = settings.get<std::string>("fdm_slice_debug_path");
+                if (boost::filesystem::exists(path))
+                {
+                    m_cache.reset(new Cache(path));
+                }
+            }
         }
     }
 } // namespace cura52
