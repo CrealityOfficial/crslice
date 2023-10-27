@@ -310,7 +310,7 @@ namespace cura52
         Settings& settings;
         SliceContext* application = nullptr;
         size_t print_layer_count; //!< The total number of layers (except the raft and filler layers)
-
+        std::vector<std::string> m_Object_Exclude_FileName;
         Point3 model_size, model_min, model_max;
         AABB3D machine_size; //!< The bounding box with the width, height and depth of the printer.
         std::vector<SliceMeshStorage> meshes;

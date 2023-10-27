@@ -117,6 +117,7 @@ namespace crslice
 
 	void CrScene::setOjbectExclude(int groupID, int objectID, const std::string& fileName, std::vector<trimesh::vec3>& outline_ObjectExclude)
 	{
+		m_Object_Exclude_FileName.push_back(fileName);
 		setPloygonFileName(fileName);
 
 		//save lines

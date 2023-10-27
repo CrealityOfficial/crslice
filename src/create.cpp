@@ -69,7 +69,9 @@ namespace crslice
         }
 
         cura52::Scene* slice = new cura52::Scene(numGroup);
-
+        //for (std::string s : scene.get()->m_Object_Exclude_FileName)
+        //    slice->m_Object_Exclude_FileName.push_back(s);
+        slice->m_Object_Exclude_FileName = scene.get()->m_Object_Exclude_FileName;
         slice->machine_center_is_zero = scene->machine_center_is_zero;
         slice->gcodeFile = outputFile;
         slice->ploygonFile = scene->m_ploygonFileName;

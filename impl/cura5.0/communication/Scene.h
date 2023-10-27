@@ -26,6 +26,7 @@ namespace cura52
         crslice::FDMDebugger* fDebugger = nullptr;
         std::string gcodeFile;
         std::string ploygonFile;
+        std::vector<std::string> m_Object_Exclude_FileName;
         /*
          * \brief Which extruder to evaluate each setting on, if different from the
          * normal extruder of the object it's evaluated for.

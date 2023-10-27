@@ -25,6 +25,7 @@
 #include "utils/orderOptimizer.h"
 
 #include "communication/slicecontext.h"
+#include "tools/serial.h"
 
 namespace cura52
 {
@@ -869,25 +870,52 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         gcode.writeLine(tmp2.str().c_str());
         
         int sizes = storage.meshes.size();
+ 
         for (int i = 0; i < sizes; i++)
         {
+            Polygons poly =  readPolygons(storage.m_Object_Exclude_FileName.at(i));
             AABB3D box = storage.meshes.at(i).bounding_box;
             float x = INT2MM((box.max.x + box.min.x) / 2.0f);
             float y = INT2MM((box.max.y + box.min.y) / 2.0f);
-            std::string p0 = std::to_string(INT2MM(box.min.x));
-            std::string p1 = std::to_string(INT2MM(box.max.x));
-            std::string p2 = std::to_string(INT2MM(box.min.y));
-            std::string p3 = std::to_string(INT2MM(box.max.y));
-            std::string polygon= "[[" + p0 + "," + p2 + "]," +
-                                  "[" + p0 + "," + p3 + "],"+ 
-                                  "[" + p1 + "," + p3 + "],"+
-                                  "[" + p1 + "," + p2 + "],"+
-                                  "[" + p0 + "," + p2 + "]]";
+ 
+            std::ostringstream gcode_obj;
+            gcode_obj << "[";
+            for (ClipperLib:: Path path : poly)
+            {
+                for (int j = 0; j < path.size()-1; j++)
+                {
+                    ClipperLib::IntPoint p = path.at(j);
+                    gcode_obj  << "[" << INT2MM(p.X)  << "," << INT2MM(p.Y) << "],";
+                }
+                ClipperLib::IntPoint p = path.at(path.size() - 1);
+                gcode_obj << "[" << INT2MM(p.X) << "," << INT2MM(p.Y) << "]]";
+            }
+            
             std::ostringstream tmp3;
             tmp3 << "EXCLUDE_OBJECT_DEFINE NAME=" << storage.meshes.at(i).mesh_name << " CENTER=" << x << "," << y
-                << " POLYGON=" << polygon;
+                << " POLYGON=" << gcode_obj.str();
             gcode.writeLine(tmp3.str().c_str());
+
         }
+        //for (int i = 0; i < sizes; i++)
+        //{
+        //    AABB3D box = storage.meshes.at(i).bounding_box;
+        //    float x = INT2MM((box.max.x + box.min.x) / 2.0f);
+        //    float y = INT2MM((box.max.y + box.min.y) / 2.0f);
+        //    std::string p0 = std::to_string(INT2MM(box.min.x));
+        //    std::string p1 = std::to_string(INT2MM(box.max.x));
+        //    std::string p2 = std::to_string(INT2MM(box.min.y));
+        //    std::string p3 = std::to_string(INT2MM(box.max.y));
+        //    std::string polygon= "[[" + p0 + "," + p2 + "]," +
+        //                          "[" + p0 + "," + p3 + "],"+ 
+        //                          "[" + p1 + "," + p3 + "],"+
+        //                          "[" + p1 + "," + p2 + "],"+
+        //                          "[" + p0 + "," + p2 + "]]";
+        //    std::ostringstream tmp3;
+        //    tmp3 << "EXCLUDE_OBJECT_DEFINE NAME=" << storage.meshes.at(i).mesh_name << " CENTER=" << x << "," << y
+        //        << " POLYGON=" << polygon;
+        //    gcode.writeLine(tmp3.str().c_str());
+        //}
     }
 
 

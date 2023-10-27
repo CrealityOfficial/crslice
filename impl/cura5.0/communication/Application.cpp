@@ -279,11 +279,12 @@ namespace cura52
                 else // Normal operation (not wireframe).
                 {
                     SliceDataStorage storage(this);
+                    
                     if (!polygon_generator.generateAreas(storage, &*mesh_group))
                     {
                         return;
                     }
-
+                    storage.m_Object_Exclude_FileName = scene.get()->m_Object_Exclude_FileName;
                     progressor.messageProgressStage(Progress::Stage::EXPORT);
 
                     tick("writeGCode 0");
