@@ -115,6 +115,23 @@ namespace crslice
 		group->setObjectMesh(objectID, mesh);
 	}
 
+	void CrScene::setOjbectExclude(int groupID, int objectID, const std::string& fileName, std::vector<trimesh::vec3>& outline_ObjectExclude)
+	{
+		setPloygonFileName(fileName);
+
+		//save lines
+		std::vector<std::vector<trimesh::vec2>> polys;
+
+		std::vector<trimesh::vec2> ps;
+		for (const auto& p : outline_ObjectExclude)
+		{
+			ps.push_back(trimesh::vec2(p.x * 1000, p.y * 1000));
+		}
+		polys.push_back(ps);
+
+		savePloygons(polys);
+	}
+
 	void CrScene::setGroupOffset(int groupID, trimesh::vec3 offset)
 	{
 		if (groupID < 0 || groupID >= (int)m_groups.size())
