@@ -70,6 +70,7 @@ namespace cura52
 
         virtual ThreadPool* pool() = 0;
         virtual bool checkInterrupt(const std::string& msg) = 0;
+        virtual void setFailed() = 0;
         virtual void tick(const std::string& tag) = 0;
         virtual void message(const char* msg) = 0;
         virtual crslice::FDMDebugger* debugger() = 0;

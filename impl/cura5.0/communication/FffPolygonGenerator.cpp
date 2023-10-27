@@ -219,8 +219,22 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     // Clear the mesh face and vertex data, it is no longer needed after this point, and it saves a lot of memory.
     meshgroup->clear();
 
+#if USE_CACHE
+    if (application->cache())
+    {
+        application->cache()->cacheSlicedData(slicedDatas);
+    }
+#endif
+
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
     polyProccess(application, meshgroup, slicedDatas);
+
+#if USE_CACHE
+    if (application->cache())
+    {
+        application->cache()->cacheProcessedSlicedData(slicedDatas);
+    }
+#endif
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
     application->messageProgressStage(Progress::Stage::PARTS);

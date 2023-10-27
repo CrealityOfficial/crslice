@@ -60,6 +60,7 @@ namespace cura52
 
         ThreadPool* pool() override;
         bool checkInterrupt(const std::string& message = "") override;
+        void setFailed() override;
         void tick(const std::string& tag) override;
         void message(const char* msg) override;
         crslice::FDMDebugger* debugger() override;

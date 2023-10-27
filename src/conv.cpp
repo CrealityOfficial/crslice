@@ -46,6 +46,24 @@ namespace crslice
 
 		polygons.resize(size);
 		for (int i = 0; i < size; ++i)
-			convert(paths.at(i), polygons.at(i), z);
+			convertRaw(paths.at(i), polygons.at(i), z);
+	}
+
+	void convertRaw(const ClipperLib::Path& path, std::vector<trimesh::vec3>& lines, float z)
+	{
+		size_t size = path.size();
+		if (size <= 1)
+			return;
+
+		lines.resize(size);
+		for (size_t i = 0; i < size; ++i)
+		{
+			lines.at(i) = convert(path.at(i));
+		}
+	}
+
+	void convertPolygonRaw(const cura52::Polygons& polys, std::vector<std::vector<trimesh::vec3>>& lines, float z)
+	{
+		convertRaw(polys.paths, lines, z);
 	}
 }

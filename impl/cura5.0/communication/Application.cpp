@@ -54,6 +54,11 @@ namespace cura52
         return rupt;
     }
 
+    void Application::setFailed()
+    {
+        m_error = true;
+    }
+
     void Application::tick(const std::string& tag)
     {
         if (scene && scene->fDebugger)
@@ -310,7 +315,7 @@ namespace cura52
                 std::string path = settings.get<std::string>("fdm_slice_debug_path");
                 if (boost::filesystem::exists(path))
                 {
-                    m_cache.reset(new Cache(path));
+                    m_cache.reset(new Cache(path, this));
                 }
             }
         }

@@ -2,6 +2,7 @@
 #define CRSLICE_CLIPPERUTIL_CONV1_1682319629911_H
 #include "trimesh2/Vec.h"
 #include "polyclipping/clipper.hpp"
+#include "utils/polygon.h"
 #include "utils/Point3.h"
 
 namespace crslice
@@ -16,6 +17,8 @@ namespace crslice
 	trimesh::vec3 convert(const cura52::Point3& point);
 
 	void convertRaw(const ClipperLib::Paths& paths, std::vector<std::vector<trimesh::vec3>>& lines, float z = 0.0f);
+	void convertRaw(const ClipperLib::Path& path, std::vector<trimesh::vec3>& lines, float z = 0.0f);
+	void convertPolygonRaw(const cura52::Polygons& polys, std::vector<std::vector<trimesh::vec3>>& lines, float z = 0.0f);
 }
 
 #endif // CRSLICE_CLIPPERUTIL_CONV1_1682319629911_H
