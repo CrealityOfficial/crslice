@@ -18,10 +18,10 @@
 #include "utils/Simplify.h"
 #include "utils/linearAlg2D.h"
 #include "utils/polygonUtils.h"
-#include "Slice3rBase/ArcFitter.hpp"
 #include "progress/timeEstimate.h"
 
 #include "communication/slicecontext.h"
+#include "utils/g2g3.h"
 
 namespace cura52
 {
@@ -2802,44 +2802,19 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                     tolerance *= 2.0;
 
                                 //double tolerance = 100;// 200;
-                                Slic3r::Points points;
-                                std::vector<Slic3r::PathFittingData> fitting_result;
+                                std::vector<Point> points;
+                                std::vector<PathFittingData> fitting_result;
 
                                 if(isAvoidPoint && !path.points.empty())//统计被过滤的点 用于G2G3的判断
                                 {
                                     if (path.points[0] != gcode.getPositionXY())
                                     {
-                                        points.emplace_back(Slic3r::Point((int64_t)gcode.getPositionXY().X, (int64_t)gcode.getPositionXY().Y));
+                                        points.emplace_back(Point((int64_t)gcode.getPositionXY().X, (int64_t)gcode.getPositionXY().Y));
                                     }
                                 }
-                                for (unsigned int point_idx = 0; point_idx < path.points.size(); point_idx++)
-                                {
-                                    points.emplace_back(Slic3r::Point((int64_t)path.points[point_idx].X, (int64_t)path.points[point_idx].Y));
-                                    //points.emplace_back(Slic3r::Point(path.points[point_idx].X, path.points[point_idx].Y));
-                                }
+                                points.insert(points.end(), path.points.begin(), path.points.end());
 
-                                //Slic3r::ArcFitter::do_arc_fitting_and_simplify(points, fitting_result, tolerance);
-                                /*bool arcFittingValiable = */Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
-                                bool Large_arc_exist = false;
-                                for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++)
-                                {
-                                    if (fitting_result[fitting_index].path_type == Slic3r::EMovePathType::Arc_move_cw
-                                        || fitting_result[fitting_index].path_type == Slic3r::EMovePathType::Arc_move_ccw)
-                                    {
-                                        const double arc_length = fitting_result[fitting_index].arc_data.length;
-                                        if (arc_length > 5000)
-                                        {
-                                            Large_arc_exist = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (Large_arc_exist)
-                                {//大圆弧拟合需缩小公差
-                                    fitting_result.clear();
-                                    tolerance = 1;
-                                    Slic3r::ArcFitter::do_arc_fitting(points, fitting_result, tolerance);
-                                }
+                                do_arc_fitting(points, fitting_result, tolerance);
 
                                 float dis = 0;
                                 float dis_threshold = application->sceneSettings().get<coord_t>("speed_slowtofast_slowdown_revise_distance"); //如果大于这一段距离，则是原来的速度，否则速度50
@@ -2850,14 +2825,14 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
                                     switch (fitting_result[fitting_index].path_type)
                                     {
-                                    case Slic3r::EMovePathType::Linear_move:
+                                    case EMovePathType::Linear_move:
                                     {
                                         size_t start_index = fitting_result[fitting_index].start_point_index;
                                         size_t end_index = fitting_result[fitting_index].end_point_index;
                                         double extrude_speed;// = speed * path.speed_back_pressure_factor;                          
                                         for (size_t point_index = start_index; point_index < end_index + 1; point_index++)
                                         {
-                                            Point gcodePt(points[point_index].x(), points[point_index].y());
+                                            const Point& gcodePt = points[point_index];
                                             if (slow2fastSlowdown && !wall_slow_OK  && judgeVelocityDip && (path.config->type == PrintFeatureType::OuterWall || path.config->type == PrintFeatureType::InnerWall))
                                             {//经过测试大部分的圆弧都是经常这个case，Arc_move_ccw和Linear_move共同组成了慢速到快速的距离计算，如果大于这一段距离，则是原来的速度，否则速度50
                                                 extrude_speed = speed_quarter;
@@ -2875,19 +2850,19 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                             gcode.writeExtrusion(gcodePt, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
                                             if (point_index > 0)
                                             {
-                                                dis += vSize(Point(points[point_index].x(), points[point_index].y()) - Point(points[point_index - 1].x(), points[point_index - 1].y()));
+                                                dis += vSize(points[point_index] - points[point_index - 1]);
                                             }
                                         }
                                     }
                                     break;
-                                    case  Slic3r::EMovePathType::Arc_move_cw:
-                                    case  Slic3r::EMovePathType::Arc_move_ccw:
+                                    case  EMovePathType::Arc_move_cw:
+                                    case  EMovePathType::Arc_move_ccw:
                                     {
-                                        const  Slic3r::ArcSegment& arc = fitting_result[fitting_index].arc_data;
+                                        const  ArcSegment& arc = fitting_result[fitting_index].arc_data;
                                         const double arc_length = arc.length;
-                                        Point start_point(arc.start_point.x(), arc.start_point.y());
-                                        Point end_point(arc.end_point.x(), arc.end_point.y());
-                                        Point center(arc.center.x(), arc.center.y());
+                                        const Point& start_point = arc.start_point;
+                                        const Point& end_point = arc.end_point;
+                                        const Point& center = arc.center;
                                         Point center_offset = gcode.getGcodePos(center.X, center.Y, gcode.getExtruderNr()) - gcode.getGcodePos(start_point.X, start_point.Y, gcode.getExtruderNr());
                                         double extrude_speed;// = speed * path.speed_back_pressure_factor;
                                         {
@@ -2901,13 +2876,13 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                                         extrude_speed = speed * path.speed_back_pressure_factor;
                                         //if (this->layer_nr == 50 && path.config->type == PrintFeatureType::InnerWall)
                                         //    std::cout << " Arc_move_ccw extrude_speed =  " << extrude_speed;
-                                        dis += vSize(Point(arc.start_point.x(), arc.start_point.y()) - Point(arc.end_point.x(), arc.end_point.y()));
+                                        dis += vSize(arc.start_point - arc.end_point);
 
                                         if ( dis < dis_threshold && judgeVelocityDip)
                                         {
                                             extrude_speed = speed_quarter;
                                         }
-                                        gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == Slic3r::ArcDirection::Arc_Dir_CCW);
+                                        gcode.writeExtrusionG2G3(end_point, center_offset, arc_length, extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset, arc.direction == ArcDirection::Arc_Dir_CCW);
                                     }
                                     break;
                                     default:
