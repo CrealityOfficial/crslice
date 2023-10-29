@@ -352,6 +352,13 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         application->messageProgress(Progress::Stage::PARTS, meshIdx + 1, meshCount);
     }
 
+#if USE_CACHE
+    if (application->cache())
+    {
+        application->cache()->cacheLayerParts(storage);
+    }
+#endif 
+
     return true;
 }
 
@@ -569,6 +576,13 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 		});
 	CALLTICK("processWalls 1");
 #endif
+
+#if USE_CACHE
+    if (application->cache())
+    {
+        application->cache()->cacheWalls(storage);
+    }
+#endif 
 
     ProgressEstimatorLinear* skin_estimator = new ProgressEstimatorLinear(mesh_layer_count);
     mesh_inset_skin_progress_estimator->nextStage(skin_estimator);
@@ -1143,7 +1157,13 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
     Polygons machine_rects;
     machine_rects.add(machine_rect);
     // Also apply maximum_[deviation|resolution] to skirt/brim.
-    Simplify simplifier(train.settings);
+
+    coord_t max_resolution = train.settings.get<coord_t>("meshfix_maximum_resolution");
+    coord_t max_deviation = train.settings.get<coord_t>("meshfix_maximum_deviation");
+    coord_t max_area_deviation = train.settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation");
+
+    Simplify simplifier(max_resolution, max_deviation, max_area_deviation);
+
     for (Polygons& polygons : storage.skirt_brim)
     {
         polygons = simplifier.polygon(polygons.intersection(machine_rects));

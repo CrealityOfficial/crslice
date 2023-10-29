@@ -19,10 +19,10 @@
 #include "magic/raft.h"
 
 #include "utils/narrow_infill.h"
-#include "utils/Simplify.h" //Removing micro-segments created by offsetting.
 #include "utils/linearAlg2D.h"
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
+#include "utils/SettingsWrapper.h"
 
 #include "communication/slicecontext.h"
 #include "tools/serial.h"
@@ -1167,10 +1167,10 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
         if (storage.primeRaftOutline.area() > 0)
         {
             raft_outline_paths.emplace_back(storage.primeRaftOutline.offset(-small_offset));
-            raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+            raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         }
         raft_outline_paths.emplace_back(storage.raftOutline.offset(-small_offset));
-        raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+        raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         const coord_t infill_outline_width = gcode_layer.configs_storage.raft_interface_config.getLineWidth();
         Polygons raft_lines;
         AngleDegrees fill_angle = (num_surface_layers + num_interface_layers - raft_interface_layer) % 2 ? 45 : 135; // 90 degrees rotated from the first top layer.
@@ -1258,10 +1258,10 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
         if (storage.primeRaftOutline.area() > 0)
         {
             raft_outline_paths.emplace_back(storage.primeRaftOutline.offset(-small_offset));
-            raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+            raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         }
         raft_outline_paths.emplace_back(storage.raftOutline.offset(-small_offset));
-        raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+        raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         const coord_t infill_outline_width = gcode_layer.configs_storage.raft_interface_config.getLineWidth();
         Polygons raft_lines;
         AngleDegrees fill_angle = (num_surface_layers - raft_surface_layer) % 2 ? 45 : 135; // Alternate between -45 and +45 degrees, ending up 90 degrees rotated from the default skin angle.
@@ -1492,10 +1492,10 @@ void FffGcodeWriter::processSimpleRaft(const SliceDataStorage& storage)
         if (storage.primeRaftOutline.area() > 0)
         {
             raft_outline_paths.emplace_back(storage.primeRaftOutline.offset(-small_offset));
-            raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+            raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         }
         raft_outline_paths.emplace_back(storage.raftOutline.offset(-small_offset));
-        raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+        raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         const coord_t infill_outline_width = gcode_layer.configs_storage.raft_interface_config.getLineWidth();
         Polygons raft_lines;
         AngleDegrees fill_angle = (num_surface_layers + num_interface_layers - raft_interface_layer) % 2 ? 45 : 135; // 90 degrees rotated from the first top layer.
@@ -1583,10 +1583,10 @@ void FffGcodeWriter::processSimpleRaft(const SliceDataStorage& storage)
         if (storage.primeRaftOutline.area() > 0)
         {
             raft_outline_paths.emplace_back(storage.primeRaftOutline.offset(-small_offset));
-            raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+            raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         }
         raft_outline_paths.emplace_back(storage.raftOutline.offset(-small_offset));
-        raft_outline_paths.back() = Simplify(interface_settings).polygon(raft_outline_paths.back()); // Remove those micron-movements.
+        raft_outline_paths.back() = simplifyPolygon(raft_outline_paths.back(), interface_settings); // Remove those micron-movements.
         const coord_t infill_outline_width = gcode_layer.configs_storage.raft_interface_config.getLineWidth();
         Polygons raft_lines;
         AngleDegrees fill_angle = (num_surface_layers - raft_surface_layer) % 2 ? 45 : 135; // Alternate between -45 and +45 degrees, ending up 90 degrees rotated from the default skin angle.
@@ -2385,7 +2385,7 @@ void FffGcodeWriter::addMeshLayerToGCode_meshSurfaceMode(const SliceDataStorage&
         polygons.add(part.outline);
     }
 
-    polygons = Simplify(mesh.settings).polygon(polygons);
+    polygons = simplifyPolygon(polygons, mesh.settings);
 
     ZSeamConfig z_seam_config(mesh.settings.get<EZSeamType>("z_seam_type"), mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), mesh.settings.get<coord_t>("wall_line_width_0") * 2);
     const bool spiralize = application->currentGroup()->settings.get<bool>("magic_spiralize");

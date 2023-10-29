@@ -66,7 +66,10 @@ namespace cura52
             connect_zigzags(mesh_group_settings.get<bool>("support_connect_zigzags")),
             settings(mesh_group_settings),
             min_feature_size(mesh_group_settings.get<coord_t>("min_feature_size")),
-            simplifier(Simplify(mesh_group_settings))
+            simplifier(mesh_group_settings.get<coord_t>("meshfix_maximum_resolution"),
+                        mesh_group_settings.get<coord_t>("meshfix_maximum_deviation"),
+                        mesh_group_settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation")
+            )
         {
             layer_start_bp_radius = (bp_radius - branch_radius) / (branch_radius * diameter_scale_bp_radius);
 

@@ -5,7 +5,6 @@
 #include <queue> //Priority queue to prioritise removing unimportant vertices.
 
 #include "Simplify.h"
-#include "settings/Settings.h"
 
 namespace cura52
 {
@@ -14,12 +13,6 @@ namespace cura52
         : max_resolution(max_resolution)
         , max_deviation(max_deviation)
         , max_area_deviation(max_area_deviation)
-    {}
-
-    Simplify::Simplify(const Settings& settings)
-        : max_resolution(settings.get<coord_t>("meshfix_maximum_resolution"))
-        , max_deviation(settings.get<coord_t>("meshfix_maximum_deviation"))
-        , max_area_deviation(settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation"))
     {}
 
     Polygons Simplify::polygon(const Polygons& polygons) const

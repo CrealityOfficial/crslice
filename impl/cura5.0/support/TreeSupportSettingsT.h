@@ -4,14 +4,13 @@
 #define TREESUPPORTSETTINGST_H
 
 #include "types/EnumSettingsT.h"
+#include "types/EnumSettings.h"
 #include "types/Angle.h"
 #include "settings/Settings.h"
-#include "TreeSupportElement.h"
+#include "TreeSupportElementT.h"
 #include "utils/Coord_t.h"
 #include "utils/Simplify.h"
 #include <functional>
-
-
 
 namespace cura54
 {
@@ -71,8 +70,10 @@ namespace cura54
             min_feature_size(mesh_group_settings.get<coord_t>("min_feature_size")),
             min_wall_line_width(settings.get<coord_t>("min_wall_line_width")),
             fill_outline_gaps(settings.get<bool>("fill_outline_gaps")),
-            simplifier(cura52::Simplify(mesh_group_settings))
-
+            simplifier(mesh_group_settings.get<coord_t>("meshfix_maximum_resolution"),
+                mesh_group_settings.get<coord_t>("meshfix_maximum_deviation"),
+                mesh_group_settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation")
+            )
 
         {
             simplifier.max_area_deviation = 50000;  //yi

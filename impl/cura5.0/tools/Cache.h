@@ -9,6 +9,7 @@
 namespace cura52 
 {
 	class SliceContext;
+	class SliceDataStorage;
 	class Cache 
 	{
 	public:
@@ -17,6 +18,9 @@ namespace cura52
 
 		void cacheSlicedData(const std::vector<SlicedData>& datas);
 		void cacheProcessedSlicedData(const std::vector<SlicedData>& datas);
+
+		void cacheLayerParts(const SliceDataStorage& storage);
+		void cacheWalls(const SliceDataStorage& storage);
 	protected:
 		SliceContext* m_context;
 		std::string m_root;

@@ -7,7 +7,7 @@
 #include "magic/AdaptiveLayerHeights.h"
 
 #include "slicer.h"
-#include "utils/Simplify.h"
+#include "utils/SettingsWrapper.h"
 #include "utils/SparsePointGridInclusive.h"
 #include "trimesh2/Vec.h"
 
@@ -765,7 +765,7 @@ void SlicerLayer::makePolygons(const Mesh* mesh)
     polygons.erase(it, polygons.end());
 
     // Finally optimize all the polygons. Every point removed saves time in the long run.
-    polygons = Simplify(mesh->settings).polygon(polygons);
+    polygons = simplifyPolygon(polygons, mesh->settings);
 
     polygons.removeDegenerateVerts(); // remove verts connected to overlapping line segments
 

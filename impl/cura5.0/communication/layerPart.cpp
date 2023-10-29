@@ -6,7 +6,7 @@
 #include "communication/slicecontext.h"
 
 #include "utils/PolylineStitcher.h"
-#include "utils/Simplify.h" //Simplifying the layers after creating them.
+#include "utils/SettingsWrapper.h"
 
 #include "slice/sliceddata.h"
 /*
@@ -27,7 +27,7 @@ namespace cura52 {
     {
         PolylineStitcher<Polygons, Polygon, Point>::stitch(layer->openPolylines, storageLayer.openPolyLines, layer->polygons, settings.get<coord_t>("wall_line_width_0"));
 
-        storageLayer.openPolyLines = Simplify(settings).polyline(storageLayer.openPolyLines);
+        storageLayer.openPolyLines = simplifyPolyline(storageLayer.openPolyLines, settings);
 
         const bool union_all_remove_holes = settings.get<bool>("meshfix_union_all_remove_holes");
         if (union_all_remove_holes)

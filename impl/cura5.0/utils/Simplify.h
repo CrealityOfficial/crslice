@@ -10,7 +10,6 @@
 
 namespace cura52
 {
-    class Settings;
     /*!
      * Utility class to reduce the resolution of polygons and polylines, under
      * certain constraints.
@@ -50,7 +49,6 @@ namespace cura52
          * area in total to change more than this, it cannot be removed.
          */
         Simplify(const coord_t max_resolution, const coord_t max_deviation, const coord_t max_area_deviation);
-        Simplify(const Settings& settings);
         /*!
          * Simplify a batch of polygons.
          * \param polygons The polygons to simplify.

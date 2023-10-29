@@ -70,7 +70,12 @@ namespace cura52
     Polygons  generateVaryingXYDisallowedArea(const SliceMeshStorage& storage, const Settings& infill_settings, const LayerIndex layer_idx)
     {
         const auto& mesh_group_settings = storage.settings;
-        const Simplify simplify{ mesh_group_settings };
+        coord_t max_resolution = mesh_group_settings.get<coord_t>("meshfix_maximum_resolution");
+        coord_t max_deviation = mesh_group_settings.get<coord_t>("meshfix_maximum_deviation");
+        coord_t max_area_deviation = mesh_group_settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation");
+
+        const Simplify simplify(max_resolution, max_deviation, max_area_deviation);
+
         const auto layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
         const auto support_distance_top = static_cast<double>(mesh_group_settings.get<coord_t>("support_top_distance"));
         const auto support_distance_bot = static_cast<double>(mesh_group_settings.get<coord_t>("support_bottom_distance"));

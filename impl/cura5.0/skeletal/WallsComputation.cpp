@@ -6,7 +6,7 @@
 #include "communication/slicecontext.h"
 
 #include "WallToolPaths.h"
-#include "utils/Simplify.h" // We're simplifying the spiralized insets.
+#include "utils/SettingsWrapper.h"
 #include "utils/narrow_infill.h"
 
 namespace cura52
@@ -164,7 +164,7 @@ namespace cura52
 
         //Optimize the wall. This prevents buffer underruns in the printer firmware, and reduces processing time in CuraEngine.
         const ExtruderTrain& train_wall = settings.get<ExtruderTrain&>("wall_0_extruder_nr");
-        part->spiral_wall = Simplify(train_wall.settings).polygon(part->spiral_wall);
+        part->spiral_wall = simplifyPolygon(part->spiral_wall, train_wall.settings);
         part->spiral_wall.removeDegenerateVerts();
         if (recompute_outline_based_on_outer_wall)
         {

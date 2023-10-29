@@ -533,7 +533,12 @@ void Infill::generateConcentricInfill(std::vector<VariableWidthLines>& toolpaths
     const coord_t min_area = infill_line_width * infill_line_width;
 
     Polygons current_inset = inner_contour;
-    Simplify simplifier(settings);
+
+    coord_t max_resolution = settings.get<coord_t>("meshfix_maximum_resolution");
+    coord_t max_deviation = settings.get<coord_t>("meshfix_maximum_deviation");
+    coord_t max_area_deviation = settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation");
+
+    Simplify simplifier(max_resolution, max_deviation, max_area_deviation);
     while (true)
     {
         // If line_distance is 0, start from the same contour as the previous line, except where the previous line closed up the shape.
