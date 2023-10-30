@@ -19,7 +19,8 @@ namespace cura52
 
 constexpr int largest_neglected_gap_first_phase = MM2INT(0.01); //!< distance between two line segments regarded as connected
 constexpr int largest_neglected_gap_second_phase = MM2INT(0.02); //!< distance between two line segments regarded as connected
-constexpr int max_stitch1 = MM2INT(10.0); //!< maximal distance stitched between open polylines to form polygons
+constexpr int max_stitch1 = MM2INT(1.0); //!< maximal distance stitched between open polylines to form polygons
+constexpr int max_stitch2 = MM2INT(10.0); //!< maximal distance stitched between open polylines to form polygons
 
 void SlicerLayer::makeBasicPolygonLoops(Polygons& open_polylines)
 {
@@ -131,7 +132,9 @@ void SlicerLayer::connectOpenPolylines(Polygons& open_polylines)
 void SlicerLayer::stitch(Polygons& open_polylines)
 {
     bool allow_reverse = true;
-    connectOpenPolylinesImpl(open_polylines, max_stitch1, max_stitch1, allow_reverse);
+	//先正向缝合，剩余的再参与反向缝合
+	connectOpenPolylinesImpl(open_polylines, max_stitch1, max_stitch1, false);
+    connectOpenPolylinesImpl(open_polylines, max_stitch2, max_stitch2, allow_reverse);
 }
 
 const SlicerLayer::Terminus SlicerLayer::Terminus::INVALID_TERMINUS{ ~static_cast<Index>(0U) };

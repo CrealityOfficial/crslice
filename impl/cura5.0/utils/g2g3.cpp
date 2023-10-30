@@ -11,7 +11,7 @@ namespace cura52
         _points.resize(points.size());
         for (int i =0;i< points.size();i++)
         {
-            _points[i] = Slic3r::Point(points[i].X, points[i].Y);
+            _points[i] = Slic3r::Point((int64_t)points[i].X, (int64_t)points[i].Y);
         }
 
         Slic3r::ArcFitter::do_arc_fitting(_points, _fitting_result, tolerance);
