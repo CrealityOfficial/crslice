@@ -939,12 +939,12 @@ void LayerPlan::addWallLine(const Point& p0,
                     // treat the short bridge line just like a normal line
                     GCodePath path = extruder_plans.back().paths.back();
                     addExtrusionMove(b1,
-                        non_bridge_config, 
+						non_bridge_config,
                         SpaceFillType::Polygons,
                         flow,
                         path.width_factor, 
                         spiralize, 
-                        std::min(getSpeedFactor(b1), path.speed_factor),
+						Ratio((bridge_config.getSpeed()* 0.5 + non_bridge_config.getSpeed() * 0.5) / non_bridge_config.getSpeed()),
                         getFanSpeed(non_bridge_config));
                     cur_point = b1;
                 }
@@ -971,7 +971,7 @@ void LayerPlan::addWallLine(const Point& p0,
             // if we haven't yet reached p1, fill the gap with non_bridge_config line
             addNonBridgeLine(p1);
         }
-        else if (bridge_wall_mask.inside(p0, true) && vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * std::min(getSpeedFactor(p1), speed_factor))
+        else if (bridge_wall_mask.inside(p0, true) /*&& vSize(p0 - p1) >= min_bridge_line_len && bridge_config.getSpeed() < non_bridge_config.getSpeed() * std::min(getSpeedFactor(p1), speed_factor)*/)
         {
             // both p0 and p1 must be above air (the result will be ugly!)
             addExtrusionMove(p1, bridge_config, SpaceFillType::Polygons, flow, width_factor, false, 1.0_r, getFanSpeed(bridge_config));
