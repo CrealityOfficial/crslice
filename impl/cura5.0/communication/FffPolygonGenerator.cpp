@@ -502,6 +502,13 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     LOGD("Processing gradual support");
     // generate gradual support
     AreaSupport::generateSupportInfillFeatures(storage);
+
+#if USE_CACHE
+    if (application->cache())
+    {
+        application->cache()->cacheAll(storage);
+    }
+#endif 
 }
 
 void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage, const size_t mesh_order_idx, const std::vector<size_t>& mesh_order, ProgressStageEstimator& inset_skin_progress_estimate)

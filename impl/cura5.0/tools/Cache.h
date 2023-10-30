@@ -21,6 +21,8 @@ namespace cura52
 
 		void cacheLayerParts(const SliceDataStorage& storage);
 		void cacheWalls(const SliceDataStorage& storage);
+		
+		void cacheAll(const SliceDataStorage& storage);
 	protected:
 		SliceContext* m_context;
 		std::string m_root;

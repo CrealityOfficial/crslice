@@ -40,6 +40,49 @@ namespace cura52
 		}
 	}
 
+	void convertVectorVariableLines(const std::vector<VariableWidthLines>& vecLines, 
+		std::vector<CrPolygons>& vecPolys)
+	{
+		vecPolys.clear();
+		int size = (int)vecLines.size();
+		if (size > 0)
+		{
+			vecPolys.resize(size);
+			for (int i = 0; i < size; ++i)
+				convertVariableLines(vecLines.at(i), vecPolys.at(i));
+		}
+	}
+
+	void convertLayerPart(const SkinPart& skinPart,
+		crslice::CrSkinPart& crSkin)
+	{
+		crslice::convertPolygonRaw(skinPart.outline, crSkin.outline);
+		convertVectorVariableLines(skinPart.inset_paths, crSkin.inset_paths);
+		crslice::convertPolygonRaw(skinPart.skin_fill, crSkin.skin_fill);
+		crslice::convertPolygonRaw(skinPart.roofing_fill, crSkin.roofing_fill);
+		crslice::convertPolygonRaw(skinPart.top_most_surface_fill, crSkin.top_most_surface_fill);
+		crslice::convertPolygonRaw(skinPart.bottom_most_surface_fill, crSkin.bottom_most_surface_fill);
+	}
+
+	void convertLayerPart(const SliceLayerPart& layerPart,
+		crslice::CrSliceLayerPart& crPart)
+	{
+		crslice::convertPolygonRaw(layerPart.outline, crPart.outline);
+		crslice::convertPolygonRaw(layerPart.inner_area, crPart.inner_area);
+		int count = (int)layerPart.skin_parts.size();
+		if (count > 0)
+		{
+			crPart.skin_parts.resize(count);
+			for (int i = 0; i < count; ++i)
+			{
+				convertLayerPart(layerPart.skin_parts.at(i), crPart.skin_parts.at(i));
+			}
+		}
+
+		convertVectorVariableLines(layerPart.wall_toolpaths, crPart.wall_toolpaths);
+		convertVectorVariableLines(layerPart.infill_wall_toolpaths, crPart.infill_wall_toolpaths);
+	}
+
 	Cache::Cache(const std::string& fileName, SliceContext* context)
 		: m_root(fileName)
 		, m_context(context)
@@ -162,6 +205,35 @@ namespace cura52
 
 					ccglobal::cxndSave(swalls, fileName);
 				}
+			}
+		}
+	}
+
+	void Cache::cacheAll(const SliceDataStorage& storage)
+	{
+		CACHE_CHECK_STEP(4);
+
+		int meshSize = (int)storage.meshes.size();
+		for (int i = 0; i < meshSize; ++i)
+		{
+			const SliceMeshStorage& data = storage.meshes.at(i);
+			int layerCount = (int)data.layers.size();
+			for (int j = 0; j < layerCount; ++j)
+			{
+				const SliceLayer& layer = data.layers.at(j);
+				crslice::SerailCrSliceLayer serialLayer;
+				int count = (int)layer.parts.size();
+				if (count > 0)
+				{
+					serialLayer.layer.parts.resize(count);
+					for (int w = 0; w < count; ++w)
+					{
+						convertLayerPart(layer.parts.at(w), serialLayer.layer.parts.at(w));
+					}
+				}
+
+				std::string fileName = crslice::crslicelayer_name(m_root, i, j);
+				ccglobal::cxndSave(serialLayer, fileName);
 			}
 		}
 	}
