@@ -32,6 +32,13 @@ namespace crslice
 		std::vector<CrSliceLayerPart> parts;
 	};
 
+	struct CrSlicedData
+	{
+		float z = 0;
+		CrPolygons polygons;
+		CrPolygons open_polygons;
+	};
+
 	CRSLICE_API void _load(std::fstream& in, CrPolygon& poly);
 	CRSLICE_API void _save(std::fstream& out, const CrPolygon& poly);
 	CRSLICE_API void _load(std::fstream& in, CrPolygons& polys);
@@ -46,47 +53,17 @@ namespace crslice
 
 namespace crslice
 {
-	class CRSLICE_API SerailSlicedLayer : public ccglobal::Serializeable
+	class CRSLICE_API SerailSlicedData : public ccglobal::Serializeable
 	{
 	public:
-		SerailSlicedLayer() {}
-		virtual ~SerailSlicedLayer() {}
+		SerailSlicedData() {}
+		virtual ~SerailSlicedData() {}
 
 		int version() override;
 		bool save(std::fstream& out, ccglobal::Tracer* tracer) override;
 		bool load(std::fstream& in, int ver, ccglobal::Tracer* tracer) override;
 
-		float z = 0;
-		CrPolygons polygons;
-		CrPolygons open_polygons;
-	};
-
-	class CRSLICE_API SerialWalls : public ccglobal::Serializeable
-	{
-	public:
-		SerialWalls() {}
-		virtual ~SerialWalls() {}
-
-		int version() override;
-		bool save(std::fstream& out, ccglobal::Tracer* tracer) override;
-		bool load(std::fstream& in, int ver, ccglobal::Tracer* tracer) override;
-
-		CrPolygons print_outline;
-		CrPolygons inner_area;
-		std::vector<CrPolygons> walls;
-	};
-
-	class CRSLICE_API SerailPolygons : public ccglobal::Serializeable
-	{
-	public:
-		SerailPolygons() {}
-		virtual ~SerailPolygons() {}
-
-		int version() override;
-		bool save(std::fstream& out, ccglobal::Tracer* tracer) override;
-		bool load(std::fstream& in, int ver, ccglobal::Tracer* tracer) override;
-
-		CrPolygons polygons;
+		CrSlicedData data;
 	};
 
 	class CRSLICE_API SerailCrSliceLayer : public ccglobal::Serializeable
@@ -103,11 +80,7 @@ namespace crslice
 	};
 
 	///file name
-	CRSLICE_API std::string sliced_layer_name(const std::string& root, int meshId, int layer);
-	CRSLICE_API std::string processed_sliced_layer_name(const std::string& root, int meshId, int layer);
-	CRSLICE_API std::string mesh_layer_part_name(const std::string& root, int meshId, int layer, int part);
-	CRSLICE_API std::string mesh_layer_part_wall_name(const std::string& root, int meshId, int layer, int part);
-
+	CRSLICE_API std::string crsliceddata_name(const std::string& root, int meshId, int layer);
 	CRSLICE_API std::string crslicelayer_name(const std::string& root, int meshId, int layer);
 }
 

@@ -229,13 +229,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
     polyProccess(application, meshgroup, slicedDatas);
 
-#if USE_CACHE
-    if (application->cache())
-    {
-        application->cache()->cacheProcessedSlicedData(slicedDatas);
-    }
-#endif
-
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
     application->messageProgressStage(Progress::Stage::PARTS);
 
@@ -351,13 +344,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
         application->messageProgress(Progress::Stage::PARTS, meshIdx + 1, meshCount);
     }
-
-#if USE_CACHE
-    if (application->cache())
-    {
-        application->cache()->cacheLayerParts(storage);
-    }
-#endif 
 
     return true;
 }
@@ -583,13 +569,6 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 		});
 	CALLTICK("processWalls 1");
 #endif
-
-#if USE_CACHE
-    if (application->cache())
-    {
-        application->cache()->cacheWalls(storage);
-    }
-#endif 
 
     ProgressEstimatorLinear* skin_estimator = new ProgressEstimatorLinear(mesh_layer_count);
     mesh_inset_skin_progress_estimator->nextStage(skin_estimator);

@@ -70,89 +70,30 @@ namespace crslice
 		_save(out, skin.bottom_most_surface_fill);
 	}
 
-	int SerailSlicedLayer::version()
+	int SerailSlicedData::version()
 	{
 		return 0;
 	}
 
-	bool SerailSlicedLayer::save(std::fstream& out, ccglobal::Tracer* tracer)
+	bool SerailSlicedData::save(std::fstream& out, ccglobal::Tracer* tracer)
 	{
-		ccglobal::cxndSaveT(out, z);
-		_save(out, open_polygons);
-		_save(out, polygons);
+		ccglobal::cxndSaveT(out, data.z);
+		_save(out, data.open_polygons);
+		_save(out, data.polygons);
 
 		return true;
 	}
 
-	bool SerailSlicedLayer::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
+	bool SerailSlicedData::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
 	{
 		if (ver == 0)
 		{
-			ccglobal::cxndLoadT(in, z);
-			_load(in, open_polygons);
-			_load(in, polygons);
+			ccglobal::cxndLoadT(in, data.z);
+			_load(in, data.open_polygons);
+			_load(in, data.polygons);
 
 			return true;
 		}
-		return false;
-	}
-
-	int SerailPolygons::version()
-	{
-		return 0;
-	}
-
-	bool SerailPolygons::save(std::fstream& out, ccglobal::Tracer* tracer)
-	{
-		_save(out, polygons);
-
-		return true;
-	}
-
-	bool SerailPolygons::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
-	{
-		if (ver == 0)
-		{
-			_load(in, polygons);
-
-			return true;
-		}
-		return false;
-	}
-
-	int SerialWalls::version()
-	{
-		return 0;
-	}
-
-	bool SerialWalls::save(std::fstream& out, ccglobal::Tracer* tracer)
-	{
-		_save(out, print_outline);
-		_save(out, inner_area);
-		int wallCount = (int)walls.size();
-		ccglobal::cxndSaveT(out, wallCount);
-		for (int i = 0; i < wallCount; ++i)
-			_save(out, walls.at(i));
-		return true;
-	}
-
-	bool SerialWalls::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
-	{
-		if (ver == 0)
-		{
-			_load(in, print_outline);
-			_load(in, inner_area);
-			int wallCount = 0;
-			ccglobal::cxndLoadT(in, wallCount);
-			if (wallCount > 0)
-			{
-				walls.resize(wallCount);
-				for (int i = 0; i < wallCount; ++i)
-					_load(in, walls.at(i));
-			}
-			return true;
-		}
-
 		return false;
 	}
 
@@ -179,35 +120,11 @@ namespace crslice
 	}
 
 	/// file name
-	std::string sliced_layer_name(const std::string& root, int meshId, int layer)
+	std::string crsliceddata_name(const std::string& root, int meshId, int layer)
 	{
 		char buffer[1024] = { 0 };
 
-		sprintf(buffer, "%s/mesh%d_layer%d.sliced_layer", root.c_str(), meshId, layer);
-		return std::string(buffer);
-	}
-
-	std::string processed_sliced_layer_name(const std::string& root, int meshId, int layer)
-	{
-		char buffer[1024] = { 0 };
-
-		sprintf(buffer, "%s/mesh%d_layer%d.processed_sliced_layer", root.c_str(), meshId, layer);
-		return std::string(buffer);
-	}
-
-	std::string mesh_layer_part_name(const std::string& root, int meshId, int layer, int part)
-	{
-		char buffer[1024] = { 0 };
-
-		sprintf(buffer, "%s/mesh%d_layer%d_part%d.layer_part", root.c_str(), meshId, layer, part);
-		return std::string(buffer);
-	}
-
-	std::string mesh_layer_part_wall_name(const std::string& root, int meshId, int layer, int part)
-	{
-		char buffer[1024] = { 0 };
-
-		sprintf(buffer, "%s/mesh%d_layer%d_part%d.walls", root.c_str(), meshId, layer, part);
+		sprintf(buffer, "%s/mesh%d_layer%d.crsliceddata", root.c_str(), meshId, layer);
 		return std::string(buffer);
 	}
 
@@ -215,7 +132,7 @@ namespace crslice
 	{
 		char buffer[1024] = { 0 };
 
-		sprintf(buffer, "%s/mesh%d_layer%d.all", root.c_str(), meshId, layer);
+		sprintf(buffer, "%s/mesh%d_layer%d.crslicelayer", root.c_str(), meshId, layer);
 		return std::string(buffer);
 	}
 }

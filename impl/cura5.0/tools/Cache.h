@@ -17,11 +17,6 @@ namespace cura52
 		virtual ~Cache();
 
 		void cacheSlicedData(const std::vector<SlicedData>& datas);
-		void cacheProcessedSlicedData(const std::vector<SlicedData>& datas);
-
-		void cacheLayerParts(const SliceDataStorage& storage);
-		void cacheWalls(const SliceDataStorage& storage);
-		
 		void cacheAll(const SliceDataStorage& storage);
 	protected:
 		SliceContext* m_context;
