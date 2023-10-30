@@ -7,6 +7,9 @@ machine_heated_bed
 machine_center_is_zero
 has_preview_img
 preview_img_type
+machine_cds_fan_exist
+machine_chamber_fan_exist
+machine_LED_light_exist
 machine_extruder_count
 machine_head_with_fans_polygon
 machine_nozzle_temp_enabled
