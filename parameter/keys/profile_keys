@@ -5,6 +5,23 @@ material_shrinkage_percentage_z
 arc_configure_enable
 arc_tolerance
 
+
+line_width
+initial_layer_line_width_factor
+wall_line_width
+wall_line_width_0
+wall_line_width_x
+skin_line_width
+roofing_line_width
+infill_line_width
+skirt_brim_line_width
+support_line_width
+support_interface_line_width
+support_roof_line_width
+support_bottom_line_width
+prime_tower_line_width
+raft_surface_line_width
+
 wall_extruder_nr
 wall_0_extruder_nr
 wall_x_extruder_nr
@@ -461,3 +478,13 @@ special_slope_slice_angle
 special_slope_slice_axis
 klipper_time_estimate_enable
 special_object_cancel
+
+retraction_combing
+retraction_combing_max_distance
+retraction_during_traveling
+travel_retract_before_outer_wall
+travel_avoid_other_parts
+travel_avoid_supports
+travel_avoid_distance
+layer_start_x
+layer_start_y
