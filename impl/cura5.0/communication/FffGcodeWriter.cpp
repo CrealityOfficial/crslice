@@ -26,6 +26,9 @@
 
 #include "communication/slicecontext.h"
 #include "tools/serial.h"
+#include "Slice3rBase/MultiPoint.hpp"
+#include "Slice3rBase/Polygon.hpp"
+#include "Slice3rBase/Point.hpp"
 
 namespace cura52
 {
@@ -874,23 +877,34 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         for (int i = 0; i < sizes; i++)
         {
             Polygons poly =  readPolygons(storage.m_Object_Exclude_FileName.at(i));
+
+            Slic3r::Points sps;
+            for (ClipperLib::Path path : poly)
+            {
+                for (int j = 0; j < path.size(); j++)
+                {
+                    ClipperLib::IntPoint p = path.at(j);
+                    Slic3r::Point sp((p.X), (p.Y));
+                    sps.push_back(sp);
+                }
+               // sps.push_back(Slic3r::Point(INT2MM(path.at(0).X), INT2MM(path.at(0).Y)));
+            }
+            Slic3r::Polygon spg(sps);
+            if (spg.size()>49) //cube data strange  [[-25,-25],[25,-25],[25,-25],[25,25],[25,25],[-25,-25]]  exclude this 
+                spg.douglas_peucker(30);
+
             AABB3D box = storage.meshes.at(i).bounding_box;
             float x = INT2MM((box.max.x + box.min.x) / 2.0f);
             float y = INT2MM((box.max.y + box.min.y) / 2.0f);
  
             std::ostringstream gcode_obj;
+            int size_v = spg.points.size();
             gcode_obj << "[";
-            for (ClipperLib:: Path path : poly)
+            for (size_t i =0; i< size_v - 1; i++)
             {
-                for (int j = 0; j < path.size()-1; j++)
-                {
-                    ClipperLib::IntPoint p = path.at(j);
-                    gcode_obj  << "[" << INT2MM(p.X)  << "," << INT2MM(p.Y) << "],";
-                }
-                ClipperLib::IntPoint p = path.at(path.size() - 1);
-                gcode_obj << "[" << INT2MM(p.X) << "," << INT2MM(p.Y) << "]]";
+                gcode_obj  << "[" << INT2MM(spg.points.at(i).x())  << "," << INT2MM( spg.points.at(i).y() )<< "],";
             }
-            
+            gcode_obj << "[" << INT2MM( spg.points.at(size_v-1).x()) << "," << INT2MM(spg.points.at(size_v-1).x()) << "]]";
             std::ostringstream tmp3;
             tmp3 << "EXCLUDE_OBJECT_DEFINE NAME=" << storage.meshes.at(i).mesh_name << " CENTER=" << x << "," << y
                 << " POLYGON=" << gcode_obj.str();
