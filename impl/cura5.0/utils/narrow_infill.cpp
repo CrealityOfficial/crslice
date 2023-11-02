@@ -215,4 +215,27 @@ namespace cura52
             new_wall_toolpaths.push_back(path);
         }
     }
+    void excludePoints(Polygons& polyin, Polygons& polyout)
+    {
+        Slic3r::Points sps;
+        for (ClipperLib::Path path : polyin)
+        {
+            for (int j = 0; j < path.size(); j++)
+            {
+                ClipperLib::IntPoint p = path.at(j);
+                Slic3r::Point sp((p.X), (p.Y));
+                sps.push_back(sp);
+            }
+            // sps.push_back(Slic3r::Point(INT2MM(path.at(0).X), INT2MM(path.at(0).Y)));
+        }
+        Slic3r::Polygon spg(sps);
+        if (spg.size() > 49) //cube data strange  [[-25,-25],[25,-25],[25,-25],[25,25],[25,25],[-25,-25]]  exclude this 
+            spg.douglas_peucker(30);
+        Polygon p;
+        for (int i = 0; i < spg.points.size() ; i++)
+        {
+            p.emplace_back(spg.points.at(i).x(), spg.points.at(i).y());
+        }
+        polyout.add(p);
+    }
 }

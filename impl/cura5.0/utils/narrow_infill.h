@@ -16,6 +16,7 @@ namespace cura52
 
 	void processOverhang(const SliceLayerPart& part, const Polygons outlines_below, const int half_outer_wall_width, 
 		std::vector<VariableWidthLines>& new_wall_toolpaths);
+	void excludePoints(Polygons& polyin, Polygons& polyout);
 }
 
 #endif  

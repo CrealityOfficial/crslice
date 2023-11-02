@@ -246,7 +246,6 @@ namespace cura52
         float maxvolumetricspeed;
         int tmp_is_change_layer;
         bool first_mesh_cancel;
-        std::vector<Polygons> meshes_bbox;
         bool need_smart_brim;
         bool is_deceleration_speed;
     private:
