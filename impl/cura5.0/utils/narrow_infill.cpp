@@ -223,8 +223,7 @@ namespace cura52
             for (int j = 0; j < path.size(); j++)
             {
                 ClipperLib::IntPoint p = path.at(j);
-                Slic3r::Point sp((p.X), (p.Y));
-                sps.push_back(sp);
+                sps.push_back(Slic3r::Point((int64_t)(p.X), (int64_t)(p.Y)));
             }
             // sps.push_back(Slic3r::Point(INT2MM(path.at(0).X), INT2MM(path.at(0).Y)));
         }
