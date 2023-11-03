@@ -199,6 +199,9 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
     int meshCount = (int)meshgroup->meshes.size();
     std::vector<SlicedData> slicedDatas(meshCount);
+
+    SAFE_MESSAGE(1);
+
     for (int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
     {
         INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
@@ -225,6 +228,8 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         application->cache()->cacheSlicedData(slicedDatas);
     }
 #endif
+
+    SAFE_MESSAGE(2);
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
     polyProccess(application, meshgroup, slicedDatas);
@@ -382,6 +387,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
             mesh_order.push_back(order_and_mesh_idx.second);
         }
     }
+
     for (size_t mesh_order_idx = 0; mesh_order_idx < mesh_order.size(); ++mesh_order_idx)
     {
         processBasicWallsSkinInfill(storage, mesh_order_idx, mesh_order, inset_skin_progress_estimate);
@@ -405,11 +411,10 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 
 	if (mesh_group_settings.get<bool>("support_enable"))
 	{
-		application->message("{5}");
+        SAFE_MESSAGE(6);
 	}
     if (!mesh_group_settings.get<bool>("support_enable") && AreaSupport::isSupportNecessary(storage)) {
-        //application->message("need_support_structure");
-		application->message("{12}");
+        SAFE_MESSAGE(5);
     }
 
     AreaSupport::generateOverhangAreas(storage);
@@ -472,7 +477,6 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     if (! isEmptyLayer(storage, 0) || storage.primeTower.enabled)
     {
         LOGD("Processing platform adhesion");
-		application->message("{6}");
         processPlatformAdhesion(storage);
     }
 
@@ -502,6 +506,9 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     size_t mesh_idx = mesh_order[mesh_order_idx];
     SliceMeshStorage& mesh = storage.meshes[mesh_idx];
     size_t mesh_layer_count = mesh.layers.size();
+
+    SAFE_MESSAGE(3);
+
     if (mesh.settings.get<bool>("infill_mesh"))
     {
         processInfillMesh(storage, mesh_order_idx, mesh_order);
@@ -555,6 +562,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
         processWalls(mesh, layer_number);
     }
 #else
+
 	// walls
 	CALLTICK("processWalls 0");
 	cura52::parallel_for<size_t>(application, 0,
@@ -562,8 +570,6 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 		[&](size_t layer_number)
 		{
 			INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
-			std::string msg = "{3}{11}" + mesh.mesh_name + "{10}" + std::to_string(layer_number);
-			application->message(msg.c_str());
 			processWalls(mesh, layer_number);
 			guarded_progress++;
 		});
@@ -592,6 +598,8 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
         }
     }
 
+    SAFE_MESSAGE(4);
+
     // skin & infill
 	CALLTICK("skin & infill 0");
     const Settings& mesh_group_settings = application->currentGroup()->settings;
@@ -611,8 +619,6 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 
                                     if (! magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
                                     {
-										std::string msg = "{4}{11}" + mesh.mesh_name + "{10}" + std::to_string(layer_number);
-										application->message(msg.c_str());
                                         processSkinsAndInfill(mesh, layer_number, process_infill);
                                     }
                                     guarded_progress++;

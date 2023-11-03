@@ -204,9 +204,6 @@ namespace cura52
 
     void Application::compute()
     {
-        if(tracer)
-            tracer->variadicFormatMessage(0);
-
         //build setting
         size_t numExtruder = scene->extruders.size();
         for (size_t i = 0; i < numExtruder; ++i)
@@ -254,8 +251,8 @@ namespace cura52
 
             {
                 progressor.restartTime();
-                
-                //formatMessage("{0}");
+                if (tracer)
+                    tracer->variadicFormatMessage(0);
 
                 TimeKeeper time_keeper_total;
 
@@ -304,7 +301,10 @@ namespace cura52
                     gcode_writer.writeGCode(storage);
                     tick("writeGCode 1");
                 }
-				message("{9}");
+				
+                if (tracer)
+                    tracer->variadicFormatMessage(9);
+
                 progressor.messageProgress(Progress::Stage::FINISH, 1, 1); // 100% on this meshgroup
                 LOGI("Total time elapsed { %f }s.\n", time_keeper_total.restart());
             }

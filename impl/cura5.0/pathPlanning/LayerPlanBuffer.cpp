@@ -27,6 +27,7 @@ namespace cura52
         LayerPlan* to_be_written = processBuffer();
         if (to_be_written)
         {
+            SAFE_MESSAGE(8, to_be_written->getLayerNr());
             to_be_written->writeGCode(_gcode);
             delete to_be_written;
         }
