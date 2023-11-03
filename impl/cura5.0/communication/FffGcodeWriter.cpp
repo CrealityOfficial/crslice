@@ -245,7 +245,7 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 
     if (!mesh_group->settings.get<bool>("magic_spiralize") && mesh_group->settings.get<EZSeamType>("z_seam_type") == EZSeamType::SHARPEST_CORNER)
     {
-        SAFE_MESSAGE(7);
+        SAFE_MESSAGE(7, 0);
         processZSeam(storage, total_layers);
     }
 

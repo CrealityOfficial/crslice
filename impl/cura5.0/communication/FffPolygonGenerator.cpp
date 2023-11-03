@@ -200,7 +200,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     int meshCount = (int)meshgroup->meshes.size();
     std::vector<SlicedData> slicedDatas(meshCount);
 
-    SAFE_MESSAGE(1);
+    SAFE_MESSAGE(1, 0);
 
     for (int mesh_idx = 0; mesh_idx < meshCount; mesh_idx++)
     {
@@ -229,7 +229,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     }
 #endif
 
-    SAFE_MESSAGE(2);
+    SAFE_MESSAGE(2, 0);
 
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
     polyProccess(application, meshgroup, slicedDatas);
@@ -411,10 +411,10 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 
 	if (mesh_group_settings.get<bool>("support_enable"))
 	{
-        SAFE_MESSAGE(6);
+        SAFE_MESSAGE(6, 0);
 	}
     if (!mesh_group_settings.get<bool>("support_enable") && AreaSupport::isSupportNecessary(storage)) {
-        SAFE_MESSAGE(5);
+        SAFE_MESSAGE(5, 0);
     }
 
     AreaSupport::generateOverhangAreas(storage);
@@ -507,7 +507,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     SliceMeshStorage& mesh = storage.meshes[mesh_idx];
     size_t mesh_layer_count = mesh.layers.size();
 
-    SAFE_MESSAGE(3);
+    SAFE_MESSAGE(3, 0);
 
     if (mesh.settings.get<bool>("infill_mesh"))
     {
@@ -598,7 +598,7 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
         }
     }
 
-    SAFE_MESSAGE(4);
+    SAFE_MESSAGE(4, 0);
 
     // skin & infill
 	CALLTICK("skin & infill 0");
