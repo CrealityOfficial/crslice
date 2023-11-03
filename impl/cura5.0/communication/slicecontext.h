@@ -73,6 +73,7 @@ namespace cura52
         virtual void setFailed() = 0;
         virtual void tick(const std::string& tag) = 0;
         virtual void message(const char* msg) = 0;
+        virtual ccglobal::Tracer* getTracer() = 0;
         virtual crslice::FDMDebugger* debugger() = 0;
         virtual Cache* cache() = 0;
 
@@ -112,8 +113,8 @@ namespace cura52
 #define CALLTICK(x) (void)0
 #endif
 
-#define SAFE_MESSAGE(...) \
-	if(application->tracer) application->tracer->formatMessage(__VA_ARGS__)
+#define SAFE_MESSAGE(msg, ...) \
+	if(application->getTracer()) application->getTracer()->variadicFormatMessage(msg, __VA_ARGS__)
 
 #endif //SLICE_CONTEXT_H
 

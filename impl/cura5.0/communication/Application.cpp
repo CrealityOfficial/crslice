@@ -71,6 +71,11 @@ namespace cura52
             tracer->message(msg);
     }
 
+    ccglobal::Tracer* Application::getTracer()
+    {
+        return tracer;
+    }
+
     crslice::FDMDebugger* Application::debugger()
     {
         return scene->fDebugger;
@@ -199,6 +204,9 @@ namespace cura52
 
     void Application::compute()
     {
+        if(tracer)
+            tracer->variadicFormatMessage(0);
+
         //build setting
         size_t numExtruder = scene->extruders.size();
         for (size_t i = 0; i < numExtruder; ++i)

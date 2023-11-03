@@ -63,6 +63,7 @@ namespace cura52
         void setFailed() override;
         void tick(const std::string& tag) override;
         void message(const char* msg) override;
+        ccglobal::Tracer* getTracer() override;
         crslice::FDMDebugger* debugger() override;
         Cache* cache() override;
 
