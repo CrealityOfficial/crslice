@@ -109,6 +109,9 @@ namespace cura52
                 gcode_writer.closeGcodeWriterFile();
 
                 tick("slice 1");
+
+                if (tracer)
+                    tracer->variadicFormatMessage(10);
             }
         }
 
