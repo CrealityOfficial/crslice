@@ -119,6 +119,31 @@ namespace crslice
 		return false;
 	}
 
+	int SerailCrSkeletal::version()
+	{
+		return 0;
+	}
+
+	bool SerailCrSkeletal::save(std::fstream& out, ccglobal::Tracer* tracer)
+	{
+		_save(out, polygons);
+		ccglobal::cxndSaveT(out, param);
+
+		return true;
+	}
+
+	bool SerailCrSkeletal::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
+	{
+		if (ver == 0)
+		{
+			_load(in, polygons);
+			ccglobal::cxndLoadT(in, param);
+			return true;
+		}
+
+		return false;
+	}
+
 	/// file name
 	std::string crsliceddata_name(const std::string& root, int meshId, int layer)
 	{
@@ -133,6 +158,14 @@ namespace crslice
 		char buffer[1024] = { 0 };
 
 		sprintf(buffer, "%s/mesh%d_layer%d.crslicelayer", root.c_str(), meshId, layer);
+		return std::string(buffer);
+	}
+
+	std::string crsliceskeletal_name(const std::string& root, int index)
+	{
+		char buffer[1024] = { 0 };
+
+		sprintf(buffer, "%s/%d.skeletal", root.c_str(), index);
 		return std::string(buffer);
 	}
 }

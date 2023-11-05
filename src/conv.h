@@ -15,10 +15,15 @@ namespace crslice
 
 	trimesh::vec3 convert(const ClipperLib::IntPoint& point, float z = 0.0f);
 	trimesh::vec3 convert(const cura52::Point3& point);
+	ClipperLib::IntPoint convert(const trimesh::vec3& point);
 
 	void convertRaw(const ClipperLib::Paths& paths, std::vector<std::vector<trimesh::vec3>>& lines, float z = 0.0f);
 	void convertRaw(const ClipperLib::Path& path, std::vector<trimesh::vec3>& lines, float z = 0.0f);
 	void convertPolygonRaw(const cura52::Polygons& polys, std::vector<std::vector<trimesh::vec3>>& lines, float z = 0.0f);
+
+	void convertRaw(const std::vector<std::vector<trimesh::vec3>>& lines, ClipperLib::Paths& paths);
+	void convertRaw(const std::vector<trimesh::vec3>& lines, ClipperLib::Path& path);
+	void convertPolygonRaw(const std::vector<std::vector<trimesh::vec3>>& lines, cura52::Polygons& polys);
 }
 
 #endif // CRSLICE_CLIPPERUTIL_CONV1_1682319629911_H

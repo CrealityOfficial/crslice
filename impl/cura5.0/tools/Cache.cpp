@@ -53,6 +53,53 @@ namespace cura52
 		}
 	}
 
+	void convertExtrusionJunction(const ExtrusionJunction& junction, crslice::CrExtrusionJunction& junc)
+	{
+		junc.p = crslice::convert(junction.p);
+		junc.perimeter_index = junction.perimeter_index;
+		junc.w = INT2MM(junction.w);
+	}
+
+	void convertExtrusionLine(const ExtrusionLine& line, crslice::CrExtrusionLine& poly)
+	{
+		poly.is_odd = line.is_odd;
+		poly.is_closed = line.is_closed;
+
+		const std::vector<ExtrusionJunction>& jcs = line.junctions;
+		int size = (int)jcs.size();
+		if (size > 0)
+		{
+			poly.junctions.resize(size);
+			for (int i = 0; i < size; ++i)
+				convertExtrusionJunction(jcs.at(i), poly.junctions.at(i));
+		}
+	}
+
+	void convertVariableLines(const VariableWidthLines& lines, crslice::CrVariableLines& polys)
+	{
+		polys.clear();
+		int size = (int)lines.size();
+		if (size > 0)
+		{
+			polys.resize(size);
+			for (int i = 0; i < size; ++i)
+				convertExtrusionLine(lines.at(i), polys.at(i));
+		}
+	}
+
+	void convertVectorVariableLines(const std::vector<VariableWidthLines>& vecLines,
+		std::vector<crslice::CrVariableLines>& vecPolys)
+	{
+		vecPolys.clear();
+		int size = (int)vecLines.size();
+		if (size > 0)
+		{
+			vecPolys.resize(size);
+			for (int i = 0; i < size; ++i)
+				convertVariableLines(vecLines.at(i), vecPolys.at(i));
+		}
+	}
+
 	void convertLayerPart(const SkinPart& skinPart,
 		crslice::CrSkinPart& crSkin)
 	{
@@ -86,6 +133,7 @@ namespace cura52
 	Cache::Cache(const std::string& fileName, SliceContext* context)
 		: m_root(fileName)
 		, m_context(context)
+		, m_skeletalIndex(0)
 	{
 		const Settings& settings = m_context->sceneSettings();
 
@@ -145,5 +193,12 @@ namespace cura52
 				ccglobal::cxndSave(serialLayer, fileName);
 			}
 		}
+	}
+
+	void Cache::cacheSkeletal(crslice::SerailCrSkeletal& skeletal)
+	{
+		std::string fileName = crslice::crsliceskeletal_name(m_root, m_skeletalIndex);
+		ccglobal::cxndSave(skeletal, fileName);
+		++m_skeletalIndex;
 	}
 } // namespace cura52

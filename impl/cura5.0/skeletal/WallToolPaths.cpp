@@ -8,31 +8,17 @@
 #include "BeadingStrategyFactory.h"
 
 #include "SkeletalTrapezoidation.h"
-#include "utils/SparsePointGrid.h" //To stitch the inner contour.
+#include "VariableLineUtils.h"
 #include "utils/polygonUtils.h"
-#include "utils/PolylineStitcher.h"
+
 #include "utils/SettingsWrapper.h"
 #include "types/EnumSettings.h"
 
+#include "communication/slicecontext.h"
+#include "crslice/../src/conv.h"
+
 namespace cura52
 {
-    WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset,
-        const Settings& settings, const int layer_idx, cura54::SectionType section_type)
-        : outline(outline)
-        , bead_width_0(nominal_bead_width)
-        , bead_width_x(nominal_bead_width)
-        , inset_count(inset_count)
-        , wall_0_inset(wall_0_inset)
-        , print_thin_walls(settings.get<bool>("fill_outline_gaps"))
-        , min_feature_size(settings.get<coord_t>("min_feature_size"))
-        , min_bead_width(settings.get<coord_t>("min_bead_width"))
-        , small_area_length(INT2MM(static_cast<double>(nominal_bead_width) / 2))
-        , toolpaths_generated(false)
-        , settings(settings)
-        , layer_idx(layer_idx)
-        , section_type(section_type)
-    {
-    }
 
     WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset,
         const Settings& settings)
@@ -68,7 +54,6 @@ namespace cura52
 
     const std::vector<VariableWidthLines>& WallToolPaths::generate()
     {
-        const double scale_factor = 10;
         const coord_t allowed_distance = settings.get<coord_t>("meshfix_maximum_deviation");
         const coord_t epsilon_offset = (allowed_distance / 2) - 1;
         const AngleRadians transitioning_angle = settings.get<AngleRadians>("wall_transition_angle");
@@ -76,14 +61,6 @@ namespace cura52
 
         double scaled_spacing_wall_0 = bead_width_0;
         double scaled_spacing_wall_X = bead_width_x;
-        if (settings.get<RoutePlanning>("route_planning") == RoutePlanning::TOANDFRO)
-        {
-            float ifactor = settings.get<double>("min_even_wall_line_width") / settings.get<double>("wall_line_width_0");
-            scaled_spacing_wall_0 *= ifactor;
-            scaled_spacing_wall_X *= ifactor;
-        }
-
-
         const coord_t layer_thickness = settings.get<coord_t>("layer_height");
         const bool exact_flow_enable = settings.get<bool>("special_exact_flow_enable");
         auto getScaledSpacing = [layer_thickness](size_t line_width)
@@ -99,20 +76,6 @@ namespace cura52
             scaled_spacing_wall_X = getScaledSpacing(bead_width_x);
         }
 
-        auto scale = [&](Polygons& polys)
-        {
-            for (int i = 0; i < (int)polys.size(); i++)
-            {
-                Polygon poly(polys[i]);
-                int pol_size = poly.size();
-                for (int j = 0; j < pol_size; j++)
-                {
-                    polys[i][j].X *= scale_factor;
-                    polys[i][j].Y *= scale_factor;
-                }
-            }
-        };
-
         // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
         // TODO: Open question: Does this indeed fix all (or all-but-one-in-a-million) cases for manifold but otherwise possibly complex polygons?
         Polygons prepared_outline = outline.offset(-epsilon_offset).offset(epsilon_offset * 2).offset(-epsilon_offset);
@@ -125,8 +88,6 @@ namespace cura52
         prepared_outline.removeDegenerateVerts();
         prepared_outline.removeSmallAreas(small_area_length * small_area_length, false);
         prepared_outline = prepared_outline.unionPolygons();
-
-        scale(prepared_outline);
 
         if (prepared_outline.area() <= 0)
         {
@@ -150,69 +111,90 @@ namespace cura52
         const size_t max_bead_count = (inset_count < (size_t)std::numeric_limits<coord_t>::max() / 2) ? 2 * inset_count : std::numeric_limits<coord_t>::max();
         const auto beading_strat = BeadingStrategyFactory::makeStrategy
         (
-            scaled_spacing_wall_0 * scale_factor,
-            scaled_spacing_wall_X * scale_factor,
-            wall_transition_length * scale_factor,
+            scaled_spacing_wall_0,
+            scaled_spacing_wall_X,
+            wall_transition_length,
             transitioning_angle,
             print_thin_walls,
-            min_bead_width * scale_factor,
-            min_feature_size * scale_factor,
+            min_bead_width,
+            min_feature_size,
             wall_split_middle_threshold,
             wall_add_middle_threshold,
             max_bead_count,
-            wall_0_inset * scale_factor,
+            wall_0_inset,
             wall_distribution_count
         );
         const coord_t transition_filter_dist = settings.get<coord_t>("wall_transition_filter_distance");
         const coord_t allowed_filter_deviation = settings.get<coord_t>("wall_transition_filter_deviation");
+
+        const coord_t stitch_distance = settings.get<coord_t>("wall_line_width_x") - 1; //In 0-width contours, junctions can cause up to 1-line-width gaps. Don't stitch more than 1 line width.
+        coord_t max_resolution = settings.get<coord_t>("meshfix_maximum_resolution");
+        coord_t max_deviation = settings.get<coord_t>("meshfix_maximum_deviation");
+        coord_t max_area_deviation = settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation");
 
         SkeletalTrapezoidation wall_maker
         (
             prepared_outline,
             *beading_strat,
             beading_strat->getTransitioningAngle(),
-            discretization_step_size * scale_factor,
-            transition_filter_dist * scale_factor,
-            allowed_filter_deviation * scale_factor,
-            wall_transition_length * scale_factor
+            discretization_step_size,
+            transition_filter_dist,
+            allowed_filter_deviation,
+            wall_transition_length
         );
 
-        wall_maker.generateToolpaths(toolpaths);
-        for (VariableWidthLines& path : toolpaths)
+#ifdef USE_CACHE
+        if (settings.application->cache())
         {
-            VariableWidthLines path_new;
-            for (ExtrusionLine& line : path)
-            {
-                std::vector<ExtrusionJunction> new_junctions;
-                for (ExtrusionJunction& pt : line.junctions)
-                {
-                    if (prepared_outline.inside(pt.p))
-                    {
-                        pt.p.X = pt.p.X / scale_factor + 0.5;
-                        pt.p.Y = pt.p.Y / scale_factor + 0.5;
-                        pt.w = pt.w / scale_factor + 0.5;
-                        new_junctions.emplace_back(pt);
-                    }
-                }
-                line.junctions.swap(new_junctions);
-                simplifyClosedExtrusionLine(line, settings);
-                if (line.getLength() < allowed_distance) continue;
-                line.start_idx = -1;
-                path_new.push_back(line);
-            }
-            path.swap(path_new);
+            crslice::SerailCrSkeletal serialSkeletal;
+
+            serialSkeletal.param.allowed_distance = INT2MM(allowed_distance);
+            serialSkeletal.param.transitioning_angle = transitioning_angle;
+            serialSkeletal.param.discretization_step_size = INT2MM(discretization_step_size);
+            serialSkeletal.param.scaled_spacing_wall_0 = scaled_spacing_wall_0;
+            serialSkeletal.param.scaled_spacing_wall_X = scaled_spacing_wall_X;
+            serialSkeletal.param.wall_transition_length = INT2MM(wall_transition_length);
+            serialSkeletal.param.min_even_wall_line_width = min_even_wall_line_width;
+            serialSkeletal.param.wall_line_width_0 = wall_line_width_0;
+            serialSkeletal.param.wall_split_middle_threshold = wall_split_middle_threshold;
+            serialSkeletal.param.min_odd_wall_line_width = min_odd_wall_line_width;
+            serialSkeletal.param.wall_line_width_x = wall_line_width_x;
+            serialSkeletal.param.wall_add_middle_threshold = wall_add_middle_threshold;
+            serialSkeletal.param.wall_distribution_count = wall_distribution_count;
+            serialSkeletal.param.max_bead_count = max_bead_count;
+            serialSkeletal.param.transition_filter_dist = INT2MM(transition_filter_dist);
+            serialSkeletal.param.allowed_filter_deviation = INT2MM(allowed_filter_deviation);
+            serialSkeletal.param.print_thin_walls = print_thin_walls ? 1 : 0;
+            serialSkeletal.param.min_feature_size = INT2MM(min_feature_size);
+            serialSkeletal.param.min_bead_width = INT2MM(min_bead_width);
+            serialSkeletal.param.wall_0_inset = INT2MM(wall_0_inset);
+            serialSkeletal.param.wall_inset_count = inset_count;
+            serialSkeletal.param.stitch_distance = INT2MM(stitch_distance);
+            serialSkeletal.param.max_resolution = INT2MM(max_resolution);
+            serialSkeletal.param.max_deviation = INT2MM(max_deviation);
+            serialSkeletal.param.max_area_deviation = INT2MM(max_area_deviation);
+            
+            crslice::convertPolygonRaw(prepared_outline, serialSkeletal.polygons);
+            settings.application->cache()->cacheSkeletal(serialSkeletal);
         }
+#endif
 
-        stitchToolPaths(toolpaths, settings);
+        wall_maker.generateToolpaths(toolpaths);
 
+        stitchToolPaths(toolpaths, stitch_distance);
         removeSmallLines(toolpaths);
 
-        separateOutInnerContour();
-
-        simplifyToolPaths(toolpaths, settings);
-
+        inner_contour = separateOutInnerContour(toolpaths, inset_count);
+        simplifyToolPaths(toolpaths, max_resolution, max_deviation, max_area_deviation);
         removeEmptyToolPaths(toolpaths);
 
+        for (VariableWidthLines& path : toolpaths)
+        {
+            for (ExtrusionLine& line : path)
+            {
+                line.start_idx = -1;
+            }
+        }
         assert(std::is_sorted(toolpaths.cbegin(), toolpaths.cend(),
             [](const VariableWidthLines& l, const VariableWidthLines& r)
             {
@@ -220,83 +202,6 @@ namespace cura52
             }) && "WallToolPaths should be sorted from the outer 0th to inner_walls");
         toolpaths_generated = true;
         return toolpaths;
-    }
-
-
-    void WallToolPaths::stitchToolPaths(std::vector<VariableWidthLines>& toolpaths, const Settings& settings)
-    {
-        const coord_t stitch_distance = settings.get<coord_t>("wall_line_width_x") - 1; //In 0-width contours, junctions can cause up to 1-line-width gaps. Don't stitch more than 1 line width.
-
-        for (unsigned int wall_idx = 0; wall_idx < toolpaths.size(); wall_idx++)
-        {
-            VariableWidthLines& wall_lines = toolpaths[wall_idx];
-
-            VariableWidthLines stitched_polylines;
-            VariableWidthLines closed_polygons;
-            PolylineStitcher<VariableWidthLines, ExtrusionLine, ExtrusionJunction>::stitch(wall_lines, stitched_polylines, closed_polygons, stitch_distance);
-            wall_lines = stitched_polylines; // replace input toolpaths with stitched polylines
-
-            for (ExtrusionLine& wall_polygon : closed_polygons)
-            {
-                if (wall_polygon.junctions.empty())
-                {
-                    continue;
-                }
-                // PolylineStitcher, in some cases, produced closed extrusion (polygons),
-                // but the endpoints differ by a small distance. So we reconnect them.
-                if (wall_polygon.junctions.front().p != wall_polygon.junctions.back().p &&
-                    vSize(wall_polygon.junctions.back().p - wall_polygon.junctions.front().p) < stitch_distance) {
-                    wall_polygon.junctions.emplace_back(wall_polygon.junctions.front());
-                }
-                wall_polygon.is_closed = true;
-                wall_lines.emplace_back(std::move(wall_polygon)); // add stitched polygons to result
-            }
-#ifdef DEBUG
-            for (ExtrusionLine& line : wall_lines)
-            {
-                assert(line.inset_idx == wall_idx);
-            }
-#endif // DEBUG
-        }
-    }
-
-    void WallToolPaths::removeSmallLines(std::vector<VariableWidthLines>& toolpaths)
-    {
-        for (VariableWidthLines& inset : toolpaths)
-        {
-            for (size_t line_idx = 0; line_idx < inset.size(); line_idx++)
-            {
-                ExtrusionLine& line = inset[line_idx];
-                coord_t min_width = std::numeric_limits<coord_t>::max();
-                for (const ExtrusionJunction& j : line)
-                {
-                    min_width = std::min(min_width, j.w);
-                }
-                if (line.is_odd && !line.is_closed && shorterThan(line, min_width / 2))
-                { // remove line
-                    line = std::move(inset.back());
-                    inset.erase(--inset.end());
-                    line_idx--; // reconsider the current position
-                }
-            }
-        }
-    }
-
-    void WallToolPaths::simplifyToolPaths(std::vector<VariableWidthLines>& toolpaths, const Settings& settings)
-    {
-        coord_t max_resolution = settings.get<coord_t>("meshfix_maximum_resolution");
-        coord_t max_deviation = settings.get<coord_t>("meshfix_maximum_deviation");
-        coord_t max_area_deviation = settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation");
-
-        Simplify simplifier(max_resolution, max_deviation, max_area_deviation);
-
-        for (size_t toolpaths_idx = 0; toolpaths_idx < toolpaths.size(); ++toolpaths_idx)
-        {
-            for (ExtrusionLine& line : toolpaths[toolpaths_idx])
-            {
-                line = simplifier.polyline(line);
-            }
-        }
     }
 
     const std::vector<VariableWidthLines>& WallToolPaths::getToolPaths()
@@ -317,83 +222,6 @@ namespace cura52
         paths.insert(paths.end(), toolpaths.begin(), toolpaths.end());
     }
 
-    void WallToolPaths::separateOutInnerContour()
-    {
-        //We'll remove all 0-width paths from the original toolpaths and store them separately as polygons.
-        std::vector<VariableWidthLines> actual_toolpaths;
-        actual_toolpaths.reserve(toolpaths.size()); //A bit too much, but the correct order of magnitude.
-        std::vector<VariableWidthLines> contour_paths;
-        contour_paths.reserve(toolpaths.size() / inset_count);
-        inner_contour.clear();
-        for (const VariableWidthLines& inset : toolpaths)
-        {
-            if (inset.empty())
-            {
-                continue;
-            }
-            bool is_contour = false;
-            for (const ExtrusionLine& line : inset)
-            {
-                for (const ExtrusionJunction& j : line)
-                {
-                    if (j.w == 0)
-                    {
-                        is_contour = true;
-                    }
-                    else
-                    {
-                        is_contour = false;
-                    }
-                    break;
-                }
-            }
-
-
-            if (is_contour)
-            {
-#ifdef DEBUG
-                for (const ExtrusionLine& line : inset)
-                {
-                    for (const ExtrusionJunction& j : line)
-                    {
-                        assert(j.w == 0);
-                    }
-                }
-#endif // DEBUG
-                for (const ExtrusionLine& line : inset)
-                {
-                    if (line.is_odd)
-                    {
-                        continue; // odd lines don't contribute to the contour
-                    }
-                    else if (line.is_closed) // sometimes an very small even polygonal wall is not stitched into a polygon
-                    {
-                        inner_contour.emplace_back(line.toPolygon());
-                    }
-                }
-            }
-            else
-            {
-                actual_toolpaths.emplace_back(inset);
-            }
-        }
-        if (!actual_toolpaths.empty())
-        {
-            toolpaths = std::move(actual_toolpaths); //Filtered out the 0-width paths.
-        }
-        else
-        {
-            toolpaths.clear();
-        }
-
-        //The output walls from the skeletal trapezoidation have no known winding order, especially if they are joined together from polylines.
-        //They can be in any direction, clockwise or counter-clockwise, regardless of whether the shapes are positive or negative.
-        //To get a correct shape, we need to make the outside contour positive and any holes inside negative.
-        //This can be done by applying the even-odd rule to the shape. This rule is not sensitive to the winding order of the polygon.
-        //The even-odd rule would be incorrect if the polygon self-intersects, but that should never be generated by the skeletal trapezoidation.
-        inner_contour = inner_contour.processEvenOdd();
-    }
-
     const Polygons& WallToolPaths::getInnerContour()
     {
         if (!toolpaths_generated && inset_count > 0)
@@ -405,15 +233,6 @@ namespace cura52
             return outline;
         }
         return inner_contour;
-    }
-
-    bool WallToolPaths::removeEmptyToolPaths(std::vector<VariableWidthLines>& toolpaths)
-    {
-        toolpaths.erase(std::remove_if(toolpaths.begin(), toolpaths.end(), [](const VariableWidthLines& lines)
-            {
-                return lines.empty();
-            }), toolpaths.end());
-        return toolpaths.empty();
     }
 
 } // namespace cura52

@@ -39,6 +39,59 @@ namespace crslice
 		CrPolygons open_polygons;
 	};
 
+	struct CrSkeletalParam
+	{
+		double allowed_distance = 0.0;
+		double transitioning_angle = 0;
+		double discretization_step_size = 0.8;
+
+		double offset_insert = 0.0;
+		double scaled_spacing_wall_0 = 0.0;
+		double scaled_spacing_wall_X = 0.0;
+
+		double wall_transition_length = 0.0;
+		double min_even_wall_line_width = 0.0;
+		double wall_line_width_0 = 0.0;
+		double wall_split_middle_threshold = 1.0;
+
+		double min_odd_wall_line_width = 0.0;
+		double wall_line_width_x = 0.0;
+		double wall_add_middle_threshold = 1.0;
+
+		int wall_distribution_count = 0;
+		size_t max_bead_count = 0;
+
+		double transition_filter_dist = 0.0;
+		double allowed_filter_deviation = 0.0;
+
+		int print_thin_walls = 0;
+		double min_feature_size = 0.0;
+		double min_bead_width = 0.0;
+		double wall_0_inset = 0.0;
+
+		int wall_inset_count = 1;
+		double stitch_distance = 0.0;
+		double max_resolution = 0.0;
+		double max_deviation = 0.0;
+		double max_area_deviation = 0.0;
+	};
+
+	struct CrExtrusionJunction
+	{
+		trimesh::vec3 p;
+		float w;
+		size_t perimeter_index;
+	};
+
+	struct CrExtrusionLine
+	{
+		bool is_odd;
+		bool is_closed;
+		std::vector<CrExtrusionJunction> junctions;
+	};
+
+	typedef std::vector<CrExtrusionLine> CrVariableLines;
+
 	CRSLICE_API void _load(std::fstream& in, CrPolygon& poly);
 	CRSLICE_API void _save(std::fstream& out, const CrPolygon& poly);
 	CRSLICE_API void _load(std::fstream& in, CrPolygons& polys);
@@ -79,9 +132,24 @@ namespace crslice
 		CrSliceLayer layer;
 	};
 
+	class CRSLICE_API SerailCrSkeletal : public ccglobal::Serializeable
+	{
+	public:
+		SerailCrSkeletal() {}
+		virtual ~SerailCrSkeletal() {}
+
+		int version() override;
+		bool save(std::fstream& out, ccglobal::Tracer* tracer) override;
+		bool load(std::fstream& in, int ver, ccglobal::Tracer* tracer) override;
+
+		CrPolygons polygons;
+		CrSkeletalParam param;
+	};
+
 	///file name
 	CRSLICE_API std::string crsliceddata_name(const std::string& root, int meshId, int layer);
 	CRSLICE_API std::string crslicelayer_name(const std::string& root, int meshId, int layer);
+	CRSLICE_API std::string crsliceskeletal_name(const std::string& root, int index);
 }
 
 #endif // CRSLICE_LOAD_1698397403190_H

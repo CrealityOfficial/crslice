@@ -193,7 +193,7 @@ Polygons Infill::generateWallToolPathsT(std::vector<VariableWidthLines>& toolpat
     if (wall_line_count > 0)
     {
         constexpr coord_t wall_0_inset = 0; // Don't apply any outer wall inset for these. That's just for the outer wall.
-        WallToolPaths wall_toolpaths(outer_contour, line_width, wall_line_count, wall_0_inset, settings, layer_idx, section_type);
+        WallToolPaths wall_toolpaths(outer_contour, line_width, wall_line_count, wall_0_inset, settings);
 
         wall_toolpaths.pushToolPaths(toolpaths);
         inner_contour = wall_toolpaths.getInnerContour();
@@ -257,7 +257,7 @@ void Infill::generateThomas(std::vector<VariableWidthLines>& toolpaths,
 
         // Fill narrow area with walls.
         const size_t narrow_wall_count = small_area_width / infill_line_width + 1;
-        WallToolPaths wall_toolpaths(small_infill, infill_line_width, narrow_wall_count, 0, settings, layer_idx, section_type);
+        WallToolPaths wall_toolpaths(small_infill, infill_line_width, narrow_wall_count, 0, settings);
         std::vector<VariableWidthLines> small_infill_paths = wall_toolpaths.getToolPaths();
         //scripta::log("infill_small_infill_paths_0", small_infill_paths, section_type, layer_idx,
         //    scripta::CellVDI{ "is_closed", &ExtrusionLine::is_closed },

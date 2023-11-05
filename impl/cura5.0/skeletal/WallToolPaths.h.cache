@@ -9,6 +9,7 @@
 #include "settings/Settings.h"
 #include "utils/ExtrusionLine.h"
 #include "utils/polygon.h"
+#include "utils/section_type.h"
 
 namespace cura52
 {
@@ -23,6 +24,7 @@ namespace cura52
          * \param wall_0_inset How far to inset the outer wall, to make it adhere better to other walls.
          * \param settings The settings as provided by the user
          */
+        WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset, const Settings& settings, const int layer_idx, cura54::SectionType section_type);
         WallToolPaths(const Polygons& outline, const coord_t nominal_bead_width, const size_t inset_count, const coord_t wall_0_inset, const Settings& settings);
 
         /*!
@@ -53,6 +55,14 @@ namespace cura52
          * \param paths The already existing (or empty) paths these new toolpaths are pushed into. Binned by inset_idx.
          */
         void pushToolPaths(std::vector<VariableWidthLines>& paths);
+
+        /*!
+         * Compute the inner contour of the walls. This contour indicates where the walled area ends and its infill begins.
+         * The inside can then be filled, e.g. with skin/infill for the walls of a part, or with a pattern in the case of
+         * infill with extra infill walls.
+         */
+        void separateOutInnerContour();
+
         /*!
          * Gets the inner contour of the area which is inside of the generated tool
          * paths.
@@ -66,6 +76,36 @@ namespace cura52
          * \return The inner contour of the generated walls.
          */
         const Polygons& getInnerContour();
+
+        /*!
+         * Removes empty paths from the toolpaths
+         * \param toolpaths the toolpaths binned by inset_idx generated with \p generate()
+         * \return true if there are still paths left. If all toolpaths were removed it returns false
+         */
+        static bool removeEmptyToolPaths(std::vector<VariableWidthLines>& toolpaths);
+
+    protected:
+        /*!
+         * Stitch the polylines together and form closed polygons.
+         *
+         * Works on both toolpaths and inner contours simultaneously.
+         *
+         * \param settings The settings as provided by the user
+         */
+        static void stitchToolPaths(std::vector<VariableWidthLines>& toolpaths, const Settings& settings);
+
+        /*!
+         * Remove polylines shorter than half the smallest line width along that polyline.
+         */
+        static void removeSmallLines(std::vector<VariableWidthLines>& toolpaths);
+
+        /*!
+         * Simplifies the variable-width toolpaths by calling the simplify on every line in the toolpath using the provided
+         * settings.
+         * \param settings The settings as provided by the user
+         */
+        static void simplifyToolPaths(std::vector<VariableWidthLines>& toolpaths, const Settings& settings);
+
     private:
         const Polygons& outline; //<! A reference to the outline polygon that is the designated area
         coord_t bead_width_0; //<! The nominal or first extrusion line width with which libArachne generates its walls
@@ -81,6 +121,8 @@ namespace cura52
         std::vector<VariableWidthLines> toolpaths; //<! The generated toolpaths binned by inset_idx.
         Polygons inner_contour;  //<! The inner contour of the generated toolpaths
         const Settings& settings;
+        int layer_idx;
+        cura54::SectionType section_type;
     };
 } // namespace cura52
 
