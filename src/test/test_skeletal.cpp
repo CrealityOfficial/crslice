@@ -9,7 +9,7 @@
 namespace crslice
 {
     using namespace cura52;
-	void testSkeletal(const SerailCrSkeletal& skeletal, CrPolygons& innerPoly, std::vector<CrVariableLines>& out)
+	void testSkeletal(const SerailCrSkeletal& skeletal, CrPolygons& innerPoly, std::vector<CrVariableLines>& out, SkeletalDetail* detail)
 	{
         const CrSkeletalParam& param = skeletal.param;
 
