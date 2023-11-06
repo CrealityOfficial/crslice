@@ -163,6 +163,121 @@ void LayerPlan::forceNewPathStart()
         paths[paths.size() - 1].done = true;
 }
 
+void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
+{
+	std::vector<Point> aPoints;
+	bool isEmpty = extruder_plans.back().paths.back().points.empty();
+	if (!isEmpty)
+	{
+		aPoints = extruder_plans.back().paths.back().points;
+		extruder_plans.back().paths.back().points.clear();
+	}
+
+	int index = extruder_plans.back().paths.size() - 2;
+	GCodePath last_path = extruder_plans.back().paths[index];
+	last_path.points.clear();
+
+	if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
+	{
+		bool bneedRevers = true;
+		for (int n = index; n >= 0; n--)
+		{
+			GCodePath _path = extruder_plans.back().paths[n];
+			if (last_path.config->type == _path.config->type)
+			{
+				ClipperLib::ReversePath(_path.points);
+				bneedRevers = false;
+				for (Point& apoint : _path.points)
+				{
+					last_path.points.push_back(apoint);
+				}
+			}
+			//else if (_path.config->type == PrintFeatureType::MoveCombing && !_path.points.empty())
+			//{
+			//	last_path.points.push_back(_path.points[_path.points.size() - 1]);
+			//	break;
+			//}
+			else
+			{
+				break;
+			}
+		}
+		if (bneedRevers)
+		{
+			ClipperLib::ReversePath(last_path.points);
+		}
+	} 
+	else
+	{
+		bool bneedRevers = false;
+		for (int n = index; n >= 0; n--)
+		{
+			GCodePath _path = extruder_plans.back().paths[n];
+			if (last_path.config->type == _path.config->type)
+			{
+				bneedRevers = true;
+				ClipperLib::ReversePath(_path.points);
+				for (Point& apoint : _path.points)
+				{
+					last_path.points.push_back(apoint);
+				}
+			}
+			//else if (_path.config->type == PrintFeatureType::MoveCombing && !_path.points.empty())
+			//{
+			//	last_path.points.push_back(_path.points[_path.points.size() - 1]);
+			//	break;
+			//}
+			else
+			{
+				break;
+			}
+		}
+		if (bneedRevers)
+		{
+			ClipperLib::ReversePath(last_path.points);
+		}
+	}
+
+	Point p0(*last_planned_position);
+	int distance_traversed = 0;
+	for (unsigned int point_idx = 0;; point_idx++)
+	{
+		if ((point_idx > last_path.points.size() && distance_traversed == 0) || point_idx > last_path.points.size() * 10) // Wall has a total circumference of 0. This loop would never end.
+		{
+			path->retract_move_icount = 0;
+			break; // No wipe if the wall has no circumference.
+		}
+		Point p1 = last_path.points[(point_idx) % last_path.points.size()];
+		int p0p1_dist = vSize(p1 - p0);
+		if (distance_traversed + p0p1_dist >= wall_0_wipe_dist)
+		{
+			path->retract_move_icount++;
+			Point vector = p1 - p0;
+			Point half_way = p0 + normal(vector, wall_0_wipe_dist - distance_traversed);
+			addTravel_simple(half_way, path);
+			break;
+		}
+		else
+		{
+			//if (p0p1_dist * 10 > wall_0_wipe_dist)
+			{
+				path->retract_move_icount++;
+				addTravel_simple(p1, path);
+			}
+			distance_traversed += p0p1_dist;
+		}
+		p0 = p1;
+	}
+	if (!isEmpty)
+	{
+		for (Point apoint : aPoints)
+		{
+			extruder_plans.back().paths.back().points.push_back(apoint);
+		}
+
+	}
+}
+
 LayerPlan::LayerPlan(const SliceDataStorage& storage,
                      LayerIndex layer_nr,
                      coord_t z,
@@ -571,8 +686,15 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
 		path->perform_z_hop = retraction_enable && extruder->settings.get<bool>("retraction_hop_enabled");
     }
 
-    // must start new travel path as retraction can be enabled or not depending on path length, etc.
-    forceNewPathStart();
+	// apply  wipe retract
+	coord_t wall_0_wipe_dist = storage.meshes.back().settings.get<coord_t>("wall_0_wipe_dist");
+	if (path->retract && wall_0_wipe_dist > 0 && !is_first_travel_of_layer && extruder_plans.back().paths.size() > 1)
+	{ 
+		wipeBeforRetract(wall_0_wipe_dist, path);
+	}
+
+	// must start new travel path as retraction can be enabled or not depending on path length, etc.
+	forceNewPathStart();
 
     GCodePath& ret = addTravel_simple(p, path);
     was_inside = is_inside;
@@ -1359,34 +1481,40 @@ void LayerPlan::addWall(const ExtrusionLine& wall,
             computeDistanceToBridgeStart((start_idx + wall.size() - 1) % wall.size());
         }
 
-        if (wall_0_wipe_dist > 0 && ! is_linked_path)
-        { // apply outer wall wipe
-            p0 = wall[start_idx];
-            int distance_traversed = 0;
-            for (unsigned int point_idx = 1;; point_idx++)
-            {
-                if (point_idx > wall.size() && distance_traversed == 0) // Wall has a total circumference of 0. This loop would never end.
-                {
-                    break; // No wipe if the wall has no circumference.
-                }
-                ExtrusionJunction p1 = wall[(start_idx + point_idx) % wall.size()];
-                int p0p1_dist = vSize(p1 - p0);
-                if (distance_traversed + p0p1_dist >= wall_0_wipe_dist)
-                {
-                    Point vector = p1.p - p0.p;
-                    Point half_way = p0.p + normal(vector, wall_0_wipe_dist - distance_traversed);
-                    addTravel_simple(half_way);
-                    break;
-                }
-                else
-                {
-                    addTravel_simple(p1.p);
-                    distance_traversed += p0p1_dist;
-                }
-                p0 = p1;
-            }
-            forceNewPathStart();
-        }
+   //     if (wall_0_wipe_dist > 0 && ! is_linked_path)
+   //     { // apply outer wall wipe
+   ////         const GCodePathConfig& travel_config = configs_storage.travel_config_per_extruder[getExtruder()];
+			////GCodePath* path = getLatestPathWithConfig(travel_config, SpaceFillType::None);
+			////path->retract = true;
+   ////         path->retract_move = true;
+			////addTravel_simple(p0.p, path);
+
+   //         p0 = wall[start_idx];
+   //         int distance_traversed = 0;
+   //         for (unsigned int point_idx = 1;; point_idx++)
+   //         {
+   //             if (point_idx > wall.size() && distance_traversed == 0) // Wall has a total circumference of 0. This loop would never end.
+   //             {
+   //                 break; // No wipe if the wall has no circumference.
+   //             }
+   //             ExtrusionJunction p1 = wall[(start_idx + point_idx) % wall.size()];
+   //             int p0p1_dist = vSize(p1 - p0);
+   //             if (distance_traversed + p0p1_dist >= wall_0_wipe_dist)
+   //             {
+   //                 Point vector = p1.p - p0.p;
+   //                 Point half_way = p0.p + normal(vector, wall_0_wipe_dist - distance_traversed);
+   //                 addTravel_simple(half_way);
+   //                 break;
+   //             }
+   //             else
+   //             {
+   //                 addTravel_simple(p1.p);
+   //                 distance_traversed += p0p1_dist;
+   //             }
+   //             p0 = p1;
+   //         }
+   //         forceNewPathStart();
+   //     }
     }
     else
     {
@@ -2342,7 +2470,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     }
                 }
             }
-            bool newway_zhop = false;
+
             auto getLastExtrusionPath = [paths](std::vector<Point>& ExtrusionPath, int curIdx)
             {
                 ExtrusionPath.clear();
@@ -2374,182 +2502,141 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
                 return true;
             };
-            if (path.retract && !newway_zhop)
-            {
-                gcode.writeLine(";;retract;;");
-                //if(extruder.settings.get<RetractionType>("retraction_type") == RetractionType::BAMBOO)
-                if (extruder.settings.get<bool>("retraction_wipe"))
-                {
-                    RetractionConfig retraction_config_1 = retraction_config;
-                    retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
-                    gcode.writeRetraction(retraction_config_1);
-                    std::vector<Point> last_path;
-                    std::vector<std::pair<Point, double>> wipe_path_record;
-                    bool openPolygen = getLastExtrusionPath(last_path, path_idx);
-                    double wipe_length = MM2INT(extruder.settings.get<double>("wipe_length"));
-                    double cur_dis_path = 0;
-                    double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
-                    double speed = path.config->getSpeed() * 0.5; //wipe speed
-                    for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
-                    {
-                        Point src_pos = gcode.getPositionXY();
-                        Point cur_pos = last_path[point_idx];
-                        double len = vSize(cur_pos - src_pos);
-                        if (len == 0.) continue;
-                        double theta = 1.0f;
-                        if (len < wipe_length - cur_dis_path)
-                        {
-                            theta = len / wipe_length;
-                        }
-                        else
-                        {
-                            theta = (wipe_length - cur_dis_path) / wipe_length;
-                            cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
-                        }
-                        wipe_path_record.push_back(std::make_pair(src_pos, theta));
-                        gcode.writeExtrusionG1(speed, cur_pos, openPolygen ? 0 : -dis_Extru * theta, path.config->type);
-                        cur_dis_path += len;
-                        if (cur_dis_path > wipe_length) break;
-                    }
-                    if (openPolygen && !wipe_path_record.empty())
-                    {
-                        std::reverse(wipe_path_record.begin(), wipe_path_record.end());
-                        for (const std::pair<Point, double>& wipe_step : wipe_path_record)
-                        {
-                            gcode.writeExtrusionG1(speed, wipe_step.first, -dis_Extru * wipe_step.second, path.config->type);
-                        }
-                    }
-                    //gcode.writeRetraction(retraction_config);
-                    //if (path.perform_z_hop)
-                    //{
-                    //    gcode.writeCircle(speed, path.points[0], z_hop_height);
-                    //    z_hop_height = retraction_config.zHop; // back to normal z hop
-                    //}
-                    //else
-                    //{
-                    //    gcode.writeZhopEnd();
-                    //}
-                }
-                //else//default
-                {
-                    gcode.writeRetraction(retraction_config);
-                    if (path.perform_z_hop)
-                    {
-                        RetractionHopType hop_type = extruder.settings.get<RetractionHopType>("retraction_hop_type");
-                        switch (hop_type)
-                        {
-                        case cura52::RetractionHopType::DIRECTLIFT:
-                        {
-                            gcode.writeZhopStart(z_hop_height);
-                            z_hop_height = retraction_config.zHop; // back to normal z hop
-                            break;
-                        }
-                        case cura52::RetractionHopType::SPIRALLIFT:
-                        {
-                            double speed = path.config->getSpeed() * path.speed_factor;
-                            gcode.writeCircle(speed, path.points[0], z_hop_height);
-                            z_hop_height = retraction_config.zHop; // back to normal z hop
-                            break;
-                        }
-                        case cura52::RetractionHopType::TRAPEZOIDALLEFT:
-                        {
-                            double speed = path.config->getSpeed() * path.speed_factor;
-                            gcode.writeTrapezoidalLeft(speed, path.points[0], z_hop_height);
-                            z_hop_height = retraction_config.zHop;
-                            break;
-                        }
-                        default:
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        gcode.writeZhopEnd();
-                    }
-                }
-            }
-            else if (newway_zhop)
-            {
-                gcode.writeLine(";;retract;;");
-                //if(extruder.settings.get<RetractionType>("retraction_type") == RetractionType::BAMBOO)
-                if (extruder.settings.get<bool>("retraction_wipe"))
-                {
-                    RetractionConfig retraction_config_1 = retraction_config;
-                    retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
-                    gcode.writeRetraction(retraction_config_1);
 
-                    std::vector<Point> last_path;
-                    std::vector<std::pair<Point, double>> wipe_path_record;
-                    bool openPolygen = getLastExtrusionPath(last_path, path_idx);
-                    double wipe_length = MM2INT(extruder.settings.get<double>("wipe_length"));
-                    double cur_dis_path = 0;
-                    double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
-                    double speed = path.config->getSpeed() * 0.5; //wipe speed
-                    for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
-                    {
-                        Point src_pos = gcode.getPositionXY();
-                        Point cur_pos = last_path[point_idx];
-                        double len = vSize(cur_pos - src_pos);
-                        if (len == 0.) continue;
-                        double theta = 1.0f;
-                        if (len < wipe_length - cur_dis_path)
-                        {
-                            theta = len / wipe_length;
-                        }
-                        else
-                        {
-                            theta = (wipe_length - cur_dis_path) / wipe_length;
-                            cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
-                        }
-                        wipe_path_record.push_back(std::make_pair(src_pos, theta));
-                        gcode.writeExtrusionG1(speed, cur_pos, openPolygen ? 0 : -dis_Extru * theta, path.config->type);
-                        cur_dis_path += len;
-                        if (cur_dis_path > wipe_length) break;
-                    }
-                    if (openPolygen && !wipe_path_record.empty())
-                    {
-                        std::reverse(wipe_path_record.begin(), wipe_path_record.end());
-                        for (const std::pair<Point, double>& wipe_step : wipe_path_record)
-                        {
-                            gcode.writeExtrusionG1(speed, wipe_step.first, -dis_Extru * wipe_step.second, path.config->type);
-                        }
-                    }
-                }
-                SliceLayer below_slice_layer;
-                if (this->layer_nr >0) below_slice_layer = storage.meshes.at(0).layers[this->layer_nr-1];
-                Polygons bp = below_slice_layer.getOutlines();
-                {
-                    gcode.writeRetraction(retraction_config);
-                    RetractionHopType hop_type;
-                    if (needs_retraction(path, hop_type,bp))
-                    {
-                        //z_hop_height = 0.4;
-                        switch (hop_type)
-                        {
-                        case cura52::RetractionHopType::SPIRALLIFT:
-                        {
-                            double speed = path.config->getSpeed() * path.speed_factor;
-                            gcode.writeCircle(speed, path.points[0], z_hop_height);
-                            z_hop_height = retraction_config.zHop; // back to normal z hop
-                            break;
-                        }
-                        case cura52::RetractionHopType::TRAPEZOIDALLEFT:
-                        {
-                            double speed = path.config->getSpeed() * path.speed_factor;
-                            gcode.writeTrapezoidalLeft(speed, path.points[0], z_hop_height);
-                            z_hop_height = retraction_config.zHop;
-                            break;
-                        }
-                        default:
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        gcode.writeZhopEnd();
-                    }
-                }
-            }
+			if (path.retract_move_icount >0)
+			{
+				gcode.writeLine(";;retract move;;");
+				float num = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent");
+				if (extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent").value > 0)
+				{
+					RetractionConfig retraction_config_1 = retraction_config;
+					retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
+					gcode.writeRetraction(retraction_config_1);
+				}
+
+				for (unsigned int point_idx = 0; point_idx < path.retract_move_icount; point_idx++)
+				{
+					double e = -(1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")) * retraction_config.distance * 19.0 / (20.0 * path.retract_move_icount);
+					gcode.writeExtrusionG1(path.config->getSpeed() * 0.8, path.points[point_idx], e, path.config->type);
+				}
+				gcode.writeRetraction(retraction_config);
+				path.points.erase(path.points.begin(), path.points.begin() + path.retract_move_icount);
+				if (path.perform_z_hop)
+				{
+					RetractionHopType hop_type = extruder.settings.get<RetractionHopType>("retraction_hop_type");
+					switch (hop_type)
+					{
+					case cura52::RetractionHopType::DIRECTLIFT:
+					{
+						gcode.writeZhopStart(z_hop_height);
+						z_hop_height = retraction_config.zHop; // back to normal z hop
+						break;
+					}
+					case cura52::RetractionHopType::SPIRALLIFT:
+					{
+						double speed = path.config->getSpeed() * path.speed_factor;
+						gcode.writeCircle(speed, path.points[0], z_hop_height);
+						z_hop_height = retraction_config.zHop; // back to normal z hop
+						break;
+					}
+					case cura52::RetractionHopType::TRAPEZOIDALLEFT:
+					{
+						double speed = path.config->getSpeed() * path.speed_factor;
+						gcode.writeTrapezoidalLeft(speed, path.points[0], z_hop_height);
+						z_hop_height = retraction_config.zHop;
+						break;
+					}
+					default:
+						break;
+					}
+				}
+				else
+				{
+					gcode.writeZhopEnd();
+				}
+			}
+			else if (path.retract)
+			{
+				gcode.writeLine(";;retract;;");
+				if (extruder.settings.get<double>("wall_0_wipe_dist") >0)
+				{
+					RetractionConfig retraction_config_1 = retraction_config;
+					retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
+					gcode.writeRetraction(retraction_config_1);
+					std::vector<Point> last_path;
+					std::vector<std::pair<Point, double>> wipe_path_record;
+					bool openPolygen = getLastExtrusionPath(last_path, path_idx);
+					double wipe_length = MM2INT(extruder.settings.get<double>("wall_0_wipe_dist"));
+					double cur_dis_path = 0;
+					double dis_Extru = (1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") - 0.015) * retraction_config.distance;
+					double speed = path.config->getSpeed() * 0.5; //wipe speed
+					for (unsigned int point_idx = 0; point_idx < last_path.size(); point_idx++)
+					{
+						Point src_pos = gcode.getPositionXY();
+						Point cur_pos = last_path[point_idx];
+						double len = vSize(cur_pos - src_pos);
+						if (len == 0.) continue;
+						double theta = 1.0f;
+						if (len < wipe_length - cur_dis_path)
+						{
+							theta = len / wipe_length;
+						}
+						else
+						{
+							theta = (wipe_length - cur_dis_path) / wipe_length;
+							cur_pos = src_pos + ((wipe_length - cur_dis_path) / len) * (cur_pos - src_pos);
+						}
+						wipe_path_record.push_back(std::make_pair(src_pos, theta));
+						gcode.writeExtrusionG1(speed, cur_pos, openPolygen ? 0 : -dis_Extru * theta, path.config->type);
+						cur_dis_path += len;
+						if (cur_dis_path > wipe_length) break;
+					}
+					if (openPolygen && !wipe_path_record.empty())
+					{
+						std::reverse(wipe_path_record.begin(), wipe_path_record.end());
+						for (const std::pair<Point, double>& wipe_step : wipe_path_record)
+						{
+							gcode.writeExtrusionG1(speed, wipe_step.first, -dis_Extru * wipe_step.second, path.config->type);
+						}
+					}
+				}
+				{
+					gcode.writeRetraction(retraction_config);
+					if (path.perform_z_hop)
+					{
+						RetractionHopType hop_type = extruder.settings.get<RetractionHopType>("retraction_hop_type");
+						switch (hop_type)
+						{
+						case cura52::RetractionHopType::DIRECTLIFT:
+						{
+							gcode.writeZhopStart(z_hop_height);
+							z_hop_height = retraction_config.zHop; // back to normal z hop
+							break;
+						}
+						case cura52::RetractionHopType::SPIRALLIFT:
+						{
+							double speed = path.config->getSpeed() * path.speed_factor;
+							gcode.writeCircle(speed, path.points[0], z_hop_height);
+							z_hop_height = retraction_config.zHop; // back to normal z hop
+							break;
+						}
+						case cura52::RetractionHopType::TRAPEZOIDALLEFT:
+						{
+							double speed = path.config->getSpeed() * path.speed_factor;
+							gcode.writeTrapezoidalLeft(speed, path.points[0], z_hop_height);
+							z_hop_height = retraction_config.zHop;
+							break;
+						}
+						default:
+							break;
+						}
+					}
+					else
+					{
+						gcode.writeZhopEnd();
+					}
+				}
+			}
             if (! path.config->isTravelPath() && last_extrusion_config != path.config)
             {
                 gcode.writeTypeComment(path.config->type);

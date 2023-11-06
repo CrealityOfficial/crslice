@@ -321,6 +321,7 @@ namespace cura52
          * - when changing extruder, the same travel config is used, but its extruder field is changed.
          */
         void forceNewPathStart();
+		void wipeBeforRetract(coord_t wipe_dist, GCodePath* path);
 
 
         std::optional<Point> getLastPosition()

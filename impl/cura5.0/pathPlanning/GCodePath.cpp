@@ -23,7 +23,7 @@ namespace cura52
         done(false),
         spiralize(spiralize),
         fan_speed(GCodePathConfig::FAN_SPEED_DEFAULT),
-        retract_move(false),
+		retract_move_icount(0),
         estimates(TimeMaterialEstimates())
     {
         speedSlowDownPath = 0.0;
