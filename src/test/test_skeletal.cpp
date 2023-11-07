@@ -9,6 +9,25 @@
 namespace crslice
 {
     using namespace cura52;
+
+    void convertSkeletalGraph(const SkeletalTrapezoidationGraph& graph, SkeletalGraph& skeletalGraph)
+    {
+        for (const STHalfEdge& edge : graph.edges)
+        {
+            SkeletalEdge e;
+            e.from = convert(edge.from->p);
+            e.to = convert(edge.to->p);
+            skeletalGraph.edges.push_back(e);
+        }
+
+        for (const STHalfEdgeNode& node : graph.nodes)
+        {
+            SkeletalNode n;
+            n.p = convert(node.p);
+            skeletalGraph.nodes.push_back(n);
+        }
+    }
+
 	void testSkeletal(const SerailCrSkeletal& skeletal, CrPolygons& innerPoly, std::vector<CrVariableLines>& out, SkeletalDetail* detail)
 	{
         const CrSkeletalParam& param = skeletal.param;
@@ -68,6 +87,9 @@ namespace crslice
             allowed_filter_deviation,
             wall_transition_length
         );
+
+        if (detail)
+            convertSkeletalGraph(wall_maker.graph, detail->graph);
 
         std::vector<VariableWidthLines> variableLines;
         wall_maker.generateToolpaths(variableLines);
