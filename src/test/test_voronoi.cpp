@@ -38,8 +38,6 @@ namespace crslice
         typedef boost::polygon::voronoi_vertex<double> vertex_type;
         typedef boost::polygon::voronoi_edge<double> edge_type;
         typedef boost::polygon::segment_traits<CSegment>::point_type point_type;
-        boost::polygon::point_data;
-        boost::polygon::segment_data;
 
         auto f = [](const vertex_type& vertex)->trimesh::vec3 {
             return trimesh::vec3(vertex.x() / 1000.0f, vertex.y() / 1000.0f, 0.0f);
