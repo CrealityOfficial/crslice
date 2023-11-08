@@ -176,9 +176,11 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 	int index = extruder_plans.back().paths.size() - 2;
 	GCodePath last_path = extruder_plans.back().paths[index];
 	last_path.points.clear();
+	coord_t distance = wall_0_wipe_dist;
 
 	if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
-	{
+	{	
+		distance = wall_0_wipe_dist * 2;
 		bool bneedRevers = true;
 		for (int n = index; n >= 0; n--)
 		{
@@ -249,17 +251,17 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 		}
 		Point p1 = last_path.points[(point_idx) % last_path.points.size()];
 		int p0p1_dist = vSize(p1 - p0);
-		if (distance_traversed + p0p1_dist >= wall_0_wipe_dist)
+		if (distance_traversed + p0p1_dist >= distance)
 		{
 			path->retract_move_icount++;
 			Point vector = p1 - p0;
-			Point half_way = p0 + normal(vector, wall_0_wipe_dist - distance_traversed);
+			Point half_way = p0 + normal(vector, distance - distance_traversed);
 			addTravel_simple(half_way, path);
 			break;
 		}
 		else
 		{
-			//if (p0p1_dist * 10 > wall_0_wipe_dist)
+			//if (p0p1_dist * 10 > distance)
 			{
 				path->retract_move_icount++;
 				addTravel_simple(p1, path);

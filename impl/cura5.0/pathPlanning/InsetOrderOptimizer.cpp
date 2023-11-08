@@ -64,23 +64,30 @@ namespace cura52
             coord_t overhang_width = layer_height * std::tan(overhang_angle / (180 / M_PI));
             overlap = overhang_width * 100.0 / outer_wall_width;
             float distance = outer_wall_width * (overlap / 100.0);
+			const auto get_inset_direction = [&](const std::vector<VariableWidthLines> & paths, float _distance)
+			{
+				for (auto& aunit : paths)
+				{
+					for (auto adata : aunit)
+					{
+						int icount = 0;
+						for (int n = 0; n < adata.junctions.size(); n++)
+						{
+							if (adata.junctions[n].overhang_distance >= _distance)
+							{
+								icount++;
+							}
+						}
+						if (icount >= 2)
+						{
+							return true;
+						}
+					}
+				}
+				return false;
+			};
 
-            bool isOverhang = false;
-            for (auto& aunit : paths)
-            {
-                for (auto adata : aunit)
-                {
-                    for (int n = 0; n < adata.junctions.size(); n++)
-                    {
-                        if (adata.junctions[n].overhang_distance >= distance)
-                        {
-                            isOverhang = true;
-                        }
-                    }
-                }
-            }
-
-            if (isOverhang)
+            if (get_inset_direction(paths,distance))
             {
                 inset_direction = InsetDirection::INSIDE_OUT;
             }
