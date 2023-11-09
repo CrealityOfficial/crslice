@@ -14,6 +14,20 @@ namespace crslice
 	CRSLICE_API void testVoronoi(const CrPolygons& polys, VoronoiData& data);
 
 	CRSLICE_API void saveVoronoi(const CrPolygons& polys, const std::string& fileName);
+
+	class VoronoiCheckImpl;
+	class CRSLICE_API VoronoiCheck
+	{
+	public:
+		VoronoiCheck();
+		~VoronoiCheck();
+
+		void setInput(const CrPolygons& polys);
+
+		void checkCell(int index, std::vector<trimesh::vec3>& lines);
+	protected:
+		VoronoiCheckImpl* m_impl;
+	};
 }
 
 #endif // CRSLICE_TEST_SKELETAL_VORONOI_1698397403190_H

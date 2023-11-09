@@ -6,19 +6,23 @@
 
 #include "tools/BoostInterface.h"
 #include "utils/PolygonsSegmentIndex.h"
+#include "utils/VoronoiUtils.h"
 #include "voronoi_visual_utils.hpp"
 #include <fstream>
 
+using namespace cura52;
 namespace crslice
 {
-    void testVoronoi(const CrPolygons & polys, VoronoiData & data)
+    typedef ClipperLib::IntPoint Point;
+    typedef cura52::PolygonsSegmentIndex Segment;
+    typedef boost::polygon::voronoi_cell<double> cell_type;
+    typedef boost::polygon::voronoi_vertex<double> vertex_type;
+    typedef boost::polygon::voronoi_edge<double> edge_type;
+    typedef boost::polygon::segment_traits<CSegment>::point_type point_type;
+    typedef boost::polygon::voronoi_diagram<double> voronoi_type;
+
+    void constructSegments(const cura52::Polygons& input, std::vector<Segment>& segments)
     {
-        cura52::Polygons input;
-        crslice::convertPolygonRaw(polys, input);
-
-        typedef cura52::PolygonsSegmentIndex Segment;
-
-        std::vector<Segment> segments;
         for (size_t poly_idx = 0; poly_idx < input.size(); poly_idx++)
         {
             for (size_t point_idx = 0; point_idx < input[poly_idx].size(); point_idx++)
@@ -26,18 +30,94 @@ namespace crslice
                 segments.emplace_back(&input, poly_idx, point_idx);
             }
         }
+    }
+    class VoronoiCheckImpl
+    {
+    public:
+        void setInput(const CrPolygons& polys)
+        {
+            crslice::convertPolygonRaw(polys, input);
+            constructSegments(input, segments);
+            boost::polygon::construct_voronoi(segments.begin(), segments.end(), &graph);
+        }
+
+        void checkCell(int index, std::vector<trimesh::vec3>& lines)
+        {
+            int count = 0;
+            for (cell_type cell : graph.cells())
+            {
+                if (!cell.incident_edge())
+                { // There is no spoon
+                    continue;
+                }
+
+                count++;
+                if (count == index)
+                {
+                    if (cell.contains_point())
+                    {
+                    }
+                    else
+                    {
+                        edge_type* edge = cell.incident_edge();
+                        do
+                        {
+                            if (edge->is_infinite())
+                            {
+                                continue;
+                            }
+                            Point v0 = VoronoiUtils::p(edge->vertex0());
+                            Point v1 = VoronoiUtils::p(edge->vertex1());
+
+                            lines.push_back(convert(v0));
+                            lines.push_back(convert(v1));
+                        } while (edge = edge->next(), edge != cell.incident_edge());
+                    }
+                }
+            }
+        }
+
+        cura52::Polygons input;
+        std::vector<Segment> segments;
+        std::vector<Point> points;
+        voronoi_type graph;
+    };
+
+    VoronoiCheck::VoronoiCheck()
+        :m_impl(new VoronoiCheckImpl())
+    {
+
+    }
+
+    VoronoiCheck::~VoronoiCheck()
+    {
+        delete m_impl;
+    }
+
+    void VoronoiCheck::setInput(const CrPolygons& polys)
+    {
+        m_impl->setInput(polys);
+    }
+
+    void VoronoiCheck::checkCell(int index, std::vector<trimesh::vec3>& lines)
+    {
+        m_impl->checkCell(index, lines);
+    }
+
+    void testVoronoi(const CrPolygons & polys, VoronoiData & data)
+    {
+        cura52::Polygons input;
+        crslice::convertPolygonRaw(polys, input);
+
+        std::vector<Segment> segments;
+        constructSegments(input, segments);
     
-        boost::polygon::voronoi_diagram<double> vonoroi_diagram;
+        voronoi_type vonoroi_diagram;
         boost::polygon::construct_voronoi(segments.begin(), segments.end(), &vonoroi_diagram);
 
-        const std::vector<boost::polygon::voronoi_cell<double>>& cells = vonoroi_diagram.cells();
-        const std::vector<boost::polygon::voronoi_vertex<double>>& vertexes = vonoroi_diagram.vertices();
-        const std::vector<boost::polygon::voronoi_edge<double>>& edges = vonoroi_diagram.edges();
-
-        typedef boost::polygon::voronoi_cell<double> cell_type;
-        typedef boost::polygon::voronoi_vertex<double> vertex_type;
-        typedef boost::polygon::voronoi_edge<double> edge_type;
-        typedef boost::polygon::segment_traits<CSegment>::point_type point_type;
+        const std::vector<cell_type>& cells = vonoroi_diagram.cells();
+        const std::vector<vertex_type>& vertexes = vonoroi_diagram.vertices();
+        const std::vector<edge_type>& edges = vonoroi_diagram.edges();
 
         auto f = [](const vertex_type& vertex)->trimesh::vec3 {
             return trimesh::vec3(vertex.x() / 1000.0f, vertex.y() / 1000.0f, 0.0f);

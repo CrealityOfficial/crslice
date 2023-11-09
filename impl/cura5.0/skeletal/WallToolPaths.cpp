@@ -132,17 +132,6 @@ namespace cura52
         coord_t max_deviation = settings.get<coord_t>("meshfix_maximum_deviation");
         coord_t max_area_deviation = settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation");
 
-        SkeletalTrapezoidation wall_maker
-        (
-            prepared_outline,
-            *beading_strat,
-            beading_strat->getTransitioningAngle(),
-            discretization_step_size,
-            transition_filter_dist,
-            allowed_filter_deviation,
-            wall_transition_length
-        );
-
 #ifdef USE_CACHE
         if (settings.application->cache())
         {
@@ -173,11 +162,22 @@ namespace cura52
             serialSkeletal.param.max_resolution = INT2MM(max_resolution);
             serialSkeletal.param.max_deviation = INT2MM(max_deviation);
             serialSkeletal.param.max_area_deviation = INT2MM(max_area_deviation);
-            
+
             crslice::convertPolygonRaw(prepared_outline, serialSkeletal.polygons);
             settings.application->cache()->cacheSkeletal(serialSkeletal);
         }
 #endif
+
+        SkeletalTrapezoidation wall_maker
+        (
+            prepared_outline,
+            *beading_strat,
+            beading_strat->getTransitioningAngle(),
+            discretization_step_size,
+            transition_filter_dist,
+            allowed_filter_deviation,
+            wall_transition_length
+        );
 
         wall_maker.generateToolpaths(toolpaths);
 
