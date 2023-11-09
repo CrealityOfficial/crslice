@@ -413,8 +413,13 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 	{
         SAFE_MESSAGE(6, 0);
 	}
-    if (!mesh_group_settings.get<bool>("support_enable") && AreaSupport::isSupportNecessary(storage)) {
-        SAFE_MESSAGE(5, 0);
+    if (!mesh_group_settings.get<bool>("support_enable")) 
+	{
+		SAFE_MESSAGE(5, 0);
+		if (AreaSupport::isSupportNecessary(storage))
+		{
+			SAFE_MESSAGE(11, 0);
+		}
     }
 
     AreaSupport::generateOverhangAreas(storage);
