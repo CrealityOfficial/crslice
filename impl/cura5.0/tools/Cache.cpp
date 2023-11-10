@@ -131,6 +131,12 @@ namespace cura52
 		convertVectorVariableLines(layerPart.infill_wall_toolpaths, crPart.infill_wall_toolpaths);
 	}
 
+	bool useCache = true;
+	void initUseCache(bool cache)
+	{
+		useCache = cache;
+	}
+
 	Cache::Cache(const std::string& fileName, SliceContext* context)
 		: m_root(fileName)
 		, m_context(context)
@@ -203,12 +209,25 @@ namespace cura52
 		++m_skeletalIndex;
 	}
 
-	void svgDiscretizeParabola(const std::string& fileName, const Point& point, const PolygonsSegmentIndex& segment,
+	std::string generateName(const std::string& extension)
+	{
+		static int count = 0;
+		char name[128] = { 0 };
+		sprintf(name, "%d.%s", count, extension.c_str());
+		++count;
+
+		return name;
+	}
+
+	void cacheDiscretizeParabola(const Point& point, const PolygonsSegmentIndex& segment,
 		const Point& start, const Point& end)
 	{
+		if (!useCache)
+			return;
+
 		const Point a = segment.from();
 		const Point b = segment.to();
-
+#if 0
 		AABB box;
 		box.include(a);
 		box.include(b);
@@ -229,14 +248,29 @@ namespace cura52
 
 		SVG::ColorObject rColor(SVG::Color::RED);
 		svg.writeLine(start, end, rColor);
+#endif
 
-		crslice::SerailParabola parabola;
-		parabola.points.push_back(crslice::convert(a));
-		parabola.points.push_back(crslice::convert(b));
-		parabola.points.push_back(crslice::convert(start));
-		parabola.points.push_back(crslice::convert(end));
-		parabola.points.push_back(crslice::convert(point));
-		std::string bName = fileName + ".bin";
-		ccglobal::cxndSave(parabola, bName);
+		crslice::SerailDiscretize discretize;
+		discretize.type = 1;
+		discretize.points.push_back(crslice::convert(a));
+		discretize.points.push_back(crslice::convert(b));
+		discretize.points.push_back(crslice::convert(start));
+		discretize.points.push_back(crslice::convert(end));
+		discretize.points.push_back(crslice::convert(point));
+		std::string bName = generateName("DiscretizeParabola");
+		ccglobal::cxndSave(discretize, bName);
+	}
+
+	void cacheDiscretizeEdge(const Point& start, const Point& end)
+	{
+		if (!useCache)
+			return;
+
+		crslice::SerailDiscretize discretize;
+		discretize.type = 0;
+		discretize.points.push_back(crslice::convert(start));
+		discretize.points.push_back(crslice::convert(end));
+		std::string bName = generateName("DiscretizeEdge");
+		ccglobal::cxndSave(discretize, bName);
 	}
 } // namespace cura52

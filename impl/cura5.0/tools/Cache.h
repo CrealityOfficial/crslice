@@ -30,6 +30,8 @@ namespace cura52
 	void convertLayerPart(const SliceLayerPart& layerPart,
 		crslice::CrSliceLayerPart& crPart);
 
+	void initUseCache(bool cache);
+
 	class SliceContext;
 	class SliceDataStorage;
 	class Cache 
@@ -49,8 +51,10 @@ namespace cura52
 		int m_skeletalIndex;
 	};
 
-	void svgDiscretizeParabola(const std::string& fileName, const Point& point, const PolygonsSegmentIndex& segment,
+	void cacheDiscretizeParabola(const Point& point, const PolygonsSegmentIndex& segment,
 		const Point& start, const Point& end);
+
+	void cacheDiscretizeEdge(const Point& start, const Point& end);
 } // namespace cura52
 
 #define USE_CACHE 1

@@ -146,16 +146,17 @@ namespace crslice
 		CrSkeletalParam param;
 	};
 
-	class CRSLICE_API SerailParabola : public ccglobal::Serializeable
+	class CRSLICE_API SerailDiscretize : public ccglobal::Serializeable
 	{
 	public:
-		SerailParabola() {}
-		virtual ~SerailParabola() {}
+		SerailDiscretize() {}
+		virtual ~SerailDiscretize() {}
 
 		int version() override;
 		bool save(std::fstream& out, ccglobal::Tracer* tracer) override;
 		bool load(std::fstream& in, int ver, ccglobal::Tracer* tracer) override;
 
+		int type = 0; //0 , 1, 2
 		CrPolygon points;
 	};
 

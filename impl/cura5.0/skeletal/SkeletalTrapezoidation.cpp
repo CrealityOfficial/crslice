@@ -166,6 +166,9 @@ std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_
     bool point_right = right_cell->contains_point();
     if ((! point_left && ! point_right) || vd_edge.is_secondary()) // Source vert is directly connected to source segment
     {
+#if USE_CACHE
+        cacheDiscretizeEdge(start, end);
+#endif
         return std::vector<Point>({ start, end });
     }
     else if (point_left != point_right) // This is a parabolic edge between a point and a line.
@@ -173,13 +176,8 @@ std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_
         Point p = VoronoiUtils::getSourcePoint(*(point_left ? left_cell : right_cell), points, segments);
         const Segment& s = VoronoiUtils::getSourceSegment(*(point_left ? right_cell : left_cell), points, segments);
         
-#if _DEBUG
-        static int count = 0;
-        char name[128] = { 0 };
-        sprintf(name, "%d.Parabola.SVG", count);
-        ++count;
-
-        svgDiscretizeParabola(name, p, s, start, end);
+#if USE_CACHE
+        cacheDiscretizeParabola(p, s, start, end);
 #endif
         return VoronoiUtils::discretizeParabola(p, s, start, end, discretization_step_size, transitioning_angle);
     }

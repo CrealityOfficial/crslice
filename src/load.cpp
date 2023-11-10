@@ -144,21 +144,23 @@ namespace crslice
 		return false;
 	}
 
-	int SerailParabola::version()
+	int SerailDiscretize::version()
 	{
 		return 0;
 	}
 
-	bool SerailParabola::save(std::fstream& out, ccglobal::Tracer* tracer)
+	bool SerailDiscretize::save(std::fstream& out, ccglobal::Tracer* tracer)
 	{
+		ccglobal::cxndSaveT(out, type);
 		_save(out, points);
 		return true;
 	}
 
-	bool SerailParabola::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
+	bool SerailDiscretize::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
 	{
 		if (ver == 0)
 		{
+			ccglobal::cxndLoadT(in, type);
 			_load(in, points);
 			return true;
 		}
