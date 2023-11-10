@@ -146,6 +146,19 @@ namespace crslice
 		CrSkeletalParam param;
 	};
 
+	class CRSLICE_API SerailParabola : public ccglobal::Serializeable
+	{
+	public:
+		SerailParabola() {}
+		virtual ~SerailParabola() {}
+
+		int version() override;
+		bool save(std::fstream& out, ccglobal::Tracer* tracer) override;
+		bool load(std::fstream& in, int ver, ccglobal::Tracer* tracer) override;
+
+		CrPolygon points;
+	};
+
 	///file name
 	CRSLICE_API std::string crsliceddata_name(const std::string& root, int meshId, int layer);
 	CRSLICE_API std::string crslicelayer_name(const std::string& root, int meshId, int layer);

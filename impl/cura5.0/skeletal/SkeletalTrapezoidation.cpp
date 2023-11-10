@@ -17,6 +17,7 @@
 #include "utils/VoronoiUtils.h"
 #include "utils/linearAlg2D.h"
 #include "utils/VoronoiUtilsCgal.h"
+#include "tools/Cache.h"
 
 #define SKELETAL_TRAPEZOIDATION_BEAD_SEARCH_MAX 1000 // A limit to how long it'll keep searching for adjacent beads. Increasing will re-use beadings more often (saving performance), but search longer for beading (costing performance).
 
@@ -171,6 +172,15 @@ std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_
     {
         Point p = VoronoiUtils::getSourcePoint(*(point_left ? left_cell : right_cell), points, segments);
         const Segment& s = VoronoiUtils::getSourceSegment(*(point_left ? right_cell : left_cell), points, segments);
+        
+#if _DEBUG
+        static int count = 0;
+        char name[128] = { 0 };
+        sprintf(name, "%d.Parabola.SVG", count);
+        ++count;
+
+        svgDiscretizeParabola(name, p, s, start, end);
+#endif
         return VoronoiUtils::discretizeParabola(p, s, start, end, discretization_step_size, transitioning_angle);
     }
     else // This is a straight edge between two points.

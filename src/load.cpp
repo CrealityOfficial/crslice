@@ -144,6 +144,28 @@ namespace crslice
 		return false;
 	}
 
+	int SerailParabola::version()
+	{
+		return 0;
+	}
+
+	bool SerailParabola::save(std::fstream& out, ccglobal::Tracer* tracer)
+	{
+		_save(out, points);
+		return true;
+	}
+
+	bool SerailParabola::load(std::fstream& in, int ver, ccglobal::Tracer* tracer)
+	{
+		if (ver == 0)
+		{
+			_load(in, points);
+			return true;
+		}
+
+		return false;
+	}
+
 	/// file name
 	std::string crsliceddata_name(const std::string& root, int meshId, int layer)
 	{

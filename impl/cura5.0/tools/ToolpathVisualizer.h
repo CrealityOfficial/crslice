@@ -5,6 +5,7 @@
 #include "SVG.h"
 #include "utils/polygon.h"
 #include "utils/ExtrusionSegment.h"
+#include "utils/PolygonsSegmentIndex.h"
 
 namespace cura52
 {

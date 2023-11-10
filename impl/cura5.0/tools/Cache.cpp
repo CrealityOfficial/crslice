@@ -9,6 +9,7 @@
 
 #include "crslice/load.h"
 #include "conv.h"
+#include "SVG.h"
 
 #define CACHE_CHECK_STEP(n) \
 if (m_debugStep < n)  \
@@ -200,5 +201,42 @@ namespace cura52
 		std::string fileName = crslice::crsliceskeletal_name(m_root, m_skeletalIndex);
 		ccglobal::cxndSave(skeletal, fileName);
 		++m_skeletalIndex;
+	}
+
+	void svgDiscretizeParabola(const std::string& fileName, const Point& point, const PolygonsSegmentIndex& segment,
+		const Point& start, const Point& end)
+	{
+		const Point a = segment.from();
+		const Point b = segment.to();
+
+		AABB box;
+		box.include(a);
+		box.include(b);
+		box.include(start);
+		box.include(end);
+		box.include(point);
+		box.expand(200);
+
+		SVG svg(fileName, box);
+		svg.writePoint(a);
+		svg.writePoint(b);
+		svg.writePoint(start);
+		svg.writePoint(end);
+		svg.writePoint(point);
+
+		SVG::ColorObject bColor(SVG::Color::BLUE);
+		svg.writeLine(a, b, bColor);
+
+		SVG::ColorObject rColor(SVG::Color::RED);
+		svg.writeLine(start, end, rColor);
+
+		crslice::SerailParabola parabola;
+		parabola.points.push_back(crslice::convert(a));
+		parabola.points.push_back(crslice::convert(b));
+		parabola.points.push_back(crslice::convert(start));
+		parabola.points.push_back(crslice::convert(end));
+		parabola.points.push_back(crslice::convert(point));
+		std::string bName = fileName + ".bin";
+		ccglobal::cxndSave(parabola, bName);
 	}
 } // namespace cura52

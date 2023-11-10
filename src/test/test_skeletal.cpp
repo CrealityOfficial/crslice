@@ -5,6 +5,7 @@
 #include "skeletal/SkeletalTrapezoidation.h"
 #include "skeletal/VariableLineUtils.h"
 #include "tools/Cache.h"
+#include "utils/VoronoiUtils.h"
 
 namespace crslice
 {
@@ -104,4 +105,24 @@ namespace crslice
         convertPolygonRaw(inner, innerPoly);
         convertVectorVariableLines(variableLines, out);
 	}
+
+    void testDiscretizeParabola(CrPolygon& points)
+    {
+        if (points.size() != 5)
+            return;
+
+        Polygons polys;
+        polys.emplace_back(Polygon());
+        convertRaw(points, polys.paths.at(0));
+        const ClipperLib::Path& path = polys.paths.at(0);
+
+        Point a = path.at(0);
+        Point b = path.at(0);
+        Point start = path.at(0);
+        Point end = path.at(0);
+        Point point = path.at(0);
+
+        PolygonsSegmentIndex segment(&polys, 0, 0);
+        ClipperLib::Path dePath = VoronoiUtils::discretizeParabola(point, segment, start, end, 800, 0.1);
+    }
 }

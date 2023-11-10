@@ -7,6 +7,7 @@
 #include "slice/sliceddata.h"
 #include "crslice/load.h"
 #include "utils/ExtrusionLine.h"
+#include "utils/PolygonsSegmentIndex.h"
 
 namespace cura52 
 {
@@ -47,6 +48,9 @@ namespace cura52
 		int m_debugStep;
 		int m_skeletalIndex;
 	};
+
+	void svgDiscretizeParabola(const std::string& fileName, const Point& point, const PolygonsSegmentIndex& segment,
+		const Point& start, const Point& end);
 } // namespace cura52
 
 #define USE_CACHE 1
