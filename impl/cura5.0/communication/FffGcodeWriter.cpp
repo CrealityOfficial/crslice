@@ -889,10 +889,10 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
                 for (int j = 0; j < path.size() - 1; j++)
                 {
                     ClipperLib::IntPoint p = path.at(j);
-                    gcode_obj << "[" << INT2MM(p.X) << "," << INT2MM(p.Y) << "],";
+                    gcode_obj << "[" << INT2MM(p.X) + x << "," << INT2MM(p.Y) + y << "],";
                 }
                 ClipperLib::IntPoint p = path.at(path.size() - 1);
-                gcode_obj << "[" << INT2MM(p.X) << "," << INT2MM(p.Y) << "]]";
+                gcode_obj << "[" << INT2MM(p.X) + x << "," << INT2MM(p.Y) + y << "]]";
             }
 
             std::ostringstream tmp3;
