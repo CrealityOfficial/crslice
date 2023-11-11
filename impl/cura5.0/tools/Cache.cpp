@@ -131,10 +131,12 @@ namespace cura52
 		convertVectorVariableLines(layerPart.infill_wall_toolpaths, crPart.infill_wall_toolpaths);
 	}
 
-	bool useCache = true;
-	void initUseCache(bool cache)
+	bool useCache = false;
+	std::string useRootPath;
+	void initUseCache(bool cache, const std::string& rootPath)
 	{
 		useCache = cache;
+		useRootPath = rootPath;
 	}
 
 	Cache::Cache(const std::string& fileName, SliceContext* context)
@@ -212,8 +214,8 @@ namespace cura52
 	std::string generateName(const std::string& extension)
 	{
 		static int count = 0;
-		char name[128] = { 0 };
-		sprintf(name, "%d.%s", count, extension.c_str());
+		char name[512] = { 0 };
+		sprintf(name, "%s/%d.%s", useRootPath.c_str(), count, extension.c_str());
 		++count;
 
 		return name;
@@ -271,6 +273,22 @@ namespace cura52
 		discretize.points.push_back(crslice::convert(start));
 		discretize.points.push_back(crslice::convert(end));
 		std::string bName = generateName("DiscretizeEdge");
+		ccglobal::cxndSave(discretize, bName);
+	}
+
+	void cacheDiscretizeStraightEdge(const Point& left, const Point& right,
+		const Point& start, const Point& end)
+	{
+		if (!useCache)
+			return;
+
+		crslice::SerailDiscretize discretize;
+		discretize.type = 2;
+		discretize.points.push_back(crslice::convert(left));
+		discretize.points.push_back(crslice::convert(right));
+		discretize.points.push_back(crslice::convert(start));
+		discretize.points.push_back(crslice::convert(end));
+		std::string bName = generateName("DiscretizeStraightEdge");
 		ccglobal::cxndSave(discretize, bName);
 	}
 } // namespace cura52

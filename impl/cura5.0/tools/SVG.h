@@ -62,7 +62,7 @@ namespace cura52
         size_t layer_nr = 1;
 
         bool output_is_html;
-
+        bool flipY = false;
     public:
         SVG(std::string filename, const AABB aabb, const Point canvas_size = Point(1024, 1024), const ColorObject background = Color::NONE);
         SVG(std::string filename, const AABB aabb, const double scale, const ColorObject background = Color::NONE);
@@ -74,6 +74,7 @@ namespace cura52
          * get the scaling factor applied to convert real space to canvas space
          */
         double getScale() const;
+        void setFlipY(bool flip);
 
         void nextLayer();
 
@@ -93,11 +94,11 @@ namespace cura52
 
         void writeAreas(ConstPolygonRef polygon, const ColorObject color = Color::GRAY, const ColorObject outline_color = Color::BLACK, const float stroke_width = 1) const;
 
-        void writePoint(const Point& p, const bool write_coords = false, const float size = 5.0, const ColorObject color = Color::BLACK) const;
+        void writePoint(const Point& p, const bool write_coords = false, const float size = 0.5, const ColorObject color = Color::BLACK) const;
 
-        void writePoints(ConstPolygonRef poly, const bool write_coords = false, const float size = 5.0, const ColorObject color = Color::BLACK) const;
+        void writePoints(ConstPolygonRef poly, const bool write_coords = false, const float size = 0.5, const ColorObject color = Color::BLACK) const;
 
-        void writePoints(const Polygons& polygons, const bool write_coords = false, const float size = 5.0, const ColorObject color = Color::BLACK) const;
+        void writePoints(const Polygons& polygons, const bool write_coords = false, const float size = 0.5, const ColorObject color = Color::BLACK) const;
 
         /*!
          * \brief Draws a polyline on the canvas.
@@ -112,11 +113,11 @@ namespace cura52
          */
         void writeLines(const std::vector<Point>& polyline, const ColorObject color = Color::BLACK) const;
 
-        void writeLine(const Point& a, const Point& b, const ColorObject color = Color::BLACK, const float stroke_width = 1) const;
+        void writeLine(const Point& a, const Point& b, const ColorObject color = Color::BLACK, const float stroke_width = 0.5) const;
 
-        void writeArrow(const Point& a, const Point& b, const ColorObject color = Color::BLACK, const float stroke_width = 1, const float head_size = 5.0) const;
+        void writeArrow(const Point& a, const Point& b, const ColorObject color = Color::BLACK, const float stroke_width = 0.5, const float head_size = 1.0) const;
 
-        void writeLineRGB(const Point& from, const Point& to, const int r = 0, const int g = 0, const int b = 0, const float stroke_width = 1) const;
+        void writeLineRGB(const Point& from, const Point& to, const int r = 0, const int g = 0, const int b = 0, const float stroke_width = 0.5) const;
 
         /*!
          * \brief Draws a dashed line on the canvas from point A to point B.
@@ -132,7 +133,7 @@ namespace cura52
         template<typename... Args>
         void printf(const char* txt, Args&&... args) const;
 
-        void writeText(const Point& p, const std::string& txt, const ColorObject color = Color::BLACK, const float font_size = 10) const;
+        void writeText(const Point& p, const std::string& txt, const ColorObject color = Color::BLACK, const float font_size = 3) const;
 
         void writePolygons(const Polygons& polys, const ColorObject color = Color::BLACK, const float stroke_width = 1) const;
 

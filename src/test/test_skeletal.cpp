@@ -7,6 +7,7 @@
 #include "tools/Cache.h"
 #include "utils/VoronoiUtils.h"
 #include "utils/linearAlg2D.h"
+#include "tools/SVG.h"
 
 namespace crslice
 {
@@ -107,10 +108,14 @@ namespace crslice
         convertVectorVariableLines(variableLines, out);
 	}
 
-    void testDiscretizeParabola(CrPolygon& points)
+    void testDiscretizeParabola(CrPolygon& points, ParabolaDetal& detail)
     {
         if (points.size() != 5)
             return;
+
+        auto add_detail = [&detail](const Point& point) {
+            detail.points.push_back(convert(point));
+        };
 
         Polygons polys;
         polys.emplace_back(Polygon());
@@ -122,6 +127,32 @@ namespace crslice
         Point s = path.at(2);
         Point e = path.at(3);
         Point p = path.at(4);
+
+        AABB box;
+        box.include(a);
+        box.include(b);
+        box.include(s);
+        box.include(e);
+        box.include(p);
+        box.expand(200);
+
+        SVG svg("tmp.SVG", box);
+        svg.writePoint(a);
+        svg.writeText(a, "a");
+        svg.writePoint(b);
+        svg.writeText(b, "b");
+        svg.writePoint(s);
+        svg.writeText(s, "s");
+        svg.writePoint(e);
+        svg.writeText(e, "e");
+        svg.writePoint(p);
+        svg.writeText(p, "p");
+
+        SVG::ColorObject bColor(SVG::Color::BLUE);
+        svg.writeLine(a, b, bColor);
+
+        SVG::ColorObject rColor(SVG::Color::RED);
+        svg.writeLine(s, e, rColor);
 
         PolygonsSegmentIndex segment(&polys, 0, 0);
 
@@ -135,8 +166,11 @@ namespace crslice
             const Point a = segment.from();
             const Point b = segment.to();
             const Point ab = b - a;
+
             const Point as = s - a;
+
             const Point ae = e - a;
+
             const coord_t ab_size = vSize(ab);
             if (ab_size == 0)
             {
@@ -149,9 +183,14 @@ namespace crslice
             const coord_t sxex = ex - sx;
 
             const Point ap = p - a;
+
             const coord_t px = dot(ap, ab) / ab_size;
 
             const Point pxx = LinearAlg2D::getClosestOnLine(p, a, b);
+            add_detail(pxx);
+            svg.writePoint(pxx);
+            svg.writeText(pxx, "pxx");
+
             const Point ppxx = pxx - p;
             const coord_t d = vSize(ppxx);
             const PointMatrix rot = PointMatrix(turn90CCW(ppxx));
@@ -169,12 +208,20 @@ namespace crslice
             const coord_t marking_start_end_h = msx * msx / (2 * d) + d / 2;
             Point marking_start = rot.unapply(Point(msx, marking_start_end_h)) + pxx;
             Point marking_end = rot.unapply(Point(mex, marking_start_end_h)) + pxx;
+
             const int dir = (sx > ex) ? -1 : 1;
             if (dir < 0)
             {
                 std::swap(marking_start, marking_end);
                 std::swap(msx, mex);
             }
+
+            add_detail(marking_start);
+            svg.writePoint(marking_start);
+            svg.writeText(marking_start, "ms");
+            add_detail(marking_end);
+            svg.writePoint(marking_end);
+            svg.writeText(marking_end, "me");
 
             bool add_marking_start = msx * dir > (sx - px) * dir && msx * dir < (ex - px)* dir;
             bool add_marking_end = mex * dir > (sx - px) * dir && mex * dir < (ex - px)* dir;
@@ -184,11 +231,14 @@ namespace crslice
             // are more than 10 microns away from the projected apex
             bool add_apex = (sx - px) * dir < -10 && (ex - px) * dir > 10;
 
+            add_detail(apex);
+            svg.writePoint(apex);
+            svg.writeText(apex, "apex");
+
             //assert(!(add_marking_start && add_marking_end) || add_apex);
             if (add_marking_start && add_marking_end && !add_apex)
             {
                 LOGW("Failing to discretize parabola! Must add an apex or one of the endpoints.");
-                break;
             }
 
             const coord_t step_count = static_cast<coord_t>(static_cast<float>(std::abs(ex - sx)) / approximate_step_size + 0.5);
@@ -216,6 +266,10 @@ namespace crslice
                 }
                 const Point result = rot.unapply(Point(x, y)) + pxx;
                 discretized.emplace_back(result);
+
+                svg.writePoint(result);
+                svg.writeText(result, "r");
+
             }
             if (add_apex)
             {
@@ -226,6 +280,9 @@ namespace crslice
                 discretized.emplace_back(marking_end);
             }
             discretized.emplace_back(e);
+
+            for (const Point& p : discretized)
+                add_detail(p);
         } while (0);
     }
 }

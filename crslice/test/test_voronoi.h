@@ -4,15 +4,6 @@
 
 namespace crslice
 {
-	struct VoronoiData
-	{
-		std::vector<trimesh::vec3> vertexes;
-		std::vector<trimesh::vec3> edges;
-		std::vector<trimesh::vec3> cells;
-	};
-
-	CRSLICE_API void testVoronoi(const CrPolygons& polys, VoronoiData& data);
-
 	CRSLICE_API void saveVoronoi(const CrPolygons& polys, const std::string& fileName);
 
 	class VoronoiCheckImpl;
@@ -23,8 +14,7 @@ namespace crslice
 		~VoronoiCheck();
 
 		void setInput(const CrPolygons& polys);
-
-		void checkCell(int index, std::vector<trimesh::vec3>& lines);
+		void saveSVG(const std::string& fileName);
 	protected:
 		VoronoiCheckImpl* m_impl;
 	};

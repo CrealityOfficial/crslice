@@ -30,7 +30,7 @@ namespace cura52
 	void convertLayerPart(const SliceLayerPart& layerPart,
 		crslice::CrSliceLayerPart& crPart);
 
-	void initUseCache(bool cache);
+	void initUseCache(bool cache, const std::string& path);
 
 	class SliceContext;
 	class SliceDataStorage;
@@ -55,6 +55,9 @@ namespace cura52
 		const Point& start, const Point& end);
 
 	void cacheDiscretizeEdge(const Point& start, const Point& end);
+
+	void cacheDiscretizeStraightEdge(const Point& left, const Point& right, 
+		const Point& start, const Point& end);
 } // namespace cura52
 
 #define USE_CACHE 1

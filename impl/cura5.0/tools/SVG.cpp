@@ -111,6 +111,11 @@ namespace cura52
         return scale;
     }
 
+    void SVG::setFlipY(bool flip)
+    {
+        flipY = flip;
+    }
+
     void SVG::nextLayer()
     {
         fprintf(out, "  </g>\n");
@@ -123,12 +128,14 @@ namespace cura52
 
     Point SVG::transform(const Point& p) const
     {
-        return Point((p.X - aabb.min.X) * scale, (p.Y - aabb.min.Y) * scale);
+        ClipperLib::cInt y = flipY ? (aabb.max.Y - p.Y) : (p.Y - aabb.min.Y);
+        return Point((p.X - aabb.min.X) * scale, y  * scale);
     }
 
     FPoint3 SVG::transformF(const Point& p) const
     {
-        return FPoint3((p.X - aabb.min.X) * scale, (p.Y - aabb.min.Y) * scale, 0.0);
+        ClipperLib::cInt y = flipY ? (aabb.max.Y - p.Y) : (p.Y - aabb.min.Y);
+        return FPoint3((p.X - aabb.min.X) * scale, y * scale, 0.0);
     }
 
     void SVG::writeComment(const std::string& comment) const
@@ -250,7 +257,8 @@ namespace cura52
 
     void SVG::writeText(const Point& p, const std::string& txt, const ColorObject color, const float font_size) const
     {
-        FPoint3 pf = transformF(p);
+        Point tp(p.X, p.Y + 20);
+        FPoint3 pf = transformF(tp);
         fprintf(out, "<text x=\"%f\" y=\"%f\" style=\"font-size: %fpx;\" fill=\"%s\">%s</text>\n", pf.x, pf.y, font_size, toString(color).c_str(), txt.c_str());
     }
 

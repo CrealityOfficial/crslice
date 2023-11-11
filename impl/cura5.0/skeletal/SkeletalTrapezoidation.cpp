@@ -257,6 +257,10 @@ std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_
             ret.emplace_back(marking_end);
         }
         ret.emplace_back(b);
+
+#if USE_CACHE
+        cacheDiscretizeStraightEdge(left_point, right_point, start, end);
+#endif
         return ret;
     }
 }

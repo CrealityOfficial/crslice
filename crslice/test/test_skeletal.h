@@ -30,7 +30,12 @@ namespace crslice
 	CRSLICE_API void testSkeletal(const SerailCrSkeletal& skeletal, CrPolygons& innerPoly, std::vector<CrVariableLines>& out,
 		SkeletalDetail* detail = nullptr);
 
-	CRSLICE_API void testDiscretizeParabola(CrPolygon& points);
+	struct ParabolaDetal
+	{
+		std::vector<trimesh::vec3> points;
+	};
+
+	CRSLICE_API void testDiscretizeParabola(CrPolygon& points, ParabolaDetal& detail);
 }
 
 #endif // CRSLICE_TEST_SKELETAL_1698397403190_H

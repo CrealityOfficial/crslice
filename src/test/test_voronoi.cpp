@@ -7,7 +7,9 @@
 #include "tools/BoostInterface.h"
 #include "utils/PolygonsSegmentIndex.h"
 #include "utils/VoronoiUtils.h"
+#include "utils/linearAlg2D.h"
 #include "voronoi_visual_utils.hpp"
+#include "tools/SVG.h"
 #include <fstream>
 
 using namespace cura52;
@@ -39,45 +41,67 @@ namespace crslice
             crslice::convertPolygonRaw(polys, input);
             constructSegments(input, segments);
             boost::polygon::construct_voronoi(segments.begin(), segments.end(), &graph);
+
+            for (const ClipperLib::Path& path : input.paths)
+                for (const Point& p : path)
+                    box.include(p);
+
+            box.expand(100);
         }
 
-        void checkCell(int index, std::vector<trimesh::vec3>& lines)
+        void saveSVG(const std::string& fileName)
         {
-            int count = 0;
-            for (cell_type cell : graph.cells())
+            SVG out(fileName, box);
+            out.setFlipY(true);
+            ClipperLib::cInt o = (double)vSize(box.max - box.min) / 1000.0;
+
+            for (const vertex_type& vertex : graph.vertices())
             {
-                if (!cell.incident_edge())
-                { // There is no spoon
+                out.writePoint(VoronoiUtils::p(&vertex), false, 2.0f);
+            }
+
+            SVG::ColorObject bColor(SVG::Color::BLUE);
+            SVG::ColorObject rColor(SVG::Color::RED);
+            SVG::ColorObject gColor(SVG::Color::GREEN);
+            SVG::ColorObject color(SVG::Color::BLACK);
+
+            for (const edge_type& edge : graph.edges())
+            {
+                if (edge.is_infinite())
                     continue;
-                }
 
-                count++;
-                if (count == index)
+                const cell_type* left_cell = edge.cell();
+                const cell_type* right_cell = edge.twin()->cell();
+                Point start = VoronoiUtils::p(edge.vertex0());
+                Point end = VoronoiUtils::p(edge.vertex1());
+
+                bool point_left = left_cell->contains_point();
+                bool point_right = right_cell->contains_point();
+                if ((!point_left && !point_right) || edge.is_secondary())
                 {
-                    if (cell.contains_point())
-                    {
-                    }
-                    else
-                    {
-                        edge_type* edge = cell.incident_edge();
-                        do
-                        {
-                            if (edge->is_infinite())
-                            {
-                                continue;
-                            }
-                            Point v0 = VoronoiUtils::p(edge->vertex0());
-                            Point v1 = VoronoiUtils::p(edge->vertex1());
-
-                            lines.push_back(convert(v0));
-                            lines.push_back(convert(v1));
-                        } while (edge = edge->next(), edge != cell.incident_edge());
-                    }
+                    color = gColor;
                 }
+                else if (point_left != point_right)
+                {
+                    color = rColor;
+                }
+                else
+                {
+                    color = bColor;
+                }
+
+                out.writeLine(start, end, color, 2.0f);
+
+                Point s = start;
+                Point e = end;
+                cura52::halfEdgeOffset(s, e, 100);
+                out.writeArrow(s, e, SVG::Color::BLACK, 1.0f, 3.0f);
             }
         }
 
         cura52::Polygons input;
+
+        AABB box;
         std::vector<Segment> segments;
         std::vector<Point> points;
         voronoi_type graph;
@@ -99,143 +123,9 @@ namespace crslice
         m_impl->setInput(polys);
     }
 
-    void VoronoiCheck::checkCell(int index, std::vector<trimesh::vec3>& lines)
+    void VoronoiCheck::saveSVG(const std::string& fileName)
     {
-        m_impl->checkCell(index, lines);
-    }
-
-    void testVoronoi(const CrPolygons & polys, VoronoiData & data)
-    {
-        cura52::Polygons input;
-        crslice::convertPolygonRaw(polys, input);
-
-        std::vector<Segment> segments;
-        constructSegments(input, segments);
-    
-        voronoi_type vonoroi_diagram;
-        boost::polygon::construct_voronoi(segments.begin(), segments.end(), &vonoroi_diagram);
-
-        const std::vector<cell_type>& cells = vonoroi_diagram.cells();
-        const std::vector<vertex_type>& vertexes = vonoroi_diagram.vertices();
-        const std::vector<edge_type>& edges = vonoroi_diagram.edges();
-
-        auto f = [](const vertex_type& vertex)->trimesh::vec3 {
-            return trimesh::vec3(vertex.x() / 1000.0f, vertex.y() / 1000.0f, 0.0f);
-        };
-
-        auto retrieve_point = [&segments](const cell_type& cell)->point_type {
-            cell_type::source_index_type index = cell.source_index();
-            cell_type::source_category_type category = cell.source_category();
-
-            if (category == boost::polygon::SOURCE_CATEGORY_SEGMENT_START_POINT) {
-                return boost::polygon::low(segments[index]);
-            }
-            else {
-                return boost::polygon::high(segments[index]);
-            }
-            return point_type();
-        };
-
-        auto retrieve_segment = [&segments](const cell_type& cell)->Segment {
-            cell_type::source_index_type index = cell.source_index();
-            return segments[index];
-        };
-
-        for (const vertex_type& vertex : vertexes)
-            data.vertexes.push_back(f(vertex));
-
-        for (const edge_type& edge : edges)
-        {
-            if (!edge.is_finite())
-            {
-                //const cell_type& cell1 = *edge.cell();
-                //const cell_type& cell2 = *edge.twin()->cell();
-                //point_type origin, direction;
-                //// Infinite edges could not be created by two segment sites.
-                //if (cell1.contains_point() && cell2.contains_point()) {
-                //    point_type p1 = retrieve_point(cell1);
-                //    point_type p2 = retrieve_point(cell2);
-                //    origin.X = (p1.X + p2.X) * 0.5;
-                //    origin.Y = (p1.Y + p2.Y) * 0.5;
-                //    direction.X = p1.Y - p2.Y;
-                //    direction.Y = p2.X - p1.X;
-                //}
-                //else {
-                //    origin = cell1.contains_segment() ?
-                //        retrieve_point(cell2) :
-                //        retrieve_point(cell1);
-                //    Segment segment = cell1.contains_segment() ?
-                //        retrieve_segment(cell1) :
-                //        retrieve_segment(cell2);
-                //    double dx = boost::polygon::high(segment).X - boost::polygon::low(segment).X;
-                //    double dy = boost::polygon::high(segment).Y - boost::polygon::low(segment).Y;
-                //    if ((boost::polygon::low(segment) == origin) ^ cell1.contains_point()) {
-                //        direction.X = dy;
-                //        direction.Y = -dx;
-                //    }
-                //    else {
-                //        direction.X = -dy;
-                //        direction.Y = dx;
-                //    }
-                //}
-                //coordinate_type side = xh(brect_) - xl(brect_);
-                //coordinate_type koef =
-                //    side / (std::max)(fabs(direction.x()), fabs(direction.y()));
-                //if (edge.vertex0() == NULL) {
-                //    clipped_edge->push_back(point_type(
-                //        origin.x() - direction.x() * koef,
-                //        origin.y() - direction.y() * koef));
-                //}
-                //else {
-                //    clipped_edge->push_back(
-                //        point_type(edge.vertex0()->x(), edge.vertex0()->y()));
-                //}
-                //if (edge.vertex1() == NULL) {
-                //    clipped_edge->push_back(point_type(
-                //        origin.x() + direction.x() * koef,
-                //        origin.y() + direction.y() * koef));
-                //}
-                //else {
-                //    clipped_edge->push_back(
-                //        point_type(edge.vertex1()->x(), edge.vertex1()->y()));
-                //}
-            }
-            else {
-                if(edge.is_curved()) {
-                    double max_dist = 0.1;
-                    std::vector<trimesh::dvec3> sampled_edge;
-                    point_type point = edge.cell()->contains_point() ?
-                        retrieve_point(*edge.cell()) :
-                        retrieve_point(*edge.twin()->cell());
-                    Segment segment = edge.cell()->contains_point() ?
-                        retrieve_segment(*edge.twin()->cell()) :
-                        retrieve_segment(*edge.cell());
-                    //boost::polygon::voronoi_visual_utils<double>::discretize(
-                    //    point, segment, max_dist, &sampled_edge);
-                }
-                else {
-                    data.edges.push_back(f(*edge.vertex0()));
-                    data.edges.push_back(f(*edge.vertex1()));
-                }
-            }
-        }
-
-        for (const boost::polygon::voronoi_cell<double>& cell : cells)
-        {
-            if (cell.is_degenerate() || !cell.contains_segment())
-                continue;
-
-            const boost::polygon::voronoi_edge<double>* edge = cell.incident_edge();
-            const boost::polygon::voronoi_edge<double>* start = edge;
-            do {
-                if (edge->is_finite())
-                {
-                    data.cells.push_back(f(*edge->vertex0()));
-                    data.cells.push_back(f(*edge->vertex1()));
-                }
-                edge = edge->next();
-            } while (edge != start && edge);
-        }
+        m_impl->saveSVG(fileName);
     }
 
     void saveVoronoi(const CrPolygons& polys, const std::string& fileName)

@@ -318,7 +318,7 @@ namespace cura52
 
     void Application::initCache()
     {
-        initUseCache(false);
+        initUseCache(false, "");
         if (scene.get())
         {
             const Settings& settings = scene->settings;
@@ -327,7 +327,7 @@ namespace cura52
                 std::string path = settings.get<std::string>("fdm_slice_debug_path");
                 if (boost::filesystem::exists(path))
                 {
-                    initUseCache(true);
+                    initUseCache(true, path);
                     m_cache.reset(new Cache(path, this));
                 }
             }
