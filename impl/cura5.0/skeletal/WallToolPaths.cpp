@@ -133,39 +133,36 @@ namespace cura52
         coord_t max_area_deviation = settings.get<coord_t>("meshfix_maximum_extrusion_area_deviation");
 
 #ifdef USE_CACHE
-        if (settings.application->cache())
-        {
-            crslice::SerailCrSkeletal serialSkeletal;
-
-            serialSkeletal.param.allowed_distance = INT2MM(allowed_distance);
-            serialSkeletal.param.transitioning_angle = transitioning_angle;
-            serialSkeletal.param.discretization_step_size = INT2MM(discretization_step_size);
-            serialSkeletal.param.scaled_spacing_wall_0 = scaled_spacing_wall_0;
-            serialSkeletal.param.scaled_spacing_wall_X = scaled_spacing_wall_X;
-            serialSkeletal.param.wall_transition_length = INT2MM(wall_transition_length);
-            serialSkeletal.param.min_even_wall_line_width = min_even_wall_line_width;
-            serialSkeletal.param.wall_line_width_0 = wall_line_width_0;
-            serialSkeletal.param.wall_split_middle_threshold = wall_split_middle_threshold;
-            serialSkeletal.param.min_odd_wall_line_width = min_odd_wall_line_width;
-            serialSkeletal.param.wall_line_width_x = wall_line_width_x;
-            serialSkeletal.param.wall_add_middle_threshold = wall_add_middle_threshold;
-            serialSkeletal.param.wall_distribution_count = wall_distribution_count;
-            serialSkeletal.param.max_bead_count = max_bead_count;
-            serialSkeletal.param.transition_filter_dist = INT2MM(transition_filter_dist);
-            serialSkeletal.param.allowed_filter_deviation = INT2MM(allowed_filter_deviation);
-            serialSkeletal.param.print_thin_walls = print_thin_walls ? 1 : 0;
-            serialSkeletal.param.min_feature_size = INT2MM(min_feature_size);
-            serialSkeletal.param.min_bead_width = INT2MM(min_bead_width);
-            serialSkeletal.param.wall_0_inset = INT2MM(wall_0_inset);
-            serialSkeletal.param.wall_inset_count = inset_count;
-            serialSkeletal.param.stitch_distance = INT2MM(stitch_distance);
-            serialSkeletal.param.max_resolution = INT2MM(max_resolution);
-            serialSkeletal.param.max_deviation = INT2MM(max_deviation);
-            serialSkeletal.param.max_area_deviation = INT2MM(max_area_deviation);
-
-            crslice::convertPolygonRaw(prepared_outline, serialSkeletal.polygons);
-            settings.application->cache()->cacheSkeletal(serialSkeletal);
-        }
+        crslice::SerailCrSkeletal serialSkeletal;
+        
+        serialSkeletal.param.allowed_distance = INT2MM(allowed_distance);
+        serialSkeletal.param.transitioning_angle = transitioning_angle;
+        serialSkeletal.param.discretization_step_size = INT2MM(discretization_step_size);
+        serialSkeletal.param.scaled_spacing_wall_0 = scaled_spacing_wall_0;
+        serialSkeletal.param.scaled_spacing_wall_X = scaled_spacing_wall_X;
+        serialSkeletal.param.wall_transition_length = INT2MM(wall_transition_length);
+        serialSkeletal.param.min_even_wall_line_width = min_even_wall_line_width;
+        serialSkeletal.param.wall_line_width_0 = wall_line_width_0;
+        serialSkeletal.param.wall_split_middle_threshold = wall_split_middle_threshold;
+        serialSkeletal.param.min_odd_wall_line_width = min_odd_wall_line_width;
+        serialSkeletal.param.wall_line_width_x = wall_line_width_x;
+        serialSkeletal.param.wall_add_middle_threshold = wall_add_middle_threshold;
+        serialSkeletal.param.wall_distribution_count = wall_distribution_count;
+        serialSkeletal.param.max_bead_count = max_bead_count;
+        serialSkeletal.param.transition_filter_dist = INT2MM(transition_filter_dist);
+        serialSkeletal.param.allowed_filter_deviation = INT2MM(allowed_filter_deviation);
+        serialSkeletal.param.print_thin_walls = print_thin_walls ? 1 : 0;
+        serialSkeletal.param.min_feature_size = INT2MM(min_feature_size);
+        serialSkeletal.param.min_bead_width = INT2MM(min_bead_width);
+        serialSkeletal.param.wall_0_inset = INT2MM(wall_0_inset);
+        serialSkeletal.param.wall_inset_count = inset_count;
+        serialSkeletal.param.stitch_distance = INT2MM(stitch_distance);
+        serialSkeletal.param.max_resolution = INT2MM(max_resolution);
+        serialSkeletal.param.max_deviation = INT2MM(max_deviation);
+        serialSkeletal.param.max_area_deviation = INT2MM(max_area_deviation);
+        
+        crslice::convertPolygonRaw(prepared_outline, serialSkeletal.polygons);
+        cacheSkeletal(serialSkeletal);
 #endif
 
         SkeletalTrapezoidation wall_maker

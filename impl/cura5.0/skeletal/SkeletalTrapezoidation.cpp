@@ -166,9 +166,6 @@ std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_
     bool point_right = right_cell->contains_point();
     if ((! point_left && ! point_right) || vd_edge.is_secondary()) // Source vert is directly connected to source segment
     {
-#if USE_CACHE
-        cacheDiscretizeEdge(start, end);
-#endif
         return std::vector<Point>({ start, end });
     }
     else if (point_left != point_right) // This is a parabolic edge between a point and a line.
@@ -176,9 +173,6 @@ std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_
         Point p = VoronoiUtils::getSourcePoint(*(point_left ? left_cell : right_cell), points, segments);
         const Segment& s = VoronoiUtils::getSourceSegment(*(point_left ? right_cell : left_cell), points, segments);
         
-#if USE_CACHE
-        cacheDiscretizeParabola(p, s, start, end);
-#endif
         return VoronoiUtils::discretizeParabola(p, s, start, end, discretization_step_size, transitioning_angle);
     }
     else // This is a straight edge between two points.
@@ -257,122 +251,8 @@ std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_
             ret.emplace_back(marking_end);
         }
         ret.emplace_back(b);
-
-#if USE_CACHE
-        cacheDiscretizeStraightEdge(left_point, right_point, start, end);
-#endif
         return ret;
     }
-}
-
-
-bool SkeletalTrapezoidation::computePointCellRange(vd_t::cell_type& cell,
-                                                   Point& start_source_point,
-                                                   Point& end_source_point,
-                                                   vd_t::edge_type*& starting_vd_edge,
-                                                   vd_t::edge_type*& ending_vd_edge,
-                                                   const std::vector<Point>& points,
-                                                   const std::vector<Segment>& segments)
-{
-    if (cell.incident_edge()->is_infinite())
-    {
-        return false; // Infinite edges only occur outside of the polygon. Don't copy any part of this cell.
-    }
-    // If the cell.incident_edge()->vertex0() is far away so much that it doesn't even fit into Vec2i64, then there is no way that it will be inside the input polygon.
-    if (const vd_t::vertex_type& vert = *cell.incident_edge()->vertex0();
-        vert.x() >= double(std::numeric_limits<int64_t>::max()) || vert.x() <= double(std::numeric_limits<int64_t>::lowest()) ||
-        vert.y() >= double(std::numeric_limits<int64_t>::max()) || vert.y() <= double(std::numeric_limits<int64_t>::lowest()))
-        return false; // Don't copy any part of this cell
-
-    // Check if any point of the cell is inside or outside polygon
-    // Copy whole cell into graph or not at all
-
-    const Point source_point = VoronoiUtils::getSourcePoint(cell, points, segments);
-    const PolygonsPointIndex source_point_index = VoronoiUtils::getSourcePointIndex(cell, points, segments);
-    Point some_point = VoronoiUtils::p(cell.incident_edge()->vertex0());
-    if (some_point == source_point)
-    {
-        some_point = VoronoiUtils::p(cell.incident_edge()->vertex1());
-    }
-    // Test if the some_point is even inside the polygon.
-    // The edge leading out of a polygon must have an endpoint that's not in the corner following the contour of the polygon at that vertex.
-    // So if it's inside the corner formed by the polygon vertex, it's all fine.
-    // But if it's outside of the corner, it must be a vertex of the Voronoi diagram that goes outside of the polygon towards infinity.
-    if (! LinearAlg2D::isInsideCorner(source_point_index.prev().p(), source_point_index.p(), source_point_index.next().p(), some_point))
-    {
-        return false; // Don't copy any part of this cell
-    }
-    vd_t::edge_type* vd_edge = cell.incident_edge();
-    do
-    {
-        assert(vd_edge->is_finite());
-        Point p1 = VoronoiUtils::p(vd_edge->vertex1());
-        if (p1 == source_point)
-        {
-            start_source_point = source_point;
-            end_source_point = source_point;
-            starting_vd_edge = vd_edge->next();
-            ending_vd_edge = vd_edge;
-        }
-        else
-        {
-            assert((VoronoiUtils::p(vd_edge->vertex0()) == source_point || ! vd_edge->is_secondary()) && "point cells must end in the point! They cannot cross the point with an edge, because collinear edges are not allowed in the input.");
-        }
-    } while (vd_edge = vd_edge->next(), vd_edge != cell.incident_edge());
-    assert(starting_vd_edge && ending_vd_edge);
-    assert(starting_vd_edge != ending_vd_edge);
-    return true;
-}
-
-void SkeletalTrapezoidation::computeSegmentCellRange(vd_t::cell_type& cell,
-                                                     Point& start_source_point,
-                                                     Point& end_source_point,
-                                                     vd_t::edge_type*& starting_vd_edge,
-                                                     vd_t::edge_type*& ending_vd_edge,
-                                                     const std::vector<Point>& points,
-                                                     const std::vector<Segment>& segments)
-{
-    const Segment& source_segment = VoronoiUtils::getSourceSegment(cell, points, segments);
-    Point from = source_segment.from();
-    Point to = source_segment.to();
-
-    // Find starting edge
-    // Find end edge
-    bool seen_possible_start = false;
-    bool after_start = false;
-    bool ending_edge_is_set_before_start = false;
-    vd_t::edge_type* edge = cell.incident_edge();
-    do
-    {
-        if (edge->is_infinite())
-        {
-            continue;
-        }
-        Point v0 = VoronoiUtils::p(edge->vertex0());
-        Point v1 = VoronoiUtils::p(edge->vertex1());
-        assert(! (v0 == to && v1 == from));
-        if (v0 == to && ! after_start) // Use the last edge which starts in source_segment.to
-        {
-            starting_vd_edge = edge;
-            seen_possible_start = true;
-        }
-        else if (seen_possible_start)
-        {
-            after_start = true;
-        }
-
-        if (v1 == from && (! ending_vd_edge || ending_edge_is_set_before_start))
-        {
-            ending_edge_is_set_before_start = ! after_start;
-            ending_vd_edge = edge;
-        }
-    } while (edge = edge->next(), edge != cell.incident_edge());
-
-    assert(starting_vd_edge && ending_vd_edge);
-    assert(starting_vd_edge != ending_vd_edge);
-
-    start_source_point = source_segment.to();
-    end_source_point = source_segment.from();
 }
 
 SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys,
@@ -573,7 +453,7 @@ process_voronoi_diagram:
 
         if (cell.contains_point())
         {
-            const bool keep_going = computePointCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
+            const bool keep_going = VoronoiUtils::computePointCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
             if (!keep_going)
             {
                 continue;
@@ -581,7 +461,7 @@ process_voronoi_diagram:
         }
         else
         {
-            computeSegmentCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
+            VoronoiUtils::computeSegmentCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
         }
 
         if (!starting_vonoroi_edge || !ending_vonoroi_edge)
@@ -2209,5 +2089,4 @@ void SkeletalTrapezoidation::generateLocalMaximaSingleBeads()
 //  TOOLPATH GENERATION
 // =====================
 //
-
 } // namespace cura52

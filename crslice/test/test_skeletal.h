@@ -27,15 +27,49 @@ namespace crslice
 		SkeletalGraph graph;
 	};
 
-	CRSLICE_API void testSkeletal(const SerailCrSkeletal& skeletal, CrPolygons& innerPoly, std::vector<CrVariableLines>& out,
-		SkeletalDetail* detail = nullptr);
-
 	struct ParabolaDetal
 	{
 		std::vector<trimesh::vec3> points;
 	};
 
+	struct CrDiscretizeEdges
+	{
+		CrPolygon edges;
+		CrPolygon parabola;
+		CrPolygon straightedges;
+	};
+
+	struct CrDiscretizeCell
+	{
+		trimesh::vec3 start;
+		trimesh::vec3 end;
+		std::vector<trimesh::vec3> edges;
+	};
+
 	CRSLICE_API void testDiscretizeParabola(CrPolygon& points, ParabolaDetal& detail);
+
+	class SkeletalCheckImpl;
+	class CRSLICE_API SkeletalCheck
+	{
+	public:
+		SkeletalCheck();
+		virtual ~SkeletalCheck();
+
+		void setInput(const SerailCrSkeletal& skeletal);
+		virtual bool isValid();
+
+		const CrPolygons& outline();
+		void skeletalTrapezoidation(CrPolygons& innerPoly, std::vector<CrVariableLines>& out,
+			SkeletalDetail* detail = nullptr);
+		void transferEdges(CrDiscretizeEdges& discretizeEdges);
+		bool transferCell(int index, CrDiscretizeCell& discretizeCell);
+
+		void generateBoostVoronoiTxt(const std::string& fileName);
+		void generateTransferEdgeSVG(const std::string& fileName);
+	protected:
+		SkeletalCheckImpl* impl;
+		CrPolygons outPoly;
+	};
 }
 
 #endif // CRSLICE_TEST_SKELETAL_1698397403190_H

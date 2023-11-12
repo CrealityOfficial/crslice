@@ -428,5 +428,6 @@ namespace cura52
 
     void halfEdgeOffset(Point& start, Point& end, coord_t offset);
 
+    void shrinkLine(Point& start, Point& end, coord_t offset);
 }//namespace cura52
 #endif//UTILS_LINEAR_ALG_2D_H

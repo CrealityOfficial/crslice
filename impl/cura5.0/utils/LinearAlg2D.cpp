@@ -298,4 +298,13 @@ namespace cura52
         start = rot.unapply(Point(offset, offset)) + start;
         end = rot.unapply(Point(- offset, offset)) + end;
     }
+
+    void shrinkLine(Point& start, Point& end, coord_t offset)
+    {
+        Point se = end - start;
+        const PointMatrix rot = PointMatrix(se);
+
+        start = rot.unapply(Point(offset, 0)) + start;
+        end = rot.unapply(Point(-offset, 0)) + end;
+    }
 } // namespace cura52

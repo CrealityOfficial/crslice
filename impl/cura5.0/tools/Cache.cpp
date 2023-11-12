@@ -133,10 +133,16 @@ namespace cura52
 
 	bool useCache = false;
 	std::string useRootPath;
+
+	int skeletalIndex = -1;
+	int discretizeIndex = -1;
 	void initUseCache(bool cache, const std::string& rootPath)
 	{
 		useCache = cache;
 		useRootPath = rootPath;
+
+		skeletalIndex = -1;
+		discretizeIndex = -1;
 	}
 
 	Cache::Cache(const std::string& fileName, SliceContext* context)
@@ -156,8 +162,11 @@ namespace cura52
 
 	}
 
-	void Cache::cacheSlicedData(const std::vector<SlicedData>& datas)
+	void cacheSlicedData(const std::vector<SlicedData>& datas)
 	{
+		if (!useCache)
+			return;
+
 		int meshSize = (int)datas.size();
 		for (int i = 0; i < meshSize; ++i)
 		{
@@ -166,7 +175,7 @@ namespace cura52
 			for (int j = 0; j < layerCount; ++j)
 			{
 				const SlicedLayer& layer = data.layers.at(j);
-				std::string fileName = crslice::crsliceddata_name(m_root, i, j);
+				std::string fileName = crslice::crsliceddata_name(useRootPath, i, j);
 				crslice::SerailSlicedData sslayer;
 				sslayer.data.z = INT2MM(layer.z);
 				crslice::convertPolygonRaw(layer.polygons, sslayer.data.polygons);
@@ -177,8 +186,11 @@ namespace cura52
 		}
 	}
 
-	void Cache::cacheAll(const SliceDataStorage& storage)
+	void cacheAll(const SliceDataStorage& storage)
 	{
+		if (!useCache)
+			return;
+
 		int meshSize = (int)storage.meshes.size();
 		for (int i = 0; i < meshSize; ++i)
 		{
@@ -198,25 +210,28 @@ namespace cura52
 					}
 				}
 
-				std::string fileName = crslice::crslicelayer_name(m_root, i, j);
+				std::string fileName = crslice::crslicelayer_name(useRootPath, i, j);
 				ccglobal::cxndSave(serialLayer, fileName);
 			}
 		}
 	}
 
-	void Cache::cacheSkeletal(crslice::SerailCrSkeletal& skeletal)
+	void cacheSkeletal(crslice::SerailCrSkeletal& skeletal)
 	{
-		std::string fileName = crslice::crsliceskeletal_name(m_root, m_skeletalIndex);
+		if (!useCache)
+			return;
+
+		++skeletalIndex;
+		discretizeIndex = -1;
+		std::string fileName = crslice::crsliceskeletal_name(useRootPath, skeletalIndex);
 		ccglobal::cxndSave(skeletal, fileName);
-		++m_skeletalIndex;
 	}
 
-	std::string generateName(const std::string& extension)
+	std::string generateDiscretizeName(const std::string& extension)
 	{
-		static int count = 0;
+		++discretizeIndex;
 		char name[512] = { 0 };
-		sprintf(name, "%s/%d.%s", useRootPath.c_str(), count, extension.c_str());
-		++count;
+		sprintf(name, "%s/%d_%d.%s", useRootPath.c_str(), skeletalIndex, discretizeIndex, extension.c_str());
 
 		return name;
 	}
@@ -259,7 +274,7 @@ namespace cura52
 		discretize.points.push_back(crslice::convert(start));
 		discretize.points.push_back(crslice::convert(end));
 		discretize.points.push_back(crslice::convert(point));
-		std::string bName = generateName("DiscretizeParabola");
+		std::string bName = generateDiscretizeName("DiscretizeParabola");
 		ccglobal::cxndSave(discretize, bName);
 	}
 
@@ -272,7 +287,7 @@ namespace cura52
 		discretize.type = 0;
 		discretize.points.push_back(crslice::convert(start));
 		discretize.points.push_back(crslice::convert(end));
-		std::string bName = generateName("DiscretizeEdge");
+		std::string bName = generateDiscretizeName("DiscretizeEdge");
 		ccglobal::cxndSave(discretize, bName);
 	}
 
@@ -288,7 +303,7 @@ namespace cura52
 		discretize.points.push_back(crslice::convert(right));
 		discretize.points.push_back(crslice::convert(start));
 		discretize.points.push_back(crslice::convert(end));
-		std::string bName = generateName("DiscretizeStraightEdge");
+		std::string bName = generateDiscretizeName("DiscretizeStraightEdge");
 		ccglobal::cxndSave(discretize, bName);
 	}
 } // namespace cura52

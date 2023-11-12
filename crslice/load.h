@@ -3,6 +3,9 @@
 #include "crslice/interface.h"
 #include "crslice/header.h"
 
+#define Skeletal_extension ".Skeletal"
+
+
 typedef std::vector<trimesh::vec3> CrPolygon;
 typedef std::vector<CrPolygon> CrPolygons;
 

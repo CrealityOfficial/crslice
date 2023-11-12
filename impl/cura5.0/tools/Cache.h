@@ -40,9 +40,6 @@ namespace cura52
 		Cache(const std::string& fileName, SliceContext* context);
 		virtual ~Cache();
 
-		void cacheSlicedData(const std::vector<SlicedData>& datas);
-		void cacheAll(const SliceDataStorage& storage);
-		void cacheSkeletal(crslice::SerailCrSkeletal& skeletal);
 	protected:
 		SliceContext* m_context;
 		std::string m_root;
@@ -51,11 +48,13 @@ namespace cura52
 		int m_skeletalIndex;
 	};
 
+	void cacheSlicedData(const std::vector<SlicedData>& datas);
+	void cacheAll(const SliceDataStorage& storage);
+
+	void cacheSkeletal(crslice::SerailCrSkeletal& skeletal);
 	void cacheDiscretizeParabola(const Point& point, const PolygonsSegmentIndex& segment,
 		const Point& start, const Point& end);
-
 	void cacheDiscretizeEdge(const Point& start, const Point& end);
-
 	void cacheDiscretizeStraightEdge(const Point& left, const Point& right, 
 		const Point& start, const Point& end);
 } // namespace cura52

@@ -223,10 +223,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     meshgroup->clear();
 
 #if USE_CACHE
-    if (application->cache())
-    {
-        application->cache()->cacheSlicedData(slicedDatas);
-    }
+    cacheSlicedData(slicedDatas);
 #endif
 
     SAFE_MESSAGE(2, 0);
@@ -499,10 +496,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     AreaSupport::generateSupportInfillFeatures(storage);
 
 #if USE_CACHE
-    if (application->cache())
-    {
-        application->cache()->cacheAll(storage);
-    }
+        cacheAll(storage);
 #endif 
 }
 
