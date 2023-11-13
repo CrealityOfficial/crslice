@@ -71,6 +71,7 @@ namespace crslice
 
 		void transferEdges(CrDiscretizeEdges& discretizeEdges);
 		bool transferCell(int index, CrDiscretizeCell& discretizeCell);
+		bool transferInvalidCell(int index, CrDiscretizeCell& discretizeCell);
 		void transferGraph();
 
 		void generateBoostVoronoiTxt(const std::string& fileName);

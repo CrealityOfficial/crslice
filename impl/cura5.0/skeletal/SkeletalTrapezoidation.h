@@ -550,12 +550,19 @@ namespace cura52
         }
     };
 
-    inline std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
+    std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
         vd_t& voronoi_diagram,
         const Polygons& polys,
         Polygons& polys_rotated,
         std::vector<Segment>& segments,
         const double                                  fix_angle);
+
+    void try_to_fix_degenerated_voronoi_diagram_by_offset(
+        vd_t& voronoi_diagram,
+        const Polygons& polys,
+        Polygons& polys_scaled,
+        std::vector<Segment>& segments,
+        const coord_t offset);
 
     void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalTrapezoidationGraph& graph,
         const double                                       fix_angle,

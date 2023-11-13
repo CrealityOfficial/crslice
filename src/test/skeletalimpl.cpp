@@ -18,9 +18,53 @@ namespace crslice
     {
         clear();
 
-        crslice::convertPolygonRaw(skeletal.polygons, input);
+        Polygons polys;
+        crslice::convertPolygonRaw(skeletal.polygons, polys);
         setParam(skeletal.param);
 
+        reset(polys);
+
+        modify();
+    }
+
+    bool SkeletalCheckImpl::isValid()
+    {
+        return segments.size() > 0 &&
+            graph.num_cells() > 0 && graph.num_edges() > 0 &&
+            input.size() > 0;
+    }
+
+    void SkeletalCheckImpl::clear()
+    {
+        input.clear();
+        segments.clear();
+        points.clear();
+        graph.clear();
+
+        vertex_mapping.clear();
+        polys_copy.clear();
+        degenerated_voronoi_diagram = false;
+
+        discretize_edges.clear();
+        discretize_cells.clear();
+        noplanar_vertexes.clear();
+        invalid_cells.clear();
+    }
+
+    void SkeletalCheckImpl::modify()
+    {
+        if (invalid_cells.size() > 0)
+        {
+            coord_t epsilon = 50;
+            Polygons polys = input.offset(-epsilon).offset(epsilon);
+            clear();
+            reset(polys);
+        }
+    }
+
+    void SkeletalCheckImpl::reset(const cura52::Polygons& poly)
+    {
+        input = poly;
         constructSegments(input, segments);
         boost::polygon::construct_voronoi(segments.begin(), segments.end(), &graph);
 
@@ -47,21 +91,6 @@ namespace crslice
 
         classifyEdge();
         transfer();
-    }
-
-    bool SkeletalCheckImpl::isValid()
-    {
-        return segments.size() > 0 &&
-            graph.num_cells() > 0 && graph.num_edges() > 0 &&
-            input.size() > 0;
-    }
-
-    void SkeletalCheckImpl::clear()
-    {
-        input.clear();
-        segments.clear();
-        points.clear();
-        graph.clear();
     }
 
     void SkeletalCheckImpl::insertEdge(const edge_type* edge, std::vector<trimesh::vec3>& points)

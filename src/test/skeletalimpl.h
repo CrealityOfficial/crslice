@@ -67,6 +67,7 @@ namespace crslice
             SkeletalDetail* detail = nullptr);
         void transferEdges(CrDiscretizeEdges& discretizeEdges);
         bool transferCell(int index, CrDiscretizeCell& discretizeCell);
+        bool transferInvalidCell(int index, CrDiscretizeCell& discretizeCell);
         void transferGraph();
 
         void generateBoostVoronoiTxt(const std::string& fileName);
@@ -75,6 +76,9 @@ namespace crslice
     private:
         void setParam(const CrSkeletalParam& param);
         void clear();
+        void reset(const cura52::Polygons& poly);
+        void modify();
+
         void classifyEdge();
         void checkNoPlanarVertex();
 
@@ -125,6 +129,7 @@ namespace crslice
         std::vector<DiscretizeEdge> discretize_edges;
         std::vector<DiscretizeCell> discretize_cells;
         std::vector<const vertex_type*> noplanar_vertexes;
+        std::vector<const cell_type*> invalid_cells;
 
         graph_t HE;
 	};

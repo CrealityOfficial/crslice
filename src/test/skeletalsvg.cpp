@@ -12,8 +12,8 @@ namespace crslice
             out << (int)segments.size() << "\n";
             for (std::size_t i = 0; i < segments.size(); ++i) {
                 const Segment& seg = segments.at(i);
-                cura52::Point f = seg.from();
-                cura52::Point t = seg.to();
+                cura52::Point f = seg.from() / 1000; //scale
+                cura52::Point t = seg.to() / 1000; //scale
 
                 out << f.X << " "
                     << f.Y << " "

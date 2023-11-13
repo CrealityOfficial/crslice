@@ -43,7 +43,6 @@ SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys,
 void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
 {
     std::vector<Point> points; // Remains empty
-
     std::vector<Segment> segments;
     for (size_t poly_idx = 0; poly_idx < polys.size(); poly_idx++)
     {
@@ -81,10 +80,13 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
      */
     SkeletalEdgeMap vd_edge_to_he_edge;
     SkeletalNodeMap vd_node_to_he_node;
-
+    std::vector<const vd_t::cell_type*> invalidCells;
 process_voronoi_diagram:
-    assert(this->graph.edges.empty() && this->graph.nodes.empty() && vd_edge_to_he_edge.empty() && vd_node_to_he_node.empty());
-    for (vd_t::cell_type cell : vonoroi_diagram.cells())
+    assert(this->graph.edges.empty() && this->graph.nodes.empty() 
+        && vd_edge_to_he_edge.empty() && vd_node_to_he_node.empty()
+        && invalidCells.empty());
+
+    for (const vd_t::cell_type& cell : vonoroi_diagram.cells())
     {
         if (!cell.incident_edge())
         { // There is no spoon
@@ -98,7 +100,7 @@ process_voronoi_diagram:
 
         if (cell.contains_point())
         {
-            const bool keep_going = VoronoiUtils::computePointCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
+            const bool keep_going = VoronoiUtils::computePointCellRange((vd_t::cell_type&)cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
             if (!keep_going)
             {
                 continue;
@@ -106,12 +108,13 @@ process_voronoi_diagram:
         }
         else
         {
-            VoronoiUtils::computeSegmentCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
+            VoronoiUtils::computeSegmentCellRange((vd_t::cell_type&)cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
         }
 
         if (!starting_vonoroi_edge || !ending_vonoroi_edge)
         {
-            assert(false && "Each cell should start / end in a polygon vertex");
+            LOGE("!starting_vonoroi_edge || !ending_vonoroi_edge");
+            invalidCells.push_back(&cell);
             continue;
         }
 
@@ -140,6 +143,15 @@ process_voronoi_diagram:
         prev_edge->to->data.distance_to_boundary = 0;
     }
 
+    if (invalidCells.size() > 0)
+    {
+        try_to_fix_degenerated_voronoi_diagram_by_offset(vonoroi_diagram, polys, polys_copy, segments, 50);
+        this->graph.edges.clear();
+        this->graph.nodes.clear();
+        vd_edge_to_he_edge.clear();
+        vd_node_to_he_node.clear();
+        invalidCells.clear();
+    }
     // For some input polygons, as in GH issues #8474 and #8514 resulting Voronoi diagram is degenerated because it is not planar.
     // When this degenerated Voronoi diagram is processed, the resulting half-edge structure contains some edges that don't have
     // a twin edge. Based on this, we created a fast mechanism that detects those causes and tries to recompute the Voronoi
@@ -2009,6 +2021,24 @@ void SkeletalTrapezoidation::generateLocalMaximaSingleBeads()
         construct_voronoi(segments.begin(), segments.end(), &voronoi_diagram);
 
         return vertex_mapping;
+    }
+
+    void try_to_fix_degenerated_voronoi_diagram_by_offset(
+        vd_t& voronoi_diagram,
+        const Polygons& polys,
+        Polygons& polys_scaled,
+        std::vector<Segment>& segments,
+        const coord_t offset)
+    {
+        polys_scaled = polys.offset(-offset).offset(offset);
+        segments.clear();
+        for (size_t poly_idx = 0; poly_idx < polys_scaled.size(); poly_idx++)
+            for (size_t point_idx = 0; point_idx < polys_scaled[poly_idx].size(); point_idx++)
+                segments.emplace_back(&polys_scaled, poly_idx, point_idx);
+
+
+        voronoi_diagram.clear();
+        construct_voronoi(segments.begin(), segments.end(), &voronoi_diagram);
     }
 
     void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalTrapezoidationGraph& graph,

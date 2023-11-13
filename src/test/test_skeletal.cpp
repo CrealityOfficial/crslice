@@ -228,6 +228,11 @@ namespace crslice
         return impl->transferCell(index, discretizeCell);
     }
 
+    bool SkeletalCheck::transferInvalidCell(int index, CrDiscretizeCell& discretizeCell)
+    {
+        return impl->transferInvalidCell(index, discretizeCell);
+    }
+
     void SkeletalCheck::transferGraph()
     {
         impl->transferGraph();

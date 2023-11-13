@@ -172,7 +172,7 @@ namespace crslice
         discretize_edges.clear();
         discretize_cells.clear();
 
-        for (cell_type cell : graph.cells())
+        for (const cell_type& cell : graph.cells())
         {
             if (!cell.incident_edge())
             { // There is no spoon
@@ -189,7 +189,7 @@ namespace crslice
 
             if (cell.contains_point())
             {
-                const bool keep_going = VoronoiUtils::computePointCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
+                const bool keep_going = VoronoiUtils::computePointCellRange((cell_type&)cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
                 if (!keep_going)
                 {
                     continue;
@@ -197,7 +197,13 @@ namespace crslice
             }
             else
             {
-                VoronoiUtils::computeSegmentCellRange(cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
+                VoronoiUtils::computeSegmentCellRange((cell_type&)cell, start_source_point, end_source_point, starting_vonoroi_edge, ending_vonoroi_edge, points, segments);
+            }
+
+            if (!starting_vonoroi_edge || !ending_vonoroi_edge)
+            {
+                invalid_cells.push_back(&cell);
+                continue;
             }
 
             DC.ending_vonoroi_edge = ending_vonoroi_edge;
@@ -279,6 +285,29 @@ namespace crslice
                 f(edge);
             }
             f(cell.ending_vonoroi_edge);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool SkeletalCheckImpl::transferInvalidCell(int index, CrDiscretizeCell& discretizeCell)
+    {
+        if (index >= 0 && index < invalid_cells.size())
+        {
+            const cell_type* cell = invalid_cells.at(index);
+            const edge_type* start = cell->incident_edge();
+
+            if (!start)
+                return false;
+
+            int count = 0;
+            do {
+                insertEdge(start, discretizeCell.edges);
+
+                start = start->next();
+            } while (start != cell->incident_edge());
 
             return true;
         }

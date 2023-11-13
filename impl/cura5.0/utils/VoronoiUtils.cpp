@@ -437,11 +437,15 @@ namespace cura52
             }
             else
             {
-                assert((VoronoiUtils::p(vd_edge->vertex0()) == source_point || !vd_edge->is_secondary()) && "point cells must end in the point! They cannot cross the point with an edge, because collinear edges are not allowed in the input.");
+                if(!(VoronoiUtils::p(vd_edge->vertex0()) == source_point || !vd_edge->is_secondary()))
+                    LOGE("point cells must end in the point! They cannot cross the point with an edge, because collinear edges are not allowed in the input.");
             }
         } while (vd_edge = vd_edge->next(), vd_edge != cell.incident_edge());
-        assert(starting_vd_edge && ending_vd_edge);
-        assert(starting_vd_edge != ending_vd_edge);
+        
+        if (!(starting_vd_edge && ending_vd_edge) || (starting_vd_edge == ending_vd_edge))
+        {
+            LOGE("computePointCellRange starting_vd_edge == ending_vd_edge");
+        }
         return true;
     }
 
