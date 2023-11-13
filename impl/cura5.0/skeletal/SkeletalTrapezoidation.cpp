@@ -151,6 +151,8 @@ process_voronoi_diagram:
         vd_edge_to_he_edge.clear();
         vd_node_to_he_node.clear();
         invalidCells.clear();
+
+        goto process_voronoi_diagram;
     }
     // For some input polygons, as in GH issues #8474 and #8514 resulting Voronoi diagram is degenerated because it is not planar.
     // When this degenerated Voronoi diagram is processed, the resulting half-edge structure contains some edges that don't have
