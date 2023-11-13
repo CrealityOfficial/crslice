@@ -8,23 +8,24 @@
 
 #include "PolygonsPointIndex.h"
 
-namespace cura52 
+namespace cura52
 {
 
-/*!
- * A class for iterating over the points in one of the polygons in a \ref Polygons object
- */
-class PolygonsSegmentIndex : public PolygonsPointIndex
-{
-public:
-    PolygonsSegmentIndex();
-    PolygonsSegmentIndex(const Polygons* polygons, unsigned int poly_idx, unsigned int point_idx);
+    /*!
+     * A class for iterating over the points in one of the polygons in a \ref Polygons object
+     */
+    class PolygonsSegmentIndex : public PolygonsPointIndex
+    {
+    public:
+        PolygonsSegmentIndex();
+        PolygonsSegmentIndex(const Polygons* polygons, unsigned int poly_idx, unsigned int point_idx);
 
-    Point from() const;
+        Point from() const;
 
-    Point to() const;
-};
+        Point to() const;
+    };
 
+    Point polygonsIndexPoint(const PolygonsPointIndex& index);
 
 } // namespace cura52
 

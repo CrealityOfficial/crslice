@@ -544,5 +544,23 @@ namespace cura52
         AngleRadians transitioning_angle,
         coord_t discretization_step_size);
 
+    struct PointHash {
+        size_t operator()(const Point& pt) const {
+            return coord_t((89 * 31 + int64_t(pt.X)) * 31 + pt.Y);
+        }
+    };
+
+    inline std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
+        vd_t& voronoi_diagram,
+        const Polygons& polys,
+        Polygons& polys_rotated,
+        std::vector<Segment>& segments,
+        const double                                  fix_angle);
+
+    void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalTrapezoidationGraph& graph,
+        const double                                       fix_angle,
+        const std::unordered_map<Point, Point, PointHash>& vertex_mapping);
+
+    bool has_missing_twin_edge(const SkeletalTrapezoidationGraph& graph);
 } // namespace cura52
 #endif // VORONOI_QUADRILATERALIZATION_H

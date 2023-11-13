@@ -61,6 +61,8 @@ namespace crslice
         void setInput(const SerailCrSkeletal& skeletal);
         bool isValid();
 
+        void detectMissingVoronoiVertex(CrMissingVertex& vertex);
+
         void skeletalTrapezoidation(CrPolygons& innerPoly, std::vector<CrVariableLines>& out,
             SkeletalDetail* detail = nullptr);
         void transferEdges(CrDiscretizeEdges& discretizeEdges);
@@ -69,13 +71,17 @@ namespace crslice
 
         void generateBoostVoronoiTxt(const std::string& fileName);
         void generateTransferEdgeSVG(const std::string& fileName);
+        void generateNoPlanarVertexSVG(const std::string& fileName);
     private:
         void setParam(const CrSkeletalParam& param);
         void clear();
         void classifyEdge();
+        void checkNoPlanarVertex();
 
         int edgeIndex(edge_type* edge);
         void transfer();
+
+        void insertEdge(const edge_type* edge, std::vector<trimesh::vec3>& points);
     public:
         cura52::Polygons input;
 
@@ -111,8 +117,14 @@ namespace crslice
         std::vector<Point> points;
         voronoi_type graph;
 
+        std::unordered_map<Point, Point, PointHash> vertex_mapping;
+        Polygons                                    polys_copy;
+        bool degenerated_voronoi_diagram = false;
+        double fix_angle = M_PI / 6.0;
+
         std::vector<DiscretizeEdge> discretize_edges;
         std::vector<DiscretizeCell> discretize_cells;
+        std::vector<const vertex_type*> noplanar_vertexes;
 
         graph_t HE;
 	};

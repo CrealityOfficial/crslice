@@ -14,8 +14,8 @@ namespace cura52
 
     Point VoronoiUtils::p(const vd_t::vertex_type* node)
     {
-        const double x = node->x();
-        const double y = node->y();
+        const double x = node->x() * 1000.0;  //scale
+        const double y = node->y() * 1000.0;  //scale 
         return Point(x + 0.5 - (x < 0), y + 0.5 - (y < 0)); // Round to nearest integer coordinates.
     }
 
@@ -416,7 +416,10 @@ namespace cura52
         // The edge leading out of a polygon must have an endpoint that's not in the corner following the contour of the polygon at that vertex.
         // So if it's inside the corner formed by the polygon vertex, it's all fine.
         // But if it's outside of the corner, it must be a vertex of the Voronoi diagram that goes outside of the polygon towards infinity.
-        if (!LinearAlg2D::isInsideCorner(source_point_index.prev().p(), source_point_index.p(), source_point_index.next().p(), some_point))
+        if (!LinearAlg2D::isInsideCorner(polygonsIndexPoint(source_point_index.prev()),
+            polygonsIndexPoint(source_point_index),
+            polygonsIndexPoint(source_point_index.next()),
+            some_point))
         {
             return false; // Don't copy any part of this cell
         }

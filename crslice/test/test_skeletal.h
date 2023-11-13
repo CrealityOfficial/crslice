@@ -46,6 +46,12 @@ namespace crslice
 		std::vector<trimesh::vec3> edges;
 	};
 
+	struct CrMissingVertex
+	{
+		std::vector<trimesh::vec3> edges1;
+		std::vector<trimesh::vec3> edges2;
+	};
+
 	CRSLICE_API void testDiscretizeParabola(CrPolygon& points, ParabolaDetal& detail);
 
 	class SkeletalCheckImpl;
@@ -58,14 +64,18 @@ namespace crslice
 		void setInput(const SerailCrSkeletal& skeletal);
 		virtual bool isValid();
 
+		void detectMissingVoronoiVertex(CrMissingVertex& vertex);
 		const CrPolygons& outline();
 		void skeletalTrapezoidation(CrPolygons& innerPoly, std::vector<CrVariableLines>& out,
 			SkeletalDetail* detail = nullptr);
+
 		void transferEdges(CrDiscretizeEdges& discretizeEdges);
 		bool transferCell(int index, CrDiscretizeCell& discretizeCell);
 		void transferGraph();
 
 		void generateBoostVoronoiTxt(const std::string& fileName);
+		void generateNoPlanarVertexSVG(const std::string& fileName);
+
 		void generateTransferEdgeSVG(const std::string& fileName);
 	protected:
 		SkeletalCheckImpl* impl;

@@ -38,6 +38,11 @@ namespace crslice
 		return trimesh::vec3(FDM_I2F(point.x), FDM_I2F(point.y), FDM_I2F(point.z));
 	}
 
+	trimesh::vec3 convertScale(const ClipperLib::IntPoint& point, float z)
+	{
+		return trimesh::vec3(INT2MM2(point.X), INT2MM2(point.Y), z);
+	}
+
 	ClipperLib::IntPoint convert(const trimesh::vec3& point)
 	{
 		return ClipperLib::IntPoint(FDM_F2I(point.x), FDM_F2I(point.y));

@@ -24,8 +24,62 @@ namespace crslice
         out.close();
     }
 
+    void SkeletalCheckImpl::generateNoPlanarVertexSVG(const std::string& fileName)
+    {
+#if 0
+        AABB b;
+
+        for (const vertex_type* vertex : noplanar_vertexes)
+        {
+            b.include(VoronoiUtils::p(vertex));
+        }
+
+        b.expand(400);
+
+        SVG out(fileName, b);
+        out.setFlipY(true);
+
+        SVG::ColorObject bColor(SVG::Color::BLUE);
+        SVG::ColorObject rColor(SVG::Color::RED);
+        SVG::ColorObject gColor(SVG::Color::GREEN);
+
+        for (const vertex_type* vertex : noplanar_vertexes)
+        {
+            const edge_type* edge = vertex->incident_edge();
+            do {
+                // FIXME Lukas H.: Also process parabolic segments.
+                if (edge->is_finite() && edge->is_linear() && edge->vertex0() != nullptr && edge->vertex1() != nullptr &&
+                    VoronoiUtils::is_finite(*edge->vertex0()) && VoronoiUtils::is_finite(*edge->vertex1()))
+                {
+                    auto f = [this, &out, &bColor, &rColor, &gColor](const edge_type* edge) {
+                        SVG::ColorObject color(SVG::Color::BLACK);
+                        assert(edge->is_finite());
+                        Point v1 = VoronoiUtils::p(edge->vertex0());
+                        Point v2 = VoronoiUtils::p(edge->vertex1());
+
+                        Point s = v1;
+                        Point e = v2;
+
+                        out.writeLine(s, e, color, 0.3f);
+                        out.writePoint(VoronoiUtils::p(edge->vertex0()), false, 0.4f);
+                    };
+
+                    const edge_type* start_edge = edge;
+                    do {
+                        f(start_edge);
+                        start_edge = start_edge->next();
+                    } while (start_edge != edge);
+                }
+
+                edge = edge->rot_next();
+            } while (edge != vertex->incident_edge());
+        }
+#endif
+    }
+
     void SkeletalCheckImpl::generateTransferEdgeSVG(const std::string& fileName)
     {
+#if 0
         SVG out(fileName, box);
         out.setFlipY(true);
 
@@ -97,5 +151,6 @@ namespace crslice
                 f(edge);
             f(ending_vonoroi_edge);
         }
+#endif
     }
 }

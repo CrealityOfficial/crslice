@@ -330,7 +330,9 @@ namespace cura52
 
     void SkeletalTrapezoidationGraph::makeRib(edge_t*& prev_edge, Point start_source_point, Point end_source_point, bool is_next_to_start_or_end)
     {
-        Point p = LinearAlg2D::getClosestOnLine(prev_edge->to->p, start_source_point, end_source_point);
+        Point p = LinearAlg2D::getClosestOnLine(prev_edge->to->p, 
+            start_source_point / 1000,
+            end_source_point / 1000);  //scale
         coord_t dist = vSize(prev_edge->to->p - p);
         prev_edge->to->data.distance_to_boundary = dist;
         assert(dist >= 0);

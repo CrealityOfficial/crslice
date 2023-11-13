@@ -202,6 +202,11 @@ namespace crslice
         return impl->isValid();
     }
 
+    void SkeletalCheck::detectMissingVoronoiVertex(CrMissingVertex& vertex)
+    {
+        impl->detectMissingVoronoiVertex(vertex);
+    }
+
     const CrPolygons& SkeletalCheck::outline()
     {
         return outPoly;
@@ -231,6 +236,11 @@ namespace crslice
     void SkeletalCheck::generateBoostVoronoiTxt(const std::string& fileName)
     {
         impl->generateBoostVoronoiTxt(fileName);
+    }
+
+    void SkeletalCheck::generateNoPlanarVertexSVG(const std::string& fileName)
+    {
+        impl->generateNoPlanarVertexSVG(fileName);
     }
 
     void SkeletalCheck::generateTransferEdgeSVG(const std::string& fileName)

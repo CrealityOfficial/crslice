@@ -24,18 +24,20 @@ namespace crslice
         constructSegments(input, segments);
         boost::polygon::construct_voronoi(segments.begin(), segments.end(), &graph);
 
+        checkNoPlanarVertex();
+#if 0
         const bool   has_missing_voronoi_vertex = VoronoiUtils::detect_missing_voronoi_vertex(graph, segments);
         // Detection of non-planar Voronoi diagram detects at least GH issues #8474, #8514 and #8446.
         const bool   is_voronoi_diagram_planar = VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(graph);
 
         if (has_missing_voronoi_vertex || !is_voronoi_diagram_planar) {
             LOGE("has_missing_voronoi_vertex || !is_voronoi_diagram_planar");
+
+            vertex_mapping = try_to_fix_degenerated_voronoi_diagram_by_rotation(graph, input, polys_copy, segments, fix_angle);
         }
 
-        bool degenerated_voronoi_diagram = has_missing_voronoi_vertex || !is_voronoi_diagram_planar;
-        if (degenerated_voronoi_diagram) {
-            LOGE("degenerated_voronoi_diagram");
-        }
+        degenerated_voronoi_diagram = has_missing_voronoi_vertex || !is_voronoi_diagram_planar;
+#endif 
 
         for (const ClipperLib::Path& path : input.paths)
             for (const Point& p : path)
@@ -62,6 +64,17 @@ namespace crslice
         graph.clear();
     }
 
+    void SkeletalCheckImpl::insertEdge(const edge_type* edge, std::vector<trimesh::vec3>& points)
+    {
+        if (!edge)
+            return;
+
+        trimesh::vec3 p0 = convertScale(VoronoiUtils::p(edge->vertex0()));
+        trimesh::vec3 p1 = convertScale(VoronoiUtils::p(edge->vertex1()));
+        points.push_back(p0);
+        points.push_back(p1);
+    }
+
     int SkeletalCheckImpl::edgeIndex(edge_type* edge)
     {
         if (graph.num_edges() == 0)
@@ -74,7 +87,7 @@ namespace crslice
     {
         allowed_distance = MM2INT(param.allowed_distance);
         transitioning_angle = param.transitioning_angle;
-        discretization_step_size = MM2INT(param.discretization_step_size);
+        discretization_step_size = MM2INT(param.discretization_step_size) * 1000;
         scaled_spacing_wall_0 = param.scaled_spacing_wall_0;
         scaled_spacing_wall_X = param.scaled_spacing_wall_X;
         wall_transition_length = MM2INT(param.wall_transition_length);
@@ -86,16 +99,16 @@ namespace crslice
         wall_add_middle_threshold = param.wall_add_middle_threshold;
         wall_distribution_count = param.wall_distribution_count;
         max_bead_count = param.max_bead_count;
-        transition_filter_dist = MM2INT(param.transition_filter_dist);
-        allowed_filter_deviation = MM2INT(param.allowed_filter_deviation);
+        transition_filter_dist = MM2INT(param.transition_filter_dist) ; 
+        allowed_filter_deviation = MM2INT(param.allowed_filter_deviation) ;
         print_thin_walls = param.print_thin_walls > 0;
-        min_feature_size = MM2INT(param.min_feature_size);
-        min_bead_width = MM2INT(param.min_bead_width);
-        wall_0_inset = MM2INT(param.wall_0_inset);
+        min_feature_size = MM2INT(param.min_feature_size) ;
+        min_bead_width = MM2INT(param.min_bead_width) ;
+        wall_0_inset = MM2INT(param.wall_0_inset) ;
 
         wall_inset_count = param.wall_inset_count;
         stitch_distance = MM2INT(param.stitch_distance);
-        max_resolution = MM2INT(param.max_resolution);
+        max_resolution = MM2INT(param.max_resolution) ;
         max_deviation = MM2INT(param.max_deviation);
         max_area_deviation = MM2INT(param.max_area_deviation);
     }

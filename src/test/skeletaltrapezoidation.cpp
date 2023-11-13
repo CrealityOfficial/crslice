@@ -70,6 +70,13 @@ namespace crslice
 
     void SkeletalCheckImpl::transferGraph()
     {
+        if (!degenerated_voronoi_diagram && has_missing_twin_edge(HE)) {
+            LOGE("has_missing_twin_edge ..");
+        }
+
+        if (degenerated_voronoi_diagram)
+            rotate_back_skeletal_trapezoidation_graph_after_fix(HE, fix_angle, vertex_mapping);
+
         separatePointyQuadEndNodes(HE);
 
         HE.collapseSmallEdges();

@@ -170,7 +170,7 @@ namespace cura52
             prepared_outline,
             *beading_strat,
             beading_strat->getTransitioningAngle(),
-            discretization_step_size,
+            discretization_step_size * 1000,  //scale
             transition_filter_dist,
             allowed_filter_deviation,
             wall_transition_length

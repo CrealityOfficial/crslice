@@ -40,70 +40,6 @@ SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys,
     constructFromPolygons(polys);
 }
 
-struct PointHash {
-    size_t operator()(const Point& pt) const {
-        return coord_t((89 * 31 + int64_t(pt.X)) * 31 + pt.Y);
-    }
-};
-
-void rotate(ClipperLib::Path & points, double angle)
-{
-    for (Point& pt : points) {
-        rotate(pt, angle);
-    }
-}
-
-inline static std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
-    vd_t &voronoi_diagram,
-    const Polygons                               &polys,
-    Polygons                                     &polys_rotated,
-    std::vector<Segment> &segments,
-    const double                                  fix_angle)
-{
-    std::unordered_map<Point, Point, PointHash> vertex_mapping;
-    for (ClipperLib::Path& poly : polys_rotated)
-        rotate(poly, fix_angle);      
-
-    assert(polys_rotated.size() == polys.size());
-    for (size_t poly_idx = 0; poly_idx < polys.size(); ++poly_idx) {
-        assert(polys_rotated[poly_idx].size() == polys[poly_idx].size());
-        for (size_t point_idx = 0; point_idx < polys[poly_idx].size(); ++point_idx)
-            vertex_mapping.insert({polys_rotated[poly_idx][point_idx], polys[poly_idx][point_idx]});
-    }
-
-    segments.clear();
-    for (size_t poly_idx = 0; poly_idx < polys_rotated.size(); poly_idx++)
-        for (size_t point_idx = 0; point_idx < polys_rotated[poly_idx].size(); point_idx++)
-            segments.emplace_back(&polys_rotated, poly_idx, point_idx);
-
-
-    voronoi_diagram.clear();
-    construct_voronoi(segments.begin(), segments.end(), &voronoi_diagram);
-
-    return vertex_mapping;
-}
-
-inline static void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalTrapezoidationGraph                       &graph,
-                                                                       const double                                       fix_angle,
-                                                                       const std::unordered_map<Point, Point, PointHash> &vertex_mapping)
-{
-    for (STHalfEdgeNode &node : graph.nodes) {
-        // If a mapping exists between a rotated point and an original point, use this mapping. Otherwise, rotate a point in the opposite direction.
-        if (auto node_it = vertex_mapping.find(node.p); node_it != vertex_mapping.end())
-            node.p = node_it->second;
-        else
-            rotate(node.p, -fix_angle);
-    }
-}
-
-static bool has_missing_twin_edge(const SkeletalTrapezoidationGraph& graph)
-{
-    for (const auto& edge : graph.edges)
-        if (edge.twin == nullptr)
-            return true;
-    return false;
-}
-
 void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
 {
     std::vector<Point> points; // Remains empty
@@ -229,7 +165,6 @@ process_voronoi_diagram:
         rotate_back_skeletal_trapezoidation_graph_after_fix(this->graph, fix_angle, vertex_mapping);
 
     separatePointyQuadEndNodes(this->graph);
-
     graph.collapseSmallEdges();
 
     // Set [incident_edge] the the first possible edge that way we can iterate over all reachable edges from node.incident_edge,
@@ -1678,6 +1613,12 @@ void SkeletalTrapezoidation::connectJunctions(ptr_vector_t<LineJunctions>& edge_
             }
             if (edge_from_peak->next)
             {
+                if (!edge_from_peak->next->twin->data.hasExtrusionJunctions())
+                {
+                    edge_junctions.emplace_back(std::make_shared<LineJunctions>());
+                    edge_from_peak->next->twin->data.setExtrusionJunctions(edge_junctions.back());
+                }
+
                 LineJunctions to_next_junctions = *edge_from_peak->next->twin->data.getExtrusionJunctions();
                 while (! to_junctions.empty() && ! to_next_junctions.empty() && to_junctions.back().perimeter_index <= to_next_junctions.front().perimeter_index)
                 {
@@ -1881,7 +1822,7 @@ void SkeletalTrapezoidation::generateLocalMaximaSingleBeads()
                 node_t* v1;
                 if (p1_idx < discretized.size() - 1)
                 {
-                    graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p1);
+                    graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p1 / 1000); //scale
                     v1 = &graph.nodes.front();
                 }
                 else
@@ -1922,8 +1863,8 @@ void SkeletalTrapezoidation::generateLocalMaximaSingleBeads()
         auto he_node_it = vd_node_to_he_node.find(&vd_node);
         if (he_node_it == vd_node_to_he_node.end())
         {
-            graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p);
-        node_t& node = graph.nodes.front();
+            graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p / 1000); //scale
+            node_t& node = graph.nodes.front();
             vd_node_to_he_node.emplace(&vd_node, &node);
             return node;
         }
@@ -2038,5 +1979,56 @@ void SkeletalTrapezoidation::generateLocalMaximaSingleBeads()
             ret.emplace_back(b);
             return ret;
         }
+    }
+
+    std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
+        vd_t& voronoi_diagram,
+        const Polygons& polys,
+        Polygons& polys_rotated,
+        std::vector<Segment>& segments,
+        const double                                  fix_angle)
+    {
+        std::unordered_map<Point, Point, PointHash> vertex_mapping;
+        for (ClipperLib::Path& poly : polys_rotated)
+            rotate(poly, fix_angle);
+
+        assert(polys_rotated.size() == polys.size());
+        for (size_t poly_idx = 0; poly_idx < polys.size(); ++poly_idx) {
+            assert(polys_rotated[poly_idx].size() == polys[poly_idx].size());
+            for (size_t point_idx = 0; point_idx < polys[poly_idx].size(); ++point_idx)
+                vertex_mapping.insert({ polys_rotated[poly_idx][point_idx], polys[poly_idx][point_idx] });
+        }
+
+        segments.clear();
+        for (size_t poly_idx = 0; poly_idx < polys_rotated.size(); poly_idx++)
+            for (size_t point_idx = 0; point_idx < polys_rotated[poly_idx].size(); point_idx++)
+                segments.emplace_back(&polys_rotated, poly_idx, point_idx);
+
+
+        voronoi_diagram.clear();
+        construct_voronoi(segments.begin(), segments.end(), &voronoi_diagram);
+
+        return vertex_mapping;
+    }
+
+    void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalTrapezoidationGraph& graph,
+        const double                                       fix_angle,
+        const std::unordered_map<Point, Point, PointHash>& vertex_mapping)
+    {
+        for (STHalfEdgeNode& node : graph.nodes) {
+            // If a mapping exists between a rotated point and an original point, use this mapping. Otherwise, rotate a point in the opposite direction.
+            if (auto node_it = vertex_mapping.find(node.p); node_it != vertex_mapping.end())
+                node.p = node_it->second;
+            else
+                rotate(node.p, -fix_angle);
+        }
+    }
+
+    bool has_missing_twin_edge(const SkeletalTrapezoidationGraph& graph)
+    {
+        for (const auto& edge : graph.edges)
+            if (edge.twin == nullptr)
+                return true;
+        return false;
     }
 } // namespace cura52

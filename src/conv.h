@@ -15,6 +15,9 @@ namespace crslice
 
 	trimesh::vec3 convert(const ClipperLib::IntPoint& point, float z = 0.0f);
 	trimesh::vec3 convert(const cura52::Point3& point);
+
+	trimesh::vec3 convertScale(const ClipperLib::IntPoint& point, float z = 0.0f);
+
 	ClipperLib::IntPoint convert(const trimesh::vec3& point);
 
 	void convertRaw(const ClipperLib::Paths& paths, std::vector<std::vector<trimesh::vec3>>& lines, float z = 0.0f);

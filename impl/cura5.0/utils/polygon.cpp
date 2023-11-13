@@ -1486,4 +1486,10 @@ void Polygons::ensureManifold()
     }
 }
 
+    void rotate(ClipperLib::Path& points, double angle)
+    {
+        for (Point& pt : points) {
+            rotate(pt, angle);
+        }
+    }
 }//namespace cura52

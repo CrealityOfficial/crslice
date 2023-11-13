@@ -10,7 +10,10 @@ namespace cura52 {
         RIGHT_TURN
     };
 
-    inline static Point to_Point(const vd_t::vertex_type& pt) { return VoronoiUtils::p(&pt); }
+    inline static Point to_Point(const vd_t::vertex_type& pt) 
+    {
+        return VoronoiUtils::p(&pt);
+    }
 
     inline static Polygon to_Polygon(const Point& pt_0, const Point& pt_1, const Point& pt_2)
     {
@@ -82,7 +85,7 @@ namespace cura52 {
         return check_polyLines_self_intersection(segments);
     }
 
-    static bool check_if_three_vectors_are_ccw(const Point& common_pt, const Point& pt_1, const Point& pt_2, const Point& test_pt) {
+    bool VoronoiUtilsCgal::check_if_three_vectors_are_ccw(const Point& common_pt, const Point& pt_1, const Point& pt_2, const Point& test_pt) {
         cType orientation = check_ccw(common_pt, pt_1, pt_2);
         if (orientation == COLLINEAR) {
             // The first two edges are collinear, so the third edge must be on the right side on the first of them.
