@@ -207,4 +207,9 @@ namespace crslice
         LOGE("getMetaKeys::Binary not support.");
 #endif
     }
+
+    std::string engineVersion()
+    {
+        return "5.2.0";
+    }
 }
