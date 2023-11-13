@@ -63,6 +63,7 @@ namespace crslice
 			SkeletalDetail* detail = nullptr);
 		void transferEdges(CrDiscretizeEdges& discretizeEdges);
 		bool transferCell(int index, CrDiscretizeCell& discretizeCell);
+		void transferGraph();
 
 		void generateBoostVoronoiTxt(const std::string& fileName);
 		void generateTransferEdgeSVG(const std::string& fileName);

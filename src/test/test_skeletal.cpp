@@ -223,6 +223,11 @@ namespace crslice
         return impl->transferCell(index, discretizeCell);
     }
 
+    void SkeletalCheck::transferGraph()
+    {
+        impl->transferGraph();
+    }
+
     void SkeletalCheck::generateBoostVoronoiTxt(const std::string& fileName)
     {
         impl->generateBoostVoronoiTxt(fileName);

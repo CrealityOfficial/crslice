@@ -22,7 +22,21 @@
 
 namespace cura52
 {
+    using pos_t = double;
+    using vd_t = boost::polygon::voronoi_diagram<pos_t>;
 
+    using graph_t = SkeletalTrapezoidationGraph;
+    using edge_t = STHalfEdge;
+    using node_t = STHalfEdgeNode;
+    using Beading = BeadingStrategy::Beading;
+    using BeadingPropagation = SkeletalTrapezoidationJoint::BeadingPropagation;
+    using TransitionMiddle = SkeletalTrapezoidationEdge::TransitionMiddle;
+    using TransitionEnd = SkeletalTrapezoidationEdge::TransitionEnd;
+
+    using Segment = PolygonsSegmentIndex;
+
+    typedef std::unordered_map<vd_t::edge_type*, edge_t*> SkeletalEdgeMap;
+    typedef std::unordered_map<vd_t::vertex_type*, node_t*> SkeletalNodeMap;
     /*!
      * Main class of the dynamic beading strategies.
      *
@@ -45,17 +59,7 @@ namespace cura52
     class SkeletalTrapezoidation
     {
     public:
-        using pos_t = double;
-        using vd_t = boost::polygon::voronoi_diagram<pos_t>;
     private:
-        using graph_t = SkeletalTrapezoidationGraph;
-        using edge_t = STHalfEdge;
-        using node_t = STHalfEdgeNode;
-        using Beading = BeadingStrategy::Beading;
-        using BeadingPropagation = SkeletalTrapezoidationJoint::BeadingPropagation;
-        using TransitionMiddle = SkeletalTrapezoidationEdge::TransitionMiddle;
-        using TransitionEnd = SkeletalTrapezoidationEdge::TransitionEnd;
-
         template<typename T>
         using ptr_vector_t = std::vector<std::shared_ptr<T>>;
 
@@ -78,8 +82,6 @@ namespace cura52
         const BeadingStrategy& beading_strategy;
 
     public:
-        using Segment = PolygonsSegmentIndex;
-
         /*!
          * Construct a new trapezoidation problem to solve.
          * \param polys The shapes to fill with walls.
@@ -153,63 +155,12 @@ namespace cura52
          * We therefore collapse edges and their whole cells afterwards.
          */
         void constructFromPolygons(const Polygons& polys);
-
-        /*!
-         * mapping each voronoi VD edge to the corresponding halfedge HE edge
-         * In case the result segment is discretized, we map the VD edge to the *last* HE edge
-         */
-        std::unordered_map<vd_t::edge_type*, edge_t*> vd_edge_to_he_edge;
-        std::unordered_map<vd_t::vertex_type*, node_t*> vd_node_to_he_node;
-        node_t& makeNode(vd_t::vertex_type& vd_node, Point p); //!< Get the node which the VD node maps to, or create a new mapping if there wasn't any yet.
-
         /*!
          * (Eventual) returned 'polylines per index' result (from generateToolpaths):
          *
          * Binned by inset_idx.
          */
         std::vector<VariableWidthLines>* p_generated_toolpaths;
-
-        /*!
-         * Transfer an edge from the VD to the HE and perform discretization of parabolic edges (and vertex-vertex edges)
-         * \p prev_edge serves as input and output. May be null as input.
-         */
-        void transferEdge(Point from, Point to, vd_t::edge_type& vd_edge, edge_t*& prev_edge, Point& start_source_point, Point& end_source_point, const std::vector<Point>& points, const std::vector<Segment>& segments);
-
-        /*!
-         * Discretize a Voronoi edge that represents the medial axis of a vertex-
-         * line region or vertex-vertex region into small segments that can be
-         * considered to have a straight medial axis and a linear line width
-         * transition.
-         *
-         * The medial axis between a point and a line is a parabola. The rest of the
-         * algorithm doesn't want to have to deal with parabola, so this discretises
-         * the parabola into straight line segments. This is necessary if there is a
-         * sharp inner corner (acts as a point) that comes close to a straight edge.
-         *
-         * The medial axis between a point and a point is a straight line segment.
-         * However the distance from the medial axis to either of those points draws
-         * a parabola as you go along the medial axis. That means that the resulting
-         * line width along the medial axis would not be linearly increasing or
-         * linearly decreasing, but needs to take the shape of a parabola. Instead,
-         * we'll break this edge up into tiny line segments that can approximate the
-         * parabola with tiny linear increases or decreases in line width.
-         * \param segment The variable-width Voronoi edge to discretize.
-         * \param points All vertices of the original Polygons to fill with beads.
-         * \param segments All line segments of the original Polygons to fill with
-         * beads.
-         * \return A number of coordinates along the edge where the edge is broken
-         * up into discrete pieces.
-         */
-        std::vector<Point> discretize(const vd_t::edge_type& segment, const std::vector<Point>& points, const std::vector<Segment>& segments);
-
-        /*!
-         * For VD cells associated with an input polygon vertex, we need to separate the node at the end and start of the cell into two
-         * That way we can reach both the quad_start and the quad_end from the [incident_edge] of the two new nodes
-         * Otherwise if node.incident_edge = quad_start you couldnt reach quad_end.twin by normal iteration (i.e. it = it.twin.next)
-         */
-        void separatePointyQuadEndNodes();
-
-
         // ^ init | v transitioning
 
         void updateIsCentral(); // Update the "is_central" flag for each edge based on the transitioning_angle
@@ -543,6 +494,55 @@ namespace cura52
          */
         void generateLocalMaximaSingleBeads();
     };
+
+    /*!
+     * For VD cells associated with an input polygon vertex, we need to separate the node at the end and start of the cell into two
+     * That way we can reach both the quad_start and the quad_end from the [incident_edge] of the two new nodes
+     * Otherwise if node.incident_edge = quad_start you couldnt reach quad_end.twin by normal iteration (i.e. it = it.twin.next)
+     */
+    void separatePointyQuadEndNodes(graph_t& graph);
+    /*!
+     * Transfer an edge from the VD to the HE and perform discretization of parabolic edges (and vertex-vertex edges)
+     * \p prev_edge serves as input and output. May be null as input.
+     */
+    void transferEdge(Point from, Point to, vd_t::edge_type& vd_edge, edge_t*& prev_edge, Point& start_source_point, Point& end_source_point,
+        const std::vector<Point>& points, const std::vector<Segment>& segments,
+        graph_t& graph, SkeletalEdgeMap& vd_edge_to_he_edge,
+        SkeletalNodeMap& vd_node_to_he_node, AngleRadians transitioning_angle,
+        coord_t discretization_step_size);
+
+    node_t& makeNode(vd_t::vertex_type& vd_node, Point p, graph_t& graph, SkeletalEdgeMap& vd_edge_to_he_edge,
+        SkeletalNodeMap& vd_node_to_he_node); //!< Get the node which the VD node maps to, or create a new mapping if there wasn't any yet.
+
+    /*!
+     * Discretize a Voronoi edge that represents the medial axis of a vertex-
+     * line region or vertex-vertex region into small segments that can be
+     * considered to have a straight medial axis and a linear line width
+     * transition.
+     *
+     * The medial axis between a point and a line is a parabola. The rest of the
+     * algorithm doesn't want to have to deal with parabola, so this discretises
+     * the parabola into straight line segments. This is necessary if there is a
+     * sharp inner corner (acts as a point) that comes close to a straight edge.
+     *
+     * The medial axis between a point and a point is a straight line segment.
+     * However the distance from the medial axis to either of those points draws
+     * a parabola as you go along the medial axis. That means that the resulting
+     * line width along the medial axis would not be linearly increasing or
+     * linearly decreasing, but needs to take the shape of a parabola. Instead,
+     * we'll break this edge up into tiny line segments that can approximate the
+     * parabola with tiny linear increases or decreases in line width.
+     * \param segment The variable-width Voronoi edge to discretize.
+     * \param points All vertices of the original Polygons to fill with beads.
+     * \param segments All line segments of the original Polygons to fill with
+     * beads.
+     * \return A number of coordinates along the edge where the edge is broken
+     * up into discrete pieces.
+     */
+    std::vector<Point> discretize(const vd_t::edge_type& segment, 
+        const std::vector<Point>& points, const std::vector<Segment>& segments,
+        AngleRadians transitioning_angle,
+        coord_t discretization_step_size);
 
 } // namespace cura52
 #endif // VORONOI_QUADRILATERALIZATION_H

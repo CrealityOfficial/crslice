@@ -24,6 +24,19 @@ namespace crslice
         constructSegments(input, segments);
         boost::polygon::construct_voronoi(segments.begin(), segments.end(), &graph);
 
+        const bool   has_missing_voronoi_vertex = VoronoiUtils::detect_missing_voronoi_vertex(graph, segments);
+        // Detection of non-planar Voronoi diagram detects at least GH issues #8474, #8514 and #8446.
+        const bool   is_voronoi_diagram_planar = VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(graph);
+
+        if (has_missing_voronoi_vertex || !is_voronoi_diagram_planar) {
+            LOGE("has_missing_voronoi_vertex || !is_voronoi_diagram_planar");
+        }
+
+        bool degenerated_voronoi_diagram = has_missing_voronoi_vertex || !is_voronoi_diagram_planar;
+        if (degenerated_voronoi_diagram) {
+            LOGE("degenerated_voronoi_diagram");
+        }
+
         for (const ClipperLib::Path& path : input.paths)
             for (const Point& p : path)
                 box.include(p);
@@ -31,6 +44,7 @@ namespace crslice
         box.expand(1000);
 
         classifyEdge();
+        transfer();
     }
 
     bool SkeletalCheckImpl::isValid()

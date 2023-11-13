@@ -141,6 +141,8 @@ namespace cura52
          */
         static bool computePointCellRange(vd_t::cell_type& cell, Point& start_source_point, Point& end_source_point, vd_t::edge_type*& starting_vd_edge, vd_t::edge_type*& ending_vd_edge, const std::vector<Point>& points, const std::vector<Segment>& segments);
 
+        static bool has_finite_edge_with_non_finite_vertex(const vd_t& voronoi_diagram);
+        static bool detect_missing_voronoi_vertex(const vd_t& voronoi_diagram, const std::vector<VoronoiUtils::Segment>& segments);
     };
 
 } // namespace cura52

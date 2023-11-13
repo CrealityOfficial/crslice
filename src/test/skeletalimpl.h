@@ -8,6 +8,7 @@
 #include "skeletal/VariableLineUtils.h"
 #include "tools/Cache.h"
 #include "utils/VoronoiUtils.h"
+#include "utils/VoronoiUtilsCgal.h"
 #include "utils/linearAlg2D.h"
 #include "tools/SVG.h"
 
@@ -21,6 +22,14 @@ namespace crslice
     typedef boost::polygon::voronoi_edge<double> edge_type;
     typedef boost::polygon::segment_traits<Segment>::point_type point_type;
     typedef boost::polygon::voronoi_diagram<double> voronoi_type;
+
+    using graph_t = SkeletalTrapezoidationGraph;
+    using edge_t = STHalfEdge;
+    using node_t = STHalfEdgeNode;
+    using Beading = BeadingStrategy::Beading;
+    using BeadingPropagation = SkeletalTrapezoidationJoint::BeadingPropagation;
+    using TransitionMiddle = SkeletalTrapezoidationEdge::TransitionMiddle;
+    using TransitionEnd = SkeletalTrapezoidationEdge::TransitionEnd;
 
     enum class EdgeDiscretizeType
     {
@@ -56,6 +65,7 @@ namespace crslice
             SkeletalDetail* detail = nullptr);
         void transferEdges(CrDiscretizeEdges& discretizeEdges);
         bool transferCell(int index, CrDiscretizeCell& discretizeCell);
+        void transferGraph();
 
         void generateBoostVoronoiTxt(const std::string& fileName);
         void generateTransferEdgeSVG(const std::string& fileName);
@@ -65,6 +75,7 @@ namespace crslice
         void classifyEdge();
 
         int edgeIndex(edge_type* edge);
+        void transfer();
     public:
         cura52::Polygons input;
 
@@ -102,5 +113,7 @@ namespace crslice
 
         std::vector<DiscretizeEdge> discretize_edges;
         std::vector<DiscretizeCell> discretize_cells;
+
+        graph_t HE;
 	};
 }

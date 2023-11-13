@@ -353,7 +353,11 @@ namespace cura52
             }
             Point v0 = VoronoiUtils::p(edge->vertex0());
             Point v1 = VoronoiUtils::p(edge->vertex1());
-            assert(!(v0 == to && v1 == from));
+            if (v0 == to && v1 == from)
+            {
+                LOGE("computeSegmentCellRange v0 == to v1 == from");
+            }
+
             if (v0 == to && !after_start) // Use the last edge which starts in source_segment.to
             {
                 starting_vd_edge = edge;
@@ -371,8 +375,10 @@ namespace cura52
             }
         } while (edge = edge->next(), edge != cell.incident_edge());
 
-        assert(starting_vd_edge && ending_vd_edge);
-        assert(starting_vd_edge != ending_vd_edge);
+        if (!(starting_vd_edge && ending_vd_edge) || (starting_vd_edge == ending_vd_edge))
+        {
+            LOGE("computeSegmentCellRange starting_vd_edge == ending_vd_edge");
+        }
 
         start_source_point = source_segment.to();
         end_source_point = source_segment.from();
@@ -434,5 +440,69 @@ namespace cura52
         assert(starting_vd_edge && ending_vd_edge);
         assert(starting_vd_edge != ending_vd_edge);
         return true;
+    }
+
+    bool VoronoiUtils::has_finite_edge_with_non_finite_vertex(const vd_t& voronoi_diagram)
+    {
+        for (const VoronoiUtils::vd_t::edge_type& edge : voronoi_diagram.edges()) {
+            if (edge.is_finite()) {
+                assert(edge.vertex0() != nullptr && edge.vertex1() != nullptr);
+                if (edge.vertex0() == nullptr || edge.vertex1() == nullptr || !VoronoiUtils::is_finite(*edge.vertex0()) ||
+                    !VoronoiUtils::is_finite(*edge.vertex1()))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    bool VoronoiUtils::detect_missing_voronoi_vertex(const vd_t& voronoi_diagram, const std::vector<VoronoiUtils::Segment>& segments) {
+        if (has_finite_edge_with_non_finite_vertex(voronoi_diagram))
+            return true;
+
+        for (VoronoiUtils::vd_t::cell_type cell : voronoi_diagram.cells()) {
+            if (!cell.incident_edge())
+                continue; // There is no spoon
+
+            if (cell.contains_segment()) {
+                const Segment& source_segment = VoronoiUtils::getSourceSegment(cell, std::vector<Point>(), segments);
+                const Point                            from = source_segment.from();
+                const Point                            to = source_segment.to();
+
+                // Find starting edge
+                // Find end edge
+                bool                           seen_possible_start = false;
+                bool                           after_start = false;
+                bool                           ending_edge_is_set_before_start = false;
+                VoronoiUtils::vd_t::edge_type* starting_vd_edge = nullptr;
+                VoronoiUtils::vd_t::edge_type* ending_vd_edge = nullptr;
+                VoronoiUtils::vd_t::edge_type* edge = cell.incident_edge();
+                do {
+                    if (edge->is_infinite() || edge->vertex0() == nullptr || edge->vertex1() == nullptr || !VoronoiUtils::is_finite(*edge->vertex0()) || !VoronoiUtils::is_finite(*edge->vertex1()))
+                        continue;
+
+                    Point v0 = VoronoiUtils::p(edge->vertex0());
+                    Point v1 = VoronoiUtils::p(edge->vertex1());
+
+                    //assert(!(v0 == to && v1 == from));
+                    if (v0 == to && !after_start) { // Use the last edge which starts in source_segment.to
+                        starting_vd_edge = edge;
+                        seen_possible_start = true;
+                    }
+                    else if (seen_possible_start) {
+                        after_start = true;
+                    }
+
+                    if (v1 == from && (!ending_vd_edge || ending_edge_is_set_before_start)) {
+                        ending_edge_is_set_before_start = !after_start;
+                        ending_vd_edge = edge;
+                    }
+                } while (edge = edge->next(), edge != cell.incident_edge());
+
+                if (!starting_vd_edge || !ending_vd_edge || starting_vd_edge == ending_vd_edge)
+                    return true;
+            }
+        }
+
+        return false;
     }
 } // namespace cura52

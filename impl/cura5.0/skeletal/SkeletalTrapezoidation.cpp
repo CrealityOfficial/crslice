@@ -23,238 +23,6 @@
 
 namespace cura52
 {
-
-SkeletalTrapezoidation::node_t& SkeletalTrapezoidation::makeNode(vd_t::vertex_type& vd_node, Point p)
-{
-    auto he_node_it = vd_node_to_he_node.find(&vd_node);
-    if (he_node_it == vd_node_to_he_node.end())
-    {
-        graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p);
-        node_t& node = graph.nodes.front();
-        vd_node_to_he_node.emplace(&vd_node, &node);
-        return node;
-    }
-    else
-    {
-        return *he_node_it->second;
-    }
-}
-
-void SkeletalTrapezoidation::transferEdge(Point from, Point to, vd_t::edge_type& vd_edge, edge_t*& prev_edge, Point& start_source_point, Point& end_source_point, const std::vector<Point>& points, const std::vector<Segment>& segments)
-{
-    auto he_edge_it = vd_edge_to_he_edge.find(vd_edge.twin());
-    if (he_edge_it != vd_edge_to_he_edge.end())
-    { // Twin segment(s) have already been made
-        edge_t* source_twin = he_edge_it->second;
-        assert(source_twin);
-        auto end_node_it = vd_node_to_he_node.find(vd_edge.vertex1());
-        assert(end_node_it != vd_node_to_he_node.end());
-        node_t* end_node = end_node_it->second;
-        for (edge_t* twin = source_twin;; twin = twin->prev->twin->prev)
-        {
-            if (! twin)
-            {
-                LOGW("Encountered a voronoi edge without twin.");
-                continue; // Prevent reading unallocated memory.
-            }
-            assert(twin);
-            graph.edges.emplace_front(SkeletalTrapezoidationEdge());
-            edge_t* edge = &graph.edges.front();
-            edge->from = twin->to;
-            edge->to = twin->from;
-            edge->twin = twin;
-            twin->twin = edge;
-            edge->from->incident_edge = edge;
-
-            if (prev_edge)
-            {
-                edge->prev = prev_edge;
-                prev_edge->next = edge;
-            }
-
-            prev_edge = edge;
-
-            if (prev_edge->to == end_node)
-            {
-                return;
-            }
-
-            if (! twin->prev || ! twin->prev->twin || ! twin->prev->twin->prev)
-            {
-                LOGE("Discretized segment behaves oddly!");
-                return;
-            }
-
-            assert(twin->prev); // Forth rib
-            assert(twin->prev->twin); // Back rib
-            assert(twin->prev->twin->prev); // Prev segment along parabola
-
-            constexpr bool is_not_next_to_start_or_end = false; // Only ribs at the end of a cell should be skipped
-            graph.makeRib(prev_edge, start_source_point, end_source_point, is_not_next_to_start_or_end);
-        }
-        assert(prev_edge);
-    }
-    else
-    {
-        std::vector<Point> discretized = discretize(vd_edge, points, segments);
-        assert(discretized.size() >= 2);
-        if (discretized.size() < 2)
-        {
-            LOGW("Discretized Voronoi edge is degenerate.");
-        }
-
-        assert(! prev_edge || prev_edge->to);
-        if (prev_edge && ! prev_edge->to)
-        {
-            LOGW("Previous edge doesn't go anywhere.");
-        }
-        node_t* v0 = (prev_edge) ? prev_edge->to : &makeNode(*vd_edge.vertex0(), from); // TODO: investigate whether boost:voronoi can produce multiple verts and violates consistency
-        Point p0 = discretized.front();
-        for (size_t p1_idx = 1; p1_idx < discretized.size(); p1_idx++)
-        {
-            Point p1 = discretized[p1_idx];
-            node_t* v1;
-            if (p1_idx < discretized.size() - 1)
-            {
-                graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p1);
-                v1 = &graph.nodes.front();
-            }
-            else
-            {
-                v1 = &makeNode(*vd_edge.vertex1(), to);
-            }
-
-            graph.edges.emplace_front(SkeletalTrapezoidationEdge());
-            edge_t* edge = &graph.edges.front();
-            edge->from = v0;
-            edge->to = v1;
-            edge->from->incident_edge = edge;
-
-            if (prev_edge)
-            {
-                edge->prev = prev_edge;
-                prev_edge->next = edge;
-            }
-
-            prev_edge = edge;
-            p0 = p1;
-            v0 = v1;
-
-            if (p1_idx < discretized.size() - 1)
-            { // Rib for last segment gets introduced outside this function!
-                constexpr bool is_not_next_to_start_or_end = false; // Only ribs at the end of a cell should be skipped
-                graph.makeRib(prev_edge, start_source_point, end_source_point, is_not_next_to_start_or_end);
-            }
-        }
-        assert(prev_edge);
-        vd_edge_to_he_edge.emplace(&vd_edge, prev_edge);
-    }
-}
-
-std::vector<Point> SkeletalTrapezoidation::discretize(const vd_t::edge_type& vd_edge, const std::vector<Point>& points, const std::vector<Segment>& segments)
-{
-    /*Terminology in this function assumes that the edge moves horizontally from
-    left to right. This is not necessarily the case; the edge can go in any
-    direction, but it helps to picture it in a certain direction in your head.*/
-
-    const vd_t::cell_type* left_cell = vd_edge.cell();
-    const vd_t::cell_type* right_cell = vd_edge.twin()->cell();
-    Point start = VoronoiUtils::p(vd_edge.vertex0());
-    Point end = VoronoiUtils::p(vd_edge.vertex1());
-
-    bool point_left = left_cell->contains_point();
-    bool point_right = right_cell->contains_point();
-    if ((! point_left && ! point_right) || vd_edge.is_secondary()) // Source vert is directly connected to source segment
-    {
-        return std::vector<Point>({ start, end });
-    }
-    else if (point_left != point_right) // This is a parabolic edge between a point and a line.
-    {
-        Point p = VoronoiUtils::getSourcePoint(*(point_left ? left_cell : right_cell), points, segments);
-        const Segment& s = VoronoiUtils::getSourceSegment(*(point_left ? right_cell : left_cell), points, segments);
-        
-        return VoronoiUtils::discretizeParabola(p, s, start, end, discretization_step_size, transitioning_angle);
-    }
-    else // This is a straight edge between two points.
-    {
-        /*While the edge is straight, it is still discretized since the part
-        becomes narrower between the two points. As such it may need different
-        beadings along the way.*/
-        Point left_point = VoronoiUtils::getSourcePoint(*left_cell, points, segments);
-        Point right_point = VoronoiUtils::getSourcePoint(*right_cell, points, segments);
-        coord_t d = vSize(right_point - left_point);
-        Point middle = (left_point + right_point) / 2;
-        Point x_axis_dir = turn90CCW(right_point - left_point);
-        coord_t x_axis_length = vSize(x_axis_dir);
-
-        const auto projected_x = [x_axis_dir, x_axis_length, middle](Point from) // Project a point on the edge.
-        {
-            Point vec = from - middle;
-            coord_t x = dot(vec, x_axis_dir) / x_axis_length;
-            return x;
-        };
-
-        coord_t start_x = projected_x(start);
-        coord_t end_x = projected_x(end);
-
-        // Part of the edge will be bound to the markings on the endpoints of the edge. Calculate how far that is.
-        float bound = 0.5 / tan((M_PI - transitioning_angle) * 0.5);
-        coord_t marking_start_x = -d * bound;
-        coord_t marking_end_x = d * bound;
-        Point marking_start = middle + x_axis_dir * marking_start_x / x_axis_length;
-        Point marking_end = middle + x_axis_dir * marking_end_x / x_axis_length;
-        int direction = 1;
-
-        if (start_x > end_x) // Oops, the Voronoi edge is the other way around.
-        {
-            direction = -1;
-            std::swap(marking_start, marking_end);
-            std::swap(marking_start_x, marking_end_x);
-        }
-
-        // Start generating points along the edge.
-        Point a = start;
-        Point b = end;
-        std::vector<Point> ret;
-        ret.emplace_back(a);
-
-        // Introduce an extra edge at the borders of the markings?
-        bool add_marking_start = marking_start_x * direction > start_x * direction;
-        bool add_marking_end = marking_end_x * direction > start_x * direction;
-
-        // The edge's length may not be divisible by the step size, so calculate an integer step count and evenly distribute the vertices among those.
-        Point ab = b - a;
-        coord_t ab_size = vSize(ab);
-        coord_t step_count = (ab_size + discretization_step_size / 2) / discretization_step_size;
-        if (step_count % 2 == 1)
-        {
-            step_count++; // enforce a discretization point being added in the middle
-        }
-        for (coord_t step = 1; step < step_count; step++)
-        {
-            Point here = a + ab * step / step_count; // Now simply interpolate the coordinates to get the new vertices!
-            coord_t x_here = projected_x(here); // If we've surpassed the position of the extra markings, we may need to insert them first.
-            if (add_marking_start && marking_start_x * direction < x_here * direction)
-            {
-                ret.emplace_back(marking_start);
-                add_marking_start = false;
-            }
-            if (add_marking_end && marking_end_x * direction < x_here * direction)
-            {
-                ret.emplace_back(marking_end);
-                add_marking_end = false;
-            }
-            ret.emplace_back(here);
-        }
-        if (add_marking_end && marking_end_x * direction < end_x * direction)
-        {
-            ret.emplace_back(marking_end);
-        }
-        ret.emplace_back(b);
-        return ret;
-    }
-}
-
 SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys,
                                                const BeadingStrategy& beading_strategy,
                                                AngleRadians transitioning_angle,
@@ -272,77 +40,6 @@ SkeletalTrapezoidation::SkeletalTrapezoidation(const Polygons& polys,
     constructFromPolygons(polys);
 }
 
-static bool has_finite_edge_with_non_finite_vertex(const SkeletalTrapezoidation::vd_t &voronoi_diagram)
-{
-    for (const VoronoiUtils::vd_t::edge_type &edge : voronoi_diagram.edges()) {
-        if (edge.is_finite()) {
-            assert(edge.vertex0() != nullptr && edge.vertex1() != nullptr);
-            if (edge.vertex0() == nullptr || edge.vertex1() == nullptr || !VoronoiUtils::is_finite(*edge.vertex0()) ||
-                !VoronoiUtils::is_finite(*edge.vertex1()))
-                return true;
-        }
-    }
-    return false;
-}
-
-static bool detect_missing_voronoi_vertex(const SkeletalTrapezoidation::vd_t & voronoi_diagram, const std::vector<VoronoiUtils::Segment>& segments) {
-    if (has_finite_edge_with_non_finite_vertex(voronoi_diagram))
-        return true;
-
-    for (VoronoiUtils::vd_t::cell_type cell : voronoi_diagram.cells()) {
-        if (!cell.incident_edge())
-            continue; // There is no spoon
-
-        if (cell.contains_segment()) {
-            const SkeletalTrapezoidation::Segment &source_segment = VoronoiUtils::getSourceSegment(cell, std::vector<Point>(), segments);
-            const Point                            from           = source_segment.from();
-            const Point                            to             = source_segment.to();
-
-            // Find starting edge
-            // Find end edge
-            bool                           seen_possible_start             = false;
-            bool                           after_start                     = false;
-            bool                           ending_edge_is_set_before_start = false;
-            VoronoiUtils::vd_t::edge_type *starting_vd_edge                = nullptr;
-            VoronoiUtils::vd_t::edge_type *ending_vd_edge                  = nullptr;
-            VoronoiUtils::vd_t::edge_type *edge                            = cell.incident_edge();
-            do {
-                if (edge->is_infinite() || edge->vertex0() == nullptr || edge->vertex1() == nullptr || !VoronoiUtils::is_finite(*edge->vertex0()) || !VoronoiUtils::is_finite(*edge->vertex1()))
-                    continue;
-
-                Point v0 = VoronoiUtils::p(edge->vertex0());
-                Point v1 = VoronoiUtils::p(edge->vertex1());
-
-                //assert(!(v0 == to && v1 == from));
-                if (v0 == to && !after_start) { // Use the last edge which starts in source_segment.to
-                    starting_vd_edge    = edge;
-                    seen_possible_start = true;
-                } else if (seen_possible_start) {
-                    after_start = true;
-                }
-
-                if (v1 == from && (!ending_vd_edge || ending_edge_is_set_before_start)) {
-                    ending_edge_is_set_before_start = !after_start;
-                    ending_vd_edge                  = edge;
-                }
-            } while (edge = edge->next(), edge != cell.incident_edge());
-
-            if (!starting_vd_edge || !ending_vd_edge || starting_vd_edge == ending_vd_edge)
-                return true;
-        }
-    }
-
-    return false;
-}
-
-static bool has_missing_twin_edge(const SkeletalTrapezoidationGraph &graph)
-{
-    for (const auto &edge : graph.edges)
-        if (edge.twin == nullptr)
-            return true;
-    return false;
-}
-
 struct PointHash {
     size_t operator()(const Point& pt) const {
         return coord_t((89 * 31 + int64_t(pt.X)) * 31 + pt.Y);
@@ -357,10 +54,10 @@ void rotate(ClipperLib::Path & points, double angle)
 }
 
 inline static std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
-    SkeletalTrapezoidation::vd_t &voronoi_diagram,
+    vd_t &voronoi_diagram,
     const Polygons                               &polys,
     Polygons                                     &polys_rotated,
-    std::vector<SkeletalTrapezoidation::Segment> &segments,
+    std::vector<Segment> &segments,
     const double                                  fix_angle)
 {
     std::unordered_map<Point, Point, PointHash> vertex_mapping;
@@ -399,11 +96,16 @@ inline static void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalT
     }
 }
 
+static bool has_missing_twin_edge(const SkeletalTrapezoidationGraph& graph)
+{
+    for (const auto& edge : graph.edges)
+        if (edge.twin == nullptr)
+            return true;
+    return false;
+}
+
 void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
 {
-    vd_edge_to_he_edge.clear();
-    vd_node_to_he_node.clear();
-
     std::vector<Point> points; // Remains empty
 
     std::vector<Segment> segments;
@@ -423,7 +125,7 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
     // the Voronoi diagram is not planar.
     // When any Voronoi vertex is missing, or the Voronoi diagram is not
     // planar, rotate the input polygon and try again.
-    const bool   has_missing_voronoi_vertex = detect_missing_voronoi_vertex(vonoroi_diagram, segments);
+    const bool   has_missing_voronoi_vertex = VoronoiUtils::detect_missing_voronoi_vertex(vonoroi_diagram, segments);
     // Detection of non-planar Voronoi diagram detects at least GH issues #8474, #8514 and #8446.
     const bool   is_voronoi_diagram_planar = VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(vonoroi_diagram);
     double fix_angle = M_PI / 6;
@@ -437,8 +139,15 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
 
     bool degenerated_voronoi_diagram = has_missing_voronoi_vertex || !is_voronoi_diagram_planar;
 
+    /*!
+     * mapping each voronoi VD edge to the corresponding halfedge HE edge
+     * In case the result segment is discretized, we map the VD edge to the *last* HE edge
+     */
+    SkeletalEdgeMap vd_edge_to_he_edge;
+    SkeletalNodeMap vd_node_to_he_node;
+
 process_voronoi_diagram:
-    assert(this->graph.edges.empty() && this->graph.nodes.empty() && this->vd_edge_to_he_edge.empty() && this->vd_node_to_he_node.empty());
+    assert(this->graph.edges.empty() && this->graph.nodes.empty() && vd_edge_to_he_edge.empty() && vd_node_to_he_node.empty());
     for (vd_t::cell_type cell : vonoroi_diagram.cells())
     {
         if (!cell.incident_edge())
@@ -472,7 +181,8 @@ process_voronoi_diagram:
 
         // Copy start to end edge to graph
         edge_t* prev_edge = nullptr;
-        transferEdge(start_source_point, VoronoiUtils::p(starting_vonoroi_edge->vertex1()), *starting_vonoroi_edge, prev_edge, start_source_point, end_source_point, points, segments);
+        transferEdge(start_source_point, VoronoiUtils::p(starting_vonoroi_edge->vertex1()), *starting_vonoroi_edge, prev_edge, start_source_point, end_source_point, points, segments,
+            graph, vd_edge_to_he_edge, vd_node_to_he_node, transitioning_angle, discretization_step_size);
         node_t* starting_node = vd_node_to_he_node[starting_vonoroi_edge->vertex0()];
         starting_node->data.distance_to_boundary = 0;
 
@@ -483,12 +193,14 @@ process_voronoi_diagram:
             assert(vd_edge->is_finite());
             Point v1 = VoronoiUtils::p(vd_edge->vertex0());
             Point v2 = VoronoiUtils::p(vd_edge->vertex1());
-            transferEdge(v1, v2, *vd_edge, prev_edge, start_source_point, end_source_point, points, segments);
+            transferEdge(v1, v2, *vd_edge, prev_edge, start_source_point, end_source_point, points, segments,
+                graph, vd_edge_to_he_edge, vd_node_to_he_node, transitioning_angle, discretization_step_size);
 
             graph.makeRib(prev_edge, start_source_point, end_source_point, vd_edge->next() == ending_vonoroi_edge);
         }
 
-        transferEdge(VoronoiUtils::p(ending_vonoroi_edge->vertex0()), end_source_point, *ending_vonoroi_edge, prev_edge, start_source_point, end_source_point, points, segments);
+        transferEdge(VoronoiUtils::p(ending_vonoroi_edge->vertex0()), end_source_point, *ending_vonoroi_edge, prev_edge, start_source_point, end_source_point, points, segments,
+            graph, vd_edge_to_he_edge, vd_node_to_he_node, transitioning_angle, discretization_step_size);
         prev_edge->to->data.distance_to_boundary = 0;
     }
 
@@ -501,14 +213,14 @@ process_voronoi_diagram:
         degenerated_voronoi_diagram = true;
         vertex_mapping = try_to_fix_degenerated_voronoi_diagram_by_rotation(vonoroi_diagram, polys, polys_copy, segments, fix_angle);
 
-        assert(!detect_missing_voronoi_vertex(vonoroi_diagram, segments));
-        if (detect_missing_voronoi_vertex(vonoroi_diagram, segments))
+        assert(!VoronoiUtils::detect_missing_voronoi_vertex(vonoroi_diagram, segments));
+        if (VoronoiUtils::detect_missing_voronoi_vertex(vonoroi_diagram, segments))
             LOGW("Detected missing Voronoi vertex after the rotation of input.");
 
         this->graph.edges.clear();
         this->graph.nodes.clear();
-        this->vd_edge_to_he_edge.clear();
-        this->vd_node_to_he_node.clear();
+        vd_edge_to_he_edge.clear();
+        vd_node_to_he_node.clear();
 
         goto process_voronoi_diagram;
     }
@@ -516,7 +228,7 @@ process_voronoi_diagram:
     if (degenerated_voronoi_diagram)
         rotate_back_skeletal_trapezoidation_graph_after_fix(this->graph, fix_angle, vertex_mapping);
 
-    separatePointyQuadEndNodes();
+    separatePointyQuadEndNodes(this->graph);
 
     graph.collapseSmallEdges();
 
@@ -527,31 +239,6 @@ process_voronoi_diagram:
         if (! edge.prev)
         {
             edge.from->incident_edge = &edge;
-        }
-    }
-}
-
-void SkeletalTrapezoidation::separatePointyQuadEndNodes()
-{
-    std::unordered_set<node_t*> visited_nodes;
-    for (edge_t& edge : graph.edges)
-    {
-        if (edge.prev)
-        {
-            continue;
-        }
-        edge_t* quad_start = &edge;
-        if (visited_nodes.find(quad_start->from) == visited_nodes.end())
-        {
-            visited_nodes.emplace(quad_start->from);
-        }
-        else
-        { // Needs to be duplicated
-            graph.nodes.emplace_back(*quad_start->from);
-            node_t* new_node = &graph.nodes.back();
-            new_node->incident_edge = quad_start;
-            quad_start->from = new_node;
-            quad_start->twin->to = new_node;
         }
     }
 }
@@ -1542,7 +1229,7 @@ void SkeletalTrapezoidation::generateSegments()
     generateLocalMaximaSingleBeads();
 }
 
-SkeletalTrapezoidation::edge_t* SkeletalTrapezoidation::getQuadMaxRedgeTo(edge_t* quad_start_edge)
+edge_t* SkeletalTrapezoidation::getQuadMaxRedgeTo(edge_t* quad_start_edge)
 {
     assert(quad_start_edge->prev == nullptr);
     assert(quad_start_edge->from->data.distance_to_boundary == 0);
@@ -1665,7 +1352,7 @@ void SkeletalTrapezoidation::propagateBeadingsDownward(edge_t* edge_to_peak, ptr
 }
 
 
-SkeletalTrapezoidation::Beading SkeletalTrapezoidation::interpolate(const Beading& left, Ratio ratio_left_to_whole, const Beading& right, coord_t switching_radius) const
+Beading SkeletalTrapezoidation::interpolate(const Beading& left, Ratio ratio_left_to_whole, const Beading& right, coord_t switching_radius) const
 {
     assert(ratio_left_to_whole >= 0.0 && ratio_left_to_whole <= 1.0);
     Beading ret = interpolate(left, ratio_left_to_whole, right);
@@ -1708,7 +1395,7 @@ SkeletalTrapezoidation::Beading SkeletalTrapezoidation::interpolate(const Beadin
 }
 
 
-SkeletalTrapezoidation::Beading SkeletalTrapezoidation::interpolate(const Beading& left, Ratio ratio_left_to_whole, const Beading& right) const
+Beading SkeletalTrapezoidation::interpolate(const Beading& left, Ratio ratio_left_to_whole, const Beading& right) const
 {
     assert(ratio_left_to_whole >= 0.0 && ratio_left_to_whole <= 1.0);
     float ratio_right_to_whole = 1.0 - ratio_left_to_whole;
@@ -2089,4 +1776,267 @@ void SkeletalTrapezoidation::generateLocalMaximaSingleBeads()
 //  TOOLPATH GENERATION
 // =====================
 //
+    void separatePointyQuadEndNodes(graph_t& graph)
+    {
+        std::unordered_set<node_t*> visited_nodes;
+        for (edge_t& edge : graph.edges)
+        {
+            if (edge.prev)
+            {
+                continue;
+            }
+            edge_t* quad_start = &edge;
+            if (visited_nodes.find(quad_start->from) == visited_nodes.end())
+            {
+                visited_nodes.emplace(quad_start->from);
+            }
+            else
+            { // Needs to be duplicated
+                graph.nodes.emplace_back(*quad_start->from);
+                node_t* new_node = &graph.nodes.back();
+                new_node->incident_edge = quad_start;
+                quad_start->from = new_node;
+                quad_start->twin->to = new_node;
+            }
+        }
+    }
+
+    void transferEdge(Point from, Point to, vd_t::edge_type& vd_edge, edge_t*& prev_edge, Point& start_source_point, Point& end_source_point,
+        const std::vector<Point>& points, const std::vector<Segment>& segments,
+        graph_t& graph, SkeletalEdgeMap& vd_edge_to_he_edge,
+        SkeletalNodeMap& vd_node_to_he_node, AngleRadians transitioning_angle,
+        coord_t discretization_step_size)
+    {
+        auto he_edge_it = vd_edge_to_he_edge.find(vd_edge.twin());
+        if (he_edge_it != vd_edge_to_he_edge.end())
+        { // Twin segment(s) have already been made
+            edge_t* source_twin = he_edge_it->second;
+            assert(source_twin);
+            auto end_node_it = vd_node_to_he_node.find(vd_edge.vertex1());
+            assert(end_node_it != vd_node_to_he_node.end());
+            node_t* end_node = end_node_it->second;
+            for (edge_t* twin = source_twin;; twin = twin->prev->twin->prev)
+            {
+                if (!twin)
+                {
+                    LOGW("Encountered a voronoi edge without twin.");
+                    continue; // Prevent reading unallocated memory.
+                }
+                assert(twin);
+                graph.edges.emplace_front(SkeletalTrapezoidationEdge());
+                edge_t* edge = &graph.edges.front();
+                edge->from = twin->to;
+                edge->to = twin->from;
+                edge->twin = twin;
+                twin->twin = edge;
+                edge->from->incident_edge = edge;
+    
+                if (prev_edge)
+                {
+                    edge->prev = prev_edge;
+                    prev_edge->next = edge;
+                }
+    
+                prev_edge = edge;
+    
+                if (prev_edge->to == end_node)
+                {
+                    return;
+                }
+    
+                if (!twin->prev || !twin->prev->twin || !twin->prev->twin->prev)
+                {
+                    LOGE("Discretized segment behaves oddly!");
+                    return;
+                }
+    
+                assert(twin->prev); // Forth rib
+                assert(twin->prev->twin); // Back rib
+                assert(twin->prev->twin->prev); // Prev segment along parabola
+    
+                constexpr bool is_not_next_to_start_or_end = false; // Only ribs at the end of a cell should be skipped
+                graph.makeRib(prev_edge, start_source_point, end_source_point, is_not_next_to_start_or_end);
+            }
+            assert(prev_edge);
+        }
+        else
+        {
+            std::vector<Point> discretized = discretize(vd_edge, points, segments, transitioning_angle, discretization_step_size);
+            assert(discretized.size() >= 2);
+            if (discretized.size() < 2)
+            {
+                LOGW("Discretized Voronoi edge is degenerate.");
+            }
+    
+            assert(!prev_edge || prev_edge->to);
+            if (prev_edge && !prev_edge->to)
+            {
+                LOGW("Previous edge doesn't go anywhere.");
+            }
+            node_t* v0 = (prev_edge) ? prev_edge->to : &makeNode(*vd_edge.vertex0(), from, graph, vd_edge_to_he_edge, vd_node_to_he_node); // TODO: investigate whether boost:voronoi can produce multiple verts and violates consistency
+            Point p0 = discretized.front();
+            for (size_t p1_idx = 1; p1_idx < discretized.size(); p1_idx++)
+            {
+                Point p1 = discretized[p1_idx];
+                node_t* v1;
+                if (p1_idx < discretized.size() - 1)
+                {
+                    graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p1);
+                    v1 = &graph.nodes.front();
+                }
+                else
+                {
+                    v1 = &makeNode(*vd_edge.vertex1(), to, graph, vd_edge_to_he_edge, vd_node_to_he_node);
+                }
+    
+                graph.edges.emplace_front(SkeletalTrapezoidationEdge());
+                edge_t* edge = &graph.edges.front();
+                edge->from = v0;
+                edge->to = v1;
+                edge->from->incident_edge = edge;
+    
+                if (prev_edge)
+                {
+                    edge->prev = prev_edge;
+                    prev_edge->next = edge;
+                }
+    
+                prev_edge = edge;
+                p0 = p1;
+                v0 = v1;
+    
+                if (p1_idx < discretized.size() - 1)
+                { // Rib for last segment gets introduced outside this function!
+                    constexpr bool is_not_next_to_start_or_end = false; // Only ribs at the end of a cell should be skipped
+                    graph.makeRib(prev_edge, start_source_point, end_source_point, is_not_next_to_start_or_end);
+                }
+            }
+            assert(prev_edge);
+            vd_edge_to_he_edge.emplace(&vd_edge, prev_edge);
+        }
+    }
+
+    node_t& makeNode(vd_t::vertex_type& vd_node, Point p, graph_t& graph, SkeletalEdgeMap& vd_edge_to_he_edge,
+        SkeletalNodeMap& vd_node_to_he_node)
+    {
+        auto he_node_it = vd_node_to_he_node.find(&vd_node);
+        if (he_node_it == vd_node_to_he_node.end())
+        {
+            graph.nodes.emplace_front(SkeletalTrapezoidationJoint(), p);
+        node_t& node = graph.nodes.front();
+            vd_node_to_he_node.emplace(&vd_node, &node);
+            return node;
+        }
+        else
+        {
+            return *he_node_it->second;
+        }
+    }
+
+    std::vector<Point> discretize(const vd_t::edge_type& vd_edge,
+        const std::vector<Point>& points, const std::vector<Segment>& segments,
+        AngleRadians transitioning_angle,
+        coord_t discretization_step_size)
+    {
+        /*Terminology in this function assumes that the edge moves horizontally from
+        left to right. This is not necessarily the case; the edge can go in any
+        direction, but it helps to picture it in a certain direction in your head.*/
+    
+        const vd_t::cell_type* left_cell = vd_edge.cell();
+        const vd_t::cell_type* right_cell = vd_edge.twin()->cell();
+        Point start = VoronoiUtils::p(vd_edge.vertex0());
+        Point end = VoronoiUtils::p(vd_edge.vertex1());
+    
+        bool point_left = left_cell->contains_point();
+        bool point_right = right_cell->contains_point();
+        if ((!point_left && !point_right) || vd_edge.is_secondary()) // Source vert is directly connected to source segment
+        {
+            return std::vector<Point>({ start, end });
+        }
+        else if (point_left != point_right) // This is a parabolic edge between a point and a line.
+        {
+            Point p = VoronoiUtils::getSourcePoint(*(point_left ? left_cell : right_cell), points, segments);
+            const Segment& s = VoronoiUtils::getSourceSegment(*(point_left ? right_cell : left_cell), points, segments);
+    
+            return VoronoiUtils::discretizeParabola(p, s, start, end, discretization_step_size, transitioning_angle);
+        }
+        else // This is a straight edge between two points.
+        {
+            /*While the edge is straight, it is still discretized since the part
+            becomes narrower between the two points. As such it may need different
+            beadings along the way.*/
+            Point left_point = VoronoiUtils::getSourcePoint(*left_cell, points, segments);
+            Point right_point = VoronoiUtils::getSourcePoint(*right_cell, points, segments);
+            coord_t d = vSize(right_point - left_point);
+            Point middle = (left_point + right_point) / 2;
+            Point x_axis_dir = turn90CCW(right_point - left_point);
+            coord_t x_axis_length = vSize(x_axis_dir);
+    
+            const auto projected_x = [x_axis_dir, x_axis_length, middle](Point from) // Project a point on the edge.
+            {
+                Point vec = from - middle;
+                coord_t x = dot(vec, x_axis_dir) / x_axis_length;
+                return x;
+            };
+    
+            coord_t start_x = projected_x(start);
+            coord_t end_x = projected_x(end);
+    
+            // Part of the edge will be bound to the markings on the endpoints of the edge. Calculate how far that is.
+            float bound = 0.5 / tan((M_PI - transitioning_angle) * 0.5);
+            coord_t marking_start_x = -d * bound;
+            coord_t marking_end_x = d * bound;
+            Point marking_start = middle + x_axis_dir * marking_start_x / x_axis_length;
+            Point marking_end = middle + x_axis_dir * marking_end_x / x_axis_length;
+            int direction = 1;
+    
+            if (start_x > end_x) // Oops, the Voronoi edge is the other way around.
+            {
+                direction = -1;
+                std::swap(marking_start, marking_end);
+                std::swap(marking_start_x, marking_end_x);
+            }
+    
+            // Start generating points along the edge.
+            Point a = start;
+            Point b = end;
+            std::vector<Point> ret;
+            ret.emplace_back(a);
+    
+            // Introduce an extra edge at the borders of the markings?
+            bool add_marking_start = marking_start_x * direction > start_x * direction;
+            bool add_marking_end = marking_end_x * direction > start_x * direction;
+    
+            // The edge's length may not be divisible by the step size, so calculate an integer step count and evenly distribute the vertices among those.
+            Point ab = b - a;
+            coord_t ab_size = vSize(ab);
+            coord_t step_count = (ab_size + discretization_step_size / 2) / discretization_step_size;
+            if (step_count % 2 == 1)
+            {
+                step_count++; // enforce a discretization point being added in the middle
+            }
+            for (coord_t step = 1; step < step_count; step++)
+            {
+                Point here = a + ab * step / step_count; // Now simply interpolate the coordinates to get the new vertices!
+                coord_t x_here = projected_x(here); // If we've surpassed the position of the extra markings, we may need to insert them first.
+                if (add_marking_start && marking_start_x * direction < x_here * direction)
+                {
+                    ret.emplace_back(marking_start);
+                    add_marking_start = false;
+                }
+                if (add_marking_end && marking_end_x * direction < x_here * direction)
+                {
+                    ret.emplace_back(marking_end);
+                    add_marking_end = false;
+                }
+                ret.emplace_back(here);
+            }
+            if (add_marking_end && marking_end_x * direction < end_x * direction)
+            {
+                ret.emplace_back(marking_end);
+            }
+            ret.emplace_back(b);
+            return ret;
+        }
+    }
 } // namespace cura52

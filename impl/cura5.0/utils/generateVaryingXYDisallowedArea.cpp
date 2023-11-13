@@ -169,7 +169,7 @@ namespace cura52
 
             // construct a voronoi diagram. The slope is calculated based
             // on the edge length from the boundary to the center edge(s)
-            std::vector<SkeletalTrapezoidation::Segment> segments;
+            std::vector<Segment> segments;
 
             int poly_idx = 0;
             for (auto poly : layer_delta)
