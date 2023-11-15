@@ -335,7 +335,8 @@ namespace cura52
             end_source_point / 1000);  //scale
         coord_t dist = vSize(prev_edge->to->p - p);
         prev_edge->to->data.distance_to_boundary = dist;
-        assert(dist >= 0);
+        if (dist < 0)
+            LOGE("makeRib invalid dist");
 
         nodes.emplace_front(SkeletalTrapezoidationJoint(), p);
         node_t* node = &nodes.front();

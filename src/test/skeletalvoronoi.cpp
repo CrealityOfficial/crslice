@@ -37,6 +37,10 @@ namespace crslice
 
             if(no_plannar)
                 noplanar_vertexes.push_back(&vertex);
+            else {
+                //if (vertex.x() < -10000000000.0 || vertex.y() < -10000000000.0)
+                //    noplanar_vertexes.push_back(&vertex);
+            }
         }
 
         //check
@@ -205,6 +209,9 @@ namespace crslice
                 invalid_cells.push_back(&cell);
                 continue;
             }
+
+            if (discretize_cells.size() == 1568)
+                int i = 0;
 
             DC.ending_vonoroi_edge = ending_vonoroi_edge;
             DC.end_source_point = end_source_point;

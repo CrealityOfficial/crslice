@@ -48,6 +48,11 @@ namespace crslice
 		return ClipperLib::IntPoint(FDM_F2I(point.x), FDM_F2I(point.y));
 	}
 
+	ClipperLib::IntPoint convertScale(const trimesh::vec3& point)
+	{
+		return ClipperLib::IntPoint(MM2_2INT(point.x), MM2_2INT(point.y));
+	}
+
 	void convertRaw(const ClipperLib::Paths& paths, std::vector<std::vector<trimesh::vec3>>& polygons, float z)
 	{
 		int size = (int)paths.size();
@@ -77,7 +82,7 @@ namespace crslice
 		convertRaw(polys.paths, lines, z);
 	}
 
-	void convertRaw(const std::vector<std::vector<trimesh::vec3>>& lines, ClipperLib::Paths& paths)
+	void convertRaw(const std::vector<std::vector<trimesh::vec3>>& lines, ClipperLib::Paths& paths, bool scaleNm)
 	{
 		int size = (int)lines.size();
 		if (size == 0)
@@ -85,10 +90,10 @@ namespace crslice
 
 		paths.resize(size);
 		for (int i = 0; i < size; ++i)
-			convertRaw(lines.at(i), paths.at(i));
+			convertRaw(lines.at(i), paths.at(i), scaleNm);
 	}
 
-	void convertRaw(const std::vector<trimesh::vec3>& lines, ClipperLib::Path& path)
+	void convertRaw(const std::vector<trimesh::vec3>& lines, ClipperLib::Path& path, bool scaleNm)
 	{
 		size_t size = lines.size();
 		if (size <= 1)
@@ -97,12 +102,12 @@ namespace crslice
 		path.resize(size);
 		for (size_t i = 0; i < size; ++i)
 		{
-			path.at(i) = convert(lines.at(i));
+			path.at(i) = scaleNm ? convertScale(lines.at(i)) : convert(lines.at(i));
 		}
 	}
 
-	void convertPolygonRaw(const std::vector<std::vector<trimesh::vec3>>& lines, cura52::Polygons& polys)
+	void convertPolygonRaw(const std::vector<std::vector<trimesh::vec3>>& lines, cura52::Polygons& polys, bool scaleNm)
 	{
-		convertRaw(lines, polys.paths);
+		convertRaw(lines, polys.paths, scaleNm);
 	}
 }

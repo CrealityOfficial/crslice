@@ -246,12 +246,14 @@ namespace cura52
                    a       c
          */
 
-
+        const coord_t mEx = 100000000000;
+        const Point bq = query_point - b;
+        if (abs(bq.X) > mEx || abs(bq.Y) > mEx)
+            return false;  
 
         constexpr coord_t normal_length = 10000; //Create a normal vector of reasonable length in order to reduce rounding error.
         const Point ba = normal(a - b, normal_length);
         const Point bc = normal(c - b, normal_length);
-        const Point bq = query_point - b;
         const Point perpendicular = turn90CCW(bq); //The query projects to this perpendicular to coordinate 0.
         const coord_t project_a_perpendicular = dot(ba, perpendicular); //Project vertex A on the perpendicular line.
         const coord_t project_c_perpendicular = dot(bc, perpendicular); //Project vertex C on the perpendicular line.

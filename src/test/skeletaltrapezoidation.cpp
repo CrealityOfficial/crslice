@@ -96,6 +96,9 @@ namespace crslice
     {
         for (const DiscretizeCell& cell : discretize_cells)
         {
+            int cellIndex = &cell - &discretize_cells.at(0);
+            (void)cellIndex;
+
             Point start_source_point = cell.start_source_point;
             Point end_source_point = cell.end_source_point;
             vd_t::edge_type* starting_vonoroi_edge = cell.starting_vonoroi_edge;
