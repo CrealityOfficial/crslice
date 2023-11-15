@@ -30,12 +30,12 @@ namespace cura52
                 }
             }
         }
-        if (Large_arc_exist)
-        {//大圆弧拟合需缩小公差
-            _fitting_result.clear();
-            tolerance = 1;
-            Slic3r::ArcFitter::do_arc_fitting(_points, _fitting_result, tolerance);
-        }
+        //if (Large_arc_exist)
+        //{//大圆弧拟合需缩小公差
+        //    _fitting_result.clear();
+        //    tolerance = 1;
+        //    Slic3r::ArcFitter::do_arc_fitting(_points, _fitting_result, tolerance);
+        //}
 
         result.resize(_fitting_result.size());
         for (size_t i = 0; i < _fitting_result.size(); i++)
