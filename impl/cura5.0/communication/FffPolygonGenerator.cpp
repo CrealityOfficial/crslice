@@ -554,14 +554,6 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     } guarded_progress = { inset_skin_progress_estimate, application };
 
 
-
-#if _DEBUG
-    for (size_t layer_number = 0; layer_number < mesh_layer_count; layer_number++)
-    {
-        processWalls(mesh, layer_number);
-    }
-#else
-
 	// walls
 	CALLTICK("processWalls 0");
 	cura52::parallel_for<size_t>(application, 0,
@@ -573,7 +565,6 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
 			guarded_progress++;
 		});
 	CALLTICK("processWalls 1");
-#endif
 
     ProgressEstimatorLinear* skin_estimator = new ProgressEstimatorLinear(mesh_layer_count);
     mesh_inset_skin_progress_estimator->nextStage(skin_estimator);

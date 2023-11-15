@@ -329,6 +329,8 @@ namespace cura52
                 {
                     initUseCache(true, path);
                     m_cache.reset(new Cache(path, this));
+
+                    startThreadPool(2);
                 }
             }
         }
