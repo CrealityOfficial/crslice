@@ -246,7 +246,7 @@ namespace cura52
                    a       c
          */
 
-        const coord_t mEx = 100000000000;
+        const coord_t mEx = 10000000000;  // printer size 10m = 10000 mm * 10*6
         const Point bq = query_point - b;
         if (abs(bq.X) > mEx || abs(bq.Y) > mEx)
             return false;  
