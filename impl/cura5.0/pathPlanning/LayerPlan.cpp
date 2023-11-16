@@ -163,8 +163,37 @@ void LayerPlan::forceNewPathStart()
         paths[paths.size() - 1].done = true;
 }
 
+
 void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 {
+	int index = extruder_plans.back().paths.size() - 2;
+	for (int icount = extruder_plans.back().paths.size() - 2; icount >= 0; icount--)
+	{
+		if (extruder_plans.back().paths[icount].config->type == PrintFeatureType::MoveCombing)
+		{
+			for (Point& apoint : extruder_plans.back().paths.back().points)
+			{
+				extruder_plans.back().paths[icount].points.push_back(apoint);
+			}
+			extruder_plans.back().paths.back().points = extruder_plans.back().paths[icount].points;
+			extruder_plans.back().paths.erase(extruder_plans.back().paths.begin() + icount);
+			path = &(extruder_plans.back().paths.back());
+		}
+		else
+		{
+			index = icount;
+			break;
+		}
+	}
+	GCodePath last_path = extruder_plans.back().paths[index];
+	last_path.points.clear();
+	coord_t distance = wall_0_wipe_dist;
+	//if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
+	//{
+	//	return;
+	//}
+
+
 	std::vector<Point> aPoints;
 	bool isEmpty = extruder_plans.back().paths.back().points.empty();
 	if (!isEmpty)
@@ -173,14 +202,9 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 		extruder_plans.back().paths.back().points.clear();
 	}
 
-	int index = extruder_plans.back().paths.size() - 2;
-	GCodePath last_path = extruder_plans.back().paths[index];
-	last_path.points.clear();
-	coord_t distance = wall_0_wipe_dist;
-
 	if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
-	{	
-		distance = wall_0_wipe_dist * 2;
+	{
+		distance = wall_0_wipe_dist;
 		bool bneedRevers = true;
 		for (int n = index; n >= 0; n--)
 		{
@@ -194,11 +218,11 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 					last_path.points.push_back(apoint);
 				}
 			}
-			//else if (_path.config->type == PrintFeatureType::MoveCombing && !_path.points.empty())
-			//{
-			//	last_path.points.push_back(_path.points[_path.points.size() - 1]);
-			//	break;
-			//}
+			else if ((last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin) && _path.config->type == PrintFeatureType::MoveCombing && !_path.points.empty())
+			{
+				last_path.points.push_back(_path.points[_path.points.size() - 1]);
+				break;
+			}
 			else
 			{
 				break;
@@ -208,7 +232,7 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 		{
 			ClipperLib::ReversePath(last_path.points);
 		}
-	} 
+	}
 	else
 	{
 		bool bneedRevers = false;
@@ -242,11 +266,12 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 
 	Point p0(*last_planned_position);
 	int distance_traversed = 0;
+	std::vector<Point> backPoints;
 	for (unsigned int point_idx = 0;; point_idx++)
 	{
-		if ((point_idx > last_path.points.size() && distance_traversed == 0) || point_idx > last_path.points.size() * 10) // Wall has a total circumference of 0. This loop would never end.
+		if ((point_idx > last_path.points.size() && distance_traversed == 0) || point_idx > last_path.points.size() * 5) // Wall has a total circumference of 0. This loop would never end.
 		{
-			path->retract_move_icount = 0;
+			//path->retract_move_icount = 0;
 			break; // No wipe if the wall has no circumference.
 		}
 		Point p1 = last_path.points[(point_idx) % last_path.points.size()];
@@ -257,19 +282,31 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 			Point vector = p1 - p0;
 			Point half_way = p0 + normal(vector, distance - distance_traversed);
 			addTravel_simple(half_way, path);
+			backPoints.push_back(half_way);
 			break;
 		}
 		else
 		{
-			//if (p0p1_dist * 10 > distance)
+			if (p0p1_dist  > 0)
 			{
 				path->retract_move_icount++;
 				addTravel_simple(p1, path);
+				backPoints.push_back(p1);
 			}
 			distance_traversed += p0p1_dist;
 		}
 		p0 = p1;
 	}
+	if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
+	{
+		std::reverse(backPoints.begin(), backPoints.end());
+		for (Point& aPoint: backPoints)
+		{
+			path->retract_move_icount++;
+			addTravel_simple(aPoint, path);
+		}
+	}
+
 	if (!isEmpty)
 	{
 		for (Point apoint : aPoints)
@@ -279,6 +316,7 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 
 	}
 }
+
 
 LayerPlan::LayerPlan(const SliceDataStorage& storage,
                      LayerIndex layer_nr,
@@ -693,6 +731,7 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
 	if (path->retract && wall_0_wipe_dist > 0 && !is_first_travel_of_layer && extruder_plans.back().paths.size() > 1)
 	{ 
 		wipeBeforRetract(wall_0_wipe_dist, path);
+		path = getLatestPathWithConfig(travel_config, SpaceFillType::None);
 	}
 
 	// must start new travel path as retraction can be enabled or not depending on path length, etc.
@@ -2508,8 +2547,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 			if (path.retract_move_icount >0)
 			{
 				gcode.writeLine(";;retract move;;");
-				float num = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent");
-				if (extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent").value > 0)
+				double wipe_amount_percent = 0;// extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent").value;
+				if (wipe_amount_percent > 0)
 				{
 					RetractionConfig retraction_config_1 = retraction_config;
 					retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
@@ -2518,7 +2557,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
 				for (unsigned int point_idx = 0; point_idx < path.retract_move_icount; point_idx++)
 				{
-					double e = -(1 - extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent")) * retraction_config.distance * 19.0 / (20.0 * path.retract_move_icount);
+					double e = -(1 - wipe_amount_percent) * retraction_config.distance * 19.0 / (20.0 * path.retract_move_icount);
 					gcode.writeExtrusionG1(path.config->getSpeed() * 0.8, path.points[point_idx], e, path.config->type);
 				}
 				gcode.writeRetraction(retraction_config);
