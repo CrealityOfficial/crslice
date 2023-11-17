@@ -964,7 +964,7 @@ void Slicer::buildSegments_paint_support(SliceContext* application, const Mesh& 
      cura52::parallel_for(application, layers,
                         [&](auto layer_it)
          {
-        SlicerLayer& layer = layer_it;
+        SlicerLayer& layer = *layer_it;
         const int32_t& z = layer.z;
         layer.segments.reserve(100);
 
