@@ -62,6 +62,11 @@ namespace cura52
         virtual const Settings& sceneSettings() = 0;
         virtual bool isCenterZero() = 0;
         virtual std::string polygonFile() = 0;
+
+        virtual std::string supportFile() = 0;
+        virtual std::string antiSupportFile() = 0;
+        virtual std::string seamFile() = 0;
+        virtual std::string antiSeamFile() = 0;
         
         virtual MeshGroup* currentGroup() = 0;
         virtual int groupCount() = 0;

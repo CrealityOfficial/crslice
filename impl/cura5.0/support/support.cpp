@@ -1269,7 +1269,7 @@ void AreaSupport::generateSupportAreasForMesh(SliceDataStorage& storage,
             }
         }
 
-        if (is_support_mesh_drop_down_place_holder && storage.support.supportLayers[layer_idx].support_mesh_drop_down.size() > 0)
+        if (/*is_support_mesh_drop_down_place_holder &&*/ storage.support.supportLayers[layer_idx].support_mesh_drop_down.size() > 0)
         { // handle support mesh which should be supported by more support
             layer_this = layer_this.unionPolygons(storage.support.supportLayers[layer_idx].support_mesh_drop_down);
         }

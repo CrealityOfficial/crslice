@@ -33,6 +33,10 @@ namespace crslice
 
 		void setOutputGCodeFileName(const std::string& fileName);
 		void setPloygonFileName(const std::string& fileName);
+		void setSupportFileName(const std::string& fileName);
+		void setAntiSupportFileName(const std::string& fileName);
+		void setSeamFileName(const std::string& fileName);
+		void setAntiSeamFileName(const std::string& fileName);
 		bool valid();
 
 		void save(const std::string& fileName);
@@ -51,6 +55,11 @@ namespace crslice
 
 		std::string m_gcodeFileName;
 		std::string m_ploygonFileName;
+		std::string m_supportFile;
+		std::string m_antiSupportFile;
+		std::string m_seamFile;
+		std::string m_antiSeamFile;
+
 		std::string m_tempDirectory;
 		std::vector<std::string> m_Object_Exclude_FileName;
 

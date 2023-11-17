@@ -26,6 +26,10 @@ namespace cura52
         crslice::FDMDebugger* fDebugger = nullptr;
         std::string gcodeFile;
         std::string ploygonFile;
+        std::string supportFile;
+        std::string antiSupportFile;
+        std::string seamFile;
+        std::string antiSeamFile;
         std::vector<std::string> m_Object_Exclude_FileName;
         /*
          * \brief Which extruder to evaluate each setting on, if different from the
