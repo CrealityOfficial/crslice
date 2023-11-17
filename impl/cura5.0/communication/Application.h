@@ -53,6 +53,11 @@ namespace cura52
         bool isCenterZero() override;
         std::string polygonFile() override;
 
+        std::string supportFile() override;
+        std::string antiSupportFile()override;
+        std::string seamFile()override;
+        std::string antiSeamFile()override;
+
         MeshGroup* currentGroup() override;
         int groupCount() override;
         bool isFirstGroup() override;

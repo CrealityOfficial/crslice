@@ -148,6 +148,24 @@ namespace cura52
         return scene->ploygonFile;
     }
 
+    std::string Application::supportFile()
+    {
+        return scene->supportFile;
+    }
+
+    std::string Application::antiSupportFile()
+    {
+        return scene->antiSupportFile;
+    }
+    std::string Application::seamFile()
+    {
+        return scene->seamFile;
+    }
+    std::string Application::antiSeamFile()
+    {
+        return scene->antiSeamFile;
+    }
+    
     MeshGroup* Application::currentGroup()
     {
         return &*scene->current_mesh_group;

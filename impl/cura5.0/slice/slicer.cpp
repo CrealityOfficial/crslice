@@ -794,7 +794,10 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
 
 
     std::vector<std::pair<int32_t, int32_t>> zbbox = buildZHeightsForFaces(*mesh);
-    buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
+    if(!mesh->settings.get<bool>("support_paint_enable"))
+        buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
+    else
+        buildSegments_paint_support(application, *mesh, zbbox, slicing_tolerance, layers);
 
     LOGI("Slice of mesh took { %f } seconds", slice_timer.restart());
 
@@ -802,10 +805,13 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
     LOGI("Make polygons took { %f } seconds", slice_timer.restart());
 
 	
-    const bool keep_open_polygons = application->currentGroup()->settings.get<bool>("keep_open_polygons");
+    const bool keep_open_polygons = mesh->settings.get<bool>("keep_open_polygons");
     if (keep_open_polygons)
     {
-		const coord_t c_gap = 200;
+		coord_t c_gap = 200;
+        if (!mesh->settings.get<bool>("support_paint_enable"))
+            c_gap = mesh->settings.get<coord_t>("support_line_width");
+
 		auto getPloygons = [&c_gap](Polygons& ploygon)
 		{
 			ClipperLib::ClipperOffset clipper;
@@ -952,6 +958,137 @@ void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const st
                        });
 }
 
+void Slicer::buildSegments_paint_support(SliceContext* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
+{
+    int32_t lastZ = 0;
+     cura52::parallel_for(application, layers,
+                        [&](auto layer_it)
+         {
+        SlicerLayer& layer = layer_it;
+        const int32_t& z = layer.z;
+        layer.segments.reserve(100);
+
+        // loop over all mesh faces
+        for (unsigned int mesh_idx = 0; mesh_idx < mesh.faces.size(); mesh_idx++)
+        {
+            // get all vertices per face
+            const MeshFace& face = mesh.faces[mesh_idx];
+            const MeshVertex& v0 = mesh.vertices[face.vertex_index[0]];
+            const MeshVertex& v1 = mesh.vertices[face.vertex_index[1]];
+            const MeshVertex& v2 = mesh.vertices[face.vertex_index[2]];
+
+            // get all vertices represented as 3D point
+            Point3 p0 = v0.p;
+            Point3 p1 = v1.p;
+            Point3 p2 = v2.p;
+
+
+
+            if (zbbox[mesh_idx].first == zbbox[mesh_idx].second
+                && lastZ <= zbbox[mesh_idx].first
+                && z >= zbbox[mesh_idx].first)
+            {
+                const MeshFace& face = mesh.faces[mesh_idx];
+                for (int i = 0; i < 3; i++)
+                {
+                    const MeshVertex& v0 = mesh.vertices[face.vertex_index[i]];
+                    const MeshVertex& v1 = mesh.vertices[face.vertex_index[(i+1)%3]];
+                    SlicerSegment s;
+                    s.start.X = v0.p.x;
+                    s.start.Y = v0.p.y;
+                    s.end.X = v1.p.x;
+                    s.end.Y = v1.p.y;
+
+                    // store the segments per layer
+                    layer.face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layer.segments.size()));
+                    s.faceIndex = mesh_idx;
+                    s.addedToPolygon = false;
+                    layer.segments.push_back(s);
+                }
+
+                continue;
+            }
+
+            if ((z < zbbox[mesh_idx].first) || (z > zbbox[mesh_idx].second))
+            {
+                continue;
+            }
+
+            // Compensate for points exactly on the slice-boundary, except for 'inclusive', which already handles this correctly.
+            if (slicing_tolerance != SlicingTolerance::INCLUSIVE)
+            {
+                p0.z += static_cast<int>(p0.z == z);
+                p1.z += static_cast<int>(p1.z == z);
+                p2.z += static_cast<int>(p2.z == z);
+            }
+
+            SlicerSegment s;
+            s.endVertex = nullptr;
+            int end_edge_idx = -1;
+
+            if (p0.z < z && p1.z > z && p2.z > z) //  1_______2
+            { //   \     /
+                s = project2D(p0, p2, p1, z); //------------- z
+                end_edge_idx = 0; //     \ /
+            } //      0
+
+            else if (p0.z > z && p1.z <= z && p2.z <= z) //      0
+            { //     / \      .
+                s = project2D(p0, p1, p2, z); //------------- z
+                end_edge_idx = 2; //   /     \    .
+                if (p2.z == z) //  1_______2
+                {
+                    s.endVertex = &v2;
+                }
+            }
+
+            else if (p1.z < z && p0.z > z && p2.z > z) //  0_______2
+            { //   \     /
+                s = project2D(p1, p0, p2, z); //------------- z
+                end_edge_idx = 1; //     \ /
+            } //      1
+
+            else if (p1.z > z && p0.z <= z && p2.z <= z) //      1
+            { //     / \      .
+                s = project2D(p1, p2, p0, z); //------------- z
+                end_edge_idx = 0; //   /     \    .
+                if (p0.z == z) //  0_______2
+                {
+                    s.endVertex = &v0;
+                }
+            }
+
+            else if (p2.z < z && p1.z > z && p0.z > z) //  0_______1
+            { //   \     /
+                s = project2D(p2, p1, p0, z); //------------- z
+                end_edge_idx = 2; //     \ /
+            } //      2
+
+            else if (p2.z > z && p1.z <= z && p0.z <= z) //      2
+            { //     / \      .
+                s = project2D(p2, p0, p1, z); //------------- z
+                end_edge_idx = 1; //   /     \    .
+                if (p1.z == z) //  0_______1
+                {
+                    s.endVertex = &v1;
+                }
+            }
+            else
+            {
+                continue;
+            }
+
+            layer.face_idx_to_segment_idx.insert(std::make_pair(mesh_idx, layer.segments.size()));
+            s.faceIndex = mesh_idx;
+            s.endOtherFaceIdx = face.connected_face_index[end_edge_idx];
+            s.addedToPolygon = false;
+            layer.segments.push_back(s);
+        }
+
+        lastZ = z;
+    });
+}
+
 std::vector<SlicerLayer>
     Slicer::buildLayersWithHeight(size_t slice_layer_count, SlicingTolerance slicing_tolerance, coord_t initial_layer_thickness, coord_t thickness, bool use_variable_layer_heights, const std::vector<AdaptiveLayer>* adaptive_layers)
 {
@@ -1020,6 +1157,8 @@ void Slicer::makePolygons(SliceContext* application, Mesh& mesh, SlicingToleranc
         layer_apply_initial_xy_offset = 1;
     }
 
+    if (mesh.settings.get<bool>("support_mesh_drop_down"))
+        return;
 
     const coord_t xy_offset = mesh.settings.get<coord_t>("xy_offset");
     const coord_t xy_offset_0 = mesh.settings.get<coord_t>("xy_offset_layer_0");

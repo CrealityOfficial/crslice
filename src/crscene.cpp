@@ -216,6 +216,24 @@ namespace crslice
 		m_ploygonFileName = fileName;
 	}
 
+	void CrScene::setSupportFileName(const std::string& fileName)
+	{
+		m_supportFile = fileName;
+	}
+
+	void CrScene::setAntiSupportFileName(const std::string& fileName)
+	{
+		m_antiSupportFile = fileName;
+	}
+	void CrScene::setSeamFileName(const std::string& fileName)
+	{
+		m_seamFile = fileName;
+	}
+	void CrScene::setAntiSeamFileName(const std::string& fileName)
+	{
+		m_antiSeamFile = fileName;
+	}
+
 	bool CrScene::valid()
 	{
 		return true;

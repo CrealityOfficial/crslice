@@ -569,6 +569,15 @@ namespace cura52
             std::vector<SlicerLayer>& layers
         );
 
+        static void buildSegments_paint_support
+        (
+            SliceContext* application,
+            const Mesh& mesh,
+            const std::vector<std::pair<int32_t, int32_t>>& zbboxes,
+            const SlicingTolerance& slicing_tolerance,
+            std::vector<SlicerLayer>& layers
+        );
+
     };
 
 }//namespace cura52

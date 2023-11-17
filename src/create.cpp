@@ -75,6 +75,10 @@ namespace crslice
         slice->machine_center_is_zero = scene->machine_center_is_zero;
         slice->gcodeFile = outputFile;
         slice->ploygonFile = scene->m_ploygonFileName;
+        slice->supportFile = scene->m_supportFile;
+        slice->antiSupportFile = scene->m_antiSupportFile;
+        slice->seamFile = scene->m_seamFile;
+        slice->antiSeamFile = scene->m_antiSeamFile;
         slice->fDebugger = scene->m_debugger;
 
         bool sliceValible = false;
