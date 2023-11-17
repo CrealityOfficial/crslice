@@ -166,7 +166,7 @@ void LayerPlan::forceNewPathStart()
 
 void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 {
-	int index = extruder_plans.back().paths.size() - 2;
+	unsigned int index = extruder_plans.back().paths.size() - 2;
 	for (int icount = extruder_plans.back().paths.size() - 2; icount >= 0; icount--)
 	{
 		if (extruder_plans.back().paths[icount].config->type == PrintFeatureType::MoveCombing)
@@ -264,12 +264,13 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 		}
 	}
 
+
 	Point p0(*last_planned_position);
 	int distance_traversed = 0;
 	std::vector<Point> backPoints;
 	for (unsigned int point_idx = 0;; point_idx++)
 	{
-		if ((point_idx > last_path.points.size() && distance_traversed == 0) || point_idx > last_path.points.size() * 5) // Wall has a total circumference of 0. This loop would never end.
+		if ((point_idx >= last_path.points.size() && distance_traversed == 0) || point_idx > last_path.points.size() * 5) // Wall has a total circumference of 0. This loop would never end.
 		{
 			//path->retract_move_icount = 0;
 			break; // No wipe if the wall has no circumference.

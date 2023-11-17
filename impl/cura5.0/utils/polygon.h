@@ -1222,6 +1222,8 @@ namespace cura52 {
          */
         void removeSmallAreas(const double min_area_size, const bool remove_holes = false);
 
+		//移除指定大小的轮廓
+		void removeDesignatedreas(const double min_area_size, const double max_area_size,const bool remove_holes = false);
         /*!
          * Removes overlapping consecutive line segments which don't delimit a
          * positive area.

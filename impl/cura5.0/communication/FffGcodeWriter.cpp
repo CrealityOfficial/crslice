@@ -2848,6 +2848,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
         constexpr coord_t overlap = 0; // overlap is already applied for the sparsest density in the generateGradualInfill
 
         wall_tool_paths.emplace_back();
+		const double min_infill_area = mesh.settings.get<double>("min_infill_area");
         Infill infill_comp(pattern,
                            zig_zaggify_infill,
                            connect_polygons,
@@ -2869,7 +2870,8 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
                            use_endpieces,
                            skip_some_zags,
                            zag_skip_count,
-                           pocket_size);
+                           pocket_size,
+						   min_infill_area);
         infill_comp.setCurrentPosition(gcode_layer.getLastPlannedPositionOrStartingPosition());
         infill_comp.generate(wall_tool_paths.back(), infill_polygons, infill_lines, mesh.settings, mesh.cross_fill_provider, lightning_layer, &mesh);
         if (density_idx < last_idx)
@@ -3697,6 +3699,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
         line_distance = line_distance - layer_thickness * float(1. - 0.25 * M_PI);
     }
 
+	const double min_infill_area = mesh.settings.get<double>("min_infill_area");
     Infill infill_comp(pattern,
                        zig_zaggify_infill,
                        connect_polygons,
@@ -3718,7 +3721,8 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
                        use_endpieces,
                        skip_some_zags,
                        zag_skip_count,
-                       pocket_size);
+                       pocket_size,
+					   min_infill_area);
     infill_comp.generate(skin_paths, skin_polygons, skin_lines, mesh.settings);
 
     INTERRUPT_RETURN("processSkinPrintFeature");

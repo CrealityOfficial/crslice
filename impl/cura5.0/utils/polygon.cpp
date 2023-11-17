@@ -615,6 +615,70 @@ void Polygons::removeSmallAreas(const double min_area_size, const bool remove_ho
     paths.resize(new_end - paths.begin());
 }
 
+void Polygons::removeDesignatedreas(const double min_area_size, const double max_area_size,const bool remove_holes /*= false*/)
+{
+	auto new_end = paths.end();
+	if (remove_holes)
+	{
+		for (auto it = paths.begin(); it < new_end;)
+		{
+			// All polygons smaller than target are removed by replacing them with a polygon from the back of the vector
+			if (std::abs(INT2MM2(ClipperLib::Area(*it))) < max_area_size && std::abs(INT2MM2(ClipperLib::Area(*it))) > min_area_size)
+			{
+				*it = std::move(*--new_end);
+				continue;
+			}
+			it++; // Skipped on removal such that the polygon just swaped in is checked next
+		}
+	}
+	else
+	{
+		// For each polygon, computes the signed area, move small outlines at the end of the vector and keep references on small holes
+		std::vector<PolygonRef> small_holes;
+		for (auto it = paths.begin(); it < new_end;)
+		{
+			double area = INT2MM2(ClipperLib::Area(*it));
+			if (std::abs(area) < max_area_size && std::abs(area) > min_area_size)
+			{
+				if (area >= 0)
+				{
+					--new_end;
+					if (it < new_end)
+					{
+						std::swap(*new_end, *it);
+						continue;
+					}
+					else
+					{ // Don't self-swap the last Path
+						break;
+					}
+				}
+				else
+				{
+					small_holes.push_back(*it);
+				}
+			}
+			it++; // Skipped on removal such that the polygon just swaped in is checked next
+		}
+
+		// Removes small holes that have their first point inside one of the removed outlines
+		// Iterating in reverse ensures that unprocessed small holes won't be moved
+		const auto removed_outlines_start = new_end;
+		for (auto hole_it = small_holes.rbegin(); hole_it < small_holes.rend(); hole_it++)
+		{
+			for (auto outline_it = removed_outlines_start; outline_it < paths.end(); outline_it++)
+			{
+				if (PolygonRef(*outline_it).inside(*hole_it->begin()))
+				{
+					**hole_it = std::move(*--new_end);
+					break;
+				}
+			}
+		}
+	}
+	paths.resize(new_end - paths.begin());
+}
+
 void Polygons::removeDegenerateVerts()
 {
     _removeDegenerateVerts(false);

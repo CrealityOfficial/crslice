@@ -188,10 +188,10 @@ void SkinInfillAreaComputation::calculateBottomSkin(const SliceLayerPart& part, 
         }
     }
     const double min_infill_area = mesh.settings.get<double>("min_infill_area");
-    if (min_infill_area > 0.0)
-    {
-        not_air.removeSmallAreas(min_infill_area);
-    }
+	if (min_infill_area > 0.0)
+	{
+		not_air.removeDesignatedreas(min_infill_area * 0.34, min_infill_area);
+	}
     downskin = downskin.difference(not_air); // skin overlaps with the walls
 }
 
@@ -216,7 +216,7 @@ void SkinInfillAreaComputation::calculateTopSkin(const SliceLayerPart& part, Pol
     const double min_infill_area = mesh.settings.get<double>("min_infill_area");
     if (min_infill_area > 0.0)
     {
-        not_air.removeSmallAreas(min_infill_area);
+        not_air.removeDesignatedreas(min_infill_area*0.34, min_infill_area);
     }
 
     upskin = upskin.difference(not_air); // skin overlaps with the walls

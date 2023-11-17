@@ -51,62 +51,73 @@ namespace cura52
         coord_t pocket_size; //!< The size of the pockets at the intersections of the fractal in the cross 3d pattern
         bool mirror_offset; //!< Indication in which offset direction the extra infill lines are made
         Point current_position;
-
+		double min_area;
         static constexpr double one_over_sqrt_2 = 0.7071067811865475244008443621048490392848359376884740; //!< 1.0 / sqrt(2.0)
     public:
 
-        Infill(EFillMethod pattern
-            , bool zig_zaggify
-            , bool connect_polygons
-            , const Polygons& in_outline
-            , coord_t infill_line_width
-            , coord_t line_distance
-            , coord_t infill_overlap
-            , size_t infill_multiplier
-            , AngleDegrees fill_angle
-            , coord_t z
-            , coord_t shift
-            , coord_t max_resolution
-            , coord_t max_deviation
-            , size_t wall_line_count = 0
-            , const Point& infill_origin = Point()
-            , bool skip_line_stitching = false
-            , bool fill_gaps = true
-            , bool connected_zigzags = false
-            , bool use_endpieces = false
-            , bool skip_some_zags = false
-            , size_t zag_skip_count = 0
-            , coord_t pocket_size = 0
-        )
-            : pattern(pattern)
-            , zig_zaggify(zig_zaggify)
-            , connect_polygons(connect_polygons)
-            , outer_contour(in_outline)
-            , infill_line_width(infill_line_width)
-            , line_distance(line_distance)
-            , infill_overlap(infill_overlap)
-            , infill_multiplier(infill_multiplier)
-            , fill_angle(fill_angle)
-            , z(z)
-            , shift(shift)
-            , max_resolution(max_resolution)
-            , max_deviation(max_deviation)
-            , wall_line_count(wall_line_count)
-            , infill_origin(infill_origin)
-            , skip_line_stitching(skip_line_stitching)
-            , fill_gaps(fill_gaps)
-            , connected_zigzags(connected_zigzags)
-            , use_endpieces(use_endpieces)
-            , skip_some_zags(skip_some_zags)
-            , zag_skip_count(zag_skip_count)
-            , pocket_size(pocket_size)
-            , mirror_offset(zig_zaggify)
+		Infill(EFillMethod pattern
+			, bool zig_zaggify
+			, bool connect_polygons
+			, const Polygons& in_outline
+			, coord_t infill_line_width
+			, coord_t line_distance
+			, coord_t infill_overlap
+			, size_t infill_multiplier
+			, AngleDegrees fill_angle
+			, coord_t z
+			, coord_t shift
+			, coord_t max_resolution
+			, coord_t max_deviation
+			, size_t wall_line_count = 0
+			, const Point& infill_origin = Point()
+			, bool skip_line_stitching = false
+			, bool fill_gaps = true
+			, bool connected_zigzags = false
+			, bool use_endpieces = false
+			, bool skip_some_zags = false
+			, size_t zag_skip_count = 0
+			, coord_t pocket_size = 0
+			, coord_t min_area = 0
+		)
+			: pattern(pattern)
+			, zig_zaggify(zig_zaggify)
+			, connect_polygons(connect_polygons)
+			, outer_contour(in_outline)
+			, infill_line_width(infill_line_width)
+			, line_distance(line_distance)
+			, infill_overlap(infill_overlap)
+			, infill_multiplier(infill_multiplier)
+			, fill_angle(fill_angle)
+			, z(z)
+			, shift(shift)
+			, max_resolution(max_resolution)
+			, max_deviation(max_deviation)
+			, wall_line_count(wall_line_count)
+			, infill_origin(infill_origin)
+			, skip_line_stitching(skip_line_stitching)
+			, fill_gaps(fill_gaps)
+			, connected_zigzags(connected_zigzags)
+			, use_endpieces(use_endpieces)
+			, skip_some_zags(skip_some_zags)
+			, zag_skip_count(zag_skip_count)
+			, pocket_size(pocket_size)
+			, mirror_offset(zig_zaggify)
+			, min_area(min_area)
         {
             //TODO: The connected lines algorithm is only available for linear-based infill, for now.
             //We skip ZigZag, Cross and Cross3D because they have their own algorithms. Eventually we want to replace all that with the new algorithm.
             //Cubic Subdivision ends lines in the center of the infill so it won't be effective.
             connect_lines = zig_zaggify && (pattern == EFillMethod::LINES || pattern == EFillMethod::TRIANGLES || pattern == EFillMethod::GRID || pattern == EFillMethod::CUBIC || pattern == EFillMethod::TETRAHEDRAL || pattern == EFillMethod::QUARTER_CUBIC || pattern == EFillMethod::TRIHEXAGON);
             small_area_width = 0;
+			for (int n=0;n<outer_contour.paths.size();n++)
+			{
+				if (std::abs(INT2MM2(ClipperLib::Area(outer_contour.paths[n]))) < min_area * 0.35)
+				{
+					outer_contour.paths.erase(outer_contour.paths.begin()+n);
+					n--;
+				}
+			}
+
             current_position = Point();
         }
 
