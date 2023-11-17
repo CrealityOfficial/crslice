@@ -118,8 +118,6 @@ namespace crslice
 	void CrScene::setOjbectExclude(int groupID, int objectID, const std::string& fileName, std::vector<trimesh::vec3>& outline_ObjectExclude)
 	{
 		m_Object_Exclude_FileName.push_back(fileName);
-		setPloygonFileName(fileName);
-
 		//save lines
 		std::vector<std::vector<trimesh::vec2>> polys;
 
@@ -130,7 +128,7 @@ namespace crslice
 		}
 		polys.push_back(ps);
 
-		savePloygons(polys);
+		savePloygons(polys, fileName);
 	}
 
 	void CrScene::setGroupOffset(int groupID, trimesh::vec3 offset)
@@ -246,6 +244,29 @@ namespace crslice
 		}
 		out.close();
 #endif
+	}
+
+	void CrScene::savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys, const std::string filename)
+	{
+		int pNum = polys.size();
+		std::fstream in(filename, std::ios::out | std::ios::binary);
+		if (in.is_open() && pNum > 0)
+		{
+			in.write((char*)&pNum, sizeof(int));
+			if (pNum > 0)
+			{
+				for (int i = 0; i < pNum; ++i)
+				{
+					int num = polys.at(i).size();
+					in.write((char*)&num, sizeof(int));
+					for (int j = 0; j < num; j++)
+					{
+						in.write((char*)&polys[i][j].x, sizeof(float));
+						in.write((char*)&polys[i][j].y, sizeof(float));
+					}
+				}
+			}
+		}
 	}
 
 	void CrScene::savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys)

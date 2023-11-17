@@ -40,6 +40,7 @@ namespace crslice
 
 		//save ploygon
 		void savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys);
+		void savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys, const std::string filename);
 		void setOjbectExclude(int groupID, int objectID, const std::string& fileName, std::vector<trimesh::vec3>& outline_ObjectExclude);
 		void makeSureParameters();
 	public:
