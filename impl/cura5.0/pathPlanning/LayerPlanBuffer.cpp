@@ -83,9 +83,10 @@ namespace cura52
 
         Point first_location_new_layer = new_layer_destination_state->first;
 
-        if (newest_layer->extruder_plans.front().paths[0].points.size() != 1)
-            LOGE("newest_layer->extruder_plans.front().paths[0].points.size() != 1");
-        assert(newest_layer->extruder_plans.front().paths[0].points[0] == first_location_new_layer);
+		if (newest_layer->extruder_plans.front().paths.size() > 0 && (newest_layer->extruder_plans.front().paths[0].points.size() != 1))
+			LOGE("newest_layer->extruder_plans.front().paths[0].points.size() != 1");
+		if(newest_layer->extruder_plans.front().paths.size() > 0 &&  (newest_layer->extruder_plans.front().paths[0].points[0] != first_location_new_layer))
+			LOGE("newest_layer->extruder_plans.front().paths[0].points[0] != first_location_new_layer");
 
         // if the last planned position in the previous layer isn't the same as the first location of the new layer, travel to the new location
         if (!prev_layer->last_planned_position || *prev_layer->last_planned_position != first_location_new_layer)

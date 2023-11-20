@@ -301,10 +301,10 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 	if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
 	{
 		std::reverse(backPoints.begin(), backPoints.end());
-		for (Point& aPoint: backPoints)
+		for (int n=1;n<backPoints.size();n++)
 		{
 			path->retract_move_icount++;
-			addTravel_simple(aPoint, path);
+			addTravel_simple(backPoints[n], path);
 		}
 	}
 
