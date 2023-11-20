@@ -605,18 +605,32 @@ void FffPolygonGenerator::processBasicWallsSkinInfill(SliceDataStorage& storage,
     }
 
     guarded_progress.reset();
-    cura52::parallel_for<size_t>(application, 0,
-                               mesh_layer_count,
-                               [&](size_t layer_number)
-                               {
-                                    INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
+#ifdef _DEBUG
+	for (size_t layer_number=0;layer_number< mesh_layer_count;layer_number++)
+	{
+		INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
 
-                                    if (! magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
-                                    {
-                                        processSkinsAndInfill(mesh, layer_number, process_infill);
-                                    }
-                                    guarded_progress++;
-                               });
+		if (!magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
+		{
+			processSkinsAndInfill(mesh, layer_number, process_infill);
+		}
+		guarded_progress++;
+	}
+#else 
+	cura52::parallel_for<size_t>(application, 0,
+		mesh_layer_count,
+		[&](size_t layer_number)
+		{
+			INTERRUPT_RETURN("FffPolygonGenerator::processBasicWallsSkinInfill");
+
+			if (!magic_spiralize || layer_number < mesh_max_initial_bottom_layer_count) // Only generate up/downskin and infill for the first X layers when spiralize is choosen.
+			{
+				processSkinsAndInfill(mesh, layer_number, process_infill);
+			}
+			guarded_progress++;
+		});
+#endif
+
 
 	CALLTICK("skin & infill 1");
 }

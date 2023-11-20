@@ -3705,7 +3705,6 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
         line_distance = line_distance - layer_thickness * float(1. - 0.25 * M_PI);
     }
 
-	const double min_infill_area = mesh.settings.get<double>("min_infill_area");
     Infill infill_comp(pattern,
                        zig_zaggify_infill,
                        connect_polygons,
@@ -3727,8 +3726,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
                        use_endpieces,
                        skip_some_zags,
                        zag_skip_count,
-                       pocket_size,
-					   min_infill_area);
+                       pocket_size);
     infill_comp.generate(skin_paths, skin_polygons, skin_lines, mesh.settings);
 
     INTERRUPT_RETURN("processSkinPrintFeature");

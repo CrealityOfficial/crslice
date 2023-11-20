@@ -109,15 +109,17 @@ namespace cura52
             //Cubic Subdivision ends lines in the center of the infill so it won't be effective.
             connect_lines = zig_zaggify && (pattern == EFillMethod::LINES || pattern == EFillMethod::TRIANGLES || pattern == EFillMethod::GRID || pattern == EFillMethod::CUBIC || pattern == EFillMethod::TETRAHEDRAL || pattern == EFillMethod::QUARTER_CUBIC || pattern == EFillMethod::TRIHEXAGON);
             small_area_width = 0;
-			for (int n=0;n<outer_contour.paths.size();n++)
+			if (min_area>0)
 			{
-				if (std::abs(INT2MM2(ClipperLib::Area(outer_contour.paths[n]))) < min_area * 0.35)
+				for (int n = 0; n < outer_contour.paths.size(); n++)
 				{
-					outer_contour.paths.erase(outer_contour.paths.begin()+n);
-					n--;
+					if (std::abs(INT2MM2(ClipperLib::Area(outer_contour.paths[n]))) < min_area * 0.35)
+					{
+						outer_contour.paths.erase(outer_contour.paths.begin() + n);
+						n--;
+					}
 				}
 			}
-
             current_position = Point();
         }
 
