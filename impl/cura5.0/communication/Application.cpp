@@ -337,7 +337,7 @@ namespace cura52
     void Application::initCache()
     {
 #if _DEBUG
-        startThreadPool(2);
+        startThreadPool(1);
 #endif
         initUseCache(false, "");
         if (scene.get())
@@ -351,7 +351,7 @@ namespace cura52
                     initUseCache(true, path);
                     m_cache.reset(new Cache(path, this));
 
-                    startThreadPool(2);
+                    startThreadPool(1);
                 }
             }
         }
