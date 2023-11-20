@@ -31,13 +31,16 @@ namespace cura52
             }
         }
         Polygons result;
-        for (std::vector<trimesh::vec2> p : ploys)
+        for (const std::vector<trimesh::vec2>& p : ploys)
         {
-            for (size_t i=0; i< p.size()-1; i++)
+            if (p.size() > 0)
             {
-                trimesh::vec2 v0 = p.at(i);
-                trimesh::vec2 v1 = p.at(i+1);
-                result.addLine(Point(v0.x,v0.y), Point(v1.x, v1.y));
+                for (size_t i = 0; i < p.size() - 1; i++)
+                {
+                    trimesh::vec2 v0 = p.at(i);
+                    trimesh::vec2 v1 = p.at(i + 1);
+                    result.addLine(Point(v0.x, v0.y), Point(v1.x, v1.y));
+                }
             }
         }
 		return result;

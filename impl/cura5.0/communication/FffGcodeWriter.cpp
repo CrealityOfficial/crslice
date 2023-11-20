@@ -875,6 +875,9 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
  
         for (int i = 0; i < sizes; i++)
         {
+            if (storage.meshes.at(i).settings.get<bool>("support_mesh"))
+                continue;
+
             Polygons poly = readPolygons(storage.m_Object_Exclude_FileName.at(i));
             Polygons poly2;
             excludePoints(poly, poly2);
@@ -884,15 +887,18 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
 
             std::ostringstream gcode_obj;
             gcode_obj << "[";
-            for (ClipperLib::Path path : poly2)
+            if (poly2.size() > 0)
             {
-                for (int j = 0; j < path.size() - 1; j++)
+                for (ClipperLib::Path path : poly2)
                 {
-                    ClipperLib::IntPoint p = path.at(j);
-                    gcode_obj << "[" << INT2MM(p.X) + x << "," << INT2MM(p.Y) + y << "],";
+                    for (int j = 0; j < path.size() - 1; j++)
+                    {
+                        ClipperLib::IntPoint p = path.at(j);
+                        gcode_obj << "[" << INT2MM(p.X) + x << "," << INT2MM(p.Y) + y << "],";
+                    }
+                    ClipperLib::IntPoint p = path.at(path.size() - 1);
+                    gcode_obj << "[" << INT2MM(p.X) + x << "," << INT2MM(p.Y) + y << "]]";
                 }
-                ClipperLib::IntPoint p = path.at(path.size() - 1);
-                gcode_obj << "[" << INT2MM(p.X) + x << "," << INT2MM(p.Y) + y << "]]";
             }
 
             std::ostringstream tmp3;
