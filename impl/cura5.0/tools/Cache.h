@@ -8,6 +8,7 @@
 #include "crslice/load.h"
 #include "utils/ExtrusionLine.h"
 #include "utils/PolygonsSegmentIndex.h"
+#include "crsliceinfo.h"
 
 namespace cura52 
 {
@@ -59,5 +60,4 @@ namespace cura52
 		const Point& start, const Point& end);
 } // namespace cura52
 
-#define USE_CACHE 1
 #endif // SVG_H

@@ -336,6 +336,9 @@ namespace cura52
 
     void Application::initCache()
     {
+#if _DEBUG
+        startThreadPool(2);
+#endif
         initUseCache(false, "");
         if (scene.get())
         {

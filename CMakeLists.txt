@@ -1,6 +1,12 @@
 __enable_cxx17()
 include(StandardProjectSettings.cmake)
 
+if(USE_CACHE_ON)
+	set(USE_CACHE 1)
+else()
+	set(USE_CACHE 0)
+endif()
+
 __build_crslice_info_header()
 
 __cc_find(trimesh2)
