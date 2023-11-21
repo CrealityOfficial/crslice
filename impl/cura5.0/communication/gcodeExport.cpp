@@ -102,6 +102,17 @@ GCodeExport::~GCodeExport()
 {
 }
 
+bool GCodeExport::setTargetFile(const char* filename)
+{
+    output_file.open(filename);
+    if (output_file.is_open())
+    {
+        setOutputStream(&output_file);
+        return true;
+    }
+    return false;
+}
+
 void GCodeExport::preSetup(const size_t start_extruder)
 {
     if (application->sceneSettings().get<bool>("klipper_time_estimate_enable"))
@@ -3048,24 +3059,98 @@ void GCodeExport::travelToSafePosition()
     writeTravel(safe_position, speed_travel);
 }
 
-void GCodeExport::finalize(const std::string& endCode)
+void GCodeExport::finalize(const std::string& end_gcode)
 {
-	if (flavor != EGCodeFlavor::MACH3_Creality)
-	{
-		travelToSafePosition();
-	}
+    const Settings& mesh_group_settings = application->currentGroup()->settings;
+
+    if (end_gcode.length() > 0 && mesh_group_settings.get<bool>("relative_extrusion"))
+    {
+        writeExtrusionMode(false); // ensure absolute extrusion mode is set before the end gcode
+    }
+
+    if (flavor != EGCodeFlavor::MACH3_Creality)
+    {
+        travelToSafePosition();
+    }
     writeFanCommand(0);
     writeChamberFanCommand(0);
-    writeCode(endCode.c_str());
-    int64_t print_time = getSumTotalPrintTimes();
+    writeCode(end_gcode.c_str());
+
     int mat_0 = getTotalFilamentUsed(0);
-    LOGI("Print time (s): { %d }", print_time);
-    LOGI("Print time (hr|min|s): { %d }h { %d }m { %d }s", int(print_time / 60 / 60), int((print_time / 60) % 60), int(print_time % 60));
+    int _print_time = (int)getSumTotalPrintTimes();
+    LOGI("Print time (s): { %d }", _print_time);
+    LOGI("Print time (hr|min|s): { %d }h { %d }m { %d }s", int(_print_time / 60 / 60),
+        int((_print_time / 60) % 60), int(_print_time % 60));
     LOGI("Filament (mm^3): { %d }", mat_0);
     for (int n = 1; n < MAX_EXTRUDERS; n++)
         if (getTotalFilamentUsed(n) > 0)
             LOGI("Filament { %d }: { %d }", n + 1, int(getTotalFilamentUsed(n)));
     output_stream->flush();
+}
+
+void GCodeExport::finalize()
+{
+    const Settings& mesh_group_settings = application->currentGroup()->settings;
+    if (mesh_group_settings.get<bool>("machine_heated_bed"))
+    {
+        writeBedTemperatureCommand(0); // Cool down the bed (M140).
+        // Nozzles are cooled down automatically after the last time they are used (which might be earlier than the end of the print).
+    }
+    if (mesh_group_settings.get<bool>("machine_heated_build_volume") && mesh_group_settings.get<Temperature>("build_volume_temperature") != 0)
+    {
+        writeBuildVolumeTemperatureCommand(0); // Cool down the build volume.
+    }
+
+    Duration print_time = getSumTotalPrintTimes();
+    std::vector<double> filament_used;
+    std::vector<std::string> material_ids;
+    std::vector<bool> extruder_is_used;
+    for (size_t extruder_nr = 0; extruder_nr < (size_t)application->extruderCount(); extruder_nr++)
+    {
+        filament_used.emplace_back(getTotalFilamentUsed(extruder_nr));
+        material_ids.emplace_back(application->extruders()[extruder_nr].settings.get<std::string>("material_guid"));
+        extruder_is_used.push_back(getExtruderIsUsed(extruder_nr));
+    }
+
+    std::string prefix = getFileHeader(extruder_is_used, &print_time, filament_used, material_ids);
+
+    //get cloud result
+    SliceResult result = getFileHeaderC(extruder_is_used, &print_time, filament_used, material_ids);
+    application->setResult(result);
+
+    {
+        LOGI("Gcode header after slicing: { %s }", prefix.c_str());
+        reWritePreFixStr(prefix);
+    }
+    if (mesh_group_settings.get<bool>("acceleration_enabled"))
+    {
+        writePrintAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), false, 0);
+        writeTravelAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), false, 0);
+    }
+    if (mesh_group_settings.get<bool>("jerk_enabled"))
+    {
+        writeJerk(mesh_group_settings.get<Velocity>("machine_max_jerk_xy"));
+    }
+
+    finalize(mesh_group_settings.get<std::string>("machine_end_gcode").c_str());
+
+
+    // set extrusion mode back to "normal"
+    const bool set_relative_extrusion_mode = (getFlavor() == EGCodeFlavor::REPRAP);
+    writeExtrusionMode(set_relative_extrusion_mode);
+    for (size_t e = 0; e < (size_t)application->extruderCount(); e++)
+    {
+        writeTemperatureCommand(e, 0, false);
+        initExtruderAttr(e);
+    }
+
+    writeComment("End of Gcode");
+
+    //close stream
+    if (output_file.is_open())
+    {
+        output_file.close();
+    }
 }
 
 double GCodeExport::getExtrudedVolumeAfterLastWipe(size_t extruder)
