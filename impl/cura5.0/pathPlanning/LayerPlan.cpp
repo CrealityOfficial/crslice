@@ -352,10 +352,11 @@ LayerPlan::LayerPlan(const SliceDataStorage& storage,
     size_t current_extruder = start_extruder;
     was_inside = true; // not used, because the first travel move is bogus
     is_inside = false; // assumes the next move will not be to inside a layer part (overwritten just before going into a layer part)
-    if (application->currentGroup()->settings.get<CombingMode>("retraction_combing") != CombingMode::OFF)
-    {
+    //if (application->currentGroup()->settings.get<CombingMode>("retraction_combing") != CombingMode::OFF)
+	if(application->extruders().at(0).settings.get<CombingMode>("retraction_combing") != CombingMode::OFF)
+	{	
         comb = new Comb(storage, layer_nr, comb_boundary_minimum, comb_boundary_preferred, comb_boundary_offset, travel_avoid_distance, comb_move_inside_distance);
-    }
+	}
     else
     {
         comb = nullptr;
@@ -397,7 +398,7 @@ ExtruderTrain* LayerPlan::getLastPlannedExtruderTrain()
 Polygons LayerPlan::computeCombBoundary(const CombBoundary boundary_type)
 {
     Polygons comb_boundary;
-    const CombingMode mesh_combing_mode = application->currentGroup()->settings.get<CombingMode>("retraction_combing");
+    const CombingMode mesh_combing_mode = application->extruders().at(0).settings.get<CombingMode>("retraction_combing");
     if (mesh_combing_mode != CombingMode::OFF && (layer_nr >= 0 || mesh_combing_mode != CombingMode::NO_SKIN))
     {
         if (layer_nr < 0)
