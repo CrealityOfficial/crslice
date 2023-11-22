@@ -80,7 +80,7 @@ PressureEqualizer::PressureEqualizer()
     }
     
 	// Don't regulate the pressure before and after ironing.
-    for (const GCodeExtrusionRole er : {GCodeExtrusionRole::Ironing}) {
+    for (const GCodeExtrusionRole er : {GCodeExtrusionRole::None}) {
         m_max_volumetric_extrusion_rate_slopes[size_t(er)].negative = 0;
         m_max_volumetric_extrusion_rate_slopes[size_t(er)].positive = 0;
     }
@@ -354,7 +354,7 @@ bool PressureEqualizer::process_line(const char *line, const char *line_end, GCo
         case 1:
         {
             // G0, G1: A FFF 3D printer does not make a difference between the two.
-            buf.adjustable_flow = this->opened_extrude_set_speed_block;
+            buf.adjustable_flow = true;//yi  this->opened_extrude_set_speed_block;
             buf.extrude_set_speed_tag = found_extrude_set_speed_tag;
             buf.extrude_end_tag = found_extrude_end_tag;
             float new_pos[5];
@@ -637,7 +637,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
         if (!m_gcode_lines[idx_prev].extruding())
             break;
         // Don't decelerate before ironing.
-        if (m_gcode_lines[line_idx].extrusion_role == GCodeExtrusionRole::Ironing) {            line_idx = idx_prev;
+        if (m_gcode_lines[line_idx].extrusion_role == GCodeExtrusionRole::None) {            line_idx = idx_prev;
             continue;
         }
         // Volumetric extrusion rate at the start of the succeding segment.
@@ -657,7 +657,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
                 rate_end = rate_succ;
 
             // don't alter the flow rate for these extrusion types
-            if (!line.adjustable_flow || line.extrusion_role == GCodeExtrusionRole::BridgeInfill || line.extrusion_role == GCodeExtrusionRole::Ironing) {
+            if (!line.adjustable_flow || line.extrusion_role == GCodeExtrusionRole::FILL || line.extrusion_role == GCodeExtrusionRole::None) {
                 rate_end = line.volumetric_extrusion_rate_end;
             } else if (line.volumetric_extrusion_rate_end > rate_end) {
                 line.volumetric_extrusion_rate_end = rate_end;
@@ -681,7 +681,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
             }
 //            feedrate_per_extrusion_role[iRole] = (iRole == line.extrusion_role) ? line.volumetric_extrusion_rate_start : rate_start;
             // Don't store feed rate for ironing
-            if (line.extrusion_role != GCodeExtrusionRole::Ironing)
+            if (line.extrusion_role != GCodeExtrusionRole::None)
                 feedrate_per_extrusion_role[iRole] = line.volumetric_extrusion_rate_start;
         }
     }
@@ -696,7 +696,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
         if (!m_gcode_lines[idx_next].extruding())
             break;
         // Don't accelerate after ironing.
-        if (m_gcode_lines[line_idx].extrusion_role == GCodeExtrusionRole::Ironing) {
+        if (m_gcode_lines[line_idx].extrusion_role == GCodeExtrusionRole::None) {
             line_idx = idx_next;
             continue;
         }
@@ -712,7 +712,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
 
             float rate_start = feedrate_per_extrusion_role[iRole];
             // don't alter the flow rate for these extrusion types
-            if (!line.adjustable_flow  || line.extrusion_role == GCodeExtrusionRole::BridgeInfill || line.extrusion_role == GCodeExtrusionRole::Ironing) {
+            if (!line.adjustable_flow  || line.extrusion_role == GCodeExtrusionRole::FILL || line.extrusion_role == GCodeExtrusionRole::None) {
                 rate_start = line.volumetric_extrusion_rate_start;
             } else if (iRole == size_t(line.extrusion_role) && rate_prec < rate_start)
                 rate_start = rate_prec;
@@ -738,7 +738,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
             }
 //            feedrate_per_extrusion_role[iRole] = (iRole == line.extrusion_role) ? line.volumetric_extrusion_rate_end : rate_end;
             // Don't store feed rate for ironing
-            if (line.extrusion_role != GCodeExtrusionRole::Ironing)
+            if (line.extrusion_role != GCodeExtrusionRole::None)
                 feedrate_per_extrusion_role[iRole] = line.volumetric_extrusion_rate_end;
         }
     }
@@ -822,7 +822,7 @@ void PressureEqualizer::push_line_to_output(const size_t line_idx, const float n
     GCodeG1Formatter feedrate_formatter;
     feedrate_formatter.emit_f(new_feedrate);
     feedrate_formatter.emit_string(std::string(EXTRUDE_SET_SPEED_TAG.data(), EXTRUDE_SET_SPEED_TAG.length()));
-    if (line.extrusion_role == GCodeExtrusionRole::ExternalPerimeter)
+    if (line.extrusion_role == GCodeExtrusionRole::WALL)
         feedrate_formatter.emit_string(std::string(EXTERNAL_PERIMETER_TAG.data(), EXTERNAL_PERIMETER_TAG.length()));
     push_to_output(feedrate_formatter);
 
