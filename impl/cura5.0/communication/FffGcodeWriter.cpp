@@ -1873,7 +1873,7 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                                     line.start_idx++;
                                 }
                             }
-                            int index = minLength(current_layer_start_pt, line, line.junctions[line.start_idx].p, line.start_idx, wall_line_width_0*2, wall_line_width_0 * (wall_line_count + 1));
+                            int index = minLength(current_layer_start_pt, line, line.junctions[line.start_idx].p, line.start_idx, wall_line_width_0*3, wall_line_width_0 * (wall_line_count + 1));
                             if (index >=0 && index < line.junctions.size())
                             {
                                 line.start_idx = index;
