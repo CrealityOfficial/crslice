@@ -52,14 +52,15 @@ PressureEqualizer::PressureEqualizer()
     m_current_extrusion_role = GCodeExtrusionRole::None;
     // Expect the first command to fill the nozzle (deretract).
     m_retracted = true;
-    
+    //m_use_relative_e_distances = false; //yi
     m_max_segment_length = 2.f;
 
     // Calculate filamet crossections for the multiple extruders.
     m_filament_crossections.clear();
-    //for (double r : config.filament_diameter.values) {
-    //    double a = 0.25f * M_PI * r * r;
-        m_filament_crossections.push_back(float(400));
+    //for (double r : config.filament_diameter.values) {   yi
+    double r = 1.75;
+        double a = 0.25f * M_PI * r * r;
+        m_filament_crossections.push_back(float(a));
    // }
 
     // Volumetric rate of a 0.45mm x 0.2mm extrusion at 60mm/s XY movement: 0.45*0.2*60*60=5.4*60 = 324 mm^3/min
@@ -68,9 +69,9 @@ PressureEqualizer::PressureEqualizer()
     
     //if(config.max_volumetric_extrusion_rate_slope.value > 0){
     if (1) {
-		m_max_volumetric_extrusion_rate_slope_positive = float(100) * 60.f * 60.f;
+		m_max_volumetric_extrusion_rate_slope_positive = float(100) * 60.f * 60.f;  //yi
     	m_max_volumetric_extrusion_rate_slope_negative = float(100) * 60.f * 60.f;
-    	m_max_segment_length = float(1);
+    	m_max_segment_length = float(3);//yi
     }
 
     for (ExtrusionRateSlope &extrusion_rate_slope : m_max_volumetric_extrusion_rate_slopes) {
@@ -178,21 +179,8 @@ long PressureEqualizer::advance_segment_beyond_small_gap(const long idx_orig)
     // looped until end of layer and couldn't extend extrusion
      return idx_orig;
 }
-struct LayerResult
-{
-    std::string gcode;
-    size_t      layer_id;
-    // Is spiral vase post processing enabled for this layer?
-    bool spiral_vase_enable{false};
-    // Should the cooling buffer content be flushed at the end of this layer?
-    bool cooling_buffer_flush{false};
-    // Is indicating if this LayerResult should be processed, or it is just inserted artificial LayerResult.
-    // It is used for the pressure equalizer because it needs to buffer one layer back.
-    bool nop_layer_result{false};
 
-    static LayerResult make_nop_layer_result() { return {"", std::numeric_limits<coord_t>::max(), false, false, true}; }
-};
-LayerResult PressureEqualizer::process_layer(LayerResult &&input)
+LayerResult PressureEqualizer::process_layer(LayerResult &input)
 {
     const bool   is_first_layer       = m_layer_results.empty();
     const size_t next_layer_first_idx = m_gcode_lines.size();
@@ -305,7 +293,7 @@ static inline float parse_float(const char *&line, const size_t line_length)
 
 bool PressureEqualizer::process_line(const char *line, const char *line_end, GCodeLine &buf)
 {
-    const size_t len = line_end - line;
+ const size_t len = line_end - line;
     if (strncmp(line, EXTRUSION_ROLE_TAG.data(), EXTRUSION_ROLE_TAG.length()) == 0) {
         line += EXTRUSION_ROLE_TAG.length();
         int role = atoi(line);

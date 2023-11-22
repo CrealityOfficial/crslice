@@ -14,7 +14,20 @@
 
 namespace Slic3r {
 
-struct LayerResult;
+struct LayerResult
+{
+    std::string gcode;
+    size_t      layer_id;
+    // Is spiral vase post processing enabled for this layer?
+    bool spiral_vase_enable{ false };
+    // Should the cooling buffer content be flushed at the end of this layer?
+    bool cooling_buffer_flush{ false };
+    // Is indicating if this LayerResult should be processed, or it is just inserted artificial LayerResult.
+    // It is used for the pressure equalizer because it needs to buffer one layer back.
+    bool nop_layer_result{ false };
+
+    static LayerResult make_nop_layer_result() { return { "", std::numeric_limits<coord_t>::max(), false, false, true }; }
+};
 
 class GCodeG1Formatter;
 
@@ -58,7 +71,7 @@ public:
     // Process a next batch of G-code lines.
     // The last LayerResult must be LayerResult::make_nop_layer_result() because it always returns GCode for the previous layer.
     // When process_layer is called for the first layer, then LayerResult::make_nop_layer_result() is returned.
-    LayerResult process_layer(LayerResult &&input);
+    LayerResult process_layer(LayerResult &input);
 private:
 
     void process_layer(const std::string &gcode);
