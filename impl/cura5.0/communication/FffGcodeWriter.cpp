@@ -1754,6 +1754,50 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
         }
     };
 
+    auto findClosestPointToIdx = [&](Polygon path, Point p, coord_t dist_limit, coord_t dist_limit_max )
+    {
+        int ret = -1;
+        int size = (int)path.size();
+        for (int n = 0; n < size; n++)
+        {
+            Point cur_position = (*path)[n];
+            Point next_position = (*path)[(n + 1 + size) % size];
+            coord_t v_ab_dis = getDistFromSeg(p, cur_position, next_position);
+            if (v_ab_dis < dist_limit_max && v_ab_dis > dist_limit)
+            {
+                ret = n;
+            }
+        }
+        if (ret < 0)
+        {
+            return ret;
+        }
+        return vSize2((*path)[ret] - p) < vSize2((*path)[(ret + 1 + size) % size] - p) ? ret : (ret + 1 + size) % size;
+    };
+    auto findClosest = [&](Polygon path, std::vector<Point> pts, Point& nearest_pt, coord_t dist_limit, coord_t dist_limit_max)
+    {
+        int closestPtIdx = -1;
+        for (const Point& pt : pts)
+        {
+            return  findClosestPointToIdx(path, pt, dist_limit, dist_limit_max);
+        }
+        return  closestPtIdx;
+    };
+
+    auto minLength = [&](std::vector<Point>& pts, ExtrusionLine& line, Point& nearest_pt,int index, coord_t dist_limit, coord_t dist_limit_max)
+    {
+        int closestIdx = -1;
+        for (const Point& pt : pts)
+        {
+            coord_t length = vSize(pt - nearest_pt);
+            if (length <= dist_limit)
+            {
+                return findClosest(line.toPolygon(), pts, nearest_pt, dist_limit,dist_limit_max);
+            }
+        }
+        return  closestIdx;
+    };
+
     MeshGroup* mesh_group = application->currentGroup();
     AngleDegrees z_seam_min_angle_diff = mesh_group->settings.get<AngleDegrees>("z_seam_min_angle_diff");
     AngleDegrees z_seam_max_angle = mesh_group->settings.get<AngleDegrees>("z_seam_max_angle");
@@ -1828,6 +1872,11 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                                     line.junctions.insert(line.junctions.begin() + line.start_idx + 1, new_pt);
                                     line.start_idx++;
                                 }
+                            }
+                            int index = minLength(current_layer_start_pt, line, line.junctions[line.start_idx].p, line.start_idx, wall_line_width_0*2, wall_line_width_0 * (wall_line_count + 1));
+                            if (index >=0 && index < line.junctions.size())
+                            {
+                                line.start_idx = index;
                             }
                             current_layer_start_pt.push_back(line.junctions[line.start_idx].p);
                             idx++;
