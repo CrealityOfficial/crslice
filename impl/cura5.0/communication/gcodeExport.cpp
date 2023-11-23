@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <cmath>
 #include <iomanip>
+
+#include <boost/uuid/random_generator.hpp> //For generating a UUID.
+#include <boost/uuid/uuid_io.hpp> //For generating a UUID.
+
 #include "gcodeExport.h"
 
 #include "settings/RetractionConfig.h"
@@ -22,40 +26,6 @@
 
 namespace cura52
 {
-    bool SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)
-    {
-        std::string::size_type pos1, pos2;
-        pos2 = Src.find(c);
-        if (std::string::npos == pos2)
-            return false;
-
-        pos1 = 0;
-        while (std::string::npos != pos2)
-        {
-            Vctdest.push_back(Src.substr(pos1, pos2 - pos1));
-
-            pos1 = pos2 + c.size();
-            pos2 = Src.find(c, pos1);
-        }
-        if (pos1 != Src.length())
-        {
-            Vctdest.push_back(Src.substr(pos1));
-        }
-        return true;
-    }
-
-std::string transliterate(const std::string& text)
-{
-    // For now, just replace all non-ascii characters with '?'.
-    // This function can be expaned if we need more complex transliteration.
-    std::ostringstream stream;
-    for (const char& c : text)
-    {
-        stream << static_cast<char>((c >= 0) ? c : '?');
-    }
-    return stream.str();
-}
-
 GCodeExport::GCodeExport() 
     : output_stream(&std::cout)
 	, currentPosition(0, 0, MM2INT(20))
@@ -64,6 +34,17 @@ GCodeExport::GCodeExport()
     , estimateCalculator(new TimeEstimateCalculator())
 {
     *output_stream << std::fixed;
+
+    use_extruder_offset_to_offset_coords = false;
+    machine_name = "";
+    relative_extrusion = false;
+    new_line = "\n";
+    is_volumetric = false;
+    setFlavor(EGCodeFlavor::MARLIN);
+
+    always_write_active_tool = false;
+    machine_heated_build_volume = false;
+    build_volume_temperature = 0;
 
     e_value_cleaned       = 0;
     current_e_value		  = 0;
@@ -81,18 +62,12 @@ GCodeExport::GCodeExport()
     current_jerk = -1;
 
     is_z_hopped = 0;
-    setFlavor(EGCodeFlavor::MARLIN);
     initial_bed_temp = 0;
     bed_temperature = 0;
     build_volume_temperature = 0;
-    machine_heated_build_volume = false;
     m_preFixLen = 0;
 
     fan_number = 0;
-    use_extruder_offset_to_offset_coords = false;
-    machine_name = "";
-    relative_extrusion = false;
-    new_line = "\n";
 
     total_bounding_box = AABB3D();
     max_speed_limit_to_height = -1.0;
@@ -115,17 +90,20 @@ bool GCodeExport::setTargetFile(const char* filename)
 
 void GCodeExport::preSetup(const size_t start_extruder)
 {
+    MeshGroup* mesh_group = application->currentGroup();
     if (application->sceneSettings().get<bool>("klipper_time_estimate_enable"))
         estimateCalculator.reset(new TimeEstimateKlipper());
+    estimateCalculator->setFirmwareDefaults(mesh_group->settings);
+
+    use_extruder_offset_to_offset_coords = mesh_group->settings.get<bool>("machine_use_extruder_offset_to_offset_coords");
+    machine_name = mesh_group->settings.get<std::string>("machine_name");
+    relative_extrusion = mesh_group->settings.get<bool>("relative_extrusion");
+    setFlavor(mesh_group->settings.get<EGCodeFlavor>("machine_gcode_flavor"));
+    always_write_active_tool = mesh_group->settings.get<bool>("machine_always_write_active_tool");
 
     current_extruder = start_extruder;
 
-    MeshGroup* mesh_group = application->currentGroup();
-
-    setFlavor(mesh_group->settings.get<EGCodeFlavor>("machine_gcode_flavor"));
-    use_extruder_offset_to_offset_coords = mesh_group->settings.get<bool>("machine_use_extruder_offset_to_offset_coords");
     const size_t extruder_count = application->extruderCount();
-
     for (size_t extruder_nr = 0; extruder_nr < extruder_count; extruder_nr++)
     {
         const ExtruderTrain& train = application->extruders()[extruder_nr];
@@ -135,22 +113,6 @@ void GCodeExport::preSetup(const size_t start_extruder)
         extruder_attr[extruder_nr].last_retraction_prime_speed = train.settings.get<Velocity>("retraction_prime_speed"); // the alternative would be switch_extruder_prime_speed, but dual extrusion might not even be configured...
         extruder_attr[extruder_nr].fan_number = train.settings.get<size_t>("machine_extruder_cooling_fan_number");
     }
-
-    machine_name = mesh_group->settings.get<std::string>("machine_name");
-
-    relative_extrusion = mesh_group->settings.get<bool>("relative_extrusion");
-    always_write_active_tool = mesh_group->settings.get<bool>("machine_always_write_active_tool");
-
-    if (flavor == EGCodeFlavor::BFB)
-    {
-        new_line = "\r\n";
-    }
-    else
-    {
-        new_line = "\n";
-    }
-
-    estimateCalculator->setFirmwareDefaults(mesh_group->settings);
 }
 
 void GCodeExport::setInitialAndBuildVolumeTemps(const unsigned int start_extruder_nr)
@@ -187,36 +149,6 @@ void GCodeExport::setInitialTemp(int extruder_nr, double temp)
     if (flavor == EGCodeFlavor::GRIFFIN || flavor == EGCodeFlavor::ULTIGCODE)
     {
         extruder_attr[extruder_nr].currentTemperature = temp;
-    }
-}
-
-const std::string GCodeExport::flavorToString(const EGCodeFlavor& flavor) const
-{
-    switch (flavor)
-    {
-    case EGCodeFlavor::BFB:
-        return "BFB";
-    case EGCodeFlavor::MACH3:
-        return "Mach3";
-    case EGCodeFlavor::MAKERBOT:
-        return "Makerbot";
-    case EGCodeFlavor::ULTIGCODE:
-        return "UltiGCode";
-    case EGCodeFlavor::MARLIN_VOLUMATRIC:
-        return "Marlin(Volumetric)";
-    case EGCodeFlavor::GRIFFIN:
-        return "Griffin";
-    case EGCodeFlavor::REPETIER:
-        return "Repetier";
-    case EGCodeFlavor::REPRAP:
-        return "RepRap";
-	case EGCodeFlavor::MACH3_Creality:
-		return "MACH3(Creality)";
-	case EGCodeFlavor::Creality_OS:
-		return "Creality OS";
-    case EGCodeFlavor::MARLIN:
-    default:
-        return "Marlin";
     }
 }
 
@@ -459,6 +391,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
     switch (flavor)
     {
     case EGCodeFlavor::GRIFFIN:
+    {
         prefix << ";START_OF_HEADER" << new_line;
         prefix << ";HEADER_VERSION:0.1" << new_line;
         prefix << ";FLAVOR:" << flavorToString(flavor) << new_line;
@@ -469,7 +402,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 
         for (size_t extr_nr = 0; extr_nr < extruder_count; extr_nr++)
         {
-            if (! extruder_is_used[extr_nr])
+            if (!extruder_is_used[extr_nr])
             {
                 continue;
             }
@@ -513,8 +446,11 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";PRINT.SIZE.MAX.X:" << INT2MM(total_bounding_box.max.x) << new_line;
         prefix << ";PRINT.SIZE.MAX.Y:" << INT2MM(total_bounding_box.max.y) << new_line;
         prefix << ";PRINT.SIZE.MAX.Z:" << INT2MM(total_bounding_box.max.z) << new_line;
-        prefix << ";SLICE_UUID:" << slice_uuid_ << new_line;
+
+        std::string slice_uuid = boost::uuids::to_string(boost::uuids::random_generator()());
+        prefix << ";SLICE_UUID:" << slice_uuid << new_line;
         prefix << ";END_OF_HEADER" << new_line;
+    }
         break;
     default:
         prefix << ";FLAVOR:" << flavorToString(flavor) << new_line;
@@ -788,6 +724,15 @@ void GCodeExport::setFlavor(EGCodeFlavor flavor)
     else
     {
         is_volumetric = false;
+    }
+
+    if (flavor == EGCodeFlavor::BFB)
+    {
+        new_line = "\r\n";
+    }
+    else
+    {
+        new_line = "\n";
     }
 }
 
@@ -3219,11 +3164,6 @@ void GCodeExport::insertWipeScript(const WipeScriptConfig& wipe_config)
     }
 
     writeComment("WIPE_SCRIPT_END");
-}
-
-void GCodeExport::setSliceUUID(const std::string& slice_uuid)
-{
-    slice_uuid_ = slice_uuid;
 }
 
 double GCodeExport::getDensity()

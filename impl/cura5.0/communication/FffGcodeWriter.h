@@ -37,9 +37,6 @@ namespace cura52
     {
         friend class Scene; // cause WireFrame2Gcode uses the member [gcode] (TODO)
         friend class FffProcessor; //Because FffProcessor exposes finalize (TODO)
-    private:
-        coord_t max_object_height; //!< The maximal height of all previously sliced meshgroups, used to avoid collision when moving to the next meshgroup to print.
-
     public:
 
         /*
@@ -56,6 +53,8 @@ namespace cura52
          */
         GCodeExport gcode;
     private:
+        coord_t max_object_height; //!< The maximal height of all previously sliced meshgroups, used to avoid collision when moving to the next meshgroup to print.
+
         /*!
          * For each raft/filler layer, the extruders to be used in that layer in the order in which they are going to be used.
          * The first number is the first raft layer. Indexing is shifted compared to normal negative layer numbers for raft/filler layers.
@@ -78,8 +77,6 @@ namespace cura52
 
         std::vector<FanSpeedLayerTimeSettings> fan_speed_layer_time_settings_per_extruder; //!< The settings used relating to minimal layer time
                                                                                            //!< and fan speeds. Configured for each extruder.
-
-        std::string slice_uuid; //!< The UUID of the current slice.
     public:
 
         SliceContext* application = nullptr;
