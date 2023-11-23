@@ -81,7 +81,7 @@ enum class GCodeExtrusionRole  {
 class PressureEqualizer
 {
 public:
-    PressureEqualizer() ;
+    PressureEqualizer(double filament_diameter, float extrusion_rate, float segment_length,bool use_relative_e_distances) ;
     //explicit PressureEqualizer();
     ~PressureEqualizer() = default;
 

@@ -39,7 +39,7 @@ static constexpr long max_ignored_gap_between_extruding_segments = 3;
 
 
 //PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig &config) : m_use_relative_e_distances(config.use_relative_e_distances.value)
-PressureEqualizer::PressureEqualizer()
+PressureEqualizer::PressureEqualizer(double filament_diameter, float extrusion_rate, float segment_length, bool use_relative_e_distances)
 {
     // Preallocate some data, so that output_buffer.data() will return an empty string.
     output_buffer.assign(32, 0);
@@ -52,15 +52,15 @@ PressureEqualizer::PressureEqualizer()
     m_current_extrusion_role = GCodeExtrusionRole::None;
     // Expect the first command to fill the nozzle (deretract).
     m_retracted = true;
-    //m_use_relative_e_distances = false; //yi
+    m_use_relative_e_distances = use_relative_e_distances; //yi
     m_max_segment_length = 2.f;
 
     // Calculate filamet crossections for the multiple extruders.
     m_filament_crossections.clear();
     //for (double r : config.filament_diameter.values) {   yi
-    double r = 1.75;
-        double a = 0.25f * M_PI * r * r;
-        m_filament_crossections.push_back(float(a));
+ 
+    double a = 0.25f * M_PI * filament_diameter * filament_diameter;
+    m_filament_crossections.push_back(float(a));
    // }
 
     // Volumetric rate of a 0.45mm x 0.2mm extrusion at 60mm/s XY movement: 0.45*0.2*60*60=5.4*60 = 324 mm^3/min
@@ -68,10 +68,10 @@ PressureEqualizer::PressureEqualizer()
     // Slope of the volumetric rate, changing from 20mm/s to 60mm/s over 2 seconds: (5.4-1.8)*60*60/2=60*60*1.8 = 6480 mm^3/min^2 = 1.8 mm^3/s^2
     
     //if(config.max_volumetric_extrusion_rate_slope.value > 0){
-    if (1) {
-		m_max_volumetric_extrusion_rate_slope_positive = float(100) * 60.f * 60.f;  //yi
-    	m_max_volumetric_extrusion_rate_slope_negative = float(100) * 60.f * 60.f;
-    	m_max_segment_length = float(3);//yi
+    if (extrusion_rate > 0 ) {
+		m_max_volumetric_extrusion_rate_slope_positive = extrusion_rate * 60.f * 60.f;  //yi
+    	m_max_volumetric_extrusion_rate_slope_negative = extrusion_rate * 60.f * 60.f;
+    	m_max_segment_length = segment_length;//yi
     }
 
     for (ExtrusionRateSlope &extrusion_rate_slope : m_max_volumetric_extrusion_rate_slopes) {
@@ -293,7 +293,7 @@ static inline float parse_float(const char *&line, const size_t line_length)
 
 bool PressureEqualizer::process_line(const char *line, const char *line_end, GCodeLine &buf)
 {
- const size_t len = line_end - line;
+    const size_t len = line_end - line;
     if (strncmp(line, EXTRUSION_ROLE_TAG.data(), EXTRUSION_ROLE_TAG.length()) == 0) {
         line += EXTRUSION_ROLE_TAG.length();
         int role = atoi(line);
@@ -814,16 +814,16 @@ void PressureEqualizer::push_line_to_output(const size_t line_idx, const float n
                                                       output_buffer.begin() + int(this->output_buffer_length) + 1);
         if (is_just_line_with_extrude_set_speed_tag(prev_line_str))
             this->output_buffer_length = this->output_buffer_prev_length; // Remove the last line because it only sets the speed for an empty block of g-code lines, so it is useless.
-        else
-            push_to_output(EXTRUDE_END_TAG.data(), EXTRUDE_END_TAG.length(), true);
-    } else
-        push_to_output(EXTRUDE_END_TAG.data(), EXTRUDE_END_TAG.length(), true);
+       // else
+            //push_to_output(EXTRUDE_END_TAG.data(), EXTRUDE_END_TAG.length(), true);
+    } //else
+        //push_to_output(EXTRUDE_END_TAG.data(), EXTRUDE_END_TAG.length(), true);
 
     GCodeG1Formatter feedrate_formatter;
     feedrate_formatter.emit_f(new_feedrate);
-    feedrate_formatter.emit_string(std::string(EXTRUDE_SET_SPEED_TAG.data(), EXTRUDE_SET_SPEED_TAG.length()));
-    if (line.extrusion_role == GCodeExtrusionRole::WALL)
-        feedrate_formatter.emit_string(std::string(EXTERNAL_PERIMETER_TAG.data(), EXTERNAL_PERIMETER_TAG.length()));
+    //feedrate_formatter.emit_string(std::string(EXTRUDE_SET_SPEED_TAG.data(), EXTRUDE_SET_SPEED_TAG.length()));
+    //if (line.extrusion_role == GCodeExtrusionRole::WALL)
+        //feedrate_formatter.emit_string(std::string(EXTERNAL_PERIMETER_TAG.data(), EXTERNAL_PERIMETER_TAG.length()));
     push_to_output(feedrate_formatter);
 
     GCodeG1Formatter extrusion_formatter;
