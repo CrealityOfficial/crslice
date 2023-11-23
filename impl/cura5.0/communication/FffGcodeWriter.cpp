@@ -6,8 +6,6 @@
 #include <list>
 #include <optional>
 
-#include <boost/uuid/random_generator.hpp> //For generating a UUID.
-#include <boost/uuid/uuid_io.hpp> //For generating a UUID.
 #include "FffGcodeWriter.h"
 
 #include "pathPlanning/InsetOrderOptimizer.h"
@@ -36,7 +34,6 @@ namespace cura52
 FffGcodeWriter::FffGcodeWriter() 
     : max_object_height(0)
     , layer_plan_buffer(gcode)
-    , slice_uuid(boost::uuids::to_string(boost::uuids::random_generator()()))
 {
     for (unsigned int extruder_nr = 0; extruder_nr < MAX_EXTRUDERS; extruder_nr++)
     { // initialize all as max layer_nr, so that they get updated to the lowest layer on which they are used.
@@ -120,7 +117,6 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
 {
     const size_t start_extruder_nr = getStartExtruder(storage);
     gcode.preSetup(start_extruder_nr);
-    gcode.setSliceUUID(slice_uuid);
 
     MeshGroup* mesh_group = application->currentGroup();
     if (application->isFirstGroup()) // First mesh group.

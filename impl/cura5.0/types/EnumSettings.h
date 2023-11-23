@@ -3,6 +3,7 @@
 
 #ifndef ENUMSETTINGS_H
 #define ENUMSETTINGS_H
+#include <string>
 
 namespace cura52
 {
@@ -250,6 +251,14 @@ namespace cura52
                MACH3_Creality = 10,
                Creality_OS = 11,
     };
+
+    /*
+     * \brief Converts the g-code flavor to a string as it must be printed in
+     * the g-code.
+     * \param flavor The g-code flavor to print.
+     * \return A serialized form of this flavor.
+     */
+    std::string flavorToString(const EGCodeFlavor& flavor);
 
     /*!
      * Direction in which to print walls, inside vs. outside.
