@@ -1299,11 +1299,43 @@ void FffPolygonGenerator::processFuzzyWalls(SliceMeshStorage& mesh)
 
 void FffPolygonGenerator::getPaintSupport(SliceDataStorage& storage,const int layer_thickness,const int slice_layer_count, const bool use_variable_layer_heights)
 {
-    std::fstream in(application->supportFile(), std::ios::in | std::ios::binary);
+    std::vector<cura52::Mesh> supportMesh;
+    getBinaryData(application->supportFile(),supportMesh);
+    if (!supportMesh.empty())
+    {
+        for (Mesh& mesh : supportMesh)
+        {
+            SlicedData slicedData;
+            mesh.settings.add("support_paint_enable", "true");
+            mesh.settings.add("keep_open_polygons", "true");
+            mesh.settings.add("minimum_polygon_circumference", "0.05");//长度小于此值会被移除
+            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, slicedData);
+            handleSupportModifierMesh(storage, mesh.settings, &slicedData);
+        }
+    }
+
+    std::vector<cura52::Mesh> antiMesh;
+    getBinaryData(application->antiSupportFile(), antiMesh);
+    if (!antiMesh.empty())
+    {
+        for (Mesh& mesh : antiMesh)
+        {
+            SlicedData slicedData;
+            mesh.settings.add("support_paint_enable", "true"); 
+            mesh.settings.add("keep_open_polygons", "true");
+            mesh.settings.add("minimum_polygon_circumference", "0.05");//长度小于此值会被移除
+            mesh.settings.add("anti_overhang_mesh", "true");
+            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, slicedData);
+            handleSupportModifierMesh(storage, mesh.settings, &slicedData);
+        }
+    }
+}
+
+void FffPolygonGenerator::getBinaryData(std::string fileName, std::vector<Mesh>& meshs)
+{
+    std::fstream in(fileName, std::ios::in | std::ios::binary);
     if (in.is_open())
     {
-        std::vector<Mesh> meshs;
-
         while (1)
         {
             int pNum = 0;
@@ -1349,19 +1381,8 @@ void FffPolygonGenerator::getPaintSupport(SliceDataStorage& storage,const int la
             }
             meshs.back().finish();
         }
-
-        for (Mesh& mesh : meshs)
-        {
-            SlicedData slicedData;
-
-            mesh.settings.add("support_paint_enable", "true");
-            mesh.settings.add("keep_open_polygons", "true");
-            mesh.settings.add("minimum_polygon_circumference", "0.05");//长度小于此值会被移除
-            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, slicedData);
-            handleSupportModifierMesh(storage, mesh.settings, &slicedData);
-        }
-        in.close();
     }
+    in.close();
 }
 
 } // namespace cura52

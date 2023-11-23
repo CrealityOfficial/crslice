@@ -794,10 +794,10 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
 
 
     std::vector<std::pair<int32_t, int32_t>> zbbox = buildZHeightsForFaces(*mesh);
-    if(!mesh->settings.get<bool>("support_paint_enable"))
-        buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
-    else
+    if(mesh->settings.get<bool>("support_paint_enable"))
         buildSegments_paint_support(application, *mesh, zbbox, slicing_tolerance, layers);
+    else
+        buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
 
     LOGI("Slice of mesh took { %f } seconds", slice_timer.restart());
 
@@ -1157,7 +1157,7 @@ void Slicer::makePolygons(SliceContext* application, Mesh& mesh, SlicingToleranc
         layer_apply_initial_xy_offset = 1;
     }
 
-    if (mesh.settings.get<bool>("support_mesh_drop_down"))
+    if (mesh.settings.get<bool>("support_mesh_drop_down") || mesh.settings.get<bool>("anti_overhang_mesh"))
         return;
 
     const coord_t xy_offset = mesh.settings.get<coord_t>("xy_offset");
