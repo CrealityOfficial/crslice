@@ -95,6 +95,9 @@ namespace cura52
         * init cache
         */
         void initCache();
+
+        void wrapperSceneSettings();
+        void wrapperOtherSettings();
     private:
         bool m_error;
 

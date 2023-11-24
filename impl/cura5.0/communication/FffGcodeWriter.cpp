@@ -637,6 +637,8 @@ void FffGcodeWriter::setInfillAndSkinAngles(SliceMeshStorage& mesh)
 void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
 {
     const Settings& mesh_group_settings = application->currentGroup()->settings;
+    const SceneParamWrapper& scene_param = application->sceneParameter();
+
     const ExtruderTrain& support_infill_extruder = mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr");
     storage.support.support_infill_angles = support_infill_extruder.settings.get<std::vector<AngleDegrees>>("support_infill_angles");
     if (storage.support.support_infill_angles.empty())
@@ -651,7 +653,7 @@ void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
         storage.support.support_infill_angles_layer_0.push_back(0);
     }
 
-    if (mesh_group_settings.get<coord_t>("special_slope_slice_angle") != 0)
+    if (scene_param.special_slope_slice_angle_enabled())
     {
         std::vector<AngleDegrees> support_infill_angles;
         std::string Axis = mesh_group_settings.get<std::string>("special_slope_slice_axis");

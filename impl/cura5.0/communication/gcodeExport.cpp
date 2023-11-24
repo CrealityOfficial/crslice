@@ -1192,7 +1192,9 @@ Point3 RotateByVector(Point3 old_pt, Point3 axit, Point3 offset, double theta)
 
 void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 {
-    float angle = application->sceneSettings().get<coord_t>("special_slope_slice_angle") / 1000.;
+    const SceneParamWrapper& scene_param = application->sceneParameter();
+
+    float angle = (float)scene_param.get_special_slope_slice_angle();
     std::string Axis = application->sceneSettings().get<std::string>("special_slope_slice_axis");
     if (angle != 0. && layer_nr >= 0)
     {
@@ -1209,8 +1211,10 @@ void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 }
 void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset)
 {
+    const SceneParamWrapper& scene_param = application->sceneParameter();
+
     Ratio flow_ratio = application->sceneSettings().get<Ratio>("material_flow_ratio") ;
-    float angle = application->sceneSettings().get<coord_t>("special_slope_slice_angle") / 1000.;
+    float angle = (float)scene_param.get_special_slope_slice_angle();
     std::string Axis = application->sceneSettings().get<std::string>("special_slope_slice_axis");
     if (angle != 0. && layer_nr >= 0)
     {
