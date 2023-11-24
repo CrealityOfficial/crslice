@@ -67,9 +67,9 @@ enum class GCodeExtrusionRole  {
     SUPP,
     
     //SupportMaterialInterface,
-    WipeTower,
+    //WipeTower,
     // Custom (user defined) G-code block, for example start / end G-code.
-    Custom,
+    //Custom,
     // Stopper to count number of enums.
     Count
 };

@@ -14,9 +14,11 @@ namespace crslice
 		{
 			Lr.gcode = inputGcodes.at(i);
 			Slic3r::LayerResult getLayerResult = eq.process_layer(Lr);
-			outputGcodes.push_back(getLayerResult.gcode);
+			if (!getLayerResult.gcode.empty())
+				
+				outputGcodes.push_back(getLayerResult.gcode);
 		}
-	
+		outputGcodes.push_back(inputGcodes.at(inputGcodes.size()-1));
 	
 
 

@@ -293,6 +293,7 @@ static inline float parse_float(const char *&line, const size_t line_length)
 
 bool PressureEqualizer::process_line(const char *line, const char *line_end, GCodeLine &buf)
 {
+    //m_retracted = true;
     const size_t len = line_end - line;
     if (strncmp(line, EXTRUSION_ROLE_TAG.data(), EXTRUSION_ROLE_TAG.length()) == 0) {
         line += EXTRUSION_ROLE_TAG.length();
@@ -657,7 +658,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
                 rate_end = rate_succ;
 
             // don't alter the flow rate for these extrusion types
-            if (!line.adjustable_flow || line.extrusion_role == GCodeExtrusionRole::FILL || line.extrusion_role == GCodeExtrusionRole::None) {
+            if (!line.adjustable_flow || line.extrusion_role == GCodeExtrusionRole::SKIR || line.extrusion_role == GCodeExtrusionRole::None) {
                 rate_end = line.volumetric_extrusion_rate_end;
             } else if (line.volumetric_extrusion_rate_end > rate_end) {
                 line.volumetric_extrusion_rate_end = rate_end;
@@ -668,9 +669,9 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
             } else {
                 // Use the original, 'floating' extrusion rate as a starting point for the limiter.
             }
-
+            float rate_start = rate_end + rate_slope * line.time_corrected();
             if (line.adjustable_flow) {
-                float rate_start = rate_end + rate_slope * line.time_corrected();
+                
                 if (rate_start < line.volumetric_extrusion_rate_start) {
                     // Limit the volumetric extrusion rate at the start of this segment due to a segment
                     // of ExtrusionType iRole, which will be extruded in the future.
@@ -679,9 +680,9 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
                     line.modified = true;
                 }
             }
-//            feedrate_per_extrusion_role[iRole] = (iRole == line.extrusion_role) ? line.volumetric_extrusion_rate_start : rate_start;
+           // feedrate_per_extrusion_role[iRole] = (iRole == size_t(line.extrusion_role)) ? line.volumetric_extrusion_rate_start : rate_start;
             // Don't store feed rate for ironing
-            if (line.extrusion_role != GCodeExtrusionRole::None)
+            if (line.extrusion_role != GCodeExtrusionRole::SKIN)
                 feedrate_per_extrusion_role[iRole] = line.volumetric_extrusion_rate_start;
         }
     }
@@ -712,7 +713,7 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
 
             float rate_start = feedrate_per_extrusion_role[iRole];
             // don't alter the flow rate for these extrusion types
-            if (!line.adjustable_flow  || line.extrusion_role == GCodeExtrusionRole::FILL || line.extrusion_role == GCodeExtrusionRole::None) {
+            if (!line.adjustable_flow  || line.extrusion_role == GCodeExtrusionRole::SKIR || line.extrusion_role == GCodeExtrusionRole::None) {
                 rate_start = line.volumetric_extrusion_rate_start;
             } else if (iRole == size_t(line.extrusion_role) && rate_prec < rate_start)
                 rate_start = rate_prec;
@@ -736,9 +737,9 @@ void PressureEqualizer::adjust_volumetric_rate(const size_t fist_line_idx, const
                     line.modified                                     = true;
                 }
             }
-//            feedrate_per_extrusion_role[iRole] = (iRole == line.extrusion_role) ? line.volumetric_extrusion_rate_end : rate_end;
+            // feedrate_per_extrusion_role[iRole] = (iRole == size_t(line.extrusion_role)) ? line.volumetric_extrusion_rate_start : rate_start;
             // Don't store feed rate for ironing
-            if (line.extrusion_role != GCodeExtrusionRole::None)
+            if (line.extrusion_role != GCodeExtrusionRole::SKIN)
                 feedrate_per_extrusion_role[iRole] = line.volumetric_extrusion_rate_end;
         }
     }
