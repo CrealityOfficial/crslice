@@ -10,6 +10,7 @@
 
 #include "pathPlanning/InsetOrderOptimizer.h"
 #include "pathPlanning/LayerPlan.h"
+#include "settings/parse.h"
 
 #include "infill/infill.h"
 
@@ -656,11 +657,7 @@ void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
     if (scene_param.special_slope_slice_angle_enabled())
     {
         std::vector<AngleDegrees> support_infill_angles;
-        std::string Axis = mesh_group_settings.get<std::string>("special_slope_slice_axis");
-        if (Axis == "X")
-            support_infill_angles.push_back(0);
-        else
-            support_infill_angles.push_back(90);
+        support_infill_angles.push_back(parse_special_slope_slice_axis_degree(scene_param.get_special_slope_slice_axis()));
         storage.support.support_infill_angles = support_infill_angles;
         storage.support.support_infill_angles_layer_0 = support_infill_angles;
     }
