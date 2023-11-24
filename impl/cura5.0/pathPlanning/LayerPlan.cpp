@@ -3136,7 +3136,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
         extruder_plan.handleAllRemainingInserts(gcode);
     } // extruder plans /\  .
-
+    if (storage.settings.get<bool>("special_object_cancel") && tmp_is_change_layer == storage.print_layer_count - 1)
+    {
+        std::stringstream ss_exclude_end3;
+        ss_exclude_end3 << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+        gcode.writeComment2(ss_exclude_end3.str());
+    }
     gcode.updateTotalPrintTime();
 }
 
