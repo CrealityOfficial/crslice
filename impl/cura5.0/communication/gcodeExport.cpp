@@ -2966,7 +2966,8 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
                 application->debugger()->getNotPath();
             if (acceleration_breaking_enable)
             {
-                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc* acceleration_percent/100 } << new_line;
+                Acceleration breakAcc = std::max(acc * acceleration_percent / 100, Acceleration(1));
+                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, breakAcc} << new_line;
             
                 if (application->debugger())
                     application->debugger()->getNotPath();
