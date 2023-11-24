@@ -12,6 +12,7 @@
 
 #include "settings/RetractionConfig.h"
 #include "settings/WipeScriptConfig.h"
+#include "settings/parse.h"
 
 #include "tools/Date.h"
 #include "tools/string.h" // MMtoStream, PrecisionedDouble
@@ -1194,13 +1195,11 @@ void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 {
     const SceneParamWrapper& scene_param = application->sceneParameter();
 
-    float angle = (float)scene_param.get_special_slope_slice_angle();
-    std::string Axis = application->sceneSettings().get<std::string>("special_slope_slice_axis");
-    if (angle != 0. && layer_nr >= 0)
+    if (scene_param.special_slope_slice_angle_enabled() && layer_nr >= 0)
     {
+        float angle = (float)scene_param.get_special_slope_slice_angle();
         FPoint3 offset = application->groupOffset();
-        Point3 axis = Point3(0, 1, 0);
-        if (Axis == "X") axis = Point3(1, 0, 0);
+        Point3 axis = parse_special_slope_slice_axis(scene_param.get_special_slope_slice_axis());
         Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
         writeTravel(input_pt, speed);
     }
@@ -1214,13 +1213,12 @@ void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double e
     const SceneParamWrapper& scene_param = application->sceneParameter();
 
     Ratio flow_ratio = application->sceneSettings().get<Ratio>("material_flow_ratio") ;
-    float angle = (float)scene_param.get_special_slope_slice_angle();
-    std::string Axis = application->sceneSettings().get<std::string>("special_slope_slice_axis");
-    if (angle != 0. && layer_nr >= 0)
+    if (scene_param.special_slope_slice_angle_enabled() && layer_nr >= 0)
     {
+        std::string Axis = scene_param.get_special_slope_slice_axis();
+        float angle = (float)scene_param.get_special_slope_slice_angle();
         FPoint3 offset = application->groupOffset();
-        Point3 axis = Point3(0, 1, 0);
-        if (Axis == "X") axis = Point3(1, 0, 0);
+        Point3 axis = parse_special_slope_slice_axis(Axis);
         Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
         if (z_offset > 0)
         {
@@ -1665,28 +1663,6 @@ void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord
     estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
 }
 
-namespace cx
-{
-	double f(double t)
-	{
-		return t - sin(t);
-	}
-	double solvef(double y, double x0, double x1)
-	{
-		//x - sin(x) - y = 0;
-		//x0 <= x <= x1;
-		double a = x0, b = x1;
-		while (true)
-		{
-			if (abs(b - a) < 0.00001) { break; }
-			double c = 0.5 * (a + b);
-			if (f(c) < y) { a = c; }
-			else { b = c; }
-		}
-		return 0.5* (a + b);
-	}
-}
-
 void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const coord_t i, const coord_t j,const double e,  const PrintFeatureType& feature)
 {
     if (currentSpeed != speed)
@@ -1742,9 +1718,9 @@ void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coo
 	
 	int lambda = 1.0;
 	if (estimateCalculator->is_ccw) { lambda = -1.0; }
-	if (2.0 * Radius * cx::f(0.5*theta) > delta)
+	if (2.0 * Radius * math_f(0.5 * theta) > delta)
 	{
-		double eta = 2.0 * cx::solvef(delta / (2.0 * Radius), 0.0, 0.5 * theta);
+		double eta = 2.0 * math_solvef(delta / (2.0 * Radius), 0.0, 0.5 * theta);
 		int num = (int)(theta / eta);
 		eta *= lambda;
 		for (int i = 0; i < num - 1; i++)

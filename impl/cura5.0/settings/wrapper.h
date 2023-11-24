@@ -21,7 +21,7 @@ namespace cura52
 
 		std::string get_special_slope_slice_axis() const;
 	protected:
-		double special_slope_slice_angle;
+		double special_slope_slice_angle = 0.0;
 		std::string special_slope_slice_axis;
 	};
 } //namespace cura52
