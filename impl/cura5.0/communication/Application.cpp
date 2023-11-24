@@ -234,6 +234,8 @@ namespace cura52
             train.settings.add("extruder_nr", std::to_string(i));
         }
 
+        wrapperSceneSettings();
+
         for (MeshGroup& meshGroup : scene->mesh_groups)
         {
             meshGroup.settings.application = this;
@@ -268,6 +270,8 @@ namespace cura52
             {
                 extruder.settings.setParent(&scene->current_mesh_group->settings);
             }
+
+            wrapperOtherSettings();
 
             {
                 progressor.restartTime();
@@ -354,5 +358,15 @@ namespace cura52
                 }
             }
         }
+    }
+
+    void Application::wrapperSceneSettings()
+    {
+        scene_param.initialize(&scene->settings);
+    }
+
+    void Application::wrapperOtherSettings()
+    {
+
     }
 } // namespace cura52
