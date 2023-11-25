@@ -631,7 +631,6 @@ void FffGcodeWriter::setInfillAndSkinAngles(SliceMeshStorage& mesh)
 void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
 {
     const Settings& mesh_group_settings = application->currentGroup()->settings;
-    const SceneParamWrapper& scene_param = application->sceneParameter();
 
     const ExtruderTrain& support_infill_extruder = mesh_group_settings.get<ExtruderTrain&>("support_infill_extruder_nr");
     storage.support.support_infill_angles = support_infill_extruder.settings.get<std::vector<AngleDegrees>>("support_infill_angles");
@@ -647,10 +646,10 @@ void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
         storage.support.support_infill_angles_layer_0.push_back(0);
     }
 
-    if (scene_param.special_slope_slice_angle_enabled())
+    if (gcode.special_slope_slice_angle_enabled())
     {
         std::vector<AngleDegrees> support_infill_angles;
-        support_infill_angles.push_back(parse_special_slope_slice_axis_degree(scene_param.get_special_slope_slice_axis()));
+        support_infill_angles.push_back(parse_special_slope_slice_axis_degree(gcode.get_special_slope_slice_axis()));
         storage.support.support_infill_angles = support_infill_angles;
         storage.support.support_infill_angles_layer_0 = support_infill_angles;
     }
@@ -923,7 +922,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     }
 
 
-    if (mesh_group_settings.get<bool>("machine_heated_build_volume"))
+    if (gcode.get_machine_heated_build_volume())
     {
 		Temperature max_build_volume_temperature;
 		for (const ExtruderTrain& _train : application->extruders())
@@ -955,7 +954,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[start_extruder_nr];
         gcode.writeRetraction(retraction_config);
     }
-    if (mesh_group_settings.get<bool>("relative_extrusion"))
+    if (gcode.get_relative_extrusion())
     {
         gcode.writeExtrusionMode(true);
     }

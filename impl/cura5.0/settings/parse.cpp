@@ -12,9 +12,9 @@ namespace cura52
 	AngleDegrees parse_special_slope_slice_axis_degree(const std::string& str)
 	{
 		if (str == "X")
-			return 0;
+			return 0.0;
 		else
-			return 90;
+			return 90.0;
 	}
 } //namespace cura52
 

@@ -31,21 +31,14 @@ GCodeExport::GCodeExport()
     : output_stream(&std::cout)
 	, currentPosition(0, 0, MM2INT(20))
 	, layer_nr(0)
-	, relative_extrusion(false)
     , estimateCalculator(new TimeEstimateCalculator())
 {
     *output_stream << std::fixed;
 
-    use_extruder_offset_to_offset_coords = false;
-    machine_name = "";
     relative_extrusion = false;
     new_line = "\n";
     is_volumetric = false;
     setFlavor(EGCodeFlavor::MARLIN);
-
-    always_write_active_tool = false;
-    machine_heated_build_volume = false;
-    build_volume_temperature = 0;
 
     e_value_cleaned       = 0;
     current_e_value		  = 0;
@@ -65,7 +58,6 @@ GCodeExport::GCodeExport()
     is_z_hopped = 0;
     initial_bed_temp = 0;
     bed_temperature = 0;
-    build_volume_temperature = 0;
     m_preFixLen = 0;
 
     fan_number = 0;
@@ -96,12 +88,7 @@ void GCodeExport::preSetup(const size_t start_extruder)
         estimateCalculator.reset(new TimeEstimateKlipper());
     estimateCalculator->setFirmwareDefaults(mesh_group->settings);
 
-    use_extruder_offset_to_offset_coords = mesh_group->settings.get<bool>("machine_use_extruder_offset_to_offset_coords");
-    machine_name = mesh_group->settings.get<std::string>("machine_name");
-    relative_extrusion = mesh_group->settings.get<bool>("relative_extrusion");
     setFlavor(mesh_group->settings.get<EGCodeFlavor>("machine_gcode_flavor"));
-    always_write_active_tool = mesh_group->settings.get<bool>("machine_always_write_active_tool");
-
     current_extruder = start_extruder;
 
     const size_t extruder_count = application->extruderCount();
@@ -140,8 +127,6 @@ void GCodeExport::setInitialAndBuildVolumeTemps(const unsigned int start_extrude
 			initial_bed_temp = current_bed_temperature;
 		}
 	}
-    machine_heated_build_volume = mesh_group->settings.get<bool>("machine_heated_build_volume");
-    build_volume_temperature = machine_heated_build_volume ? mesh_group->settings.get<Temperature>("build_volume_temperature") : Temperature(0);
 }
 
 void GCodeExport::setInitialTemp(int extruder_nr, double temp)
@@ -179,7 +164,7 @@ void GCodeExport::writeMashineConfig()
 
     std::ostringstream tmp;
     tmp << ";----------Machine Config--------------" << new_line;
-    tmp << ";Machine Name:" << groupSettings->get<std::string>("machine_name") << new_line;
+    tmp << ";Machine Name:" << get_machine_name() << new_line;
     tmp << ";Machine Height:" << (float)groupSettings->get<coord_t>("machine_height") / 1000.0f << new_line;
     tmp << ";Machine Width:" << (float)groupSettings->get<coord_t>("machine_width") / 1000.0f << new_line;
     tmp << ";Machine Depth:" << (float)groupSettings->get<coord_t>("machine_depth") / 1000.0f << new_line;
@@ -387,7 +372,6 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
     std::ostringstream prefix;
 
     crslice::PathParam pathParam;
-
     const size_t extruder_count = application->extruderCount();
     switch (flavor)
     {
@@ -399,7 +383,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";GENERATOR.NAME:Cura_SteamEngine" << new_line;
         prefix << ";GENERATOR.VERSION:" << CURA_ENGINE_VERSION << new_line;
         prefix << ";GENERATOR.BUILD_DATE:" << Date::getDate().toStringDashed() << new_line;
-        prefix << ";TARGET_MACHINE.NAME:" << transliterate(machine_name) << new_line;
+        prefix << ";TARGET_MACHINE.NAME:" << transliterate(get_machine_name()) << new_line;
 
         for (size_t extr_nr = 0; extr_nr < extruder_count; extr_nr++)
         {
@@ -555,7 +539,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
             pathParam.beltOffsetY = setting->get<double>("machine_belt_offset_Y");
             //pathParam.xf4;//cr30 fxform
 
-            pathParam.relativeExtrude = setting->get<bool>("relative_extrusion");
+            pathParam.relativeExtrude = relative_extrusion;
             if(application->debugger())
                 application->debugger()->setParam(pathParam);
         }
@@ -674,7 +658,7 @@ int GCodeExport::getExtruderNum()
 
 Point GCodeExport::getGcodePos(const coord_t x, const coord_t y, const int extruder_train) const
 {
-    if (use_extruder_offset_to_offset_coords)
+    if (get_machine_use_extruder_offset_to_offset_coords())
     {
         const Settings& extruder_settings = application->extruders()[extruder_train].settings;
         return Point(x - extruder_settings.get<coord_t>("machine_nozzle_offset_x"), 
@@ -1193,13 +1177,11 @@ Point3 RotateByVector(Point3 old_pt, Point3 axit, Point3 offset, double theta)
 
 void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 {
-    const SceneParamWrapper& scene_param = application->sceneParameter();
-
-    if (scene_param.special_slope_slice_angle_enabled() && layer_nr >= 0)
+    if (special_slope_slice_angle_enabled() && layer_nr >= 0)
     {
-        float angle = (float)scene_param.get_special_slope_slice_angle();
+        float angle = (float)get_special_slope_slice_angle();
         FPoint3 offset = application->groupOffset();
-        Point3 axis = parse_special_slope_slice_axis(scene_param.get_special_slope_slice_axis());
+        Point3 axis = parse_special_slope_slice_axis(get_special_slope_slice_axis());
         Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
         writeTravel(input_pt, speed);
     }
@@ -1210,13 +1192,11 @@ void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 }
 void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset)
 {
-    const SceneParamWrapper& scene_param = application->sceneParameter();
-
     Ratio flow_ratio = application->sceneSettings().get<Ratio>("material_flow_ratio") ;
-    if (scene_param.special_slope_slice_angle_enabled() && layer_nr >= 0)
+    if (special_slope_slice_angle_enabled() && layer_nr >= 0)
     {
-        std::string Axis = scene_param.get_special_slope_slice_axis();
-        float angle = (float)scene_param.get_special_slope_slice_angle();
+        std::string Axis = get_special_slope_slice_axis();
+        float angle = (float)get_special_slope_slice_angle();
         FPoint3 offset = application->groupOffset();
         Point3 axis = parse_special_slope_slice_axis(Axis);
         Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
@@ -2988,7 +2968,7 @@ void GCodeExport::finalize(const std::string& end_gcode)
 {
     const Settings& mesh_group_settings = application->currentGroup()->settings;
 
-    if (end_gcode.length() > 0 && mesh_group_settings.get<bool>("relative_extrusion"))
+    if (end_gcode.length() > 0 && relative_extrusion)
     {
         writeExtrusionMode(false); // ensure absolute extrusion mode is set before the end gcode
     }
@@ -3021,7 +3001,7 @@ void GCodeExport::finalize()
         writeBedTemperatureCommand(0); // Cool down the bed (M140).
         // Nozzles are cooled down automatically after the last time they are used (which might be earlier than the end of the print).
     }
-    if (mesh_group_settings.get<bool>("machine_heated_build_volume") && mesh_group_settings.get<Temperature>("build_volume_temperature") != 0)
+    if (machine_heated_build_volume && build_volume_temperature != 0.0)
     {
         writeBuildVolumeTemperatureCommand(0); // Cool down the build volume.
     }

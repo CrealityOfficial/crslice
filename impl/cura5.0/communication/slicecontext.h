@@ -61,7 +61,6 @@ namespace cura52
         virtual std::vector<ExtruderTrain>& extruders() = 0;
 
         virtual const Settings& sceneSettings() = 0;
-        const SceneParamWrapper& sceneParameter() { return scene_param; }
 
         virtual bool isCenterZero() = 0;
         virtual std::string polygonFile() = 0;
@@ -99,9 +98,6 @@ namespace cura52
         virtual void messageProgressStage(Progress::Stage stage) = 0;
 
         virtual void setResult(const SliceResult& result) = 0;
-
-    protected:
-        SceneParamWrapper scene_param;
     };
 
 } //namespace cura52

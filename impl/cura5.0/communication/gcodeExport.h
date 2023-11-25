@@ -12,6 +12,8 @@
 
 #include "utils/AABB3D.h" //To track the used build volume for the Griffin header.
 #include "settings/Settings.h" //For MAX_EXTRUDERS.
+#include "settings/wrapper.h"
+
 #include "types/LayerIndex.h"
 
 #include "types/header.h"
@@ -80,60 +82,18 @@ namespace cura52
 
     //The GCodeExport class writes the actual GCode. This is the only class that knows how GCode looks and feels.
     //Any customizations on GCodes flavors are done in this class.
-    class GCodeExport
+    class GCodeExport : public SceneParamWrapper
     {
-    public:
-#ifdef BUILD_TESTS
-        friend class GCodeExportTest;
-        friend class GriffinHeaderTest;
-        FRIEND_TEST(GCodeExportTest, CommentEmpty);
-        FRIEND_TEST(GCodeExportTest, CommentSimple);
-        FRIEND_TEST(GCodeExportTest, CommentMultiLine);
-        FRIEND_TEST(GCodeExportTest, CommentMultiple);
-        FRIEND_TEST(GCodeExportTest, CommentTimeZero);
-        FRIEND_TEST(GCodeExportTest, CommentTimeInteger);
-        FRIEND_TEST(GCodeExportTest, CommentTimeFloatRoundingError);
-        FRIEND_TEST(GCodeExportTest, CommentTypeAllTypesCovered);
-        FRIEND_TEST(GCodeExportTest, CommentLayer);
-        FRIEND_TEST(GCodeExportTest, CommentLayerNegative);
-        FRIEND_TEST(GCodeExportTest, CommentLayerCount);
-        FRIEND_TEST(GriffinHeaderTest, HeaderGriffinFormat);
-        FRIEND_TEST(GCodeExportTest, HeaderUltiGCode);
-        FRIEND_TEST(GCodeExportTest, HeaderRepRap);
-        FRIEND_TEST(GCodeExportTest, HeaderMarlin);
-        FRIEND_TEST(GCodeExportTest, HeaderMarlinVolumetric);
-        FRIEND_TEST(GCodeExportTest, EVsMmVolumetric);
-        FRIEND_TEST(GCodeExportTest, EVsMmLinear);
-        FRIEND_TEST(GCodeExportTest, WriteZHopStartDefaultSpeed);
-        FRIEND_TEST(GCodeExportTest, WriteZHopStartCustomSpeed);
-        FRIEND_TEST(GCodeExportTest, WriteZHopEndZero);
-        FRIEND_TEST(GCodeExportTest, WriteZHopEndDefaultSpeed);
-        FRIEND_TEST(GCodeExportTest, WriteZHopEndCustomSpeed);
-        FRIEND_TEST(GCodeExportTest, insertWipeScriptSingleMove);
-        FRIEND_TEST(GCodeExportTest, insertWipeScriptMultipleMoves);
-        FRIEND_TEST(GCodeExportTest, insertWipeScriptOptionalDelay);
-        FRIEND_TEST(GCodeExportTest, insertWipeScriptRetractionEnable);
-        FRIEND_TEST(GCodeExportTest, insertWipeScriptHopEnable);
-#endif
     private:
         /*!
         * The gcode file to write to when using CuraEngine as command line tool.
         */
         std::ofstream output_file;
         std::ostream* output_stream;
-
-        //global parameter
-        bool use_extruder_offset_to_offset_coords;
-        std::string machine_name;
-        bool relative_extrusion; //!< whether to use relative extrusion distances rather than absolute
         
         EGCodeFlavor flavor;
         std::string new_line;
         bool is_volumetric;
-
-        bool always_write_active_tool; //!< whether to write the active tool after sending commands to inactive tool
-        bool machine_heated_build_volume;  //!< does the machine have the ability to control/stabilize build-volume-temperature
-        Temperature build_volume_temperature;  //!< build volume temperature
 
         //time
         std::shared_ptr<TimeEstimateCalculator> estimateCalculator;
