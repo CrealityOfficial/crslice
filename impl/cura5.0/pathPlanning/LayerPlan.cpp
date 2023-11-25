@@ -1802,10 +1802,8 @@ void LayerPlan::addLinesMonotonic(const Polygons& area,
 
 void LayerPlan::spiralizeWallSlice(const GCodePathConfig& config, ConstPolygonRef wall, ConstPolygonRef last_wall, const int seam_vertex_idx, const int last_seam_vertex_idx, const bool is_top_layer, const bool is_bottom_layer)
 {
-    const SceneParamWrapper& scene_param = application->sceneParameter();
-
     const bool smooth_contours = application->currentGroup()->settings.get<bool>("smooth_spiralized_contours");
-    const bool slope_slice = scene_param.special_slope_slice_angle_enabled();
+    const bool slope_slice = application->currentGroup()->settings.get<double>("special_slope_slice_angle") != 0.0;
     constexpr bool spiralize = true; // In addExtrusionMove calls, enable spiralize and use nominal line width.
     constexpr Ratio width_factor = 1.0_r;
 
@@ -2234,7 +2232,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     size_t extruder_nr = gcode.getExtruderNr();
     const Settings& mesh_group_settings = application->currentGroup()->settings;
     const Settings& extruder_settings = application->extruders()[extruder_nr].settings;
-    const SceneParamWrapper& scene_param = application->sceneParameter();
 
     gcode.setFlowRateExtrusionSettings(mesh_group_settings.get<double>("flow_rate_max_extrusion_offset"), mesh_group_settings.get<Ratio>("flow_rate_extrusion_offset_factor")); // Offset is in mm.
 
@@ -2243,7 +2240,6 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 	double material_density = mesh_group_settings.get<double>("material_density");
 	gcode.setDensity(material_density);
 	gcode.setDiameter(material_diameter);
-	//std::string machine_name = mesh_group_settings.get<std::string>("machine_name");
 
     coord_t cds_fan_start_layer = extruder_settings.get<coord_t>("cool_cds_fan_start_at_height") / layer_thickness;
 
@@ -2845,7 +2841,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if (! coasting) // not same as 'else', cause we might have changed [coasting] in the line above...
                 { // normal path to gcode algorithm
                     bool arc_configure_enable = application->sceneSettings().get<bool>("arc_configure_enable");
-                    bool slope_slice_enable = scene_param.special_slope_slice_angle_enabled();
+                    bool slope_slice_enable = gcode.special_slope_slice_angle_enabled();
                     if (arc_configure_enable && !slope_slice_enable)
                     {
                         if (1)
@@ -3088,7 +3084,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         const Point p1 = path.points[point_idx];
                         length += vSizeMM(p0 - p1);
                         p0 = p1;
-                        if (scene_param.special_slope_slice_angle_enabled())
+                        if (gcode.special_slope_slice_angle_enabled())
                         {
                             gcode.setZ(std::round(z + layer_thickness * length / totalLength));
                         }

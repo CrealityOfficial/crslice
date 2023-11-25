@@ -362,7 +362,7 @@ namespace cura52
 
     void Application::wrapperSceneSettings()
     {
-        scene_param.initialize(&scene->settings);
+        gcode_writer.gcode.initialize(&scene->settings);
     }
 
     void Application::wrapperOtherSettings()
