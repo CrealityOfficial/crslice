@@ -2923,7 +2923,7 @@ bool GCodeExport::detect_limit_speed(LimitType limitType)
 
 void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
-	Acceleration acc = acceleration;
+	Acceleration acc = std::max(acceleration, Acceleration(100));
 	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
 	{       
         if (acceleration_limit_mess_enable)
@@ -2960,9 +2960,9 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
         {
             if (acceleration_breaking_enable)
             {
-                Acceleration breakAcc = std::max(acc * acceleration_percent / 100, Acceleration(1));
+                //Acceleration breakAcc = std::max(acc * acceleration_percent / 100, Acceleration(100));
                 *output_stream << "SET_VELOCITY_LIMIT ACCEL=" << PrecisionedDouble{ 0, acc };
-                *output_stream << " ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, breakAcc } << new_line;
+                *output_stream << " ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc * acceleration_percent / 100 } << new_line;
                 if (application->debugger())
                     application->debugger()->getNotPath();
             }
@@ -2979,17 +2979,8 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
         if (current_print_acceleration != acc)
         {
             *output_stream << "M204 S" << PrecisionedDouble{ 0, acc } << new_line;
-
             if (application->debugger())
                 application->debugger()->getNotPath();
-            if (acceleration_breaking_enable)
-            {
-                Acceleration breakAcc = std::max(acc * acceleration_percent / 100, Acceleration(1));
-                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, breakAcc} << new_line;
-            
-                if (application->debugger())
-                    application->debugger()->getNotPath();
-            }
         }
         break;
     }
