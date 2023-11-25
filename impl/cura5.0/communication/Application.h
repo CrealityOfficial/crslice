@@ -49,6 +49,9 @@ namespace cura52
         int extruderCount() override;
         const std::vector<ExtruderTrain>& extruders() const override;
         std::vector<ExtruderTrain>& extruders() override;
+
+        const Settings& extruderSettings(int index) override;
+        const Settings& currentGroupSettings() override;
         const Settings& sceneSettings() override;
         bool isCenterZero() override;
         std::string polygonFile() override;

@@ -183,8 +183,9 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
 
     int process_layer_starting_layer_nr = 0;
-    const bool has_raft = mesh_group->settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT;
-    const bool has_simple_raft = mesh_group->settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::SIMPLERAFT;
+    EPlatformAdhesion adhesion_type = application->get_adhesion_type();
+    const bool has_raft = adhesion_type == EPlatformAdhesion::RAFT;
+    const bool has_simple_raft = adhesion_type == EPlatformAdhesion::SIMPLERAFT;
     if (has_raft)
     {
         processRaft(storage);
@@ -540,7 +541,7 @@ void FffGcodeWriter::setConfigWipe(SliceDataStorage& storage)
 size_t FffGcodeWriter::getStartExtruder(const SliceDataStorage& storage)
 {
     const Settings& mesh_group_settings = application->currentGroup()->settings;
-    const EPlatformAdhesion adhesion_type = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type");
+    const EPlatformAdhesion adhesion_type = application->get_adhesion_type();
     const ExtruderTrain& skirt_brim_extruder = mesh_group_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr");
 
     size_t start_extruder_nr = 0;
@@ -646,10 +647,10 @@ void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
         storage.support.support_infill_angles_layer_0.push_back(0);
     }
 
-    if (gcode.special_slope_slice_angle_enabled())
+    if (application->get_special_slope_slice_angle() != 0.0)
     {
         std::vector<AngleDegrees> support_infill_angles;
-        support_infill_angles.push_back(parse_special_slope_slice_axis_degree(gcode.get_special_slope_slice_axis()));
+        support_infill_angles.push_back(parse_special_slope_slice_axis_degree(application->get_special_slope_slice_axis()));
         storage.support.support_infill_angles = support_infill_angles;
         storage.support.support_infill_angles_layer_0 = support_infill_angles;
     }
@@ -671,7 +672,7 @@ void FffGcodeWriter::setSupportAngles(SliceDataStorage& storage)
             {
                 for (const SliceMeshStorage& mesh : storage.meshes)
                 {
-                    if (mesh.settings.get<coord_t>(interface_height_setting) >= 2 * application->currentGroup()->settings.get<coord_t>("layer_height"))
+                    if (mesh.settings.get<coord_t>(interface_height_setting) >= 2 * application->get_layer_height())
                     {
                         // Some roofs are quite thick.
                         // Alternate between the two kinds of diagonal: / and \ .
@@ -922,7 +923,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     }
 
 
-    if (gcode.get_machine_heated_build_volume())
+    if (application->get_machine_heated_build_volume())
     {
 		Temperature max_build_volume_temperature;
 		for (const ExtruderTrain& _train : application->extruders())
@@ -954,7 +955,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
         const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[start_extruder_nr];
         gcode.writeRetraction(retraction_config);
     }
-    if (gcode.get_relative_extrusion())
+    if (application->get_relative_extrusion())
     {
         gcode.writeExtrusionMode(true);
     }
@@ -1817,13 +1818,15 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 {
     //LOGD("GcodeWriter processing layer {} of {}", layer_nr, total_layers);
     const Settings& mesh_group_settings = application->currentGroup()->settings;
-    coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
+    coord_t layer_thickness = application->get_layer_height();
     coord_t z;
     bool include_helper_parts = true;
+
+    EPlatformAdhesion adhesion_type = application->get_adhesion_type();
     if (layer_nr < 0)
     {
 #ifdef DEBUG
-        assert(mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT && "negative layer_number means post-raft, pre-model layer!");
+        assert(adhesion_type == EPlatformAdhesion::RAFT && "negative layer_number means post-raft, pre-model layer!");
 #endif // DEBUG
         const int filler_layer_count = Raft::getFillerLayerCount(storage.application);
         layer_thickness = Raft::getFillerLayerHeight(storage.application);
@@ -1847,7 +1850,7 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 
         if (layer_nr == 0)
         {
-            if (mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT || mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::SIMPLERAFT)
+            if (adhesion_type == EPlatformAdhesion::RAFT || adhesion_type == EPlatformAdhesion::SIMPLERAFT)
             {
                 include_helper_parts = false;
             }
@@ -2076,7 +2079,8 @@ void FffGcodeWriter::processSkirtBrim(const SliceDataStorage& storage, LayerPlan
     }
     // Start brim close to the prime location
     const ExtruderTrain& train = application->extruders()[extruder_nr];
-    gcode_layer.need_smart_brim = train.settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::BRIM || train.settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::AUTOBRIM;
+    EPlatformAdhesion adhesion_type = application->get_adhesion_type();
+    gcode_layer.need_smart_brim = adhesion_type == EPlatformAdhesion::BRIM || adhesion_type == EPlatformAdhesion::AUTOBRIM;
     Point start_close_to;
     if (train.settings.get<bool>("prime_blob_enable"))
     {
@@ -2160,7 +2164,7 @@ void FffGcodeWriter::processSkirtBrim(const SliceDataStorage& storage, LayerPlan
 void FffGcodeWriter::processOozeShield(const SliceDataStorage& storage, LayerPlan& gcode_layer) const
 {
     unsigned int layer_nr = std::max(0, gcode_layer.getLayerNr());
-    if (layer_nr == 0 && application->currentGroup()->settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::BRIM)
+    if (layer_nr == 0 && application->get_adhesion_type() == EPlatformAdhesion::BRIM)
     {
         return; // ooze shield already generated by brim
     }
@@ -2182,7 +2186,7 @@ void FffGcodeWriter::processDraftShield(const SliceDataStorage& storage, LayerPl
     {
         return;
     }
-    if (layer_nr == 0 && mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::BRIM)
+    if (layer_nr == 0 && application->get_adhesion_type() == EPlatformAdhesion::BRIM)
     {
         return; // draft shield already generated by brim
     }
@@ -2190,8 +2194,8 @@ void FffGcodeWriter::processDraftShield(const SliceDataStorage& storage, LayerPl
     if (mesh_group_settings.get<DraftShieldHeightLimitation>("draft_shield_height_limitation") == DraftShieldHeightLimitation::LIMITED)
     {
         const coord_t draft_shield_height = mesh_group_settings.get<coord_t>("draft_shield_height");
-        const coord_t layer_height_0 = mesh_group_settings.get<coord_t>("layer_height_0");
-        const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
+        const coord_t layer_height_0 = application->get_layer_height_0();
+        const coord_t layer_height = application->get_layer_height();
         const LayerIndex max_screen_layer = (draft_shield_height - layer_height_0) / layer_height + 1;
         if (layer_nr > max_screen_layer)
         {
@@ -2252,9 +2256,10 @@ std::vector<size_t> FffGcodeWriter::getUsedExtrudersOnLayerExcludingStartingExtr
         extruder_is_used_on_this_layer[storage.primeTower.extruder_order[0]] = true;
     }
 
+    EPlatformAdhesion adhesion_type = application->get_adhesion_type();
     // check if we are on the first layer
-    if (((mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT || mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::SIMPLERAFT) && layer_nr == -static_cast<LayerIndex>(Raft::getTotalExtraLayers(storage.application)))
-        || ((mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") != EPlatformAdhesion::RAFT && mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") != EPlatformAdhesion::SIMPLERAFT) && layer_nr == 0))
+    if (((adhesion_type == EPlatformAdhesion::RAFT || adhesion_type == EPlatformAdhesion::SIMPLERAFT) && layer_nr == -static_cast<LayerIndex>(Raft::getTotalExtraLayers(storage.application)))
+        || ((adhesion_type != EPlatformAdhesion::RAFT && adhesion_type != EPlatformAdhesion::SIMPLERAFT) && layer_nr == 0))
     {
         // check if we need prime blob on the first layer
         for (size_t used_idx = 0; used_idx < extruder_is_used_on_this_layer.size(); used_idx++)
@@ -2532,7 +2537,7 @@ bool FffGcodeWriter::processMultiLayerInfill(const SliceDataStorage& storage, La
     AngleDegrees infill_angle = 45; // Original default. This will get updated to an element from mesh->infill_angles.
     if (! mesh.infill_angles.empty())
     {
-        const size_t combined_infill_layers = std::max(uint64_t(1), round_divide(mesh.settings.get<coord_t>("infill_sparse_thickness"), std::max(mesh.settings.get<coord_t>("layer_height"), coord_t(1))));
+        const size_t combined_infill_layers = std::max(uint64_t(1), round_divide(mesh.settings.get<coord_t>("infill_sparse_thickness"), std::max(application->get_layer_height(), coord_t(1))));
         infill_angle = mesh.infill_angles.at((gcode_layer.getLayerNr() / combined_infill_layers) % mesh.infill_angles.size());
     }
     const Point3 mesh_middle = mesh.bounding_box.getMiddle();
@@ -2672,7 +2677,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage,
     AngleDegrees infill_angle = 45; // Original default. This will get updated to an element from mesh->infill_angles.
     if (! mesh.infill_angles.empty())
     {
-        const size_t combined_infill_layers = std::max(uint64_t(1), round_divide(mesh.settings.get<coord_t>("infill_sparse_thickness"), std::max(mesh.settings.get<coord_t>("layer_height"), coord_t(1))));
+        const size_t combined_infill_layers = std::max(uint64_t(1), round_divide(mesh.settings.get<coord_t>("infill_sparse_thickness"), std::max(application->get_layer_height(), coord_t(1))));
         infill_angle = mesh.infill_angles.at((static_cast<size_t>(gcode_layer.getLayerNr()) / combined_infill_layers) % mesh.infill_angles.size());
     }
     const Point3 mesh_middle = mesh.bounding_box.getMiddle();
@@ -3667,7 +3672,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage,
     constexpr coord_t pocket_size = 0;
 
     coord_t line_distance = config.getLineWidth();
-    const coord_t layer_thickness = mesh.settings.get<coord_t>("layer_height");
+    const coord_t layer_thickness = application->get_layer_height();
     if (mesh.settings.get<bool>("special_exact_flow_enable"))
     {
         line_distance = line_distance - layer_thickness * float(1. - 0.25 * M_PI);
@@ -3885,7 +3890,8 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
     const coord_t max_resolution = infill_extruder.settings.get<coord_t>("meshfix_maximum_resolution");
     const coord_t max_deviation = infill_extruder.settings.get<coord_t>("meshfix_maximum_deviation");
     coord_t default_support_line_width = infill_extruder.settings.get<coord_t>("support_line_width");
-    if (gcode_layer.getLayerNr() == 0 && (mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") != EPlatformAdhesion::RAFT && mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") != EPlatformAdhesion::SIMPLERAFT))
+    EPlatformAdhesion adhesion_type = application->get_adhesion_type();
+    if (gcode_layer.getLayerNr() == 0 && (adhesion_type != EPlatformAdhesion::RAFT && adhesion_type != EPlatformAdhesion::SIMPLERAFT))
     {
         default_support_line_width *= infill_extruder.settings.get<Ratio>("initial_layer_line_width_factor");
     }
@@ -3947,7 +3953,7 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
         if (! wall_toolpaths.empty())
         {
 			const size_t combine_layers_amount = std::max(uint64_t(1), round_divide(storage.application->sceneSettings().get<coord_t>("support_infill_sparse_thickness"), 
-												 std::max(storage.application->sceneSettings().get<coord_t>("layer_height"), coord_t(1))));
+												 std::max(application->get_layer_height(), coord_t(1))));
             const GCodePathConfig& config = gcode_layer.configs_storage.support_infill_config[combine_layers_amount];
             constexpr bool retract_before_outer_wall = false;
             constexpr coord_t wipe_dist = 0;

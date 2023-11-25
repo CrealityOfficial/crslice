@@ -2841,7 +2841,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 if (! coasting) // not same as 'else', cause we might have changed [coasting] in the line above...
                 { // normal path to gcode algorithm
                     bool arc_configure_enable = application->sceneSettings().get<bool>("arc_configure_enable");
-                    bool slope_slice_enable = gcode.special_slope_slice_angle_enabled();
+                    bool slope_slice_enable = application->get_special_slope_slice_angle() != 0.0;
                     if (arc_configure_enable && !slope_slice_enable)
                     {
                         if (1)
@@ -3084,7 +3084,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         const Point p1 = path.points[point_idx];
                         length += vSizeMM(p0 - p1);
                         p0 = p1;
-                        if (gcode.special_slope_slice_angle_enabled())
+                        if (application->get_special_slope_slice_angle() != 0.0)
                         {
                             gcode.setZ(std::round(z + layer_thickness * length / totalLength));
                         }

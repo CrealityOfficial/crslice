@@ -35,7 +35,6 @@ GCodeExport::GCodeExport()
 {
     *output_stream << std::fixed;
 
-    relative_extrusion = false;
     new_line = "\n";
     is_volumetric = false;
     setFlavor(EGCodeFlavor::MARLIN);
@@ -164,7 +163,7 @@ void GCodeExport::writeMashineConfig()
 
     std::ostringstream tmp;
     tmp << ";----------Machine Config--------------" << new_line;
-    tmp << ";Machine Name:" << get_machine_name() << new_line;
+    tmp << ";Machine Name:" << application->get_machine_name() << new_line;
     tmp << ";Machine Height:" << (float)groupSettings->get<coord_t>("machine_height") / 1000.0f << new_line;
     tmp << ";Machine Width:" << (float)groupSettings->get<coord_t>("machine_width") / 1000.0f << new_line;
     tmp << ";Machine Depth:" << (float)groupSettings->get<coord_t>("machine_depth") / 1000.0f << new_line;
@@ -211,7 +210,7 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Top/Bottom Thickness:" << (float)groupSettings->get<coord_t>("top_bottom_thickness") / 1000.0f << new_line;
     tmp << ";Out Wall Line Width:" << (float)groupSettings->get<coord_t>("wall_line_width_0") / 1000.0f << new_line;
     tmp << ";Inner Wall Line Width:" << (float)groupSettings->get<coord_t>("wall_line_width_x") / 1000.0f << new_line;
-    tmp << ";Inital Height:" << groupSettings->get<coord_t>("layer_height_0") << new_line;
+    tmp << ";Inital Height:" << application->get_layer_height_0() << new_line;
     tmp << ";Wall Line Count:" << groupSettings->get<size_t>("wall_line_count") << new_line;
     tmp << ";Infill Line Distance:" << (float)groupSettings->get<coord_t>("infill_line_distance") / 1000.0f << new_line;
     tmp << ";Infill Pattern:" << groupSettings->get<std::string>("infill_pattern") << new_line;
@@ -383,7 +382,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";GENERATOR.NAME:Cura_SteamEngine" << new_line;
         prefix << ";GENERATOR.VERSION:" << CURA_ENGINE_VERSION << new_line;
         prefix << ";GENERATOR.BUILD_DATE:" << Date::getDate().toStringDashed() << new_line;
-        prefix << ";TARGET_MACHINE.NAME:" << transliterate(get_machine_name()) << new_line;
+        prefix << ";TARGET_MACHINE.NAME:" << transliterate(application->get_machine_name()) << new_line;
 
         for (size_t extr_nr = 0; extr_nr < extruder_count; extr_nr++)
         {
@@ -406,9 +405,9 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         }
         prefix << ";BUILD_PLATE.INITIAL_TEMPERATURE:" << initial_bed_temp << new_line;
 
-        if (machine_heated_build_volume)
+        if (application->get_machine_heated_build_volume())
         {
-            prefix << ";BUILD_VOLUME.TEMPERATURE:" << build_volume_temperature << new_line;
+            prefix << ";BUILD_VOLUME.TEMPERATURE:" << application->get_build_volume_temperature() << new_line;
         }
 
         if (print_time)
@@ -480,10 +479,10 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
                 prefix << "00.0000m";
             }
             prefix << new_line;
-            prefix << ";Layer height:" << application->currentGroup()->settings.get<double>("layer_height") << new_line;
+            prefix << ";Layer height:" << application->get_layer_height() << new_line;
         }
         else
-            prefix << ";Layer Height:" << application->currentGroup()->settings.get<double>("layer_height") << new_line;
+            prefix << ";Layer Height:" << application->get_layer_height() << new_line;
         prefix << ";MINX:" << INT2MM(total_bounding_box.min.x) << new_line;
         prefix << ";MINY:" << INT2MM(total_bounding_box.min.y) << new_line;
         prefix << ";MINZ:" << INT2MM(total_bounding_box.min.z) << new_line;
@@ -509,7 +508,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
             pathParam.material_density = setting->get<double>("material_density");  //材料密度
             pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
             pathParam.lineWidth = setting->get<double>("line_width");
-            pathParam.layerHeight = setting->get<double>("layer_height");
+            pathParam.layerHeight = INT2MM(application->get_layer_height());
             //pathParam.unitPrice;
 
             float filament_cost = setting->get<double>("filament_cost");
@@ -539,7 +538,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
             pathParam.beltOffsetY = setting->get<double>("machine_belt_offset_Y");
             //pathParam.xf4;//cr30 fxform
 
-            pathParam.relativeExtrude = relative_extrusion;
+            pathParam.relativeExtrude = application->get_relative_extrusion();
             if(application->debugger())
                 application->debugger()->setParam(pathParam);
         }
@@ -658,7 +657,7 @@ int GCodeExport::getExtruderNum()
 
 Point GCodeExport::getGcodePos(const coord_t x, const coord_t y, const int extruder_train) const
 {
-    if (get_machine_use_extruder_offset_to_offset_coords())
+    if (application->get_machine_use_extruder_offset_to_offset_coords())
     {
         const Settings& extruder_settings = application->extruders()[extruder_train].settings;
         return Point(x - extruder_settings.get<coord_t>("machine_nozzle_offset_x"), 
@@ -1137,7 +1136,7 @@ void GCodeExport::writeExtrusionMode(bool set_relative_extrusion_mode)
 
 void GCodeExport::resetExtrusionValue()
 {
-    if (! relative_extrusion)
+    if (!application->get_relative_extrusion())
     {
         *output_stream << "G92 " << extruder_attr[current_extruder].extruderCharacter << "0" << new_line;
     }
@@ -1177,11 +1176,11 @@ Point3 RotateByVector(Point3 old_pt, Point3 axit, Point3 offset, double theta)
 
 void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 {
-    if (special_slope_slice_angle_enabled() && layer_nr >= 0)
+    if (application->get_special_slope_slice_angle() != 0.0 && layer_nr >= 0)
     {
-        float angle = (float)get_special_slope_slice_angle();
+        float angle = (float)application->get_special_slope_slice_angle();
         FPoint3 offset = application->groupOffset();
-        Point3 axis = parse_special_slope_slice_axis(get_special_slope_slice_axis());
+        Point3 axis = parse_special_slope_slice_axis(application->get_special_slope_slice_axis());
         Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
         writeTravel(input_pt, speed);
     }
@@ -1193,16 +1192,16 @@ void GCodeExport::writeTravel(const Point& p, const Velocity& speed)
 void GCodeExport::writeExtrusion(const Point& p, const Velocity& speed, double extrusion_mm3_per_mm, PrintFeatureType feature, bool update_extrusion_offset)
 {
     Ratio flow_ratio = application->sceneSettings().get<Ratio>("material_flow_ratio") ;
-    if (special_slope_slice_angle_enabled() && layer_nr >= 0)
+    if ((application->get_special_slope_slice_angle() != 0.0) && layer_nr >= 0)
     {
-        std::string Axis = get_special_slope_slice_axis();
-        float angle = (float)get_special_slope_slice_angle();
+        std::string Axis = application->get_special_slope_slice_axis();
+        float angle = (float)application->get_special_slope_slice_angle();
         FPoint3 offset = application->groupOffset();
         Point3 axis = parse_special_slope_slice_axis(Axis);
         Point3 input_pt = RotateByVector(Point3(p.X, p.Y, current_layer_z), axis, offset.toPoint3(), -angle);
         if (z_offset > 0)
         {
-            float layer_height_0 = application->sceneSettings().get<coord_t>("layer_height_0") / 2.0;
+            float layer_height_0 = application->get_layer_height_0() / 2.0;
             double s = sin(angle * M_PI / 180);
             double c = cos(angle * M_PI / 180);
             Point3 offsetPt = Axis == "X" ? Point3(0, z_offset * s, z_offset * c) : Point3(-z_offset * s, 0, z_offset * c);
@@ -1380,7 +1379,6 @@ void GCodeExport::writeTravel(const coord_t x, const coord_t y, const coord_t z,
 
     const PrintFeatureType travel_move_type = extruder_attr[current_extruder].retraction_e_amount_current ? PrintFeatureType::MoveRetraction : PrintFeatureType::MoveCombing;
     const int display_width = extruder_attr[current_extruder].retraction_e_amount_current ? MM2INT(0.2) : MM2INT(0.1);
-    const double layer_height = application->currentGroup()->settings.get<double>("layer_height");
 
     *output_stream << "G0";
     writeFXYZE(speed, x, y, z, current_e_value, travel_move_type);
@@ -1626,7 +1624,7 @@ void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord
     }
     if (e + current_e_offset != current_e_value)
     {
-        const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
+        const double output_e = (application->get_relative_extrusion()) ? e + current_e_offset - current_e_value : e + current_e_offset;
         *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
         
         if (application->debugger())
@@ -1666,7 +1664,7 @@ void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coo
 
     *output_stream << " I" << MMtoStream{ i } << " J" << MMtoStream{ j };
 
-    const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
+    const double output_e = (application->get_relative_extrusion()) ? e + current_e_offset - current_e_value : e + current_e_offset;
     if (e + current_e_offset != current_e_value)
     {
         *output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
@@ -1738,7 +1736,7 @@ void GCodeExport::writeUnretractionAndPrime()
             // Assume default UM2 retraction settings.
             if (prime_volume != 0)
             {
-                const double output_e = (relative_extrusion) ? prime_volume_e : current_e_value;
+                const double output_e = (application->get_relative_extrusion()) ? prime_volume_e : current_e_value;
                 *output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e }
                                << new_line;
                 currentSpeed = extruder_attr[current_extruder].last_retraction_prime_speed;
@@ -1755,7 +1753,7 @@ void GCodeExport::writeUnretractionAndPrime()
         else
         {
             current_e_value += extruder_attr[current_extruder].retraction_e_amount_current;
-            const double output_e = (relative_extrusion) ? extruder_attr[current_extruder].retraction_e_amount_current + prime_volume_e : current_e_value;
+            const double output_e = (application->get_relative_extrusion()) ? extruder_attr[current_extruder].retraction_e_amount_current + prime_volume_e : current_e_value;
             *output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e } << new_line;
             currentSpeed = extruder_attr[current_extruder].last_retraction_prime_speed;
             estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), eToMm(current_e_value)), currentSpeed, PrintFeatureType::MoveRetraction);
@@ -1769,7 +1767,7 @@ void GCodeExport::writeUnretractionAndPrime()
     }
     else if (prime_volume != 0.0)
     {
-        const double output_e = (relative_extrusion) ? prime_volume_e : current_e_value;
+        const double output_e = (application->get_relative_extrusion()) ? prime_volume_e : current_e_value;
         *output_stream << "G1 F" << PrecisionedDouble{ 1, extruder_attr[current_extruder].last_retraction_prime_speed * 60 } << " " << extruder_attr[current_extruder].extruderCharacter;
         *output_stream << PrecisionedDouble{ 5, output_e } << new_line;
         currentSpeed = extruder_attr[current_extruder].last_retraction_prime_speed;
@@ -1948,7 +1946,7 @@ void GCodeExport::writeRetraction(const RetractionConfig& config, bool force, bo
     {
         double speed = ((retraction_diff_e_amount < 0.0) ? config.speed : extr_attr.last_retraction_prime_speed);
         current_e_value += retraction_diff_e_amount;
-        const double output_e = (relative_extrusion) ? retraction_diff_e_amount : current_e_value;
+        const double output_e = (application->get_relative_extrusion()) ? retraction_diff_e_amount : current_e_value;
         *output_stream << "G1 F" << PrecisionedDouble{ 1, speed * 60 } << " " << extr_attr.extruderCharacter << PrecisionedDouble{ 5, output_e } << new_line;
         currentSpeed = speed;
         estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(currentPosition.x), INT2MM(currentPosition.y), INT2MM(currentPosition.z), eToMm(current_e_value)), currentSpeed, PrintFeatureType::MoveRetraction);
@@ -2025,14 +2023,14 @@ void GCodeExport::startExtruder(const size_t new_extruder)
 
     if (! start_code.empty())
     {
-        if (relative_extrusion)
+        if (application->get_relative_extrusion())
         {
             writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
         }
 
         writeCode(start_code.c_str());
 
-        if (relative_extrusion)
+        if (application->get_relative_extrusion())
         {
             writeExtrusionMode(true); // restore relative extrusion mode
         }
@@ -2093,14 +2091,14 @@ void GCodeExport::switchExtruder(size_t new_extruder, const RetractionConfig& re
 
     if (! end_code.empty())
     {
-        if (relative_extrusion)
+        if (application->get_relative_extrusion())
         {
             writeExtrusionMode(false); // ensure absolute extrusion mode is set before the end gcode
         }
 
         writeCode(end_code.c_str());
 
-        if (relative_extrusion)
+        if (application->get_relative_extrusion())
         {
             writeExtrusionMode(true); // restore relative extrusion mode
         }
@@ -2428,7 +2426,7 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
 
     if (application->debugger())
         application->debugger()->getNotPath();
-    if (extruder != current_extruder && always_write_active_tool)
+    if (extruder != current_extruder && application->get_always_write_active_tool())
     {
         // Some firmwares (ie Smoothieware) change tools every time a "T" command is read - even on a M104 line, so we need to switch back to the active tool.
         *output_stream << "T" << current_extruder << new_line;
@@ -2499,7 +2497,7 @@ void GCodeExport::writeTopHeaterCommand(const size_t extruder, const Temperature
 
 	if (application->debugger())
 		application->debugger()->getNotPath();
-	if (extruder != current_extruder && always_write_active_tool)
+	if (extruder != current_extruder && application->get_always_write_active_tool())
 	{
 		// Some firmwares (ie Smoothieware) change tools every time a "T" command is read - even on a M104 line, so we need to switch back to the active tool.
 		*output_stream << "T" << current_extruder << new_line;
@@ -2968,7 +2966,7 @@ void GCodeExport::finalize(const std::string& end_gcode)
 {
     const Settings& mesh_group_settings = application->currentGroup()->settings;
 
-    if (end_gcode.length() > 0 && relative_extrusion)
+    if (end_gcode.length() > 0 && application->get_relative_extrusion())
     {
         writeExtrusionMode(false); // ensure absolute extrusion mode is set before the end gcode
     }
@@ -3001,7 +2999,7 @@ void GCodeExport::finalize()
         writeBedTemperatureCommand(0); // Cool down the bed (M140).
         // Nozzles are cooled down automatically after the last time they are used (which might be earlier than the end of the print).
     }
-    if (machine_heated_build_volume && build_volume_temperature != 0.0)
+    if (application->get_machine_heated_build_volume() && application->get_build_volume_temperature() != 0.0)
     {
         writeBuildVolumeTemperatureCommand(0); // Cool down the build volume.
     }

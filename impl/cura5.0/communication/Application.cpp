@@ -132,6 +132,18 @@ namespace cura52
         return scene->extruders;
     }
 
+    const Settings& Application::extruderSettings(int index)
+    {
+        if (index >= 0 && index < extruderCount())
+            return scene->extruders.at(index).settings;
+        return scene->extruders.at(0).settings;
+    }
+
+    const Settings& Application::currentGroupSettings()
+    {
+        return scene->current_mesh_group->settings;
+    }
+
     const Settings& Application::sceneSettings()
     {
         return scene->settings;
@@ -296,7 +308,7 @@ namespace cura52
                     return;
                 }
 
-                if (mesh_group->settings.get<bool>("wireframe_enabled"))
+                if (wireframe_enabled)
                 {
                     LOGI("Starting Neith Weaver...");
 
@@ -362,11 +374,11 @@ namespace cura52
 
     void Application::wrapperSceneSettings()
     {
-        gcode_writer.gcode.initialize(&scene->settings);
+        SceneParamWrapper::initialize(&scene->settings);
     }
 
     void Application::wrapperOtherSettings()
     {
-
+        GroupParamWrapper::initialize(&scene->current_mesh_group->settings);
     }
 } // namespace cura52
