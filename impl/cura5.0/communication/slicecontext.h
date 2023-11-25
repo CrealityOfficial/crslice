@@ -6,7 +6,11 @@
 
 #include "MeshGroup.h"
 #include "ExtruderTrain.h"
+
 #include "settings/wrapper.h"
+#include "settings/gwrapper.h"
+#include "settings/ewrapper.h"
+
 #include "progress/Progress.h"
 #include "types/header.h"
 #include "tools/Cache.h"
@@ -48,7 +52,9 @@ namespace cura52
      * communicating instructions from and to CuraEngine.
      */
     class ThreadPool;
-    class SliceContext
+    class SliceContext : public SceneParamWrapper
+        , public GroupParamWrapper
+        , public ExtruderParamWrapper
     {
     public:
         /*
@@ -60,6 +66,8 @@ namespace cura52
         virtual const std::vector<ExtruderTrain>& extruders() const = 0;
         virtual std::vector<ExtruderTrain>& extruders() = 0;
 
+        virtual const Settings& extruderSettings(int index) = 0;
+        virtual const Settings& currentGroupSettings() = 0;
         virtual const Settings& sceneSettings() = 0;
 
         virtual bool isCenterZero() = 0;

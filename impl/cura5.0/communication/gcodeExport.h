@@ -82,7 +82,7 @@ namespace cura52
 
     //The GCodeExport class writes the actual GCode. This is the only class that knows how GCode looks and feels.
     //Any customizations on GCodes flavors are done in this class.
-    class GCodeExport : public SceneParamWrapper
+    class GCodeExport
     {
     private:
         /*!

@@ -85,7 +85,7 @@ size_t FffPolygonGenerator::getDraftShieldLayerCount(const size_t total_layers) 
     case DraftShieldHeightLimitation::FULL:
         return total_layers;
     case DraftShieldHeightLimitation::LIMITED:
-        return std::max((coord_t)0, (mesh_group_settings.get<coord_t>("draft_shield_height") - mesh_group_settings.get<coord_t>("layer_height_0")) / mesh_group_settings.get<coord_t>("layer_height") + 1);
+        return std::max((coord_t)0, (mesh_group_settings.get<coord_t>("draft_shield_height") - application->get_layer_height_0()) / application->get_layer_height() + 1);
     default:
         LOGW("A draft shield height limitation option was added without implementing the new option in getDraftShieldLayerCount.");
         return total_layers;
@@ -108,7 +108,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     int slice_layer_count = 0; // Use signed int because we need to subtract the initial layer in a calculation temporarily.
 
     // Initial layer height of 0 is not allowed. Negative layer height is nonsense.
-    coord_t initial_layer_thickness = mesh_group_settings.get<coord_t>("layer_height_0");
+    coord_t initial_layer_thickness = application->get_layer_height_0();
     if (initial_layer_thickness <= 0)
     {
         LOGE("Initial layer height { %f } is disallowed.", initial_layer_thickness);
@@ -116,7 +116,7 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     }
 
     // Layer height of 0 is not allowed. Negative layer height is nonsense.
-    const coord_t layer_thickness = mesh_group_settings.get<coord_t>("layer_height");
+    const coord_t layer_thickness = application->get_layer_height();
     if (layer_thickness <= 0)
     {
         LOGE("Layer height { %f } is disallowed.\n", layer_thickness);
@@ -292,8 +292,9 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
         }
 
         // check one if raft offset is needed
-        const bool has_raft = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT;
-        const bool has_simple_raft = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::SIMPLERAFT;
+        EPlatformAdhesion adhesion_type = application->get_adhesion_type();
+        const bool has_raft = adhesion_type == EPlatformAdhesion::RAFT;
+        const bool has_simple_raft = adhesion_type == EPlatformAdhesion::SIMPLERAFT;
 
         // calculate the height at which each layer is actually printed (printZ)
         for (unsigned int layer_nr = 0; layer_nr < meshStorage.layers.size(); layer_nr++)
@@ -867,7 +868,7 @@ void FffPolygonGenerator::removeEmptyFirstLayers(SliceDataStorage& storage, size
     if (n_empty_first_layers > 0)
     {
         LOGI("Removing {} layers because they are empty", n_empty_first_layers);
-        const coord_t layer_height = application->currentGroup()->settings.get<coord_t>("layer_height");
+        const coord_t layer_height = application->get_layer_height();
 
         //belt ����ֵ
         //QString str = QString::number(-minZ.y, 'f', 2);
@@ -965,7 +966,7 @@ void FffPolygonGenerator::computePrintHeightStatistics(SliceDataStorage& storage
         max_print_height_per_extruder[support_bottom_extruder_nr] = std::max(max_print_height_per_extruder[support_bottom_extruder_nr], storage.support.layer_nr_max_filled_layer);
 
         // Height of where the platform adhesion reaches.
-        const EPlatformAdhesion adhesion_type = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type");
+        const EPlatformAdhesion adhesion_type = application->get_adhesion_type();
         switch (adhesion_type)
         {
         case EPlatformAdhesion::SKIRT:
@@ -1026,7 +1027,7 @@ void FffPolygonGenerator::processOozeShield(SliceDataStorage& storage)
     const AngleDegrees angle = mesh_group_settings.get<AngleDegrees>("ooze_shield_angle");
     if (angle <= 89)
     {
-        const coord_t allowed_angle_offset = tan(mesh_group_settings.get<AngleRadians>("ooze_shield_angle")) * mesh_group_settings.get<coord_t>("layer_height"); // Allow for a 60deg angle in the oozeShield.
+        const coord_t allowed_angle_offset = tan(mesh_group_settings.get<AngleRadians>("ooze_shield_angle")) * application->get_layer_height(); // Allow for a 60deg angle in the oozeShield.
         for (LayerIndex layer_nr = 1; layer_nr <= storage.max_print_height_second_to_last_extruder; layer_nr++)
         {
             storage.oozeShield[layer_nr] = storage.oozeShield[layer_nr].unionPolygons(storage.oozeShield[layer_nr - 1].offset(-allowed_angle_offset));
@@ -1052,7 +1053,7 @@ void FffPolygonGenerator::processDraftShield(SliceDataStorage& storage)
         return;
     }
     const Settings& mesh_group_settings = application->currentGroup()->settings;
-    const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
+    const coord_t layer_height = application->get_layer_height();
 
     const unsigned int layer_skip = 500 / layer_height + 1;
 
@@ -1086,7 +1087,7 @@ void FffPolygonGenerator::processPlatformAdhesion(SliceDataStorage& storage)
     Polygons first_layer_outline;
     coord_t primary_line_count;
 
-    EPlatformAdhesion adhesion_type = mesh_group_settings.get<EPlatformAdhesion>("adhesion_type");
+    EPlatformAdhesion adhesion_type = application->get_adhesion_type();
 
     if (adhesion_type == EPlatformAdhesion::SKIRT)
     {
@@ -1196,7 +1197,7 @@ void FffPolygonGenerator::processFuzzyWalls(SliceMeshStorage& mesh)
     const coord_t avg_dist_between_points = mesh.settings.get<coord_t>("magic_fuzzy_skin_point_dist");
     const coord_t min_dist_between_points = avg_dist_between_points * 3 / 4; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const coord_t range_random_point_dist = avg_dist_between_points / 2;
-    unsigned int start_layer_nr = (mesh.settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::BRIM) ? 1 : 0; // don't make fuzzy skin on first layer if there's a brim
+    unsigned int start_layer_nr = (application->get_adhesion_type() == EPlatformAdhesion::BRIM) ? 1 : 0; // don't make fuzzy skin on first layer if there's a brim
 
     auto hole_area = Polygons();
     std::function<bool(const bool&, const ExtrusionJunction&)> accumulate_is_in_hole = [](const bool& prev_result, const ExtrusionJunction& junction) { return false; };

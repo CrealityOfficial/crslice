@@ -57,10 +57,12 @@ void AreaSupport::splitGlobalSupportAreasIntoSupportInfillParts(SliceDataStorage
         }
 
         std::vector<PolygonsPart> support_islands = global_support_areas.splitIntoParts();
+
+        EPlatformAdhesion adhesion_type = storage.application->get_adhesion_type();
         for (const PolygonsPart& island_outline : support_islands)
         {
             coord_t support_line_width_here = support_line_width;
-            if (layer_nr == 0 && mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") != EPlatformAdhesion::RAFT && mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") != EPlatformAdhesion::SIMPLERAFT)
+            if (layer_nr == 0 && adhesion_type != EPlatformAdhesion::RAFT && adhesion_type != EPlatformAdhesion::SIMPLERAFT)
             {
                 support_line_width_here *= infill_extruder.settings.get<Ratio>("initial_layer_line_width_factor");
             }
@@ -496,7 +498,7 @@ Polygons AreaSupport::join(const SliceDataStorage& storage, const Polygons& supp
             const ExtruderTrain& other_extruder = storage.application->extruders()[extruder_nr];
             extra_skirt_line_width += other_extruder.settings.get<coord_t>("skirt_brim_line_width") * other_extruder.settings.get<Ratio>("initial_layer_line_width_factor");
         }
-        switch (mesh_group_settings.get<EPlatformAdhesion>("adhesion_type"))
+        switch (storage.application->get_adhesion_type())
         {
         case EPlatformAdhesion::BRIM:
             adhesion_size = skirt_brim_extruder.settings.get<coord_t>("brim_width")
