@@ -4498,8 +4498,10 @@ void FffGcodeWriter::finalize()
     }
     if (mesh_group_settings.get<bool>("acceleration_enabled"))
     {
-        gcode.writePrintAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"),false,0);
-        gcode.writeTravelAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), false, 0);
+        const bool breakAccEnable = mesh_group_settings.get<bool>("acceleration_breaking_enable");
+        const Acceleration breakAccPercent = mesh_group_settings.get<Acceleration>("acceleration_breaking");
+        gcode.writePrintAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), breakAccEnable, breakAccPercent);
+        gcode.writeTravelAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), breakAccEnable, breakAccPercent);
     }
     if (mesh_group_settings.get<bool>("jerk_enabled"))
     {

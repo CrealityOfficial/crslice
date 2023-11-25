@@ -2488,7 +2488,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     if (entireLayerSlowdown)
                         gcode.writePrintAcceleration(speed_slowtofast_slowdown_revise_acceleration, acceleration_breaking_enabled, acceleration_breaking);
                     else
-                        gcode.writePrintAcceleration(path.config->getAcceleration() * extruder_plan.getExtrudeSpeedFactor(), acceleration_breaking_enabled, acceleration_breaking);
+                        gcode.writePrintAcceleration(path.config->getAcceleration() /** extruder_plan.getExtrudeSpeedFactor()*/, acceleration_breaking_enabled, acceleration_breaking);
                 }
             }
             if (jerk_enabled)
