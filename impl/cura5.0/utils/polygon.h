@@ -697,6 +697,7 @@ namespace cura52 {
     {
         ClipperLib::Path poly;
     public:
+    int color = 0;
         Polygon()
             : PolygonRef(poly)
         {
@@ -712,6 +713,7 @@ namespace cura52 {
             : PolygonRef(poly)
             , poly(*other.path)
         {
+        color = other.color;
         }
 
         Polygon(Polygon&& moved)
@@ -734,6 +736,7 @@ namespace cura52 {
         Polygon& operator=(Polygon&& other) //!< move assignment
         {
             poly = std::move(other.poly);
+        color = other.color;
             return *this;
         }
     };
@@ -749,6 +752,8 @@ namespace cura52 {
     public:
         ClipperLib::Paths paths;
     public:
+    std::vector<std::unique_ptr<Polygon>> polys;
+    std::vector<int> colors;
         unsigned int size() const
         {
             return paths.size();
