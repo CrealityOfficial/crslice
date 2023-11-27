@@ -47,7 +47,7 @@ set(BINARY_JSONS)
 set(BINARY_PARAMETERS)
 if(Python3_FOUND)
 	include(parameter/binary.cmake)
-	include(parameter/parameter.cmake)
+	#include(parameter/parameter.cmake)
 endif()
 
 __add_common_library(crslice FOLDER slice OPENMP

@@ -8,7 +8,7 @@
 
 #include <assert.h>
 #include <float.h>
-#include <algorithm>
+#include <memory>
 #include <polyclipping/clipper.hpp>
 
 #include <algorithm>    // std::reverse, fill_n array
