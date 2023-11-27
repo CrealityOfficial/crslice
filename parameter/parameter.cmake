@@ -1,19 +1,19 @@
-set(JSONS blackmagic.json
-		  command_line_settings.json
-		  cooling.json
-		  dual.json
-		  experimental.json
-		  infill.json
-		  machine.json
-		  material.json
-		  meshfix.json
-		  platform_adhesion.json
-		  resolution.json
-		  shell.json
-		  special.json
-		  speed.json
-		  support.json
-		  travel.json
+set(JSONS "blackmagic.json "
+		  "command_line_settings.json "
+		  "cooling.json "
+		  "dual.json "
+		  "experimental.json "
+		  "infill.json "
+		  "machine.json "
+		  "material.json "
+		  "meshfix.json "
+		  "platform_adhesion.json "
+		  "resolution.json "
+		  "shell.json "
+		  "special.json "
+		  "speed.json "
+		  "support.json "
+		  "travel.json"
 		  )
 		  
 set(FULL_JSONS  ${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/blackmagic.json
@@ -48,7 +48,7 @@ add_custom_command(
 		"${Python3_EXECUTABLE}" ${Script}
 		${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/
 		${CMAKE_CURRENT_BINARY_DIR}
-		"${JSONS}"
+		${JSONS}
 	DEPENDS ${FULL_JSONS}
 )
 
