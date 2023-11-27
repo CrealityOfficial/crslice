@@ -224,6 +224,13 @@ namespace cura52
 
     void Application::compute()
     {
+        // add ams extruders
+        size_t material_boxes_size = scene->settings.get<size_t>("asm_material_count");
+        scene->extruders.reserve(material_boxes_size);
+
+        for(int j = scene->extruders.size() ;j<=material_boxes_size;j++){
+            scene->extruders.push_back(ExtruderTrain(scene->extruders.size(), &scene->extruders[0].settings));
+        }
         //build setting
         size_t numExtruder = scene->extruders.size();
         for (size_t i = 0; i < numExtruder; ++i)

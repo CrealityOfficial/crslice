@@ -24,7 +24,9 @@ namespace crslice
             cura52::Point3 p1(MM2INT(v1.x), MM2INT(v1.y), MM2INT(v1.z));
             cura52::Point3 p2(MM2INT(v2.x), MM2INT(v2.y), MM2INT(v2.z));
             cura52::Point3 p3(MM2INT(v3.x), MM2INT(v3.y), MM2INT(v3.z));
-            curaMesh.addFace(p1, p2, p3);
+            int color = mesh->flags[i];
+            curaMesh.addFace(p1, p2, p3,color);
+
 
             if (i % 10000 == 0)
             {

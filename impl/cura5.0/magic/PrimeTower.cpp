@@ -15,7 +15,7 @@
 
 #include "raft.h"
 
-#define CIRCLE_RESOLUTION 32 //The number of vertices in each circle.
+#define CIRCLE_RESOLUTION 4 //The number of vertices in each circle.
 
 namespace cura52
 {
@@ -74,43 +74,23 @@ namespace cura52
 
         const bool has_raft = (mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::RAFT || mesh_group_settings.get<EPlatformAdhesion>("adhesion_type") == EPlatformAdhesion::SIMPLERAFT);
         const bool has_prime_brim = mesh_group_settings.get<bool>("prime_tower_brim_enable");
-        //const coord_t offset = (has_raft || ! has_prime_brim) ? 0 :
-        //    brim_extruder_settings.get<size_t>("brim_line_count") *
-        //    brim_extruder_settings.get<coord_t>("skirt_brim_line_width") *
-        //    brim_extruder_settings.get<Ratio>("initial_layer_line_width_factor");
+        const coord_t offset = (has_raft || ! has_prime_brim) ? 0 :
+           brim_extruder_settings.get<size_t>("brim_line_count") *
+           brim_extruder_settings.get<coord_t>("skirt_brim_line_width") *
+           brim_extruder_settings.get<Ratio>("initial_layer_line_width_factor");
 
         const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x"); /*- offset*/;
         const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y"); /*- offset*/;
-        Polygon aPolygon = PolygonUtils::makeCircle(Point(x, y), tower_size / 2, TAU / CIRCLE_RESOLUTION);
-
-        coord_t machine_depth = mesh_group_settings.get<coord_t>("machine_depth");
-        coord_t machine_width = mesh_group_settings.get<coord_t>("machine_width");
-        for (int n = 0; n < aPolygon.size(); n++)//换色柱超出平台范围的点，取平台的极限值
-        {
-            if (aPolygon[n].X > machine_width)
-            {
-                aPolygon[n].X = machine_width;
-            }
-            else if (aPolygon[n].X < 0.0)
-            {
-                aPolygon[n].X = 0.0;
-            }
-
-            if (aPolygon[n].Y > machine_depth)
-            {
-                aPolygon[n].Y = machine_depth;
-            }
-            else if (aPolygon[n].Y < 0.0)
-            {
-                aPolygon[n].Y = 0.0;
-            }
-        }
-        outer_poly.add(aPolygon);
+        outer_poly.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size,tower_size));
+        // outer_poly.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size,tower_size));
+        Polygons outer_poly_first;
+        outer_poly_first.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size*count,tower_size));
+        
         middle = Point(x - tower_size / 2, y + tower_size / 2);
 
         post_wipe_point = Point(x - tower_size / 2, y + tower_size / 2);
 
-        outer_poly_first_layer = outer_poly;// .offset(offset);
+        outer_poly_first_layer = outer_poly_first.offset(offset);
     }
 
     void PrimeTower::generatePaths(const SliceDataStorage& storage)
@@ -130,6 +110,7 @@ namespace cura52
         pattern_per_extruder.resize(extruder_count);
         pattern_per_extruder_layer0.resize(extruder_count);
 
+        int offset = 0;
         coord_t cumulative_inset = 0; //Each tower shape is going to be printed inside the other. This is the inset we're doing for each extruder.
         for (size_t extruder_nr : extruder_order)
         {
@@ -141,17 +122,32 @@ namespace cura52
 
             //Create the walls of the prime tower.
             unsigned int wall_nr = 0;
-            for (; current_volume < required_volume; wall_nr++)
+
+            Polygons base_poly;
+            const coord_t tower_size = mesh_group_settings.get<coord_t>("prime_tower_size");
+            const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x");
+            const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y");
+            const coord_t tower_radius = tower_size / 2;
+            base_poly.add(PolygonUtils::makeRect(x + tower_size * offset, y, tower_size, tower_size));
+            offset++;
+            pattern.polygons.add(base_poly);
+            for (int i = 0; i < tower_size / line_width / 2; i++)
             {
-                //Create a new polygon with an offset from the outer polygon.
-                Polygons polygons = outer_poly.offset(-cumulative_inset - wall_nr * line_width - line_width / 2);
+                Polygons polygons = base_poly.offset(-i * line_width - line_width / 2);
                 pattern.polygons.add(polygons);
-                current_volume += polygons.polygonLength() * line_width * layer_height * flow;
-                if (polygons.empty()) //Don't continue. We won't ever reach the required volume because it doesn't fit.
-                {
-                    break;
-                }
             }
+
+            // for (int i=0; i<tower_size/line_width/2; i++)
+            // {
+            //     //Create a new polygon with an offset from the outer polygon.
+            //      Polygons polygons = base_poly.offset( - i * line_width - line_width / 2);
+            //     pattern.polygons.add(polygons);
+            //     current_volume += polygons.polygonLength() * line_width * layer_height * flow;
+            //     if (polygons.empty()) //Don't continue. We won't ever reach the required volume because it doesn't fit.
+            //     {
+            //         break;
+            //     }
+            // }
             cumulative_inset += wall_nr * line_width;
 
             if (multiple_extruders_on_first_layer)
@@ -168,7 +164,7 @@ namespace cura52
                 // Generate a concentric infill pattern in the form insets for the prime tower's first layer instead of using
                 // the infill pattern because the infill pattern tries to connect polygons in different insets which causes the
                 // first layer of the prime tower to not stick well.
-                Polygons inset = outer_poly.offset(-line_width_layer0 / 2);
+                Polygons inset = base_poly.offset(-line_width_layer0 / 2);
                 while (/*!inset.empty()*/inset.area() > 20000000.0)
                 {
                     pattern_layer0.polygons.add(inset);
@@ -177,24 +173,24 @@ namespace cura52
             }
         }
 
-        if (pattern_per_extruder.size() > 1)
-        {
-            if (application->currentGroup()->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE)
-            {
-                pattern_per_extruder[0].polygons.add(pattern_per_extruder[1].polygons);
-                pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
-                ClipperLib::Paths& apaths = pattern_per_extruder[0].polygons.paths;
-                std::reverse(apaths.rbegin(), apaths.rend());
-                pattern_per_extruder[1].polygons = pattern_per_extruder[0].polygons;
-                pattern_per_extruder[1].lines = pattern_per_extruder[0].lines;
-            }
-            else
-            {
-                pattern_per_extruder_layer0[0].polygons.clear();
-            }
+        // if (pattern_per_extruder.size() > 1)
+        // {
+        //     if (application->currentGroup()->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE)
+        //     {
+        //         pattern_per_extruder[0].polygons.add(pattern_per_extruder[1].polygons);
+        //         pattern_per_extruder[0].lines.add(pattern_per_extruder[1].lines);
+        //         ClipperLib::Paths& apaths = pattern_per_extruder[0].polygons.paths;
+        //         std::reverse(apaths.rbegin(), apaths.rend());
+        //         pattern_per_extruder[1].polygons = pattern_per_extruder[0].polygons;
+        //         pattern_per_extruder[1].lines = pattern_per_extruder[0].lines;
+        //     }
+        //     else
+        //     {
+        //         pattern_per_extruder_layer0[0].polygons.clear();
+        //     }
 
 
-        }
+        // }
 
     }
 
@@ -206,6 +202,47 @@ namespace cura52
         PolygonsPointIndex segment_end = segment_start;
 
         PolygonUtils::spreadDots(segment_start, segment_end, number_of_prime_tower_start_locations, prime_tower_start_locations);
+    }
+    
+
+    void PrimeTower::addToGcode_sparse(LayerPlan& gcode_layer) const{
+
+        for(;gcode_layer.prime_tower_added<count;gcode_layer.prime_tower_added++){
+        
+            addToGcode_sparseInfill( gcode_layer,  gcode_layer.prime_tower_added);
+        }
+        
+    }
+
+    void PrimeTower::addToGcode_sparseInfill(LayerPlan &gcode_layer, const size_t startindex) const
+    {
+
+        const Settings &mesh_group_settings = application->currentGroup()->settings;
+        const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
+        Polygons base_poly;
+        const coord_t tower_size = mesh_group_settings.get<coord_t>("prime_tower_size");
+        const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x");
+        const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y");
+        const coord_t tower_radius = tower_size / 2;
+        base_poly.add(PolygonUtils::makeRect(x + tower_size * startindex, y, tower_size, tower_size));
+        size_t spacing = 10000;
+        // fill
+        for (int x_line = spacing; x_line < tower_size; x_line += spacing)
+        {
+            base_poly.addLine(Point(x + tower_size * startindex + x_line, y), Point(x + tower_size * startindex + x_line, y + tower_size));
+        }
+
+        for (int y_line = spacing; y_line < tower_size; y_line += spacing)
+        {
+            base_poly.addLine(Point(x + tower_size * startindex, y + y_line), Point(x + tower_size * startindex + tower_size, y + y_line));
+        }
+        Polygons out_poly;
+        out_poly.add(base_poly);
+
+        size_t extruder_nr = gcode_layer.getExtruder();
+        const GCodePathConfig &config = gcode_layer.configs_storage.prime_tower_config_per_extruder[extruder_nr];
+
+        gcode_layer.addPolygonsByOptimizer(out_poly, config);
     }
 
     void PrimeTower::addToGcode(const SliceDataStorage& storage, LayerPlan& gcode_layer, const size_t prev_extruder, const size_t new_extruder) const
@@ -220,10 +257,10 @@ namespace cura52
         }
 
         const LayerIndex layer_nr = gcode_layer.getLayerNr();
-        if (layer_nr < 0 || layer_nr > storage.max_print_height_second_to_last_extruder + 1)
-        {
-            return;
-        }
+        // if (layer_nr < 0 || layer_nr > storage.max_print_height_second_to_last_extruder + 1)
+        // {
+        //     return;
+        // }
 
         bool post_wipe = application->extruders()[prev_extruder].settings.get<bool>("prime_tower_wipe_enabled");
 
@@ -239,7 +276,7 @@ namespace cura52
             gotoStartLocation(gcode_layer, new_extruder);
         }
 
-        addToGcode_denseInfill(gcode_layer, new_extruder);
+        addToGcode_denseInfill(gcode_layer,gcode_layer.prime_tower_added);
 
         // post-wipe:
         if (post_wipe)
@@ -253,6 +290,7 @@ namespace cura52
         }
 
         gcode_layer.setPrimeTowerIsPlanned(new_extruder);
+        gcode_layer.prime_tower_added++;
     }
 
     void PrimeTower::addToGcode_denseInfill(LayerPlan& gcode_layer, const size_t extruder_nr) const
