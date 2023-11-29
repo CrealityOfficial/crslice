@@ -710,10 +710,12 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
 
     auto scaleSharpTailOverhang = [&](std::vector<Polygons>& overhang_areas, std::vector<Polygons>& sharp_tail_data)
     {//  get anlulur  and middle circle,   but  circle  and anlular got some small  distance,     for stick
+
+        std::vector<Polygons> full_overhang_areas_add;
+        full_overhang_areas_add.resize(storage.print_layer_count, Polygons());
+
         if (!overhang_areas.empty())
         {
-            std::vector<Polygons> full_overhang_areas_add;
-            full_overhang_areas_add.resize(storage.print_layer_count, Polygons());
             for (size_t layer_idx = 0; layer_idx < storage.print_layer_count; layer_idx++)
             {
                 for (auto& overhang_area : overhang_areas[layer_idx])
@@ -755,8 +757,8 @@ void AreaSupport::generateOverhangAreas(SliceDataStorage& storage)
             {
                 overhang_area_add = overhang_area_add.unionPolygons();
             }
-            sharp_tail_data.swap(full_overhang_areas_add);
         }
+        sharp_tail_data.swap(full_overhang_areas_add);
     };
 
     for (SliceMeshStorage& mesh : storage.meshes)
