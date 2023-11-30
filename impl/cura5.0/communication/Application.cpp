@@ -76,7 +76,7 @@ namespace cura52
         return tracer;
     }
 
-    crslice::FDMDebugger* Application::debugger()
+    gcode::GcodeTracer* Application::debugger()
     {
         return scene->fDebugger;
     }

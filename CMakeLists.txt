@@ -39,6 +39,7 @@ set(INCS ${CMAKE_CURRENT_SOURCE_DIR}
 set(DEFS BOOST_ALL_NO_LIB)
 set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
+include(gcode/gcode.cmake)
 include(impl/cura5.0/cura.cmake)
 include(Slice3rBase.cmake)
 

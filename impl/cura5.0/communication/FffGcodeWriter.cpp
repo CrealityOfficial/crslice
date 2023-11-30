@@ -838,7 +838,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     }
 
     gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
-    if (application->sceneSettings().get<bool>("special_object_cancel"))
+    if (application->sceneSettings().get<bool>("special_object_cancel") && !storage.m_Object_Exclude_FileName.empty())
     {
         std::ostringstream tmp ;
         tmp << "; Pre-Processed for Cancel-Object support by preprocess_cancellation v0.2.0" ;

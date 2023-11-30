@@ -370,7 +370,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 {
     std::ostringstream prefix;
 
-    crslice::PathParam pathParam;
+    gcode::GCodeParseInfo pathParam;
     const size_t extruder_count = application->extruderCount();
     switch (flavor)
     {

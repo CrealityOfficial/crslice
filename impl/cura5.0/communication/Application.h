@@ -72,7 +72,7 @@ namespace cura52
         void tick(const std::string& tag) override;
         void message(const char* msg) override;
         ccglobal::Tracer* getTracer() override;
-        crslice::FDMDebugger* debugger() override;
+        gcode::GcodeTracer* debugger() override;
         Cache* cache() override;
 
         void messageProgress(Progress::Stage stage, int progress_in_stage, int progress_in_stage_max) override;
