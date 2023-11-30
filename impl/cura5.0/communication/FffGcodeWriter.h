@@ -237,6 +237,8 @@ namespace cura52
         void processSimpleRaft(const SliceDataStorage& storage);
         void processZSeam(SliceDataStorage& storage, const size_t total_layers);
 
+        void drawZSeam(SliceDataStorage& storage, const size_t total_layers);
+
         /*!
          * Convert the polygon data of a layer into a layer plan on the FffGcodeWriter::layer_plan_buffer
          *

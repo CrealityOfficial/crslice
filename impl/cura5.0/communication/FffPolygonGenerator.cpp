@@ -46,6 +46,7 @@
 
 #include "slice/slicestep.h"
 #include "poly/polystep.h"
+#include "slice/slicer.h"
 
 #include "slice/sliceddata.h"
 #include "communication/slicecontext.h"
@@ -252,6 +253,9 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     //get paint_support
     if(meshgroup->settings.get<bool>("support_enable"))
         getPaintSupport(storage, layer_thickness, slice_layer_count, use_variable_layer_heights);
+
+    //get Zseam line;
+    getZseamLine(storage, layer_thickness, slice_layer_count, use_variable_layer_heights);
 
     storage.meshes.reserve(meshCount); // causes there to be no resize in meshes so that the pointers in sliceMeshStorage._config to retraction_config don't get invalidated.
     for (int meshIdx = 0; meshIdx < meshCount; meshIdx++)
@@ -1327,6 +1331,31 @@ void FffPolygonGenerator::getPaintSupport(SliceDataStorage& storage,const int la
             mesh.settings.add("anti_overhang_mesh", "true");
             sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, slicedData);
             handleSupportModifierMesh(storage, mesh.settings, &slicedData);
+        }
+    }
+}
+
+void FffPolygonGenerator::getZseamLine(SliceDataStorage& storage, const int layer_thickness, const int slice_layer_count, const bool use_variable_layer_heights)
+{
+    std::vector<cura52::Mesh> ZseamMesh;
+    getBinaryData(application->seamFile(), ZseamMesh);
+    if (!ZseamMesh.empty())
+    {
+        storage.zSeamPoints.resize(slice_layer_count);
+        for (Mesh& mesh : ZseamMesh)
+        {
+            SlicedData slicedData;
+            std::vector<SlicerLayer> Zseamlineslayers;
+
+            mesh.settings.add("zseam_paint_enable", "true");
+            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, Zseamlineslayers);
+            for (unsigned int layer_nr = 0; layer_nr < Zseamlineslayers.size(); layer_nr++)
+            {
+                for (size_t i = 0; i < Zseamlineslayers[layer_nr].segments.size(); i++)
+                {
+                    storage.zSeamPoints[layer_nr].ZseamLayers.push_back(ZseamDrawPoint(Zseamlineslayers[layer_nr].segments[i].start));
+                }
+            }
         }
     }
 }

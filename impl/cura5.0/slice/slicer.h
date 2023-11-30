@@ -21,6 +21,20 @@ namespace cura52
     class MeshVertex;
     class SliceContext;
 
+    class ZseamDrawPoint
+    {
+    public:
+        ZseamDrawPoint(Point _start) { start = _start; };
+        Point start;
+        bool flag = false;
+    };
+    class ZseamDrawlayer
+    {
+    public:
+        std::vector<ZseamDrawPoint> ZseamLayers;
+    };
+
+
     class SlicerSegment
     {
     public:
@@ -495,8 +509,6 @@ namespace cura52
         const Mesh* mesh = nullptr; //!< The sliced mesh
 
         Slicer(SliceContext* application, Mesh* mesh, const coord_t thickness, const size_t slice_layer_count, bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers);
-
-
     private:
 
         /*!

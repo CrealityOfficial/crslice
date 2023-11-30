@@ -30,6 +30,7 @@
 #include "Slice3rBase/Polygon.hpp"
 #include "Slice3rBase/Point.hpp"
 
+
 namespace cura52
 {
 
@@ -243,10 +244,15 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         }
     }
 
+
     if (!mesh_group->settings.get<bool>("magic_spiralize") && mesh_group->settings.get<EZSeamType>("z_seam_type") == EZSeamType::SHARPEST_CORNER)
     {
         SAFE_MESSAGE(7, 0);
         processZSeam(storage, total_layers);
+    }
+    if (!storage.zSeamPoints.empty())
+    {
+        drawZSeam(storage, total_layers);
     }
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
@@ -1851,7 +1857,12 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
                     for (ExtrusionLine& line : path)
                     {
                         if (line.inset_idx == 0 && line.is_closed)
-                        {  
+                        {
+                            if (line.start_idx!=-1)
+                            {
+                                continue;
+                            }
+
                             line.start_idx = getSupportedVertex(mesh_last_layer_outline, line, start_idx[idx]);
                             if (line.start_idx != -1 && !part_order_optimizer.bFound[idx])
                             {
@@ -1893,6 +1904,292 @@ void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_
         last_layer_start_pt.swap(current_layer_start_pt);
     }
 }
+
+void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_layers)
+{
+    auto getDistFromSeg = [](const Point& p, const Point& a, const Point& b)
+    {
+        float pab = LinearAlg2D::getAngleLeft(p, a, b);
+        float pba = LinearAlg2D::getAngleLeft(p, b, a);
+        if (pab > M_PI / 2 && pab < 3 * M_PI / 2) {
+            return vSize(p - a);
+        }
+        else if (pba > M_PI / 2 && pba < 3 * M_PI / 2) {
+            return vSize(p - b);
+        }
+        else {
+            return LinearAlg2D::getDistFromLine(p, a, b);
+        }
+    };
+
+    //判断点是否在线段上
+    auto PointIsOnSegment = [](Point p, Point Segment_a, Point Segment_b)
+    {
+        if (p.X >= std::min(Segment_a.X, Segment_b.X) && p.X <= std::max(Segment_a.X, Segment_b.X) && p.Y >= std::min(Segment_a.Y, Segment_b.Y) && p.Y <= std::max(Segment_a.Y, Segment_b.Y))
+        {
+            if ((Segment_b.X - Segment_a.X) * (p.Y - Segment_a.Y) == (p.X - Segment_a.X) * (Segment_b.Y - Segment_a.Y))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto getShortestPoint = [&](Point& apoint, Point& start, Point& end)
+    {
+        double A = end.Y - start.Y;     //y2-y1
+        double B = start.X - end.X;     //x1-x2;
+        double C = end.X * start.Y - start.X * end.Y;     //x2*y1-x1*y2
+        if (A * A + B * B < 1e-13) {
+            return start;   //start与end重叠
+        }
+        else if (std::abs(A * apoint.X + B * apoint.Y + C) < 1e-13) {
+            return apoint;   //point在直线上(start_end)
+        }
+        else {
+            double x = (B * B * apoint.X - A * B * apoint.Y - A * C) / (A * A + B * B);
+            double y = (-A * B * apoint.X + A * A * apoint.Y - B * C) / (A * A + B * B);
+            Point fpoint = Point();
+            fpoint.X = x;
+            fpoint.Y = y;
+
+            if (PointIsOnSegment(fpoint, start, end))
+            {
+                return fpoint;
+            }
+           
+            if (vSize(Point(start.X - apoint.X, start.Y - apoint.Y)) < vSize(Point(end.X - apoint.X, end.Y - apoint.Y)))
+            {
+                return start;
+            }
+            else
+            {
+                return end;
+            }
+        }
+    };
+
+    auto getAngleLeft = [&](const Point& a, const Point& b, const Point& c)
+    {
+        float angle = LinearAlg2D::getAngleLeft(a, b, c);
+        if (angle > M_PI)
+        {
+            angle = 2 * M_PI - angle;
+        }
+        return angle;
+    };
+
+
+    for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
+    {
+        int icount = 0;
+        for (SliceMeshStorage& mesh : storage.meshes)
+        {
+            for (SliceLayerPart& part : mesh.layers[layer_nr].parts)
+            {
+                for (VariableWidthLines& path : part.wall_toolpaths)
+                {
+                    for (ExtrusionLine& line : path)
+                    {
+                        if (line.inset_idx == 0 && line.is_closed)
+                        {
+                            for (ZseamDrawPoint& aPoint : storage.zSeamPoints[layer_nr].ZseamLayers)
+                            {
+                                if (aPoint.flag)
+                                {
+                                    continue;
+                                }
+                                coord_t minPPdis = std::numeric_limits<coord_t>::max();
+                                int minPPidex = -1;
+                                for (int n = 0; n < line.junctions.size()-1; n++)
+                                {
+                                    coord_t ppdis = vSize(line.junctions[n].p - aPoint.start);
+                                    if (minPPdis > ppdis)
+                                    {
+                                        minPPdis = ppdis;
+                                        minPPidex = n;
+                                    }
+                                }
+                                if (minPPdis < 500)//线段点到轮廓点的最短距离
+                                {   
+                                    line.junctions[minPPidex].isZSeamDrow = true;
+                                    aPoint.flag = true;
+                                }
+                                else
+                                {
+                                    int preIdx = (minPPidex + line.junctions.size() - 2) % (line.junctions.size() - 1);
+                                    int nextIdx = (minPPidex + 1) % (line.junctions.size() - 1);
+
+                                    coord_t pre_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
+                                    coord_t next_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
+                                    if (pre_dis > 500 && next_dis >500)
+                                    {
+                                        continue;
+                                    }
+
+                                    coord_t real_Idex = pre_dis < next_dis ? preIdx : nextIdx;
+                                    if (pre_dis < next_dis)
+                                    {
+                                        Point addPoint = getShortestPoint(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
+                                        if (std::abs(addPoint.X - line.junctions[minPPidex].p.X)<10 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y)<10)
+                                        {
+                                            line.junctions[minPPidex].isZSeamDrow = true;
+                                            aPoint.flag = true;
+                                            continue;
+                                        }
+                                        ExtrusionJunction addEJ = line.junctions.at(preIdx);
+                                        addEJ.p = addPoint;
+                                        addEJ.isZSeamDrow = true;
+                                        aPoint.flag = true;
+                                        if (minPPidex==0)
+                                        {
+                                            minPPidex = preIdx + 1;
+                                        }
+                                        line.junctions.insert(line.junctions.begin() + minPPidex, addEJ);
+                                    }
+                                    else
+                                    {
+                                        Point addPoint = getShortestPoint(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
+                                        if (std::abs(addPoint.X - line.junctions[minPPidex].p.X)<10 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y)<10)
+                                        {
+                                            line.junctions[minPPidex].isZSeamDrow = true;
+                                            aPoint.flag = true;
+                                            continue;
+                                        }
+                                        ExtrusionJunction addEJ = line.junctions.at(nextIdx);
+                                        addEJ.p = addPoint;
+                                        addEJ.isZSeamDrow = true;
+                                        aPoint.flag = true;
+                                        if (nextIdx == 0)
+                                        {
+                                            nextIdx = minPPidex + 1;
+                                        }
+                                        line.junctions.insert(line.junctions.begin() + nextIdx, addEJ);
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    std::vector<Point> PreZseamPoints;
+    std::vector<Point> curZseamPoints;
+    for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
+    {
+        for (SliceMeshStorage& mesh : storage.meshes)
+        {
+            for (SliceLayerPart& part : mesh.layers[layer_nr].parts)
+            {
+                for (VariableWidthLines& path : part.wall_toolpaths)
+                {
+                    for (ExtrusionLine& line : path)
+                    {
+                        if (line.inset_idx == 0 && line.is_closed)
+                        {
+                            if (layer_nr ==0)
+                            {
+                                float minAngle = M_PI;
+                                int start_idx = -1;
+                                for (int n = 0; n < line.junctions.size()-1; n++)
+                                {
+                                    if (line.junctions[n].isZSeamDrow)
+                                    {
+                                        //int preIdx = (n - 1 + line.junctions.size()) % line.junctions.size();
+                                        //int nextIdx = (n + 1) % line.junctions.size();
+                                        int preIdx = (n + line.junctions.size() - 2) % (line.junctions.size() - 1);
+                                        int nextIdx = (n + 1) % (line.junctions.size() - 1);
+                                        float pab = getAngleLeft(line.junctions[preIdx].p, line.junctions[n].p, line.junctions[nextIdx].p);
+                                        if (minAngle >= pab)
+                                        {
+                                            minAngle = pab;
+                                            start_idx = n;
+                                        }
+                                    }
+                                }
+                                
+                                if (start_idx!=-1)
+                                {
+                                    line.start_idx = start_idx;
+                                    curZseamPoints.push_back(line.junctions[start_idx].p);
+                                }
+                            }
+                            else
+                            {
+                                coord_t minPPdis = std::numeric_limits<coord_t>::max();
+                                int ZseamPointIdx=-1;
+                                for (int n = 0; n < line.junctions.size()-1; n++)
+                                {
+                                    if (line.junctions[n].isZSeamDrow)
+                                    {
+                                        for (Point& apoint:PreZseamPoints)
+                                        {
+                                            coord_t ppdis = vSize(line.junctions[n].p - apoint);
+                                            if (minPPdis > ppdis && ppdis<1000)
+                                            {
+                                                minPPdis = ppdis;
+                                                ZseamPointIdx = n;//最短距离
+                                            }
+                                        }
+                                    }
+                                }
+
+                                float minAngle = M_PI;
+                                float shortestAngle= M_PI;
+                                int sharpCorner_idx = -1;
+                                for (int n = 0; n < line.junctions.size()-1; n++)
+                                {
+                                    if (line.junctions[n].isZSeamDrow)
+                                    {
+                                        //int preIdx = (n - 1 + line.junctions.size()) % line.junctions.size();
+                                        //int nextIdx = (n + 1) % line.junctions.size();
+                                        int preIdx = (n + line.junctions.size() - 2) % (line.junctions.size() - 1);
+                                        int nextIdx = (n + 1) % (line.junctions.size() - 1);
+                                        float pab = getAngleLeft(line.junctions[preIdx].p, line.junctions[n].p, line.junctions[nextIdx].p);
+                                        if (minAngle >= pab)//最尖角
+                                        {
+                                            minAngle = pab;
+                                            sharpCorner_idx = n;
+                                        }
+                                        if (ZseamPointIdx == n)
+                                        {
+                                            shortestAngle = pab;
+                                        }
+                                    }
+                                }
+
+                                if ((std::abs(shortestAngle - minAngle) < (M_PI / 6) || minAngle > (M_PI * 3 / 4)) && ZseamPointIdx >=0)
+                                {
+                                    line.start_idx = ZseamPointIdx;  
+                                    curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                }
+                                else
+                                {
+                                    if (sharpCorner_idx != -1)
+                                    {
+                                        line.start_idx = sharpCorner_idx;
+                                        curZseamPoints.push_back(line.junctions[sharpCorner_idx].p);
+                                    }
+                                }
+
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+        PreZseamPoints = curZseamPoints;
+        curZseamPoints.clear();
+    }
+}
+
 
 LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIndex layer_nr, const size_t total_layers, std::optional<Point> last_position) const
 {

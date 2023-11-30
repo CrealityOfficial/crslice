@@ -22,7 +22,7 @@
 #include "utils/AABB3D.h"
 #include "utils/IntPoint.h"
 #include "tools/NoCopy.h"
-
+#include "slice/slicer.h"
 // libArachne
 #include "utils/ExtrusionLine.h"
 
@@ -321,6 +321,7 @@ namespace cura52
         std::vector<RetractionConfig> extruder_switch_retraction_config_per_extruder; //!< Retraction config per extruder for when performing an extruder switch
 
         SupportStorage support;
+        std::vector<ZseamDrawlayer> zSeamPoints;
 
         Polygons skirt_brim[MAX_EXTRUDERS]; //!< Skirt and brim polygons per extruder, ordered from inner to outer polygons.
         size_t skirt_brim_max_locked_part_order[MAX_EXTRUDERS]; //!< Some parts (like skirt) always need to be printed before parts like support-brim, so lock 0..n for each extruder, where n is the value saved in this array.

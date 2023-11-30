@@ -25,4 +25,11 @@ namespace cura52 {
 			}
 		}
 	}
+
+	void sliceMesh(SliceContext* application, Mesh* mesh, const coord_t thickness, const size_t slice_layer_count,
+		bool use_variable_layer_heights, std::vector<AdaptiveLayer>* adaptive_layers, std::vector<SlicerLayer>& layers)
+	{
+		Slicer impl(application, mesh, thickness, slice_layer_count, use_variable_layer_heights, adaptive_layers);
+		layers = impl.layers;
+	}
 }

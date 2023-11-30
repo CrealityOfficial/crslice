@@ -799,6 +799,10 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
     else
         buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
 
+    if (mesh->settings.get<bool>("zseam_paint_enable"))
+        return;
+
+
     LOGI("Slice of mesh took { %f } seconds", slice_timer.restart());
 
     makePolygons(application, *i_mesh, slicing_tolerance, layers);
