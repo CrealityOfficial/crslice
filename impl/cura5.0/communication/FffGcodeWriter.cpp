@@ -1943,9 +1943,9 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
         if (A * A + B * B < 1e-13) {
             return start;   //start与end重叠
         }
-        else if (std::abs(A * apoint.X + B * apoint.Y + C) < 1e-13) {
-            return apoint;   //point在直线上(start_end)
-        }
+        //else if (std::abs(A * apoint.X + B * apoint.Y + C) < 1e-13) {
+        //    return apoint;   //point在直线上(start_end)
+        //}
         else {
             double x = (B * B * apoint.X - A * B * apoint.Y - A * C) / (A * A + B * B);
             double y = (-A * B * apoint.X + A * A * apoint.Y - B * C) / (A * A + B * B);
@@ -2010,7 +2010,7 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
                                         minPPidex = n;
                                     }
                                 }
-                                if (minPPdis < 500)//线段点到轮廓点的最短距离
+                                if (minPPdis < 1000)//线段点到轮廓点的最短距离
                                 {   
                                     line.junctions[minPPidex].isZSeamDrow = true;
                                     aPoint.flag = true;
@@ -2022,7 +2022,7 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
 
                                     coord_t pre_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
                                     coord_t next_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
-                                    if (pre_dis > 500 && next_dis >500)
+                                    if (pre_dis > 1000 && next_dis >1000)
                                     {
                                         continue;
                                     }
@@ -2031,7 +2031,7 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
                                     if (pre_dis < next_dis)
                                     {
                                         Point addPoint = getShortestPoint(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
-                                        if (std::abs(addPoint.X - line.junctions[minPPidex].p.X)<10 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y)<10)
+                                        if (std::abs(addPoint.X - line.junctions[minPPidex].p.X)<500 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y)<500)
                                         {
                                             line.junctions[minPPidex].isZSeamDrow = true;
                                             aPoint.flag = true;
@@ -2050,7 +2050,7 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
                                     else
                                     {
                                         Point addPoint = getShortestPoint(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
-                                        if (std::abs(addPoint.X - line.junctions[minPPidex].p.X)<10 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y)<10)
+                                        if (std::abs(addPoint.X - line.junctions[minPPidex].p.X)<500 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y)<500)
                                         {
                                             line.junctions[minPPidex].isZSeamDrow = true;
                                             aPoint.flag = true;
@@ -2092,35 +2092,35 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
                         {
                             if (layer_nr ==0)
                             {
-                                float minAngle = M_PI;
-                                int start_idx = -1;
+                                float minCornerAngle = M_PI;
+                                int minCorner_idx = -1;
                                 for (int n = 0; n < line.junctions.size()-1; n++)
                                 {
-                                    if (line.junctions[n].isZSeamDrow)
+                                    if (line.junctions[n].isZSeamDrow)//最尖角
                                     {
                                         //int preIdx = (n - 1 + line.junctions.size()) % line.junctions.size();
                                         //int nextIdx = (n + 1) % line.junctions.size();
                                         int preIdx = (n + line.junctions.size() - 2) % (line.junctions.size() - 1);
                                         int nextIdx = (n + 1) % (line.junctions.size() - 1);
                                         float pab = getAngleLeft(line.junctions[preIdx].p, line.junctions[n].p, line.junctions[nextIdx].p);
-                                        if (minAngle >= pab)
+                                        if (minCornerAngle >= pab)
                                         {
-                                            minAngle = pab;
-                                            start_idx = n;
+                                            minCornerAngle = pab;
+                                            minCorner_idx = n;
                                         }
                                     }
                                 }
-                                
-                                if (start_idx!=-1)
+                                if (minCorner_idx != -1)
                                 {
-                                    line.start_idx = start_idx;
-                                    curZseamPoints.push_back(line.junctions[start_idx].p);
+                                    line.start_idx = minCorner_idx;
+                                    curZseamPoints.push_back(line.junctions[minCorner_idx].p);
                                 }
                             }
                             else
                             {
                                 coord_t minPPdis = std::numeric_limits<coord_t>::max();
                                 int ZseamPointIdx=-1;
+                                Point shortest_point;
                                 for (int n = 0; n < line.junctions.size()-1; n++)
                                 {
                                     if (line.junctions[n].isZSeamDrow)
@@ -2128,10 +2128,11 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
                                         for (Point& apoint:PreZseamPoints)
                                         {
                                             coord_t ppdis = vSize(line.junctions[n].p - apoint);
-                                            if (minPPdis > ppdis && ppdis<1000)
+                                            if (minPPdis > ppdis /*&& ppdis<3000*/)
                                             {
                                                 minPPdis = ppdis;
                                                 ZseamPointIdx = n;//最短距离
+                                                shortest_point = apoint;
                                             }
                                         }
                                     }
@@ -2163,8 +2164,102 @@ void FffGcodeWriter::drawZSeam(SliceDataStorage& storage, const size_t total_lay
 
                                 if ((std::abs(shortestAngle - minAngle) < (M_PI / 6) || minAngle > (M_PI * 3 / 4)) && ZseamPointIdx >=0)
                                 {
-                                    line.start_idx = ZseamPointIdx;  
-                                    curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                    if (true)
+                                    {
+                                        int preIdx = (ZseamPointIdx + line.junctions.size() - 2) % (line.junctions.size() - 1);
+                                        int nextIdx = (ZseamPointIdx + 1) % (line.junctions.size() - 1);
+                                        if (line.junctions[preIdx].isZSeamDrow && line.junctions[nextIdx].isZSeamDrow)
+                                        {
+                                            coord_t pre_dis = getDistFromSeg(shortest_point, line.junctions[ZseamPointIdx].p, line.junctions[preIdx].p);
+                                            coord_t next_dis = getDistFromSeg(shortest_point, line.junctions[ZseamPointIdx].p,line.junctions[nextIdx].p);
+                                            if (pre_dis < next_dis)
+                                            {
+                                                Point addPoint = getShortestPoint(shortest_point, line.junctions[ZseamPointIdx].p, line.junctions[preIdx].p);
+                                                if (addPoint.X == line.junctions[ZseamPointIdx].p.X && addPoint.Y == line.junctions[ZseamPointIdx].p.Y)
+                                                {
+                                                    line.start_idx = ZseamPointIdx;
+                                                    curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                                    continue;
+                                                }
+                                                ExtrusionJunction addEJ = line.junctions.at(preIdx);
+                                                addEJ.p = addPoint;
+                                                addEJ.isZSeamDrow = true;
+                                                if (ZseamPointIdx == 0)
+                                                {
+                                                    ZseamPointIdx = preIdx + 1;
+                                                }
+                                                line.junctions.insert(line.junctions.begin() + ZseamPointIdx, addEJ);
+                                                line.start_idx = ZseamPointIdx;
+                                                curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                            }
+                                            else
+                                            {
+                                                Point addPoint = getShortestPoint(shortest_point, line.junctions[ZseamPointIdx].p, line.junctions[nextIdx].p);
+                                                if (addPoint.X == line.junctions[ZseamPointIdx].p.X && addPoint.Y == line.junctions[ZseamPointIdx].p.Y)
+                                                {
+                                                    line.start_idx = ZseamPointIdx;
+                                                    curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                                    continue;
+                                                }
+                                                ExtrusionJunction addEJ = line.junctions.at(nextIdx);
+                                                addEJ.p = addPoint;
+                                                addEJ.isZSeamDrow = true;
+                                                if (nextIdx == 0)
+                                                {
+                                                    nextIdx = ZseamPointIdx + 1;
+                                                }
+                                                line.junctions.insert(line.junctions.begin() + nextIdx, addEJ);
+                                                line.start_idx = nextIdx;
+                                                curZseamPoints.push_back(line.junctions[nextIdx].p);
+                                            }
+                                        }
+                                        else if (line.junctions[preIdx].isZSeamDrow)
+                                        {
+                                            Point addPoint = getShortestPoint(shortest_point, line.junctions[ZseamPointIdx].p, line.junctions[preIdx].p);
+                                            if (addPoint.X == line.junctions[ZseamPointIdx].p.X && addPoint.Y == line.junctions[ZseamPointIdx].p.Y)
+                                            {
+                                                line.start_idx = ZseamPointIdx;
+                                                curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                                continue;
+                                            }
+                                            ExtrusionJunction addEJ = line.junctions.at(preIdx);
+                                            addEJ.p = addPoint;
+                                            addEJ.isZSeamDrow = true;
+                                            if (ZseamPointIdx == 0)
+                                            {
+                                                ZseamPointIdx = preIdx + 1;
+                                            }
+                                            line.junctions.insert(line.junctions.begin() + ZseamPointIdx, addEJ);
+                                            line.start_idx = ZseamPointIdx;
+                                            curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                        }
+                                        else if (line.junctions[nextIdx].isZSeamDrow)
+                                        {
+                                            Point addPoint = getShortestPoint(shortest_point, line.junctions[ZseamPointIdx].p, line.junctions[nextIdx].p);
+                                            if (addPoint.X == line.junctions[ZseamPointIdx].p.X && addPoint.Y == line.junctions[ZseamPointIdx].p.Y)
+                                            {
+                                                line.start_idx = ZseamPointIdx;
+                                                curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                                continue;
+                                            }
+                                            ExtrusionJunction addEJ = line.junctions.at(nextIdx);
+                                            addEJ.p = addPoint;
+                                            addEJ.isZSeamDrow = true;
+                                            if (nextIdx == 0)
+                                            {
+                                                nextIdx = ZseamPointIdx + 1;
+                                            }
+                                            line.junctions.insert(line.junctions.begin() + nextIdx, addEJ);
+                                            line.start_idx = nextIdx;
+                                            curZseamPoints.push_back(line.junctions[nextIdx].p);
+                                        }
+                                        else
+                                        {
+                                            line.start_idx = ZseamPointIdx;
+                                            curZseamPoints.push_back(line.junctions[ZseamPointIdx].p);
+                                        }
+                                    }
+
                                 }
                                 else
                                 {
