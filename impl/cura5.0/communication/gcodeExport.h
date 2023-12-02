@@ -6,6 +6,7 @@
 
 #include <deque> // for extrusionAmountAtPreviousRetractions
 #include <sstream> // for stream.str()
+#include <fstream>
 #include <stdio.h>
 #include <memory>
 
@@ -35,6 +36,16 @@ namespace cura52
     //Any customizations on GCodes flavors are done in this class.
     class GCodeExport
     {
+    public:
+        /*!
+ * Set the target to write gcode to: to a file.
+ *
+ * Used when CuraEngine is used as command line tool.
+ *
+ * \param filename The filename of the file to which to write the gcode.
+ */
+        bool setTargetFile(const char* filename);
+
 #ifdef BUILD_TESTS
         friend class GCodeExportTest;
         friend class GriffinHeaderTest;
@@ -118,6 +129,10 @@ namespace cura52
         std::string machine_name;
         std::string slice_uuid_; //!< The UUID of the current slice.
 
+         /*!
+         * The gcode file to write to when using CuraEngine as command line tool.
+         */
+        std::ofstream output_file;
         std::ostream* output_stream;
         std::string new_line;
 
@@ -643,7 +658,8 @@ namespace cura52
          *
          * \param endCode The end gcode to be appended at the very end.
          */
-        void finalize(const std::string& endCode);
+        void finalize(const std::string& end_gcode);
+        void finalize();
 
         /*!
          * Get amount of material extruded since last wipe script was inserted.

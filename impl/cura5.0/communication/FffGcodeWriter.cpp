@@ -46,32 +46,6 @@ FffGcodeWriter::FffGcodeWriter()
     }
 }
 
-void FffGcodeWriter::setTargetStream(std::ostream* stream)
-{
-    gcode.setOutputStream(stream);
-}
-
-double FffGcodeWriter::getTotalFilamentUsed(int extruder_nr)
-{
-    return gcode.getTotalFilamentUsed(extruder_nr);
-}
-
-std::vector<Duration> FffGcodeWriter::getTotalPrintTimePerFeature()
-{
-    return gcode.getTotalPrintTimePerFeature();
-}
-
-bool FffGcodeWriter::setTargetFile(const char* filename)
-{
-    output_file.open(filename);
-    if (output_file.is_open())
-    {
-        gcode.setOutputStream(&output_file);
-        return true;
-    }
-    return false;
-}
-
 void FffGcodeWriter::paraseLimitStr(std::string str, std::vector<LimitGraph>& outData, const Velocity& init_limit_speed,const Acceleration& init_limit_acc, const Temperature& init_limit_temp)
 {
     //[[0.5,1.0,100,6000,220],[1.0,1.5,80,5500,210],[1.5,2.0,60,5000,200]]
@@ -4474,81 +4448,4 @@ void FffGcodeWriter::addPrimeTower(const SliceDataStorage& storage, LayerPlan& g
 
     storage.primeTower.addToGcode(storage, gcode_layer, prev_extruder, gcode_layer.getExtruder());
 }
-
-void FffGcodeWriter::finalize()
-{
-    const Settings& mesh_group_settings = application->currentGroup()->settings;
-    if (mesh_group_settings.get<bool>("machine_heated_bed"))
-    {
-        gcode.writeBedTemperatureCommand(0); // Cool down the bed (M140).
-        // Nozzles are cooled down automatically after the last time they are used (which might be earlier than the end of the print).
-    }
-    if (mesh_group_settings.get<bool>("machine_heated_build_volume") && mesh_group_settings.get<Temperature>("build_volume_temperature") != 0)
-    {
-        gcode.writeBuildVolumeTemperatureCommand(0); // Cool down the build volume.
-    }
-
-    const Duration print_time = gcode.getSumTotalPrintTimes();
-    std::vector<double> filament_used;
-    std::vector<std::string> material_ids;
-    std::vector<bool> extruder_is_used;
-    for (size_t extruder_nr = 0; extruder_nr < (size_t)application->extruderCount(); extruder_nr++)
-    {
-        filament_used.emplace_back(gcode.getTotalFilamentUsed(extruder_nr));
-        material_ids.emplace_back(application->extruders()[extruder_nr].settings.get<std::string>("material_guid"));
-        extruder_is_used.push_back(gcode.getExtruderIsUsed(extruder_nr));
-    }
-
-    std::string prefix = gcode.getFileHeader(extruder_is_used, &print_time, filament_used, material_ids);
-    
-    //get cloud result
-    SliceResult result = gcode.getFileHeaderC(extruder_is_used, &print_time, filament_used, material_ids);
-    application->setResult(result);
-
-    {
-        LOGI("Gcode header after slicing: { %s }", prefix.c_str());
-        gcode.reWritePreFixStr(prefix);
-    }
-    if (mesh_group_settings.get<bool>("acceleration_enabled"))
-    {
-        const bool breakAccEnable = mesh_group_settings.get<bool>("acceleration_breaking_enable");
-        const Acceleration breakAccPercent = mesh_group_settings.get<Acceleration>("acceleration_breaking");
-        gcode.writePrintAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), breakAccEnable, breakAccPercent);
-        gcode.writeTravelAcceleration(mesh_group_settings.get<Acceleration>("machine_acceleration"), breakAccEnable, breakAccPercent);
-    }
-    if (mesh_group_settings.get<bool>("jerk_enabled"))
-    {
-        gcode.writeJerk(mesh_group_settings.get<Velocity>("machine_max_jerk_xy"));
-    }
-
-    const std::string end_gcode = mesh_group_settings.get<std::string>("machine_end_gcode");
-
-    if (end_gcode.length() > 0 && mesh_group_settings.get<bool>("relative_extrusion"))
-    {
-        gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the end gcode
-    }
-
-    gcode.finalize(end_gcode);
-
-    // set extrusion mode back to "normal"
-    const bool set_relative_extrusion_mode = (gcode.getFlavor() == EGCodeFlavor::REPRAP);
-    gcode.writeExtrusionMode(set_relative_extrusion_mode);
-    for (size_t e = 0; e < (size_t)application->extruderCount(); e++)
-    {
-        gcode.writeTemperatureCommand(e, 0, false);
-        gcode.initExtruderAttr(e);
-    }
-
-    gcode.writeComment("End of Gcode");
-}
-bool FffGcodeWriter::closeGcodeWriterFile()
-{
-    if (output_file.is_open())
-    {
-        output_file.close();
-        return true;
-    }
-    return false;
-}
-
 } // namespace cura52

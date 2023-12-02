@@ -101,12 +101,11 @@ namespace cura52
                 tick("slice 0");
                 initCache();
 
-                gcode_writer.setTargetFile(scene->gcodeFile.c_str());
+                gcode_writer.gcode.setTargetFile(scene->gcodeFile.c_str());
 
                 compute();
                 // Finalize the processor. This adds the end g-code and reports statistics.
-                gcode_writer.finalize();
-                gcode_writer.closeGcodeWriterFile();
+                gcode_writer.gcode.finalize();
 
                 tick("slice 1");
 

@@ -57,11 +57,6 @@ namespace cura52
         GCodeExport gcode;
     private:
         /*!
-         * The gcode file to write to when using CuraEngine as command line tool.
-         */
-        std::ofstream output_file;
-
-        /*!
          * For each raft/filler layer, the extruders to be used in that layer in the order in which they are going to be used.
          * The first number is the first raft layer. Indexing is shifted compared to normal negative layer numbers for raft/filler layers.
          */
@@ -95,41 +90,6 @@ namespace cura52
          * it's ready for writing.
          */
         FffGcodeWriter();
-
-        /*!
-         * Set the target to write gcode to: to a file.
-         *
-         * Used when CuraEngine is used as command line tool.
-         *
-         * \param filename The filename of the file to which to write the gcode.
-         */
-        bool setTargetFile(const char* filename);
-
-        /*!
-         * Set the target to write gcode to: an output stream.
-         *
-         * Used when CuraEngine is NOT used as command line tool.
-         *
-         * \param stream The stream to write gcode to.
-         */
-        void setTargetStream(std::ostream* stream);
-
-        /*!
-         * Get the total extruded volume for a specific extruder in mm^3
-         *
-         * Retractions and unretractions don't contribute to this.
-         *
-         * \param extruder_nr The extruder number for which to get the total netto extruded volume
-         * \return total filament printed in mm^3
-         */
-        double getTotalFilamentUsed(int extruder_nr);
-
-        /*!
-         * Get the total estimated print time in seconds for each feature
-         *
-         * \return total print time in seconds for each feature
-         */
-        std::vector<Duration> getTotalPrintTimePerFeature();
 
         /*!
          * Write all the gcode for the current meshgroup.
@@ -670,13 +630,6 @@ namespace cura52
          * \return true if there needs to be a skin edge support wall in this layer, otherwise false
          */
         static bool partitionInfillBySkinAbove(Polygons& infill_below_skin, Polygons& infill_not_below_skin, const LayerPlan& gcode_layer, const SliceMeshStorage& mesh, const SliceLayerPart& part, coord_t infill_line_width);
-
-    public:
-        /*!
-         * Add the end gcode and set all temperatures to zero.
-         */
-        void finalize();
-        bool closeGcodeWriterFile();
     };
 }//namespace cura52
 
