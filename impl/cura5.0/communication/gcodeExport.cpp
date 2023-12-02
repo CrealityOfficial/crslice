@@ -599,6 +599,10 @@ SliceResult GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_use
                 }
             }
         }
+        else {
+            sliceResult.filament_len += ((filament_used.size() >= 1) ? static_cast<int>(filament_used[0]) : 6666);
+            sliceResult.filament_len += ((filament_used.size() >= 2) ? static_cast<int>(filament_used[1]) : 0);
+        }
         sliceResult.x = INT2MM(total_bounding_box.max.x) - INT2MM(total_bounding_box.min.x);
         sliceResult.y = INT2MM(total_bounding_box.max.y) - INT2MM(total_bounding_box.min.y);
         sliceResult.z = INT2MM(total_bounding_box.max.z) - INT2MM(total_bounding_box.min.z);

@@ -51,7 +51,7 @@ namespace cura52
         }
 
         LOGE("Trying to retrieve setting with no value given: %s", key.c_str());
-        std::exit(2);
+        return "";
     }
 
     template<>
