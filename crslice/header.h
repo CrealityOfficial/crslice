@@ -36,6 +36,7 @@ namespace crslice
 		void setZ(float z, float h = -1) override {};
 		void setE(float e) override {};
 		void getNotPath() override {};
+		void set_data_gcodelayer(int layer, const std::string& gcodelayer) override {};
 	};
 }
 #endif // CRSLICE_HEADER_INTERFACE
