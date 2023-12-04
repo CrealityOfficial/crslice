@@ -2,6 +2,7 @@
 #include "communication/slicecontext.h"
 #include "communication/sliceDataStorage.h"
 #include "utils/Coord_t.h"
+#include "conv.h"
 
 namespace cura52 {
     void getLayerSupportData(SliceDataStorage& storage, SliceContext* application)
@@ -49,7 +50,10 @@ namespace cura52 {
                     cura52::PolygonRef plogon = part.outline.outerPolygon();
                     paths.push_back(*plogon);
                 }
-                application->debugger()->onSupports((int)layerIdx,z, thickness, paths);
+
+                std::vector<std::vector<trimesh::vec3>> tPaths;
+                crslice::convertRaw(paths, tPaths);
+                application->debugger()->onSupports((int)layerIdx,z, thickness, tPaths);
             }
         }
     }

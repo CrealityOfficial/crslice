@@ -10,7 +10,6 @@
 #include <fstream>
 #include <unordered_map>
 #include "ccglobal/tracer.h"
-#include "polyclipping/clipper.hpp"
 
 typedef std::shared_ptr<trimesh::TriMesh> TriMeshPtr;
 
@@ -107,7 +106,7 @@ namespace crslice
 		virtual void getNotPath() = 0;
 
 		//for preview image
-		virtual void onSupports(int layerIdx,float z, float thickness, ClipperLib::Paths& paths) = 0;
+		virtual void onSupports(int layerIdx, float z, float thickness, const std::vector<std::vector<trimesh::vec3>>& paths) = 0;
 		virtual void setSceneBox(const trimesh::box3& box) {};
 	};
 
@@ -131,7 +130,7 @@ namespace crslice
 		void getNotPath() override {};
 
 		//for preview image
-		void onSupports(int layerIdx, float z, float thickness, ClipperLib::Paths& paths) override {};
+		void onSupports(int layerIdx, float z, float thickness, const std::vector<std::vector<trimesh::vec3>>& paths) override {};
 		void setSceneBox(const trimesh::box3& box) override {};
 	};
 }
