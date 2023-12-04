@@ -10,6 +10,7 @@
 #include <boost/filesystem.hpp>
 
 #include "communication/scenefactory.h"
+#include "utils/Coord_t.h"
 
 namespace cura52
 {
@@ -259,6 +260,23 @@ namespace cura52
         for (MeshGroup& meshGroup : scene->mesh_groups)
             meshGroup.finalize();
 
+        //get box
+        {
+            AABB3D box3;
+            for (MeshGroup& meshGroup : scene->mesh_groups)
+                for (Mesh& mesh : meshGroup.meshes)
+                {
+                    box3.include(mesh.getAABB());
+                }
+
+            if (scene->fDebugger)
+            {
+                trimesh::box3 b;
+                b += trimesh::vec3(INT2MM(box3.min.x), INT2MM(box3.min.y), INT2MM(box3.min.z));
+                b += trimesh::vec3(INT2MM(box3.max.x), INT2MM(box3.max.y), INT2MM(box3.max.z));
+                scene->fDebugger->setSceneBox(b);
+            }        
+        }
 
         // slice
         int index = 0;

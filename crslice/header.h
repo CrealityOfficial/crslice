@@ -10,6 +10,7 @@
 #include <fstream>
 #include <unordered_map>
 #include "ccglobal/tracer.h"
+#include "polyclipping/clipper.hpp"
 
 typedef std::shared_ptr<trimesh::TriMesh> TriMeshPtr;
 
@@ -90,6 +91,7 @@ namespace crslice
 
 		virtual void tick(const std::string& tag) = 0;
 
+		//for gcode
 		virtual void getPathData(const trimesh::vec3 point, float e, int type) = 0;
 		virtual void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true) = 0;
 		virtual void setParam(PathParam pathParam) = 0;
@@ -103,6 +105,10 @@ namespace crslice
 		virtual void setZ(float z, float h = -1) = 0;
 		virtual void setE(float e) = 0;
 		virtual void getNotPath() = 0;
+
+		//for preview image
+		virtual void onSupports(int layerIdx,float z, float thickness, ClipperLib::Paths& paths) = 0;
+		virtual void setSceneBox(const trimesh::box3& box) {};
 	};
 
 	class PathData :public crslice::FDMDebugger
@@ -123,6 +129,10 @@ namespace crslice
 		void setZ(float z, float h = -1) override {};
 		void setE(float e) override {};
 		void getNotPath() override {};
+
+		//for preview image
+		void onSupports(int layerIdx, float z, float thickness, ClipperLib::Paths& paths) override {};
+		void setSceneBox(const trimesh::box3& box) override {};
 	};
 }
 #endif // CRSLICE_HEADER_INTERFACE
