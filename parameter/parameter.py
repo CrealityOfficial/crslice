@@ -1,11 +1,12 @@
 import sys
+import json
 from pathlib import Path
 
 class Parameter:
     def __init__(self, name, type_name):
         self.name = name
         self.type_name = type_name
-        self.flag = 'scene' # scene group mesh extruder
+        self.tags = [] # scene group mesh extruder
 
 def write_function(out, data, prefix):
     out.write('inline {0} {2}_{1}() const{{return {1};}}\n'.format(data.type_name, data.name, prefix))
@@ -31,13 +32,32 @@ class ParameterCpper():
         self.cpp_file = cpp_path.open('w', encoding='utf8')
         self.h_file = h_path.open('w', encoding='utf8')
         
+    #def parse_jsons(self, jsons):
+    #    datas = []
+    #    d1 = Parameter('wireframe_enabled', 'bool')
+    #    d1.tags.append('scene')
+    #    d1.tags.append('extruder')
+    #    d2 = Parameter('layer_height', 'coord_t')
+    #    d2.tags.append('scene')
+    #    d2.tags.append('group')
+    #    datas.append(d1)
+    #    datas.append(d2)
+    #    return datas
+
     def parse_jsons(self, jsons):
+        j_files = jsons.split()
         datas = []
-        d1 = Parameter('wireframe_enabled', 'bool')
-        d2 = Parameter('layer_height', 'coord_t')
-        datas.append(d1)
-        datas.append(d2)
+        for j_file in j_files:
+            json_path = Path('{0}/{1}'.format(source_dir, j_file))
+            print(str(json_path))
+            with open(str(json_path), 'r') as fcc_file:
+                fcc_data = json.load(fcc_file)
+                print(json.dumps(fcc_data, indent=4))
+            fcc_file.close()
         return datas
+        
+    def _check(self, parameter, tag):
+        return parameter.tags.count(tag) > 0
         
     def generate(self, jsons):
         datas = self.parse_jsons(jsons)
@@ -55,18 +75,51 @@ class ParameterCpper():
         out.write('#include "types/EnumSettings.h"\n')
         out.write('namespace cura52{class Settings;\n') #namespace
         
-        out.write('class SceneParamWrapper1{public:\n')  #scene
+        out.write('class SceneParameterWrapper{public:\n')  #scene
         out.write('void initialize(Settings* settings);\n')
         for data in datas:
-            if 'scene' in data.flag:
+            if self._check(data, 'scene'):
                 write_function(out, data, 'scene')
         out.write('protected:\n')
         for data in datas:
-            if 'scene' in data.flag:
+            if self._check(data, 'scene'):
                 write_member(out, data)
         out.write('};\n')                                  #scene
         
-        out.write('}\n')                                #namespace
+        out.write('class GroupParameterWrapper{public:\n')  #group
+        out.write('void initialize(Settings* settings);\n')
+        for data in datas:
+            if self._check(data, 'group'):
+                write_function(out, data, 'group')
+        out.write('protected:\n')
+        for data in datas:
+            if self._check(data, 'group'):
+                write_member(out, data)
+        out.write('};\n')                                  #group
+        
+        out.write('class MeshParameterWrapper{public:\n')  #mesh
+        out.write('void initialize(Settings* settings);\n')
+        for data in datas:
+            if self._check(data, 'mesh'):
+                write_function(out, data, 'mesh')
+        out.write('protected:\n')
+        for data in datas:
+            if self._check(data, 'mesh'):
+                write_member(out, data)
+        out.write('};\n')                                  #mesh
+        
+        out.write('class ExtruderParameterWrapper{public:\n')  #extruder
+        out.write('void initialize(Settings* settings);\n')
+        for data in datas:
+            if self._check(data, 'extruder'):
+                write_function(out, data, 'extruder')
+        out.write('protected:\n')
+        for data in datas:
+            if self._check(data, 'extruder'):
+                write_member(out, data)
+        out.write('};\n')                                  #extruder
+        
+        out.write('} //namespace cura52 \n')                                #namespace
         out.write('#endif //_PARAMETER_WRAPPER_H_\n')
         
     def generate_cpp(self, out, datas):
@@ -74,13 +127,31 @@ class ParameterCpper():
         out.write('#include "settings/Settings.h"\n')
         out.write('namespace cura52{')
         
-        out.write('void SceneParamWrapper1::initialize(Settings* settings){if(!settings)return;\n')   #scene
+        out.write('void SceneParameterWrapper::initialize(Settings* settings){if(!settings)return;\n')   #scene
         for data in datas:
-            if 'scene' in data.flag:
+            if self._check(data, 'scene'):
                 write_initialize(out, data)
-        out.write('}')                                                            #scene
+        out.write('}\n')                                                            #scene
         
-        out.write('}')
+        out.write('void GroupParameterWrapper::initialize(Settings* settings){if(!settings)return;\n')   #group
+        for data in datas:
+            if self._check(data, 'group'):
+                write_initialize(out, data)
+        out.write('}\n')                                                            #group
+        
+        out.write('void MeshParameterWrapper::initialize(Settings* settings){if(!settings)return;\n')   #mesh
+        for data in datas:
+            if self._check(data, 'mesh'):
+                write_initialize(out, data)
+        out.write('}\n')                                                            #mesh
+        
+        out.write('void ExtruderParameterWrapper::initialize(Settings* settings){if(!settings)return;\n')   #extruder
+        for data in datas:
+            if self._check(data, 'extruder'):
+                write_initialize(out, data)
+        out.write('}\n')                                                            #extruder
+        
+        out.write('} //namespace cura52')
         
     def __del__(self):
         self.cpp_file.close()
