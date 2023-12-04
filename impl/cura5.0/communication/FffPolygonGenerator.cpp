@@ -504,7 +504,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     AreaSupport::generateSupportInfillFeatures(storage);
 
 
-    if(application)
+    if(application->debugger())
         getLayerSupportData(storage, application);
 
 #if USE_CACHE
