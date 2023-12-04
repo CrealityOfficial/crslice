@@ -75,7 +75,10 @@ namespace cura52
         {
             for (ExtrusionLine& line : toolpaths[toolpaths_idx])
             {
-                line = simplifier.polyline(line);
+                if (line.is_closed)
+                    line = simplifier.polygon(line);
+                else
+                    line = simplifier.polyline(line);
             }
         }
     }
