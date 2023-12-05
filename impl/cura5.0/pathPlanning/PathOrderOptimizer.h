@@ -72,7 +72,7 @@ public:
      */
     ZSeamConfig seam_config;
 
-    std::vector<int> last_layer_start_idx;
+    std::vector<int> last_layer_start_idx;//距离上层轮廓起始点 最近的当前轮廓索引
     std::vector<bool> bFound;
     AngleDegrees z_seam_min_angle_diff;
     AngleDegrees z_seam_max_angle;

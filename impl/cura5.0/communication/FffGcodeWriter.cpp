@@ -217,15 +217,24 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         }
     }
 
-
+    paintzseam apaintzseam(&storage, total_layers);
+	if (!storage.interceptSeamPoints.empty())
+	{
+		apaintzseam.intercept();
+	}
     if (!mesh_group->settings.get<bool>("magic_spiralize") && mesh_group->settings.get<EZSeamType>("z_seam_type") == EZSeamType::SHARPEST_CORNER)
     {
         SAFE_MESSAGE(7, 0);
-        processZSeam(storage, total_layers);
+		MeshGroup* mesh_group = application->currentGroup();
+		AngleDegrees z_seam_min_angle_diff = mesh_group->settings.get<AngleDegrees>("z_seam_min_angle_diff");
+		AngleDegrees z_seam_max_angle = mesh_group->settings.get<AngleDegrees>("z_seam_max_angle");
+		coord_t wall_line_width_0 = mesh_group->settings.get<coord_t>("wall_line_width_0");
+		coord_t wall_line_count = mesh_group->settings.get<coord_t>("wall_line_count");
+        apaintzseam.processZSeam(mesh_group, z_seam_min_angle_diff, z_seam_max_angle, wall_line_width_0, wall_line_count);
     }
     if (!storage.zSeamPoints.empty())
     {
-        paintzseam(&storage, total_layers);
+        apaintzseam.paint();
     }
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
@@ -1622,256 +1631,6 @@ void FffGcodeWriter::processSimpleRaft(const SliceDataStorage& storage)
 
         layer_plan_buffer.handle(gcode_layer, gcode);
         last_planned_position = gcode_layer.getLastPlannedPositionOrStartingPosition();
-    }
-}
-
-void FffGcodeWriter::processZSeam(SliceDataStorage& storage, const size_t total_layers)
-{
-    auto getProjection = [](const Point& p, const Point& a, const Point& b, Point& result)
-    {
-        Point base = b - a;
-        if (vSize2(base) == 0)
-        {
-            return false;
-        }
-        float pab = LinearAlg2D::getAngleLeft(p, a, b);
-        float pba = LinearAlg2D::getAngleLeft(p, b, a);
-        if (pab > M_PI / 2 && pab < 3 * M_PI / 2) {
-            return false;
-        }
-        else if (pba > M_PI / 2 && pba < 3 * M_PI / 2) {
-            return false;
-        }
-        else {
-            double r = dot(p - a, base) / (float)vSize2(base);
-            result = a + base * r;
-            if(vSize2(result - a) > MM2_2INT(3.0))
-                return false;
-        }
-        return true;
-    };
-
-    auto getDistFromSeg = [](const Point& p, const Point& a, const Point& b)
-    {
-        float pab = LinearAlg2D::getAngleLeft(p, a, b);
-        float pba = LinearAlg2D::getAngleLeft(p, b, a);
-        if (pab > M_PI / 2 && pab < 3 * M_PI / 2){
-            return vSize(p - a);
-        } else if (pba > M_PI / 2 && pba < 3 * M_PI / 2){
-            return vSize(p - b);
-        } else{
-            return LinearAlg2D::getDistFromLine(p, a, b);
-        }
-    };
-    auto closestPointToIdx = [&](Polygon path, Point p, coord_t& bestDist)
-    {
-        int ret = -1;
-        bestDist = std::numeric_limits<coord_t>::max();
-        int size = (int)path.size();
-        for (int n = 0; n < size; n++)
-        {
-            Point cur_position = (*path)[n];
-            Point next_position = (*path)[(n + 1 + size) % size];
-            coord_t v_ab_dis = getDistFromSeg(p, cur_position, next_position);
-            if (v_ab_dis < bestDist)
-            {
-                ret = n;
-                bestDist = v_ab_dis;
-            }
-        }      
-        return vSize2((*path)[ret] - p) < vSize2((*path)[(ret + 1 + size) % size] - p) ? ret : (ret + 1 + size) % size;
-    };
-    auto closestPtIdx = [&](Polygon path, std::vector<Point> pts, Point& nearest_pt, coord_t dist_limit)
-    {
-        coord_t dis_min = std::numeric_limits<coord_t>::max();
-        int closestPtIdx = -1;
-        for (const Point& pt : pts)
-        {
-            coord_t dis = std::numeric_limits<coord_t>::max();
-            int idx = closestPointToIdx(path, pt, dis);
-            if (dis < dis_min && dis < dist_limit)
-            {
-                dis_min = dis;
-                closestPtIdx = idx;
-                nearest_pt = pt;
-            }
-        }
-        return  closestPtIdx;
-    };
-
-    auto getSupportedVertex = [](Polygons below_outline, ExtrusionLine wall, int start_idx)
-    {
-        if (below_outline.empty() || start_idx < 0)
-        {
-            return start_idx;
-        }
-
-        int curr_idx = start_idx;
-
-        while (true)
-        {
-            const Point& vertex = cura52::make_point(wall[curr_idx]);
-            if (below_outline.inside(vertex, true))
-            {
-                // vertex isn't above air so it's OK to use
-                return curr_idx;
-            }
-
-            if (++curr_idx >= wall.size())
-            {
-                curr_idx = 0;
-            }
-
-            if (curr_idx == start_idx)
-            {
-                // no vertices are supported so just return the original index
-                return start_idx;
-            }
-        }
-    };
-
-    auto findClosestPointToIdx = [&](Polygon path, Point p, coord_t dist_limit, coord_t dist_limit_max )
-    {
-        int ret = -1;
-        int size = (int)path.size();
-        for (int n = 0; n < size; n++)
-        {
-            Point cur_position = (*path)[n];
-            Point next_position = (*path)[(n + 1 + size) % size];
-            coord_t v_ab_dis = getDistFromSeg(p, cur_position, next_position);
-            if (v_ab_dis < dist_limit_max && v_ab_dis > dist_limit)
-            {
-                ret = n;
-            }
-        }
-        if (ret < 0)
-        {
-            return ret;
-        }
-        return vSize2((*path)[ret] - p) < vSize2((*path)[(ret + 1 + size) % size] - p) ? ret : (ret + 1 + size) % size;
-    };
-    auto findClosest = [&](Polygon path, std::vector<Point> pts, Point& nearest_pt, coord_t dist_limit, coord_t dist_limit_max)
-    {
-        int closestPtIdx = -1;
-        for (const Point& pt : pts)
-        {
-            return  findClosestPointToIdx(path, pt, dist_limit, dist_limit_max);
-        }
-        return  closestPtIdx;
-    };
-
-    auto minLength = [&](std::vector<Point>& pts, ExtrusionLine& line, Point& nearest_pt,int index, coord_t dist_limit, coord_t dist_limit_max)
-    {
-        int closestIdx = -1;
-        for (const Point& pt : pts)
-        {
-            coord_t length = vSize(pt - nearest_pt);
-            if (length <= dist_limit)
-            {
-                return findClosest(line.toPolygon(), pts, nearest_pt, dist_limit,dist_limit_max);
-            }
-        }
-        return  closestIdx;
-    };
-
-    MeshGroup* mesh_group = application->currentGroup();
-    AngleDegrees z_seam_min_angle_diff = mesh_group->settings.get<AngleDegrees>("z_seam_min_angle_diff");
-    AngleDegrees z_seam_max_angle = mesh_group->settings.get<AngleDegrees>("z_seam_max_angle");
-    coord_t wall_line_width_0 = mesh_group->settings.get<coord_t>("wall_line_width_0");
-    coord_t wall_line_count = mesh_group->settings.get<coord_t>("wall_line_count");
-    
-    std::vector<Point> last_layer_start_pt;
-    for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
-    {
-        std::vector<Point> current_layer_start_pt;
-        Polygons mesh_last_layer_outline;
-        for (SliceMeshStorage& mesh : storage.meshes)
-        {
-            if (layer_nr > 0)
-            {
-                for (SliceLayerPart part : mesh.layers[layer_nr - 1].parts)
-                {
-                    mesh_last_layer_outline.add(part.outline);
-                }
-                //计算非悬空区域
-                mesh_last_layer_outline = mesh_last_layer_outline.offset(0.5 * wall_line_width_0);
-            }
-            ZSeamConfig z_seam_config;
-            if (mesh.isPrinted()) //"normal" meshes with walls, skin, infill, etc. get the traditional part ordering based on the z-seam settings.
-            {
-                z_seam_config = ZSeamConfig(mesh.settings.get<EZSeamType>("z_seam_type"), mesh.getZSeamHint(), mesh.settings.get<EZSeamCornerPrefType>("z_seam_corner"), wall_line_width_0 * 2);
-            }
-            for (SliceLayerPart& part : mesh.layers[layer_nr].parts)
-            {
-                for (VariableWidthLines& path : part.wall_toolpaths)
-                {
-                    PathOrderOptimizer<const ExtrusionLine*> part_order_optimizer(Point(), z_seam_config);
-                    std::vector<Point> matchZSeam;
-                    for (const ExtrusionLine& line : path)
-                    {
-                        if (line.inset_idx == 0 && line.is_closed)
-                        {
-                            part_order_optimizer.addPolygon(&line);
-                            Point nearest_pt;
-                            part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toPolygon(), last_layer_start_pt, nearest_pt, MM2INT(5.0)));
-                            matchZSeam.push_back(nearest_pt);
-                        }
-                    }
-                    part_order_optimizer.bFound = std::vector(part_order_optimizer.last_layer_start_idx.size(), true);
-                    part_order_optimizer.z_seam_max_angle = z_seam_max_angle * M_PI / 180;
-                    part_order_optimizer.z_seam_min_angle_diff = z_seam_min_angle_diff * M_PI / 180;
-
-                    std::vector<int> start_idx;
-                    part_order_optimizer.findZSeam(start_idx);
-                    int idx = 0;
-                    for (ExtrusionLine& line : path)
-                    {
-                        if (line.inset_idx == 0 && line.is_closed)
-                        {
-                            if (line.start_idx!=-1)
-                            {
-                                continue;
-                            }
-
-                            line.start_idx = getSupportedVertex(mesh_last_layer_outline, line, start_idx[idx]);
-                            if (line.start_idx != -1 && !part_order_optimizer.bFound[idx])
-                            {
-                                Polygon _path = line.toPolygon();
-                                Point lastLayerNearestZSeam = matchZSeam[idx];
-                                Point pre_pt = _path[(line.start_idx - 1 + _path.size())% _path.size()];
-                                Point cur_pt = _path[line.start_idx];
-                                Point next_pt = _path[(line.start_idx + 1) % _path.size()];
-                                Point result;
-                                if (getProjection(lastLayerNearestZSeam, cur_pt, pre_pt, result))
-                                {
-                                    ExtrusionJunction new_pt = ExtrusionJunction(result, line.junctions[line.start_idx].w, line.junctions[line.start_idx].perimeter_index, line.junctions[line.start_idx].overhang_distance);
-                                    line.junctions.insert(line.junctions.begin() + line.start_idx, new_pt);
-                                }
-                                else if(getProjection(lastLayerNearestZSeam, cur_pt, next_pt, result))
-                                {
-                                    ExtrusionJunction new_pt = ExtrusionJunction(result, line.junctions[line.start_idx].w, line.junctions[line.start_idx].perimeter_index, line.junctions[line.start_idx].overhang_distance);
-                                    line.junctions.insert(line.junctions.begin() + line.start_idx + 1, new_pt);
-                                    line.start_idx++;
-                                }
-                            }
-                            int index = minLength(current_layer_start_pt, line, line.junctions[line.start_idx].p, line.start_idx, wall_line_width_0*3, wall_line_width_0 * (wall_line_count + 1));
-                            if (index >=0 && index < line.junctions.size())
-                            {
-                                line.start_idx = index;
-                            }
-                            current_layer_start_pt.push_back(line.junctions[line.start_idx].p);
-                            idx++;
-                        }
-                        else
-                        {
-                            Point nearest_pt;
-                            line.start_idx = closestPtIdx(line.toPolygon(), current_layer_start_pt, nearest_pt, wall_line_width_0 * (wall_line_count + 1));
-                        }
-                    }
-                }
-            }
-        }
-        last_layer_start_pt.swap(current_layer_start_pt);
     }
 }
 

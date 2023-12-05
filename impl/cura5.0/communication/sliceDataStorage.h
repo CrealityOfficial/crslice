@@ -322,6 +322,7 @@ namespace cura52
 
         SupportStorage support;
         std::vector<ZseamDrawlayer> zSeamPoints;
+        std::vector<ZseamDrawlayer> interceptSeamPoints;
 
         Polygons skirt_brim[MAX_EXTRUDERS]; //!< Skirt and brim polygons per extruder, ordered from inner to outer polygons.
         size_t skirt_brim_max_locked_part_order[MAX_EXTRUDERS]; //!< Some parts (like skirt) always need to be printed before parts like support-brim, so lock 0..n for each extruder, where n is the value saved in this array.
