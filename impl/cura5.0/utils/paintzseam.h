@@ -4,12 +4,18 @@
 
 namespace cura52
 {
+	class MeshGroup;
 	class paintzseam
 	{
 	public:
 		paintzseam(SliceDataStorage* _storage, const size_t _total_layers);
-		void markerZSeam();
+
+		void paint();
+		void intercept();
+
+		void markerZSeam(std::vector<ZseamDrawlayer>& _layersPoints);
 		void generateZSeam();
+		void processZSeam(MeshGroup* mesh_group, AngleDegrees& z_seam_min_angle_diff, AngleDegrees& z_seam_max_angle, coord_t& wall_line_width_0, coord_t& wall_line_count);
 
 		coord_t getDistFromSeg(const Point& p, const Point& Seg_start, const Point& Seg_end);
 		Point getDisPtoSegment(Point& apoint, Point& Seg_start, Point& Seg_end);
