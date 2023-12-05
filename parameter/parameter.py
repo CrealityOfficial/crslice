@@ -43,17 +43,49 @@ class ParameterCpper():
     #    datas.append(d1)
     #    datas.append(d2)
     #    return datas
-
+    
+    def _parse_parameter(self, key, value):
+        data = Parameter(key, 'std::string')
+        if value['type'] == 'int' or\
+            value['type'] == 'extruder' or\
+            value['type'] == 'optional_extruder':
+            data.type_name = 'int'
+        elif value['type'] == 'float':
+            data.type_name = 'double'
+        
+        if not 'settable_globally' in value or value['settable_globally'] == 'true':
+            data.tags.append('scene')           
+        if 'settable_per_meshgroup' in value and value['settable_per_meshgroup'] == 'true':
+            data.tags.append('group')
+        if 'settable_per_mesh' in value and value['settable_per_mesh'] == 'true':
+            data.tags.append('mesh')
+        if 'settable_per_extruder' in value and value['settable_per_extruder'] == 'true':
+            data.tags.append('extruder') 
+        
+        if len(data.tags) == 0:
+            print('set default tag for {}'.format(data.name))
+            data.tags.append('scene')
+        return data
+     
+    def _parse_json_data(self, json_data):
+        datas = []
+        for k, v in json_data.items():
+            datas.append(self._parse_parameter(k, v))
+        return datas
+        
     def parse_jsons(self, jsons):
         j_files = jsons.split()
         datas = []
         for j_file in j_files:
             json_path = Path('{0}/{1}'.format(source_dir, j_file))
-            print(str(json_path))
+            #print(str(json_path))
             with open(str(json_path), 'r') as fcc_file:
                 fcc_data = json.load(fcc_file)
-                print(json.dumps(fcc_data, indent=4))
+                #print(json.dumps(fcc_data,indent=2))
+                datas += self._parse_json_data(fcc_data)
             fcc_file.close()
+        
+        print(datas)
         return datas
         
     def _check(self, parameter, tag):
