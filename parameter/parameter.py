@@ -85,7 +85,7 @@ class ParameterCpper():
                 datas += self._parse_json_data(fcc_data)
             fcc_file.close()
         
-        print(datas)
+        #print(datas)
         return datas
         
     def _check(self, parameter, tag):
