@@ -1418,6 +1418,77 @@ std::vector<PolygonsPart> Polygons::splitIntoParts(bool unionAll) const
     return ret;
 }
 
+bool IsInsidePath(const ClipperLib::Path& path, const ClipperLib::Path& path2)
+{
+    // 被包含次数
+    int num = 0;
+
+    bool flag = true;
+    for (auto& point : path2)
+    {
+        if (!ClipperLib::PointInPolygon(point, path))
+        {
+            flag = false;
+        }
+    }
+
+    return flag;
+}
+
+std::vector<PolygonsPart> Polygons::splitIntoColorParts(bool unionAll)
+{
+    std::vector<PolygonsPart> ret;
+
+    for (int i = 0; i < paths.size(); i++)
+    {
+        bool flag = false;
+        for (int j = 0; j < i; j++)
+        {
+
+            if (colors[i] == colors[j]) {
+                flag = IsInsidePath(paths[i], paths[j]) || IsInsidePath(paths[j], paths[i]);
+                if (flag) {
+                    ret[j].add(paths[i]);
+                    colors[i] = -i - 1;
+                }
+            }
+
+        }
+
+        if (!flag)
+        {
+            ret.emplace_back();
+            ret.back().add(paths[i]);
+        }
+    }
+
+    for (auto iter = colors.begin(); iter != colors.end(); )
+    {
+        if (*iter < 0)
+        {
+            iter = colors.erase(iter);
+        }
+        else
+        {
+            iter++;
+        }
+    }
+
+    for (auto color : colors) {
+        if (color == -1) {
+            colors.erase(colors.begin());
+        }
+    }
+    //  for (int i = 0; i < paths.size(); i++)
+    // {
+    //     if(colors[i]==-1){
+    //         colors.erase(colors.begin() + i);
+    //     }
+    // }
+
+    return ret;
+}
+
 void Polygons::splitIntoParts_processPolyTreeNode(ClipperLib::PolyNode* node, std::vector<PolygonsPart>& ret) const
 {
     for(int n=0; n<node->ChildCount(); n++)

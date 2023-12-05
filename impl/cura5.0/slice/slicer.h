@@ -63,7 +63,10 @@ namespace cura52
         std::vector<SlicerSegment> skinsegments;
         std::unordered_map<int, int> face_idx_to_segment_idx; // topology
 
-        bool isSkin = false;std::map<int,std::vector<SlicerLayer>> slicerLayers;
+        //bool isSkin = false;
+        int inner = 0;
+        bool isSkin = false;
+        std::map<int, std::vector<SlicerLayer>> slicerLayers;
         int z = -1;
         Polygons polygons;
         Polygons openPolylines;

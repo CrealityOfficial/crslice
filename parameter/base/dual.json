@@ -234,5 +234,17 @@
 		"enabled": "false",
 		"settable_per_mesh": "false",
 		"settable_per_extruder": "true"
+	},
+	"model_color_count":
+	{
+		"label": "Model Color Count",
+		"description": "Model Color Count",
+		"type": "int",
+		"default_value": "4",
+		"minimum_value": "1",
+		"maximum_value": "18",
+		"enabled": "false",
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true"
 	}
 }

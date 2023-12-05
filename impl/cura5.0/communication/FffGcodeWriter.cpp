@@ -3390,7 +3390,6 @@ bool FffGcodeWriter::processSkin(const SliceDataStorage& storage, LayerPlan& gco
         part_order_optimizer.addPolygon(&skin_part);
     }
     // part_order_optimizer.optimize();
-    // std::cout << "/* part_order_optimizer */" <<part_order_optimizer.paths.size()<< std::endl;
     for (const PathOrderPath<const SkinPart*>& path : part_order_optimizer.paths)
     {
         const SkinPart& skin_part = *path.vertices;
