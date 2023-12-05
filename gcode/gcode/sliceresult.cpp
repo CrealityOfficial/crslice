@@ -146,14 +146,14 @@ namespace gcode
 			std::vector<std::string> oneLS;
 			Stringsplit(temp, ':', oneLS);
 			if (oneLS.size() == 2 && oneLS.at(0) == ";TYPE")
-		    {
+			{
 				if (oneLS.at(1) == "WALL-INNER" || oneLS.at(1) == "WALL-OUTER")
 				{
 					value += (";_EXTRUSION_ROLE:1\n");
 				}
 				if (oneLS.at(1) == "SKIN")
 				{
-				value += (";_EXTRUSION_ROLE:2\n");
+					value += (";_EXTRUSION_ROLE:2\n");
 				}
 				if (oneLS.at(1) == "FILL")
 				{
@@ -167,6 +167,11 @@ namespace gcode
 				{
 					value += (";_EXTRUSION_ROLE:5\n");
 				}
+			}
+
+			if (temp == ";;retract;;" || temp == ";;retract move;;")
+			{
+				value += (";_EXTRUSION_ROLE:0\n");
 			}
 
 			value += (temp + "\n");
@@ -218,7 +223,6 @@ namespace gcode
 		fileInfo.close();
 		return true;
 	}
-
 	void SliceResult::setFileName(const std::string& fileName)
 	{
 		m_fileName = fileName;
