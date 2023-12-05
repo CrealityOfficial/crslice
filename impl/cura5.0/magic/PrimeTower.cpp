@@ -46,6 +46,7 @@ namespace cura52
 
         extruder_count = application->extruderCount();
         extruder_order.resize(extruder_count);
+        count = application->currentGroup()->settings.get<int>("model_color_count") - 1;
         for (unsigned int extruder_nr = 0; extruder_nr < extruder_count; extruder_nr++)
         {
             extruder_order[extruder_nr] = extruder_nr; //Start with default order, then sort.
@@ -226,7 +227,8 @@ namespace cura52
         const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y");
         const coord_t tower_radius = tower_size / 2;
         base_poly.add(PolygonUtils::makeRect(x + tower_size * startindex, y, tower_size, tower_size));
-        size_t spacing = 10000;
+        //size_t spacing = 10000;
+        size_t spacing = 3000;
         // fill
         for (int x_line = spacing; x_line < tower_size; x_line += spacing)
         {

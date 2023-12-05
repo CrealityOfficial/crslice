@@ -53,40 +53,42 @@ namespace cura52 {
         }
         else
         {
-            // result = layer->polygons.splitIntoParts(union_layers || union_all_remove_holes);
-            result.reserve(layer->polygons.size());
-            for (const PolygonRef poly : layer->polygons)
-            {
-                result.emplace_back();
-                result.back().add(poly);
-            }
+            //// result = layer->polygons.splitIntoParts(union_layers || union_all_remove_holes);
+            //result.reserve(layer->polygons.size());
+            //for (const PolygonRef poly : layer->polygons)
+            //{
+            //    result.emplace_back();
+            //    result.back().add(poly);
+            //}
+            result = layer->polygons.splitIntoColorParts(union_layers || union_all_remove_holes);
         }
         const coord_t hole_offset = settings.get<coord_t>("hole_xy_offset");
-        const size_t bottom_layers = settings.get<size_t>("bottom_layers");
-        bool magic_spiralize = settings.get<bool>("magic_spiralize");
+        //const size_t bottom_layers = settings.get<size_t>("bottom_layers");
+        //bool magic_spiralize = settings.get<bool>("magic_spiralize");
         // for (auto& part : result)
         for(int i = 0; i < result.size(); i++) 
         {
             PolygonsPart part = result[i];
             storageLayer.parts.emplace_back();
             storageLayer.parts.back().color = layer->polygons.colors[i];
-            if (magic_spiralize && layer_nr >= bottom_layers)
+            //if (magic_spiralize && layer_nr >= bottom_layers)
+            if (hole_offset != 0)
             {
                 // holes remove
                 Polygons outline;
-                for (const PolygonRef poly : part)
-                {
-                    if (poly.orientation())
-                    {
-                        outline.add(poly);
-                    }
-                }
-                storageLayer.parts.back().outline.add(outline.unionPolygons());
-            }
-            else if (hole_offset != 0)
-            {
-                // holes are to be expanded or shrunk
-                Polygons outline;
+            //    for (const PolygonRef poly : part)
+            //    {
+            //        if (poly.orientation())
+            //        {
+            //            outline.add(poly);
+            //        }
+            //    }
+            //    storageLayer.parts.back().outline.add(outline.unionPolygons());
+            //}
+            //else if (hole_offset != 0)
+            //{
+            //    // holes are to be expanded or shrunk
+            //    Polygons outline;
                 Polygons holes;
                 for (const PolygonRef poly : part)
                 {

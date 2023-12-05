@@ -2378,6 +2378,9 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
     {
         return;
     }
+    if (extruder != current_extruder) {
+        return;
+    }
 
     if (wait && flavor != EGCodeFlavor::MAKERBOT)
     {
@@ -2393,6 +2396,7 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
     }
     else
     {
+        //º”»»≈ÁÕ∑
         *output_stream << "M104";
         extruder_attr[extruder].waited_for_temperature = false;
 

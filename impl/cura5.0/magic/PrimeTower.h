@@ -43,7 +43,7 @@ private:
     std::vector<ExtrusionMoves> pattern_per_extruder_layer0; //!< For each extruder the pattern to print on the first layer
 
 public:
-    int count = 4;
+    int count = 0;
     SliceContext* application = nullptr;
     bool enabled; //!< Whether the prime tower is enabled.
     bool would_have_actual_tower; //!< Whether there is an actual tower.
