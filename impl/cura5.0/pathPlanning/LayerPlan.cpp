@@ -2735,7 +2735,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 {
                     ss << "MESH:" << current_mesh;
                     gcode.writeComment(ss.str());
-                    ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+                    if (tmp_mesh_name != "NONMESH" && tmp_mesh_name != "")
+                        ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
                     gcode.writeComment2(ss_exclude_end.str());
                     if (current_mesh != "NONMESH")
                     {
