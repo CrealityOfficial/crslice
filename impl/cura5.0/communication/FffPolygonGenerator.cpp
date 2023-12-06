@@ -1338,34 +1338,34 @@ void FffPolygonGenerator::getPaintSupport(SliceDataStorage& storage,const int la
 
 void FffPolygonGenerator::getZseamLine(SliceDataStorage& storage, const int layer_thickness, const int slice_layer_count, const bool use_variable_layer_heights)
 {
-    std::vector<cura52::Mesh> ZseamMesh;
-    getBinaryData(application->seamFile(), ZseamMesh);
-    if (!ZseamMesh.empty())
-    {
-        storage.zSeamPoints.resize(slice_layer_count);
-        for (Mesh& mesh : ZseamMesh)
-        {
-            SlicedData slicedData;
-            std::vector<SlicerLayer> Zseamlineslayers;
-
-            mesh.settings.add("zseam_paint_enable", "true");
-            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, Zseamlineslayers);
-            for (unsigned int layer_nr = 0; layer_nr < Zseamlineslayers.size(); layer_nr++)
-            {
-                for (size_t i = 0; i < Zseamlineslayers[layer_nr].segments.size(); i++)
-                {
-                    storage.zSeamPoints[layer_nr].ZseamLayers.push_back(ZseamDrawPoint(Zseamlineslayers[layer_nr].segments[i].start));
-                }
-            }
-        }
-    }
-
-    ZseamMesh.clear();
-	getBinaryData(application->antiSeamFile(), ZseamMesh);
+	std::vector<cura52::Mesh> ZseamMesh;
+	getBinaryData(application->seamFile(), ZseamMesh);
 	if (!ZseamMesh.empty())
 	{
 		storage.zSeamPoints.resize(slice_layer_count);
 		for (Mesh& mesh : ZseamMesh)
+		{
+			SlicedData slicedData;
+			std::vector<SlicerLayer> Zseamlineslayers;
+
+			mesh.settings.add("zseam_paint_enable", "true");
+			sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, Zseamlineslayers);
+			for (unsigned int layer_nr = 0; layer_nr < Zseamlineslayers.size(); layer_nr++)
+			{
+				for (size_t i = 0; i < Zseamlineslayers[layer_nr].segments.size(); i++)
+				{
+					storage.zSeamPoints[layer_nr].ZseamLayers.push_back(ZseamDrawPoint(Zseamlineslayers[layer_nr].segments[i].start));
+				}
+			}
+		}
+	}
+
+    std::vector<cura52::Mesh> antiMesh;
+	getBinaryData(application->antiSeamFile(), antiMesh);
+	if (!antiMesh.empty())
+	{
+		storage.interceptSeamPoints.resize(slice_layer_count);
+		for (Mesh& mesh : antiMesh)
 		{
 			SlicedData slicedData;
 			std::vector<SlicerLayer> Zseamlineslayers;

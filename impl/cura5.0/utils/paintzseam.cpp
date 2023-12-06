@@ -15,16 +15,16 @@ namespace cura52
 
 	void paintzseam::paint()
 	{
-		markerZSeam(storage->zSeamPoints);
+		markerZSeam(storage->zSeamPoints, ExtrusionJunction::PAINT);
 		generateZSeam();
 	}
 
 	void paintzseam::intercept()
 	{
-		markerZSeam(storage->interceptSeamPoints);
+		markerZSeam(storage->interceptSeamPoints, ExtrusionJunction::INTERCEPT);
 	}
 
-	void paintzseam::markerZSeam(std::vector<ZseamDrawlayer>& _layersPoints)
+	void paintzseam::markerZSeam(std::vector<ZseamDrawlayer>& _layersPoints, ExtrusionJunction::paintFlag _flag)
 	{
 		for (int layer_nr = 0; layer_nr < total_layers; layer_nr++)
 		{
@@ -50,13 +50,15 @@ namespace cura52
 									int minPPidex=getDisPtoJunctions(aPoint.start, line.junctions, minPPdis);
 									if (minPPdis < 1000)//涂抹点到轮廓点的最短距离
 									{
-										line.junctions[minPPidex].isZSeamDrow = true;
+										line.junctions[minPPidex].flag = _flag;
 										aPoint.flag = true;
 									}
 									else
 									{
-										int preIdx = (minPPidex + line.junctions.size() - 2) % (line.junctions.size() - 1);
-										int nextIdx = (minPPidex + 1) % (line.junctions.size() - 1);
+
+										int realsize = line.junctions[0] == line.junctions[line.junctions.size() - 1] ? line.junctions.size() - 1 : line.junctions.size();
+										int preIdx = (minPPidex + realsize - 1) % realsize;
+										int nextIdx = (minPPidex + 1) % realsize;
 
 										coord_t pre_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
 										coord_t next_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
@@ -70,13 +72,13 @@ namespace cura52
 											Point addPoint = getDisPtoSegment(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
 											if (std::abs(addPoint.X - line.junctions[minPPidex].p.X) < 500 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y) < 500)
 											{
-												line.junctions[minPPidex].isZSeamDrow = true;
+												line.junctions[minPPidex].flag = _flag;
 												aPoint.flag = true;
 												continue;
 											}
 											ExtrusionJunction addEJ = line.junctions.at(preIdx);
 											addEJ.p = addPoint;
-											addEJ.isZSeamDrow = true;
+											addEJ.flag = _flag;
 											aPoint.flag = true;
 											if (minPPidex == 0)
 											{
@@ -89,13 +91,13 @@ namespace cura52
 											Point addPoint = getDisPtoSegment(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
 											if (std::abs(addPoint.X - line.junctions[minPPidex].p.X) < 500 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y) < 500)
 											{
-												line.junctions[minPPidex].isZSeamDrow = true;
+												line.junctions[minPPidex].flag = _flag;
 												aPoint.flag = true;
 												continue;
 											}
 											ExtrusionJunction addEJ = line.junctions.at(nextIdx);
 											addEJ.p = addPoint;
-											addEJ.isZSeamDrow = true;
+											addEJ.flag = _flag;
 											aPoint.flag = true;
 											if (nextIdx == 0)
 											{
@@ -136,12 +138,13 @@ namespace cura52
 									int minCorner_idx = -1;//最尖角索引
 									for (int n = 0; n < line.junctions.size() - 1; n++)
 									{
-										if (line.junctions[n].isZSeamDrow)
+										if (line.junctions[n].flag == ExtrusionJunction::PAINT)
 										{
 											//int preIdx = (n - 1 + line.junctions.size()) % line.junctions.size();
 											//int nextIdx = (n + 1) % line.junctions.size();
-											int preIdx = (n + line.junctions.size() - 2) % (line.junctions.size() - 1);
-											int nextIdx = (n + 1) % (line.junctions.size() - 1);
+											int realsize = line.junctions[0] == line.junctions[line.junctions.size() - 1] ? line.junctions.size() - 1 : line.junctions.size();
+											int preIdx = (n + realsize - 1) % realsize;
+											int nextIdx = (n + 1) % realsize;
 											float pab = getAngleLeft(line.junctions[preIdx].p, line.junctions[n].p, line.junctions[nextIdx].p);
 											if (minCornerAngle >= pab)
 											{
@@ -163,7 +166,7 @@ namespace cura52
 									Point shortest_point;
 									for (int n = 0; n < line.junctions.size() - 1; n++)
 									{
-										if (line.junctions[n].isZSeamDrow)
+										if (line.junctions[n].flag == ExtrusionJunction::PAINT)
 										{
 											for (Point& apoint : PreZseamPoints)
 											{
@@ -183,12 +186,13 @@ namespace cura52
 									int sharpCorner_idx = -1;
 									for (int n = 0; n < line.junctions.size() - 1; n++)
 									{
-										if (line.junctions[n].isZSeamDrow)
+										if (line.junctions[n].flag== ExtrusionJunction::PAINT)
 										{
 											//int preIdx = (n - 1 + line.junctions.size()) % line.junctions.size();
 											//int nextIdx = (n + 1) % line.junctions.size();
-											int preIdx = (n + line.junctions.size() - 2) % (line.junctions.size() - 1);
-											int nextIdx = (n + 1) % (line.junctions.size() - 1);
+											int realsize = line.junctions[0] == line.junctions[line.junctions.size() - 1] ? line.junctions.size() - 1 : line.junctions.size();
+											int preIdx = (n + realsize - 1) % realsize;
+											int nextIdx = (n + 1) % realsize;
 											float pab = getAngleLeft(line.junctions[preIdx].p, line.junctions[n].p, line.junctions[nextIdx].p);
 											if (minAngle >= pab)//最尖角
 											{
@@ -204,10 +208,10 @@ namespace cura52
 
 									if ((std::abs(shortestAngle - minAngle) < (M_PI / 6) || minAngle > (M_PI * 3 / 4)) && minPPidex >= 0)
 									{
-
-										int preIdx = (minPPidex + line.junctions.size() - 2) % (line.junctions.size() - 1);
-										int nextIdx = (minPPidex + 1) % (line.junctions.size() - 1);
-										if (line.junctions[preIdx].isZSeamDrow && line.junctions[nextIdx].isZSeamDrow)
+										int realsize = line.junctions[0] == line.junctions[line.junctions.size() - 1] ? line.junctions.size() - 1 : line.junctions.size();
+										int preIdx = (minPPidex + realsize - 1) % realsize;
+										int nextIdx = (minPPidex + 1) % realsize;
+										if (line.junctions[preIdx].flag == ExtrusionJunction::PAINT && line.junctions[nextIdx].flag== ExtrusionJunction::PAINT)
 										{
 											coord_t pre_dis = getDistFromSeg(shortest_point, line.junctions[minPPidex].p, line.junctions[preIdx].p);
 											coord_t next_dis = getDistFromSeg(shortest_point, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
@@ -222,7 +226,7 @@ namespace cura52
 												}
 												ExtrusionJunction addEJ = line.junctions.at(preIdx);
 												addEJ.p = addPoint;
-												addEJ.isZSeamDrow = true;
+												addEJ.flag = ExtrusionJunction::PAINT;
 												if (minPPidex == 0)
 												{
 													minPPidex = preIdx + 1;
@@ -242,7 +246,7 @@ namespace cura52
 												}
 												ExtrusionJunction addEJ = line.junctions.at(nextIdx);
 												addEJ.p = addPoint;
-												addEJ.isZSeamDrow = true;
+												addEJ.flag = ExtrusionJunction::PAINT;
 												if (nextIdx == 0)
 												{
 													nextIdx = minPPidex + 1;
@@ -252,7 +256,7 @@ namespace cura52
 												curZseamPoints.push_back(line.junctions[nextIdx].p);
 											}
 										}
-										else if (line.junctions[preIdx].isZSeamDrow)
+										else if (line.junctions[preIdx].flag== ExtrusionJunction::PAINT)
 										{
 											Point addPoint = getDisPtoSegment(shortest_point, line.junctions[minPPidex].p, line.junctions[preIdx].p);
 											if (addPoint.X == line.junctions[minPPidex].p.X && addPoint.Y == line.junctions[minPPidex].p.Y)
@@ -263,7 +267,7 @@ namespace cura52
 											}
 											ExtrusionJunction addEJ = line.junctions.at(preIdx);
 											addEJ.p = addPoint;
-											addEJ.isZSeamDrow = true;
+											addEJ.flag = ExtrusionJunction::PAINT;
 											if (minPPidex == 0)
 											{
 												minPPidex = preIdx + 1;
@@ -272,7 +276,7 @@ namespace cura52
 											line.start_idx = minPPidex;
 											curZseamPoints.push_back(line.junctions[minPPidex].p);
 										}
-										else if (line.junctions[nextIdx].isZSeamDrow)
+										else if (line.junctions[nextIdx].flag== ExtrusionJunction::PAINT)
 										{
 											Point addPoint = getDisPtoSegment(shortest_point, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
 											if (addPoint.X == line.junctions[minPPidex].p.X && addPoint.Y == line.junctions[minPPidex].p.Y)
@@ -283,7 +287,7 @@ namespace cura52
 											}
 											ExtrusionJunction addEJ = line.junctions.at(nextIdx);
 											addEJ.p = addPoint;
-											addEJ.isZSeamDrow = true;
+											addEJ.flag = ExtrusionJunction::PAINT;
 											if (nextIdx == 0)
 											{
 												nextIdx = minPPidex + 1;
@@ -396,7 +400,8 @@ namespace cura52
 	int paintzseam::getDisPtoJunctions(Point& aPoint, std::vector<ExtrusionJunction>& junctions, coord_t& minPPdis)
 	{
 		int minPPidex = -1;
-		for (int n = 0; n < junctions.size() - 1; n++)
+		int icount = junctions[0] == junctions[junctions.size() - 1] ? junctions.size() - 1 : junctions.size();
+		for (int n = 0; n < icount; n++)
 		{
 			coord_t ppdis = vSize(junctions[n].p - aPoint);
 			if (minPPdis > ppdis)
@@ -503,7 +508,7 @@ namespace cura52
 			while (true)
 			{
 				const Point& vertex = cura52::make_point(wall[curr_idx]);
-				if (below_outline.inside(vertex, true))
+				if (below_outline.inside(vertex, true) && wall[curr_idx].flag != ExtrusionJunction::INTERCEPT)
 				{
 					// vertex isn't above air so it's OK to use
 					return curr_idx;
@@ -560,7 +565,7 @@ namespace cura52
 				coord_t length = vSize(pt - nearest_pt);
 				if (length <= dist_limit)
 				{
-					return findClosest(line.toPolygon(), pts, dist_limit, dist_limit_max);
+					return findClosest(line.toRealPolygon(), pts, dist_limit, dist_limit_max);
 				}
 			}
 			return  closestIdx;
@@ -605,7 +610,8 @@ namespace cura52
 							{
 								part_order_optimizer.addPolygon(&line);
 								Point nearest_pt;
-								part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toPolygon(), last_layer_start_pt, nearest_pt, MM2INT(5.0)));
+								part_order_optimizer.last_layer_start_idx.push_back(closestPtIdx(line.toRealPolygon(), last_layer_start_pt, nearest_pt, MM2INT(5.0)));
+								part_order_optimizer.vvctpaintFlag.push_back(line.toFlag());
 								last_layer_Line_startPoint.push_back(nearest_pt);
 							}
 						}
@@ -621,7 +627,7 @@ namespace cura52
 							if (line.inset_idx == 0 && line.is_closed)
 							{
 								line.start_idx = getSupportedVertex(mesh_last_layer_outline, line, start_idx[idx]);
-								if (line.start_idx != -1 && !part_order_optimizer.bFound[idx])
+								if (line.start_idx != -1 && !part_order_optimizer.bFound[idx] )
 								{
 									Polygon _path = line.toPolygon();
 									Point lastLayerNearestZSeam = last_layer_Line_startPoint[idx];
@@ -654,7 +660,7 @@ namespace cura52
 							else//内壁起始点，选择离当前层所有起始点 最近的点
 							{
 								Point nearest_pt;
-								line.start_idx = closestPtIdx(line.toPolygon(), current_layer_start_pt, nearest_pt, wall_line_width_0 * (wall_line_count + 1));
+								line.start_idx = closestPtIdx(line.toRealPolygon(), current_layer_start_pt, nearest_pt, wall_line_width_0 * (wall_line_count + 1));
 							}
 						}
 					}
