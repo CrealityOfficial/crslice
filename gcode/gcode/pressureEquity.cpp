@@ -1,4 +1,4 @@
-#include "pressureEquity.h"
+#include "crslice/gcode/pressureEquity.h"
 #include "src/gcode/PressureEqualizer.h"
 
 
