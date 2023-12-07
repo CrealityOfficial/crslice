@@ -1027,8 +1027,8 @@
 		"label": "Print Speed Limit to Height Enable",
 		"type": "bool",
 		"default_value": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	},
 	"speed_limit_to_height":
 	{
@@ -1038,7 +1038,7 @@
 		"default_value": "[[100,150,100,6000,210],[150,200,80,5500,200],[200,250,60,5000,190]]",
 		"parameter_level": "4",
 		"enabled": "eval(contex.value(\"speed_limit_to_height_enable\"))",
-		"settable_per_mesh": false,
-		"settable_per_extruder": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "false"
 	}
 }
