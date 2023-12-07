@@ -141,8 +141,6 @@ namespace cura52
         void writeGCode(SliceDataStorage& storage);
 
     private:
-        void paraseLimitStr(std::string str, std::vector<LimitGraph>& outData, const Velocity& init_limit_speed, const Acceleration& init_limit_acc, const Temperature& init_limit_temp);
-    private:
         /*!
          * \brief Set the FffGcodeWriter::fan_speed_layer_time_settings by
          * retrieving all settings from the global/per-meshgroup settings.

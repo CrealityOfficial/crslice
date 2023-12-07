@@ -23,6 +23,7 @@
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
 #include "utils/SettingsWrapper.h"
+#include "poly/getlayerdata.h"
 
 #include "communication/slicecontext.h"
 #include "tools/serial.h"
@@ -69,78 +70,6 @@ bool FffGcodeWriter::setTargetFile(const char* filename)
         return true;
     }
     return false;
-}
-
-void FffGcodeWriter::paraseLimitStr(std::string str, std::vector<LimitGraph>& outData, const Velocity& init_limit_speed,const Acceleration& init_limit_acc, const Temperature& init_limit_temp)
-{
-    //[[0.5,1.0,100,6000,220],[1.0,1.5,80,5500,210],[1.5,2.0,60,5000,200]]
-    int len = str.length();
-    if (len <= 3)
-        return;
-
-    int no = str.find_first_of('[');
-    if (no < 0 || no >= len)
-        return;
-
-    str = str.substr(no + 1, str.length());
-    no = str.find_last_of(']');
-    if (no < 0 || no >= len)
-        return;
-
-    str = str.substr(0, no);
-
-    int findIndex1 = str.find(']');
-    while (findIndex1 >= 0 && findIndex1 < str.size())
-    {
-        LimitGraph limitData;
-        limitData.data.speed1 = outData.empty() ? init_limit_speed.value : outData.back().data.speed2;
-        limitData.data.Acc1 = outData.empty() ? init_limit_acc.value : outData.back().data.Acc2;
-        limitData.data.Temp1 = outData.empty() ? init_limit_temp.value : outData.back().data.Temp2;
-
-        std::string temp = str.substr(0, findIndex1);
-        str = str.substr(findIndex1 + 1, str.length());
-
-        int findIndex = temp.find_last_of('[');
-        if (findIndex < 0 || findIndex >= temp.length())
-            continue;
-        temp = temp.substr(findIndex + 1, temp.length());
-
-        findIndex = temp.find(',');
-        std::vector<double> data;
-        std::string str1;
-        while (findIndex >= 0 && findIndex < temp.length())
-        {
-            str1 = temp.substr(0, findIndex);
-            temp = temp.substr(findIndex + 1, temp.length());
-            data.push_back(std::atof(str1.c_str()));
-            findIndex = temp.find(',');
-
-            if (findIndex < 0 || findIndex >= temp.length())
-            {
-                data.push_back(std::atof(temp.c_str()));
-            }
-        }
-
-        if (data.size() == 4)
-        {
-            limitData.data.value1 = MM2INT(data[0]);
-            limitData.data.value2 = MM2INT(data[1]);
-            limitData.data.speed2 = data[2];
-            limitData.data.Acc2 = data[3];
-            //limitData.data.temp;
-        }
-        else if (data.size() == 5)
-        {
-            limitData.data.value1 = MM2INT(data[0]);
-            limitData.data.value2 = MM2INT(data[1]);
-            limitData.data.speed2 = data[2];
-            limitData.data.Acc2 = data[3];
-            limitData.data.Temp2 = data[4];
-        }
-        outData.push_back(limitData);
-
-        findIndex1 = str.find(']');
-    }
 }
 
 void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
@@ -261,79 +190,15 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
     //指定轮廓的打印顺序
     if (mesh_group->settings.get<bool>("poly_order_user_specified"))
     {
-        storage.polyOrderUserDef.clear();
         std::string str = mesh_group->settings.get<std::string>("poly_order_user_specified_str");
-        //[0.0,0.0] //[x1,y1,x2,y2]
-        if (str.length() > 3)
-        {
-            str = str.substr(0, str.length() - 1);
-            str = str.substr(1, str.length() - 1);
-        }
-        std::vector<float> order;
-        int findIndex = str.find(',');
-        std::string temp = "";
-        while (findIndex >= 0)
-        {
-            temp = str.substr(0, findIndex);
-            str = str.substr(findIndex + 1, str.length());
-            order.push_back(std::atof(temp.c_str()));
-            findIndex = str.find(',');
-        }
-        order.push_back(std::atof(str.c_str()));
-
-        for (size_t i = 0; i < order.size()-1; i++,i++)
-        {
-            ClipperLib::IntPoint p;
-            p.X = MM2INT(order[i]);
-            p.Y = MM2INT(order[i+1]);
-            storage.polyOrderUserDef.push_back(p);
-        }
+        setPloyOrderUserSpecified(storage, str);
     }
 
     //限制速度加速度温度
     if (mesh_group->settings.get<bool>("acceleration_limit_mess_enable")
         || mesh_group->settings.get<bool>("speed_limit_to_height_enable"))
     {
-        //todo
-        //init_limit_speed
-        Velocity speed1 = mesh_group->settings.get<Velocity>("speed_wall_0");
-        Velocity speed2 = mesh_group->settings.get<Velocity>("speed_wall_x");
-        Velocity speed3 = mesh_group->settings.get<Velocity>("speed_infill");
-        Velocity init_limit_speed = std::max(std::max(speed1, speed2), speed3);
-
-        //init_limit_acc
-        Acceleration acc1 = mesh_group->settings.get<Acceleration>("acceleration_infill");
-        Acceleration acc2 = mesh_group->settings.get<Acceleration>("acceleration_wall_0");
-        Acceleration acc3 = mesh_group->settings.get<Acceleration>("acceleration_wall_x");
-        Acceleration acc4 = mesh_group->settings.get<Acceleration>("acceleration_roofing");
-        Acceleration acc5 = mesh_group->settings.get<Acceleration>("acceleration_topbottom");
-        Acceleration acc6 = mesh_group->settings.get<Acceleration>("acceleration_travel");
-        Acceleration acc7 = mesh_group->settings.get<Acceleration>("acceleration_print_layer_0");
-        Acceleration acc8 = mesh_group->settings.get<Acceleration>("acceleration_travel_layer_0");
-
-        Acceleration init_limit_acc = std::max(std::max(std::max(std::max(std::max(std::max(std::max(acc1, acc2), acc3),acc4),acc5),acc6),acc7),acc8);
-
-        //init_limit_temp
-        Temperature init_limit_temp = mesh_group->settings.get<Temperature>("material_print_temperature");
-     
-        if (mesh_group->settings.get<bool>("acceleration_limit_mess_enable"))
-        {
-            std::string str = mesh_group->settings.get<std::string>("acceleration_limit_mess");
-
-            std::vector<LimitGraph> out;
-            paraseLimitStr(str, out, init_limit_speed, init_limit_acc, init_limit_temp);
-            gcode.setAccelerationLimitMessEnable(true);
-            gcode.setAcc_Limit_mass(out);
-        }
-        if (mesh_group->settings.get<bool>("speed_limit_to_height_enable"))
-        {
-            std::string str = mesh_group->settings.get<std::string>("speed_limit_to_height");
-
-            std::vector<LimitGraph> out;
-            paraseLimitStr(str, out, init_limit_speed, init_limit_acc, init_limit_temp);
-            gcode.setAccelerationLimitHeightEnable(true);
-            gcode.setAcc_Limit_height(out);
-        }
+        gcode.smoothSpeedAcc->init_limit(&mesh_group->settings);
     }
   
     //引擎调试多线程

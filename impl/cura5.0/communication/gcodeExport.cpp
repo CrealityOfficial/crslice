@@ -62,6 +62,7 @@ GCodeExport::GCodeExport()
 	, layer_nr(0)
 	, relative_extrusion(false)
     , estimateCalculator(new TimeEstimateCalculator())
+    , smoothSpeedAcc(new SmoothSpeedAcc())
 {
     *output_stream << std::fixed;
 
@@ -95,7 +96,6 @@ GCodeExport::GCodeExport()
     new_line = "\n";
 
     total_bounding_box = AABB3D();
-    max_speed_limit_to_height = -1.0;
 }
 
 GCodeExport::~GCodeExport()
@@ -1456,16 +1456,7 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
         return;
     }
 
-    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-    {
-        if (acceleration_limit_mess_enable)
-            detect_limit_speed(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_speed(LimitType::LIMIT_HEIGHT);
-
-        if (current_limit_speed > 0.0f)
-            speed = std::min(speed, current_limit_speed);
-    }
+    smoothSpeedAcc->detect_speed(speed, getEvalue(), current_layer_z);
 
 #ifdef ASSERT_INSANE_OUTPUT
     assert(speed < 1000 && speed > 1); // normal F values occurring in UM2 gcode (this code should not be compiled for release)
@@ -1565,16 +1556,7 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
         return;
     }
 
-    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-    {
-        if (acceleration_limit_mess_enable)
-            detect_limit_speed(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_speed(LimitType::LIMIT_HEIGHT);
-
-        if (current_limit_speed > 0.0f)
-            speed = std::min(speed, current_limit_speed);
-    }
+    smoothSpeedAcc->detect_speed(speed, getEvalue(), current_layer_z);
 
 #ifdef ASSERT_INSANE_OUTPUT
     assert(speed < 1000 && speed > 1); // normal F values occurring in UM2 gcode (this code should not be compiled for release)
@@ -2415,16 +2397,7 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
 {
     Temperature temperature = _temperature;
 
-    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-    {
-        if (acceleration_limit_mess_enable)
-            detect_limit_temp(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_temp(LimitType::LIMIT_HEIGHT);
-
-        if (current_limit_Temp > 0.0f)
-            temperature = std::min(temperature, current_limit_Temp);
-    }
+    //limit temp
 
     const ExtruderTrain& extruder_train = application->extruders()[extruder];
 
@@ -2539,16 +2512,7 @@ void GCodeExport::writeTopHeaterCommand(const size_t extruder, const Temperature
 {
 	Temperature temperature = _temperature;
 
-	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-	{
-        if (acceleration_limit_mess_enable)
-            detect_limit_temp(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_temp(LimitType::LIMIT_HEIGHT);
-
-		if (current_limit_Temp > 0.0f)
-			temperature = std::min(temperature, current_limit_Temp);
-	}
+    //limit temp
 
 	if (wait)
 	{
@@ -2660,280 +2624,11 @@ void GCodeExport::writeBuildVolumeTemperatureCommand(const Temperature& temperat
         application->debugger()->getNotPath();
 }
 
-bool GCodeExport::detect_limit(LimitType limitType)
-{
-    //double value = 0.0f;
-
-    //if (limitType == LimitType::LIMIT_MESS)
-    //{
-    //    double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-    //    value = volume * (getDensity() / 1000.0);
-    //}
-    //else if (limitType == LimitType::LIMIT_HEIGHT)
-    //{
-    //    value = current_layer_z;
-    //}
-
-    //if (value < 0)
-    //    return false;
-
-    ////检测在第几个区间
-    //std::vector<LimitGraph> limit_data;
-    //if (limitType == LimitType::LIMIT_MESS){
-    //    limit_data = vctacceleration_limit_mass;
-    //}
-    //else if (limitType == LimitType::LIMIT_HEIGHT){
-    //    limit_data = vctacceleration_limit_height;
-    //}
-
-    //for (size_t i = 0; i < limit_data.size(); i++)
-    //{
-    //    LimitGraph& limit = limit_data[i];
-    //    double& value1 = limit.data.value1;
-    //    double& value2 = limit.data.value2;
-
-    //    if (value <= value2 && value >= value1)
-    //    {
-    //        //speed
-    //        {
-    //            double& s1 = limit.data.speed1;
-    //            double& s2 = limit.data.speed2;
-    //            if ((value2 - value1) && (s1 - s2))
-    //            {
-    //                //y = ax + b
-    //                double a = (s2 - s1) / (value2 - value1);
-    //                double b = s1 - a * value1;
-    //                double out = a * value + b;
-    //                if (out < current_limit_speed || current_limit_speed < 0.0f)
-    //                {
-    //                    current_limit_speed = out;
-    //                }
-    //            }
-    //        }
-
-    //        ////Acc
-    //        //{
-    //        //    double& s1 = limit.data.Acc1;
-    //        //    double& s2 = limit.data.Acc2;
-    //        //    if ((value2 - value1) && (s1 - s2))
-    //        //    {
-    //        //        //y = ax + b
-    //        //        double a = (s2 - s1) / (value2 - value1);
-    //        //        double b = s1 - a * value1;
-    //        //        double out = a * value + b;
-    //        //        if (out < current_limit_Acc || current_limit_Acc < 0.0f)
-    //        //        {
-    //        //            current_limit_Acc = out;
-    //        //        }
-    //        //    }
-    //        //}
-
-    //        //Temp
-    //        {
-    //            double& s1 = limit.data.Temp1;
-    //            double& s2 = limit.data.Temp2;
-    //            if ((value2 - value1) && (s1 - s2))
-    //            {
-    //                //y = ax + b
-    //                double a = (s2 - s1) / (value2 - value1);
-    //                double b = s1 - a * value1;
-    //                double out = a * value + b;
-    //                if (out < current_limit_Temp || current_limit_Temp < 0.0f)
-    //                {
-    //                    current_limit_Temp = out;
-    //                }
-    //            }
-    //        }
-
-    //        //return true;
-    //    }
-    //}
-
-    return true;
-}
-
-bool GCodeExport::detect_limit_acc(LimitType limitType)
-{
-    double value = 0.0f;
-
-    if (limitType == LimitType::LIMIT_MESS)
-    {
-        double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-        value = volume * (getDensity() / 1000.0);
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT)
-    {
-        value = current_layer_z;
-    }
-
-    if (value < 0)
-        return false;
-
-    //检测在第几个区间
-    std::vector<LimitGraph> limit_data;
-    if (limitType == LimitType::LIMIT_MESS) {
-        limit_data = vctacceleration_limit_mass;
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT) {
-        limit_data = vctacceleration_limit_height;
-    }
-
-    for (size_t i = 0; i < limit_data.size(); i++)
-    {
-        LimitGraph& limit = limit_data[i];
-        double& value1 = limit.data.value1;
-        double& value2 = limit.data.value2;
-
-        if (value <= value2 && value >= value1)
-        {
-            //Acc
-            {
-                double& s1 = limit.data.Acc1;
-                double& s2 = limit.data.Acc2;
-                if ((value2 - value1) && (s1 - s2))
-                {
-                    //y = ax + b
-                    double a = (s2 - s1) / (value2 - value1);
-                    double b = s1 - a * value1;
-                    double out = a * value + b;
-                    if (out < current_limit_Acc || current_limit_Acc < 0.0f)
-                    {
-                        current_limit_Acc = out;
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-bool GCodeExport::detect_limit_temp(LimitType limitType)
-{
-    double value = 0.0f;
-
-    if (limitType == LimitType::LIMIT_MESS)
-    {
-        double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-        value = volume * (getDensity() / 1000.0);
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT)
-    {
-        value = current_layer_z;
-    }
-
-    if (value < 0)
-        return false;
-
-    //检测在第几个区间
-    std::vector<LimitGraph> limit_data;
-    if (limitType == LimitType::LIMIT_MESS) {
-        limit_data = vctacceleration_limit_mass;
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT) {
-        limit_data = vctacceleration_limit_height;
-    }
-
-    for (size_t i = 0; i < limit_data.size(); i++)
-    {
-        LimitGraph& limit = limit_data[i];
-        double& value1 = limit.data.value1;
-        double& value2 = limit.data.value2;
-
-        if (value <= value2 && value >= value1)
-        {
-            //Temp
-            {
-                double& s1 = limit.data.Temp1;
-                double& s2 = limit.data.Temp2;
-                if ((value2 - value1) && (s1 - s2))
-                {
-                    //y = ax + b
-                    double a = (s2 - s1) / (value2 - value1);
-                    double b = s1 - a * value1;
-                    double out = a * value + b;
-                    if (out < current_limit_Temp || current_limit_Temp < 0.0f)
-                    {
-                        current_limit_Temp = out;
-                    }
-                }
-            }
-            //return true;
-        }
-    }
-
-    return true;
-}
-
-bool GCodeExport::detect_limit_speed(LimitType limitType)
-{
-    double value = 0.0f;
-
-    if (limitType == LimitType::LIMIT_MESS)
-    {
-        double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-        value = volume * (getDensity() / 1000.0);
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT)
-    {
-        value = current_layer_z;
-    }
-
-    if (value < 0)
-        return false;
-
-    //检测在第几个区间
-    std::vector<LimitGraph> limit_data;
-    if (limitType == LimitType::LIMIT_MESS) {
-        limit_data = vctacceleration_limit_mass;
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT) {
-        limit_data = vctacceleration_limit_height;
-    }
-
-    for (size_t i = 0; i < limit_data.size(); i++)
-    {
-        LimitGraph& limit = limit_data[i];
-        double& value1 = limit.data.value1;
-        double& value2 = limit.data.value2;
-
-        if (value <= value2 && value >= value1)
-        {
-            //speed
-            {
-                double& s1 = limit.data.speed1;
-                double& s2 = limit.data.speed2;
-                if ((value2 - value1) && (s1 - s2))
-                {
-                    //y = ax + b
-                    double a = (s2 - s1) / (value2 - value1);
-                    double b = s1 - a * value1;
-                    double out = a * value + b;
-                    if (out < current_limit_speed || current_limit_speed < 0.0f)
-                    {
-                        current_limit_speed = out;
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
 void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
 	Acceleration acc = std::max(acceleration, Acceleration(100));
-	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-	{       
-        if (acceleration_limit_mess_enable)
-            detect_limit_acc(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_acc(LimitType::LIMIT_HEIGHT);
 
-        if (current_limit_Acc > 0.0f)
-            acc = std::min(acc, current_limit_Acc);
-	}
+    smoothSpeedAcc->detect_acc(acc,getEvalue(), current_layer_z);
 
     switch (getFlavor())
     {
@@ -3170,48 +2865,9 @@ Acceleration GCodeExport::get_current_print_acceleration()
 	return current_print_acceleration;
 }
 
-void GCodeExport::setAccelerationLimitMessEnable(bool limitMess)
+float GCodeExport::get_current_layer_z()
 {
-    acceleration_limit_mess_enable = limitMess;
-}
-void GCodeExport::setAccelerationLimitHeightEnable(bool limitHeight)
-{
-    acceleration_limit_height_enable = limitHeight;
-}
-void GCodeExport::setAcc_Limit_mass(std::vector<LimitGraph>& _acceleration_limit_mass)
-{
-    vctacceleration_limit_mass = _acceleration_limit_mass;
-}
-
-void GCodeExport::setAcc_Limit_height(std::vector<LimitGraph>& _acceleration_limit_height)
-{
-    vctacceleration_limit_height = _acceleration_limit_height;
-}
-
-void GCodeExport::calculatMaxSpeedLimitToHeight(const FlowTempGraph& speed_limit_to_height)
-{
-    std::vector <std::pair<float, float>> limit_data;
-    for (int i = 0; i < speed_limit_to_height.data.size(); i++)
-    {
-        limit_data.push_back(std::pair(speed_limit_to_height.data[i].flow, speed_limit_to_height.data[i].temp));
-    }
-
-    std::sort(limit_data.begin(), limit_data.end(),
-        [](const std::pair<float, float>& a, const std::pair<float, float>& b) {
-            if (a.first == b.first) {
-                return a.second > b.second;
-            }
-            return a.first < b.first; });
-
-    auto iter = limit_data.begin();
-    while (iter != limit_data.end())
-    {
-        if (current_layer_z >= MM2INT(iter->first))
-        {
-            max_speed_limit_to_height = iter->second;
-        }
-        iter++;
-    }
+    return current_layer_z;
 }
 
 } // namespace cura52

@@ -58,4 +58,34 @@ namespace cura52 {
         }
     }
 
+
+    void setPloyOrderUserSpecified(SliceDataStorage& storage, std::string str)
+    {
+        storage.polyOrderUserDef.clear();
+        //[0.0,0.0] //[x1,y1,x2,y2]
+        if (str.length() > 3)
+        {
+            str = str.substr(0, str.length() - 1);
+            str = str.substr(1, str.length() - 1);
+        }
+        std::vector<float> order;
+        int findIndex = str.find(',');
+        std::string temp = "";
+        while (findIndex >= 0)
+        {
+            temp = str.substr(0, findIndex);
+            str = str.substr(findIndex + 1, str.length());
+            order.push_back(std::atof(temp.c_str()));
+            findIndex = str.find(',');
+        }
+        order.push_back(std::atof(str.c_str()));
+
+        for (size_t i = 0; i < order.size() - 1; i++, i++)
+        {
+            ClipperLib::IntPoint p;
+            p.X = MM2INT(order[i]);
+            p.Y = MM2INT(order[i + 1]);
+            storage.polyOrderUserDef.push_back(p);
+        }
+    }
 }

@@ -2268,11 +2268,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
     gcode.setZ(z);
 
-    bool speed_limit_to_height_enable = mesh_group_settings.get<bool>("speed_limit_to_height_enable");
-    FlowTempGraph speed_limit_to_height = mesh_group_settings.get<FlowTempGraph>("speed_limit_to_height");
+    bool speed_limit_to_height_enable = mesh_group_settings.get<bool>("speed_limit_to_height_enable");  
     if (speed_limit_to_height_enable)
     {
-        gcode.calculatMaxSpeedLimitToHeight(speed_limit_to_height);
+        FlowTempGraph speed_limit_to_height = mesh_group_settings.get<FlowTempGraph>("speed_limit_to_height");
+        gcode.smoothSpeedAcc->calculatMaxSpeedLimitToHeight(speed_limit_to_height, gcode.get_current_layer_z());
     }
 
     const GCodePathConfig* last_extrusion_config = nullptr; // used to check whether we need to insert a TYPE comment in the gcode.
