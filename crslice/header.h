@@ -38,13 +38,13 @@ namespace crslice
 		float machine_width;
 		float machine_depth;
 		int printTime;
-		float materialLenth;
-		float materialDensity;//单位面积密度
+		float materialLenth = { 0.0f };
 		float material_diameter = { 1.75f }; //材料直径
 		float material_density = { 1.24f };  //材料密度
+		float cost = { 0.0f };
+		float weight = { 0.0f };
 		float lineWidth;
 		float layerHeight;
-		float unitPrice;
 		bool spiralMode;
 		std::string exportFormat;//QString exportFormat;
 		std::string	screenSize;//QString screenSize;
@@ -64,10 +64,8 @@ namespace crslice
 			machine_depth = 220.0f;
 			printTime = 0;
 			materialLenth = 0.0f;
-			materialDensity = 1.0f;
 			lineWidth = 0.1f;
 			layerHeight = 0.1f;
-			unitPrice = 0.3f;
 			exportFormat = "png";
 			screenSize = "Sermoon D3";
 			spiralMode = false;
