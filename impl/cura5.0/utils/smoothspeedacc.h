@@ -4,7 +4,7 @@
 #include "types/Temperature.h"
 #include "types/Velocity.h"
 #include "types/FlowTempGraph.h"
-#include "Settings/Settings.h"
+#include "settings/Settings.h"
 
 namespace cura52
 {
