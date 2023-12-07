@@ -46,6 +46,7 @@ namespace gcode
 		float lineWidth;
 		float layerHeight = {0.0f};
 		float unitPrice;
+		float filament_weight;
 		bool spiralMode;
 		bool adaptiveLayers;
 		std::string exportFormat;//QString exportFormat;

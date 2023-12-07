@@ -234,11 +234,6 @@ void GCodeExport::writeProfileConfig()
     tmp << ";Material Type:" << extruderSettings->get<std::string>("material_type") << new_line;
     tmp << ";Max volumetric speed:" << extruderSettings->get<std::string>("material_max_volumetric_speed") << new_line;
 
-
-	tmp << ";Material Diameter:" << extruderSettings->get<std::string>("material_diameter") << new_line;
-	tmp << ";Material Density:" << extruderSettings->get<std::string>("material_density") << new_line;
-	tmp << ";Filament Cost:" << extruderSettings->get<std::string>("filament_cost") << new_line; 
-	tmp << ";Filament Weight:" << extruderSettings->get<std::string>("filament_weight") << new_line;
 	tmp << ";Preview Img Type:" << groupSettings->get<std::string>("preview_img_type") << new_line;
 	tmp << ";Screen Size:" << groupSettings->get<std::string>("screen_size") << new_line;
     *output_stream << tmp.str();
@@ -369,7 +364,8 @@ void GCodeExport::writeSpecialModelAndMeshConfig()
 std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used, const Duration* print_time, const std::vector<double>& filament_used, const std::vector<std::string>& mat_ids)
 {
     std::ostringstream prefix;
-
+	Settings* setting = &application->currentGroup()->settings;
+	Settings* extruderSettings = &application->extruders()[0].settings;
     gcode::GCodeParseInfo pathParam;
     const size_t extruder_count = application->extruderCount();
     switch (flavor)
@@ -479,6 +475,26 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
                 prefix << "00.0000m";
             }
             prefix << new_line;
+
+			//pathParam.printTime;
+			//pathParam.materialLenth;
+			pathParam.material_diameter = extruderSettings->get<double>("material_diameter"); //材料直径
+			pathParam.material_density = extruderSettings->get<double>("material_density");  //材料密度
+			pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
+			pathParam.lineWidth = setting->get<double>("line_width");
+			pathParam.layerHeight = INT2MM(application->get_layer_height());
+			//pathParam.unitPrice;
+			float filament_cost = extruderSettings->get<double>("filament_cost");
+			pathParam.unitPrice = pathParam.materialLenth >0.0f? filament_cost / pathParam.materialLenth : filament_cost;
+			pathParam.spiralMode = setting->get<bool>("magic_spiralize");
+			pathParam.exportFormat = setting->get<std::string>("preview_img_type");//QString exportFormat;
+			pathParam.screenSize = setting->get<std::string>("screen_size");//QString screenSize;
+            pathParam.filament_weight = pathParam.materialDensity * pathParam.materialLenth;
+            prefix << ";Material Diameter:" << extruderSettings->get<std::string>("material_diameter") << new_line;
+            prefix << ";Material Density:" << extruderSettings->get<std::string>("material_density") << new_line;
+            prefix << ";Filament Cost:" << extruderSettings->get<std::string>("filament_cost") << new_line;
+            prefix << ";Filament Weight:" << std::to_string(pathParam.filament_weight) << new_line;
+
             prefix << ";Layer height:" << application->get_layer_height() << new_line;
         }
         else
@@ -495,29 +511,6 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         //
 
         {
-            Settings* setting = &application->currentGroup()->settings;
-            Settings* meshSettings = &application->currentGroup()->meshes[0].settings;
-            Settings* extruderSettings = &application->extruders()[0].settings;
-
-            pathParam.machine_height = setting->get<double>("machine_height");
-            pathParam.machine_width = setting->get<double>("machine_width");
-            pathParam.machine_depth = setting->get<double>("machine_depth");
-            //pathParam.printTime;
-            //pathParam.materialLenth;
-            pathParam.material_diameter = setting->get<double>("material_diameter"); //材料直径
-            pathParam.material_density = setting->get<double>("material_density");  //材料密度
-            pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
-            pathParam.lineWidth = setting->get<double>("line_width");
-            pathParam.layerHeight = INT2MM(application->get_layer_height());
-            //pathParam.unitPrice;
-
-            float filament_cost = setting->get<double>("filament_cost");
-            pathParam.unitPrice = filament_cost / pathParam.materialLenth;
-            pathParam.spiralMode = setting->get<bool>("magic_spiralize");
-            ;
-            pathParam.exportFormat = setting->get<std::string>("preview_img_type");//QString exportFormat;
-            pathParam.screenSize = setting->get<std::string>("screen_size");//QString screenSize;
-
             if (total_print_times.size() > 9)
             {
                 pathParam.timeParts = {

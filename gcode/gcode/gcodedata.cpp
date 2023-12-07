@@ -409,15 +409,9 @@ namespace gcode
 			std::string tStr = sm[1];
 			filament_cost = atof(tStr.c_str()); //gap
 		}
-		float filament_weight = 0.0;
-		if (regex_match(gcodeStr, "Filament Weight", sm))
-		{
-			std::string tStr = sm[1];
-			filament_weight = atof(tStr.c_str()); //gap
-		}
 
-		float filament_length = filament_weight / parseInfo.materialDensity;
-		parseInfo.unitPrice = filament_cost / filament_length;
+		parseInfo.unitPrice = filament_cost / parseInfo.materialLenth;
+		parseInfo.filament_weight = parseInfo.materialLenth * parseInfo.materialDensity;
 
 		parseInfo.lineWidth = 0.4;
 		if (regex_match(gcodeStr, "Out Wall Line Width", sm))
