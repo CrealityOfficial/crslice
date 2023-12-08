@@ -2284,9 +2284,28 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     const bool jerk_travel_enabled = mesh_group_settings.get<bool>("jerk_travel_enabled");
     std::string current_mesh = "";
 
+	std::vector<bool> extruder_used;
+	extruder_used.resize(16, false);
+	for (size_t extruder_plan_idx = 0; extruder_plan_idx < extruder_plans.size(); extruder_plan_idx++)
+	{
+		ExtruderPlan& extruder_plan = extruder_plans[extruder_plan_idx];
+		for (GCodePath& apath : extruder_plan.paths)
+		{
+			if (apath.config->type != PrintFeatureType::MoveCombing)
+			{
+				extruder_used[extruder_plan.extruder_nr] = true;
+				break;
+			}
+		}
+	}
+
     for (size_t extruder_plan_idx = 0; extruder_plan_idx < extruder_plans.size(); extruder_plan_idx++)
     {
         ExtruderPlan& extruder_plan = extruder_plans[extruder_plan_idx];
+		if (!extruder_used[extruder_plan.extruder_nr])
+		{
+			continue;
+		}
         const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[extruder_plan.extruder_nr];
         coord_t z_hop_height = retraction_config.zHop;
 
