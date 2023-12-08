@@ -1,9 +1,9 @@
 #ifndef PAINTZSEAM_274874
 #define PAINTZSEAM_274874
 #include "communication/sliceDataStorage.h"
-
 namespace cura52
 {
+	class SliceDataStorage;
 	class MeshGroup;
 	class paintzseam
 	{

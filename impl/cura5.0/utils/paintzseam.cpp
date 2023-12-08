@@ -3,6 +3,7 @@
 #include "communication/MeshGroup.h"
 #include "settings/ZSeamConfig.h"
 #include "pathPlanning/PathOrderOptimizer.h"
+#include "communication/sliceDataStorage.h"
 
 namespace cura52
 {
