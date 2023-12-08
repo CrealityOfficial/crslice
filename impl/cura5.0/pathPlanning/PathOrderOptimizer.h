@@ -190,10 +190,12 @@ public:
             {
                 if(!path.is_closed)
                 {
+                    flag_idx++;
                     continue; //Can't pre-compute the seam for open polylines since they're at the endpoint nearest to the current position.
                 }
                 if(path.converted->empty())
                 {
+                    flag_idx++;
                     continue;
                 }
 
