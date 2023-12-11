@@ -280,12 +280,19 @@ public:
                     continue;
                 }
 
-                if(!path.is_closed || !precompute_start) //Find the start location unless we've already precomputed it.
+                if((!path.is_closed || !precompute_start)) //Find the start location unless we've already precomputed it.
                 {
-                    path.start_vertex = findStartLocation(path, current_position,-1, candidate_path_index);
-                    if(!path.is_closed) //Open polylines start at vertex 0 or vertex N-1. Indicate that they should be reversed if they start at N-1.
+                    if (path.hasZseamPait())
                     {
-                        path.backwards = path.start_vertex > 0;
+                        ;
+                    }
+                    else
+                    {
+                        path.start_vertex = findStartLocation(path, current_position, -1, candidate_path_index);
+						if (!path.is_closed) //Open polylines start at vertex 0 or vertex N-1. Indicate that they should be reversed if they start at N-1.
+						{
+							path.backwards = path.start_vertex > 0;
+						}
                     }
                 }
                 const Point candidate_position = (*path.converted)[path.start_vertex];

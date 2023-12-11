@@ -204,6 +204,15 @@ namespace cura52
                         vctIntercept.push_back(J.p);
                     }
                 }
+				//Í¿Ä¨z ·ìflag
+				std::vector<Point> vctPaint;
+				for (ExtrusionJunction& J : line.junctions)
+				{
+					if (J.flag == ExtrusionJunction::PAINT)
+					{
+                        vctPaint.push_back(J.p);
+					}
+				}
 
                 Point pt_z_seam = (line.start_idx > -1 && line.start_idx < junctions.size()) ? junctions[line.start_idx].p : Point();
                 int junctions_idx = 0;
@@ -220,6 +229,13 @@ namespace cura52
                                 new_pt.flag = ExtrusionJunction::INTERCEPT;
                             }
                         }
+						for (Point& apoint : vctPaint)
+						{
+							if (bSamePoint(new_pt.p, apoint))
+							{
+								new_pt.flag = ExtrusionJunction::PAINT;
+							}
+						}
                         new_junctions.push_back(new_pt);
                         if (bSamePoint(pt, pt_z_seam) && line.start_idx > -1)
                             line.start_idx = i;
