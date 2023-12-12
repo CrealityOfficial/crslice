@@ -2254,13 +2254,15 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
         }
         // ensure we print the prime tower with this extruder, because the next layer begins with this extruder!
         // If this is not performed, the next layer might get two extruder switches...
-		if (mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::NORMAL)
+		if (mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::NORMAL 
+            && gcode_layer.getLayerNr() < storage.max_print_height_second_to_last_extruder + 1)
 		{
 			setExtruder_addPrime(storage, gcode_layer, extruder_nr);
 		}
     }
 
-    if (include_helper_parts && mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::NORMAL)
+    if (include_helper_parts && mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::NORMAL 
+        && gcode_layer.getLayerNr()<storage.max_print_height_second_to_last_extruder +1)
     { // add prime tower if it hasn't already been added
         const size_t prev_extruder = gcode_layer.getExtruder(); // most likely the same extruder as we are extruding with now
 
