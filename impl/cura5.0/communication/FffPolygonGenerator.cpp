@@ -443,17 +443,21 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
 
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
 
-    if (application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
+    if (application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE
+        || application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE_MANUAL)
     {
         //ThomasTreeSupport thomas_tree_support_generator(storage);
         //thomas_tree_support_generator.generateSupportAreas(storage);
         cura54::TreeSupportT tree_support_generator(storage);
         tree_support_generator.generateSupportAreas(storage);
     }
-    else if(application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::TREE)
-    {
-        TreeSupport tree_support_generator(storage);
-        tree_support_generator.generateSupportAreas(storage);
+    //else if(application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::TREE)
+    //{
+    //    TreeSupport tree_support_generator(storage);
+    //    tree_support_generator.generateSupportAreas(storage);
+    //}
+    else {
+        mergePaintSupport(storage);
     }
 
     AreaSupport::generateSharpTailSupport(storage);

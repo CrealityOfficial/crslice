@@ -149,6 +149,53 @@ namespace cura52
             }
         }
     }
+
+    void mergePaintSupport(SliceDataStorage& storage)
+    {
+        int layer = storage.support.supportLayers.size();
+        for (auto& mesh : storage.meshes)
+        {
+            if (layer >= mesh.overhang_areas.size())
+            {
+                for (int i = 0; i < mesh.overhang_areas.size(); i++)
+                {
+                    if (!storage.support.supportLayers[i].support_mesh_drop_down.empty())
+                    {
+                        mesh.overhang_areas[i] = mesh.overhang_areas[i].unionPolygons(storage.support.supportLayers[i].support_mesh_drop_down);
+                        mesh.full_overhang_areas[i] = mesh.overhang_areas[i].unionPolygons(storage.support.supportLayers[i].support_mesh_drop_down);
+                    }
+
+                    if (!mesh.overhang_areas[i].empty() && !storage.support.supportLayers[i].anti_overhang.empty())
+                    {
+                        //
+                    }
+                }
+            }
+        }
+    }
+
+    void mergeOpenPloygons(const Mesh* mesh, std::vector<SlicerLayer>& layers)
+    {
+        coord_t c_gap = 200;
+        if (mesh->settings.get<bool>("support_paint_enable"))
+            c_gap = mesh->settings.get<coord_t>("support_line_width")*2;
+
+        auto getPloygons = [&c_gap](Polygons& ploygon)
+        {
+            ClipperLib::ClipperOffset clipper;
+            clipper.AddPaths(ploygon.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
+            clipper.Execute(ploygon.paths, c_gap);
+        };
+        for (SlicerLayer& alayer : layers)
+        {
+            if (!alayer.openPolylines.empty())
+            {
+                getPloygons(alayer.openPolylines);
+                alayer.polygons.add(alayer.openPolylines);
+                alayer.openPolylines.clear();
+            }
+        }
+    }
 }
 
 

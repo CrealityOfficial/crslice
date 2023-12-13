@@ -13,6 +13,7 @@
 
 #include <fstream>
 #include "communication/slicecontext.h"
+#include "utils/paintdata.h"
 
 namespace cura52
 {
@@ -733,6 +734,18 @@ void SlicerLayer::makePolygons(const Mesh* mesh)
 
     connectOpenPolylines(open_polylines);
 
+    if (mesh->settings.get<bool>("support_paint_enable") && mesh->settings.get<bool>("anti_overhang_mesh"))
+    {
+        for (PolygonRef polyline : open_polylines)
+        {
+            if (polyline.size() > 0)
+            {
+                openPolylines.add(polyline);
+            }
+        }
+        return;
+    }
+
     // TODO: (?) for mesh surface mode: connect open polygons. Maybe the above algorithm can create two open polygons which are actually connected when the starting segment is in the middle between the two open polygons.
 
     if (mesh->settings.get<ESurfaceMode>("magic_mesh_surface_mode") == ESurfaceMode::NORMAL)
@@ -809,26 +822,8 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
     LOGI("Make polygons took { %f } seconds", slice_timer.restart());
 
 	
-    const bool keep_open_polygons = mesh->settings.get<bool>("keep_open_polygons");
-    if (keep_open_polygons)
-    {
-		coord_t c_gap = 200;
-        if (!mesh->settings.get<bool>("support_paint_enable"))
-            c_gap = mesh->settings.get<coord_t>("support_line_width");
-
-		auto getPloygons = [&c_gap](Polygons& ploygon)
-		{
-			ClipperLib::ClipperOffset clipper;
-			clipper.AddPaths(ploygon.paths, ClipperLib::JoinType::jtSquare, ClipperLib::etOpenSquare);
-			clipper.Execute(ploygon.paths, c_gap);
-		};
-		for (SlicerLayer& alayer : layers)
-		{
-			getPloygons(alayer.openPolylines);
-			alayer.polygons.add(alayer.openPolylines);
-			alayer.openPolylines.clear();
-		}
-    }
+    if (mesh->settings.get<bool>("keep_open_polygons"))
+        mergeOpenPloygons(mesh, layers);
 }
 
 void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)

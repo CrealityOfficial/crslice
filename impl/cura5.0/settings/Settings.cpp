@@ -498,6 +498,14 @@ namespace cura52
         {
             return ESupportStructure::THOMASTREE;
         }
+        else if (value == "normal_manual")
+        {
+            return ESupportStructure::NORMAL_MANUAL;
+        }
+        else if (value == "thomastree_manual")
+        {
+            return ESupportStructure::THOMASTREE_MANUAL;
+        }
         else // Default.
         {
             return ESupportStructure::NORMAL;
