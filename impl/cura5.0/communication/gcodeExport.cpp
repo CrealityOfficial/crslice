@@ -559,12 +559,12 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 			pathParam.exportFormat = setting->get<std::string>("preview_img_type");//QString exportFormat;
 			pathParam.screenSize = setting->get<std::string>("screen_size");//QString screenSize;
             pathParam.weight = materialDensity * pathParam.materialLenth;
+            prefix << ";Layer height:" << application->currentGroup()->settings.get<double>("layer_height") << new_line;
             prefix << ";Material Diameter:" << extruderSettings->get<std::string>("material_diameter") << new_line;
             prefix << ";Material Density:" << extruderSettings->get<std::string>("material_density") << new_line;
             prefix << ";Filament Cost:" << std::to_string(unitPrice * pathParam.materialLenth * materialDensity) << new_line;
             prefix << ";Filament Weight:" << std::to_string(pathParam.weight) << new_line;
             prefix << ";Filament Length:" << std::to_string(pathParam.materialLenth) << new_line;
-            prefix << ";Layer height:" << application->currentGroup()->settings.get<double>("layer_height") << new_line;
         }
         else
             prefix << ";Layer Height:" << application->currentGroup()->settings.get<double>("layer_height") << new_line;
