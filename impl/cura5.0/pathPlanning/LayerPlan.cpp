@@ -188,11 +188,6 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 	GCodePath last_path = extruder_plans.back().paths[index];
 	last_path.points.clear();
 	coord_t distance = wall_0_wipe_dist;
-	//if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
-	//{
-	//	return;
-	//}
-
 
 	std::vector<Point> aPoints;
 	bool isEmpty = extruder_plans.back().paths.back().points.empty();
@@ -264,8 +259,16 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 		}
 	}
 
+    if (last_path.points.empty())
+    {
+        return;
+    }
+	Point p0(last_path.points[last_path.points.size()-1]);//last_planned_position
+    if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
+    {
+        p0=(last_path.points[0]);
+    }
 
-	Point p0(*last_planned_position);
 	int distance_traversed = 0;
 	std::vector<Point> backPoints;
 	for (unsigned int point_idx = 0;; point_idx++)
