@@ -6,6 +6,8 @@
 #include "crslice/gcode/thumbnail.h"
 #include "crslice/gcode/gcodedata.h"
 
+#define _INT2MM(n) (n / 1000.0f)
+
 namespace gcode
 {
     float getAngelOfTwoVector(const trimesh::vec& pt1, const trimesh::vec& pt2, const trimesh::vec& c)
@@ -1294,13 +1296,13 @@ namespace gcode
             if (point.z > -999)
             {
                 tempEndPos = point;
-                tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z / 1000.f };
+                tempEndPos = { _INT2MM(tempEndPos.x),_INT2MM(tempEndPos.y) ,_INT2MM(tempEndPos.z) };
             }
             else
             {
                 tempEndPos.x = point.x;
                 tempEndPos.y = point.y;
-                tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z };
+                tempEndPos = { _INT2MM(tempEndPos.x),_INT2MM(tempEndPos.y) ,tempEndPos.z };
             }
         }
         else
@@ -1328,13 +1330,17 @@ namespace gcode
             if (point.z > -999)
             {
                 tempEndPos = point;
-                tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z / 1000.f };
+                tempEndPos = { _INT2MM(tempEndPos.x),_INT2MM(tempEndPos.y) ,_INT2MM(tempEndPos.z) };
+                i = _INT2MM(i);
+                j = _INT2MM(j);
             }
             else
             {
                 tempEndPos.x = point.x;
                 tempEndPos.y = point.y;
-                tempEndPos = { tempEndPos.x / 1000.f,tempEndPos.y / 1000.f ,tempEndPos.z };
+                tempEndPos = { _INT2MM(tempEndPos.x),_INT2MM(tempEndPos.y) ,tempEndPos.z };
+                i = _INT2MM(i);
+                j = _INT2MM(j);
             }
         }
         else
