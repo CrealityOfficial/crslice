@@ -47,6 +47,7 @@
 
 #include "slice/slicestep.h"
 #include "poly/polystep.h"
+#include "poly/getlayerdata.h"
 #include "slice/slicer.h"
 
 #include "slice/sliceddata.h"
@@ -362,7 +363,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
         application->messageProgress(Progress::Stage::PARTS, meshIdx + 1, meshCount);
     }
-
     return true;
 }
 
@@ -511,6 +511,10 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     LOGD("Processing gradual support");
     // generate gradual support
     AreaSupport::generateSupportInfillFeatures(storage);
+
+
+    if(application->debugger())
+        getLayerSupportData(storage, application);
 
 #if USE_CACHE
         cacheAll(storage);

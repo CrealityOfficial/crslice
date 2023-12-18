@@ -812,7 +812,7 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
     else
         buildSegments(application, *mesh, zbbox, slicing_tolerance, layers);
 
-    if (mesh->settings.get<bool>("zseam_paint_enable"))
+    if (mesh->settings.has("zseam_paint_enable") && mesh->settings.get<bool>("zseam_paint_enable"))
         return;
 
 

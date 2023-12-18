@@ -39,10 +39,12 @@ namespace gcode
 		float machine_width;
 		float machine_depth;
 		int printTime;
-		float materialLenth;
+		float materialLenth = { 0.0f };
 		float materialDensity;//单位面积密度
 		float material_diameter = {1.75f}; //材料直径
 		float material_density = { 1.24f };  //材料密度
+		float cost = { 0.0f };
+		float weight = { 0.0f };
 		float lineWidth;
 		float layerHeight = {0.0f};
 		float unitPrice;
@@ -77,7 +79,8 @@ namespace gcode
 			spiralMode = false;
 
 			timeParts = TimeParts();
-	
+			cost = 0.0f;
+			weight = 0.0f;
 			beltType = 0;
 			beltOffset = 0.0f;
 			beltOffsetY = 0.0f;
@@ -107,6 +110,10 @@ namespace gcode
 		virtual void setE(float e) = 0;
 		virtual void getNotPath() = 0;
 		virtual void set_data_gcodelayer(int layer, const std::string& gcodelayer) = 0;
+
+		//for cloud : preview image
+		virtual void onSupports(int layerIdx, float z, float thickness, const std::vector<std::vector<trimesh::vec3>>& paths) = 0;
+		virtual void setSceneBox(const trimesh::box3& box) {};
 	};
 
 

@@ -37,6 +37,10 @@ namespace crslice
 		void setE(float e) override {};
 		void getNotPath() override {};
 		void set_data_gcodelayer(int layer, const std::string& gcodelayer) override {};
+
+		//for cloud : preview image
+		void onSupports(int layerIdx, float z, float thickness, const std::vector<std::vector<trimesh::vec3>>& paths) override {};
+		void setSceneBox(const trimesh::box3& box) override {};
 	};
 }
 #endif // CRSLICE_HEADER_INTERFACE
