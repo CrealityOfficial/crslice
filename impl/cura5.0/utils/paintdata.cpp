@@ -161,13 +161,16 @@ namespace cura52
                 {
                     if (!storage.support.supportLayers[i].support_mesh_drop_down.empty())
                     {
-                        mesh.overhang_areas[i] = mesh.overhang_areas[i].unionPolygons(storage.support.supportLayers[i].support_mesh_drop_down);
-                        mesh.full_overhang_areas[i] = mesh.overhang_areas[i].unionPolygons(storage.support.supportLayers[i].support_mesh_drop_down);
+                        Polygons polys = mesh.layers[i % mesh.layers.size()].getOutlines().intersection(storage.support.supportLayers[i].support_mesh_drop_down);
+                        mesh.overhang_areas[i] = mesh.overhang_areas[i].unionPolygons(polys);
+                        mesh.full_overhang_areas[i] = mesh.overhang_areas[i].unionPolygons(polys);
                     }
 
                     if (!mesh.overhang_areas[i].empty() && !storage.support.supportLayers[i].anti_overhang.empty())
                     {
-                        mesh.overhang_areas[i] = mesh.overhang_areas[i].difference(storage.support.supportLayers[i].anti_overhang);
+                        Polygons polys = mesh.layers[i % mesh.layers.size()].getOutlines().intersection(storage.support.supportLayers[i].anti_overhang);
+                        mesh.overhang_areas[i] = mesh.overhang_areas[i].unionPolygons(polys);
+                        mesh.overhang_areas[i] = mesh.overhang_areas[i].difference(polys);
                         //
                     }
                 }
