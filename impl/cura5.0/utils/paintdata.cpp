@@ -167,6 +167,7 @@ namespace cura52
 
                     if (!mesh.overhang_areas[i].empty() && !storage.support.supportLayers[i].anti_overhang.empty())
                     {
+                        mesh.overhang_areas[i] = mesh.overhang_areas[i].difference(storage.support.supportLayers[i].anti_overhang);
                         //
                     }
                 }

@@ -442,7 +442,7 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     AreaSupport::generateSupportAreas(storage);
 
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
-
+    mergePaintSupport(storage);
     if (application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE
         || application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE_MANUAL)
     {
@@ -456,9 +456,6 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     //    TreeSupport tree_support_generator(storage);
     //    tree_support_generator.generateSupportAreas(storage);
     //}
-    else {
-        mergePaintSupport(storage);
-    }
 
     AreaSupport::generateSharpTailSupport(storage);
 
