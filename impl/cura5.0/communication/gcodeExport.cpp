@@ -1917,12 +1917,12 @@ coord_t GCodeExport::writeTrapezoidalLeft(const Velocity& speed, Point endPoint,
     }
     else if (len < zHopTravelDistance)
     {
-        writeTravel(Point3(endPoint.X, endPoint.Y, currentPosition.z), speed);
+        writeTravel(Point3(endPoint.X, endPoint.Y, current_layer_z + is_z_hopped), speed);
     }
     else
     {
         Point HopTravel = source + Travel * (zHopTravelDistance / len);
-        writeTravel(Point3(HopTravel.X, HopTravel.Y, currentPosition.z), speed);
+        writeTravel(Point3(HopTravel.X, HopTravel.Y, current_layer_z + is_z_hopped), speed);
     }
 
     return is_z_hopped;

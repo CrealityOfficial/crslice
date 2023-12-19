@@ -2627,7 +2627,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 				{
 					RetractionConfig retraction_config_1 = retraction_config;
 					retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
-					gcode.writeRetraction(retraction_config_1);
+                    if (retraction_config_1.distance >0)
+                    {
+                        gcode.writeRetraction(retraction_config_1);
+                    }
 					std::vector<Point> last_path;
 					std::vector<std::pair<Point, double>> wipe_path_record;
 					bool openPolygen = getLastExtrusionPath(last_path, path_idx);
