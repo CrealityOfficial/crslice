@@ -130,11 +130,8 @@ namespace cura52
   
                     crslice::pressureE(inputGcodes, outputGcodes, filament_diameter, extrusion_rate, segment_length, relative_e_distances);
 
-                    std::string fileNameOutput = "overhang_splitfaceNOfan1sss11.gcode";
-                    std::string previewImageString = "imgPreview.png";
-                    std::string prefixString = sr.prefixCode();
-                    std::string tailCode = sr.tailCode();
-                    gcode::_SaveGCode(scene->gcodeFile.c_str(), previewImageString, outputGcodes, prefixString, tailCode);
+                    std::string previewImageString = "";
+                    gcode::_SaveGCode(scene->gcodeFile.c_str(), previewImageString, outputGcodes, sr.prefixCode(), sr.tailCode());
                 }
                 tick("slice 1");
 
