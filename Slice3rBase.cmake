@@ -5,18 +5,18 @@ if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
 endif ()
 
-__conan_import(boost dll COMPONENT boost_nowide boost_filesystem)
+__cc_find(boost_static)
 __cc_find(eigen)
 __cc_find(cereal)
 __cc_find(admesh)
-__cc_find(tbb)
+__cc_find(tbb_static)
 __cc_find(clipper2)
 
 __assert_target(clipper2)
 __assert_target(cereal)
 __assert_target(eigen)
 __assert_target(admesh)
-__assert_target(tbb)
+__assert_target(tbb_static)
 
 set(items
 	#libslic3r_version.h
