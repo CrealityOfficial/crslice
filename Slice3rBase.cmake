@@ -408,9 +408,9 @@ list(APPEND LIBS eigen clipper2 admesh boost_filesystem boost_nowide cereal)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX)
 
-if(TARGET tbb)
+if(TARGET tbb_static)
 	list(APPEND DEFS SLICE3R_USE_TBB)
-	list(APPEND LIBS tbb)
+	list(APPEND LIBS tbb_static)
 endif()
 
 
