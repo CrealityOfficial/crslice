@@ -323,8 +323,15 @@ void SkinInfillAreaComputation::generateRoofing(SliceLayerPart& part)
         }
         else
         {
-            skin_part.roofing_fill = skin_part.outline.difference(no_air_above);
-            skin_part.skin_fill = skin_part.outline.intersection(no_air_above);
+            skin_part.roofing_fill = skin_part.outline.difference(no_air_above);//¶¥²¿Æ¤·ô
+            skin_part.skin_fill = skin_part.outline.intersection(no_air_above);//³£¹æÆ¤·ô
+        }
+
+        if (skin_part.roofing_fill.empty() && layer_nr>0)
+        {
+            Polygons no_air_below = generateNoAirBelow(part, 1);
+			skin_part.below_fill = skin_part.outline.difference(no_air_below);//µ×²¿Æ¤·ô
+			skin_part.skin_fill = skin_part.outline.intersection(no_air_below);//³£¹æÆ¤·ô
         }
 
         // Insets are NOT generated for any layer if the top/bottom pattern is concentric.

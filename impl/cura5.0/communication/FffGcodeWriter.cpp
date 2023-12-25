@@ -3639,6 +3639,7 @@ bool FffGcodeWriter::processSkinPart(const SliceDataStorage& storage, LayerPlan&
     gcode_layer.mode_skip_agressive_merge = true;
 
     processRoofing(storage, gcode_layer, mesh, extruder_nr, mesh_config, skin_part, added_something);
+    processBelow(storage, gcode_layer, mesh, extruder_nr, mesh_config, skin_part, added_something);
     processTopBottom(storage, gcode_layer, mesh, extruder_nr, mesh_config, skin_part, added_something);
 
     gcode_layer.mode_skip_agressive_merge = false;
@@ -3670,6 +3671,27 @@ void FffGcodeWriter::processRoofing(const SliceDataStorage& storage,
     const coord_t skin_overlap = 0; // skinfill already expanded over the roofing areas; don't overlap with perimeters
     const bool monotonic = mesh.settings.get<bool>("roofing_monotonic");
     processSkinPrintFeature(storage, gcode_layer, mesh, mesh_config, extruder_nr, skin_part.roofing_fill, mesh_config.roofing_config, pattern, roofing_angle, skin_overlap, skin_density, monotonic, added_something, GCodePathConfig::FAN_SPEED_DEFAULT, true);
+}
+
+void FffGcodeWriter::processBelow(const SliceDataStorage& storage, LayerPlan& gcode_layer, const SliceMeshStorage& mesh, const size_t extruder_nr, const PathConfigStorage::MeshPathConfigs& mesh_config, const SkinPart& skin_part, bool& added_something) const
+{
+	const size_t roofing_extruder_nr = mesh.settings.get<ExtruderTrain&>("roofing_extruder_nr").extruder_nr;
+	if (extruder_nr != roofing_extruder_nr)
+	{
+		return;
+	}
+
+	AngleDegrees roofing_angle = 45;
+	if (mesh.roofing_angles.size() > 0)
+	{
+		roofing_angle = mesh.roofing_angles.at(gcode_layer.getLayerNr() % mesh.roofing_angles.size());
+	}
+
+	const Ratio skin_density = 1.0;
+	const coord_t skin_overlap = 0; // skinfill already expanded over the roofing areas; don't overlap with perimeters
+	const bool monotonic = mesh.settings.get<bool>("roofing_monotonic");
+
+	processSkinPrintFeature(storage, gcode_layer, mesh, mesh_config, extruder_nr, skin_part.below_fill, mesh_config.roofing_config, EFillMethod::CONCENTRIC, roofing_angle, skin_overlap, skin_density, monotonic, added_something, GCodePathConfig::FAN_SPEED_DEFAULT);
 }
 
 void FffGcodeWriter::processTopBottom(const SliceDataStorage& storage,
