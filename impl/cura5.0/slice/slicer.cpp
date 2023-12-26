@@ -1156,7 +1156,7 @@ void Slicer::makePolygons(SliceContext* application, Mesh& mesh, SlicingToleranc
         layer_apply_initial_xy_offset = 1;
     }
 
-    if (mesh.settings.get<bool>("support_mesh_drop_down") || mesh.settings.get<bool>("anti_overhang_mesh"))
+    if (mesh.settings.get<bool>("support_paint_enable"))
         return;
 
     const coord_t xy_offset = mesh.settings.get<coord_t>("xy_offset");
