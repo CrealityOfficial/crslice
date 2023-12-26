@@ -45,6 +45,7 @@ namespace cura52
         std::vector<VariableWidthLines> inset_paths;       //!< The insets represented as variable line-width paths. The insets are also known as perimeters or the walls. Binned by inset_idx.
         Polygons skin_fill; //!< The part of the skin which is not roofing.
         Polygons roofing_fill; //!< The inner infill which has air directly above
+        Polygons below_fill;
         Polygons top_most_surface_fill; //!< The inner infill of the uppermost top layer which has air directly above.
         Polygons bottom_most_surface_fill; //!< The inner infill of the bottommost bottom layer which has air directly below.
     };
