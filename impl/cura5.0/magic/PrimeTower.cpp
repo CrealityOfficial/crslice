@@ -68,8 +68,10 @@ namespace cura52
         }
 
         const Settings& mesh_group_settings = application->currentGroup()->settings;
+        const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
         const coord_t tower_size = mesh_group_settings.get<coord_t>("prime_tower_size");
-
+        const coord_t tower_volume = mesh_group_settings.get<coord_t>("filament_minimal_purge_on_wipe_tower");
+        const coord_t tower_hight = tower_volume/tower_size/layer_height;
         const Settings& brim_extruder_settings = mesh_group_settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").settings;
         (void)brim_extruder_settings;
 
@@ -83,14 +85,14 @@ namespace cura52
 
         const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x"); /*- offset*/;
         const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y"); /*- offset*/;
-        outer_poly.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size,tower_size));
+        outer_poly.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size,tower_hight));
         // outer_poly.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size,tower_size));
         Polygons outer_poly_first;
-        outer_poly_first.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size*count,tower_size));
+        outer_poly_first.add(PolygonUtils::makeRect(x+tower_size*offset,y,tower_size*count,tower_hight));
         
-        middle = Point(x - tower_size / 2, y + tower_size / 2);
+        middle = Point(x - tower_size / 2, y + tower_hight / 2);
 
-        post_wipe_point = Point(x - tower_size / 2, y + tower_size / 2);
+        post_wipe_point = Point(x - tower_size / 2, y + tower_hight / 2);
 
         outer_poly_first_layer = outer_poly_first.offset(offset);
     }
@@ -127,10 +129,12 @@ namespace cura52
 
             Polygons base_poly;
             const coord_t tower_size = mesh_group_settings.get<coord_t>("prime_tower_size");
+            const coord_t tower_volume = mesh_group_settings.get<coord_t>("filament_minimal_purge_on_wipe_tower");
+            const coord_t tower_hight = tower_volume/tower_size/layer_height;
             const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x");
             const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y");
             const coord_t tower_radius = tower_size / 2;
-            base_poly.add(PolygonUtils::makeRect(x + tower_size * offset, y, tower_size, tower_size));
+            base_poly.add(PolygonUtils::makeRect(x + tower_size * offset, y, tower_size, tower_hight));
             offset++;
             pattern.polygons.add(base_poly);
             for (int i = 0; i < tower_size / line_width / 2; i++)
@@ -223,19 +227,20 @@ namespace cura52
         const coord_t layer_height = mesh_group_settings.get<coord_t>("layer_height");
         Polygons base_poly;
         const coord_t tower_size = mesh_group_settings.get<coord_t>("prime_tower_size");
+        const coord_t tower_volume = mesh_group_settings.get<coord_t>("filament_minimal_purge_on_wipe_tower");
+        const coord_t tower_hight = tower_volume/tower_size/layer_height;
         const coord_t x = mesh_group_settings.get<coord_t>("prime_tower_position_x");
         const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y");
         const coord_t tower_radius = tower_size / 2;
-        base_poly.add(PolygonUtils::makeRect(x + tower_size * startindex, y, tower_size, tower_size));
-        //size_t spacing = 10000;
+        base_poly.add(PolygonUtils::makeRect(x + tower_size * startindex, y, tower_size, tower_hight));
         size_t spacing = 3000;
         // fill
         for (int x_line = spacing; x_line < tower_size; x_line += spacing)
         {
-            base_poly.addLine(Point(x + tower_size * startindex + x_line, y), Point(x + tower_size * startindex + x_line, y + tower_size));
+            base_poly.addLine(Point(x + tower_size * startindex + x_line, y), Point(x + tower_size * startindex + x_line, y + tower_hight));
         }
 
-        for (int y_line = spacing; y_line < tower_size; y_line += spacing)
+        for (int y_line = spacing; y_line < tower_hight; y_line += spacing)
         {
             base_poly.addLine(Point(x + tower_size * startindex, y + y_line), Point(x + tower_size * startindex + tower_size, y + y_line));
         }

@@ -727,7 +727,9 @@ ClosePolygonResult SlicerLayer::findPolygonPointClosestTo(Point input)
 void SlicerLayer::SplitSlicerTopAndBottomSegmentBycolor(Polygons& open_polylines){
     std::map<int, std::vector<SlicerSegment>> mapsegments;
     // int segmentsflag[ segments.size()] = { 0 };
-
+     std::map<int, ClipperLib::Paths> mappaths;
+    //总路径
+     ClipperLib::Paths subpaths;
     int *segmentsflag = new int[1000000]();
     for (size_t start_segment_idx = 0; start_segment_idx < skinsegments.size(); start_segment_idx++)
     {
@@ -748,8 +750,8 @@ void SlicerLayer::SplitSlicerTopAndBottomSegmentBycolor(Polygons& open_polylines
     for (iter = mapsegments.begin(); iter != mapsegments.end(); iter++)
     {
         std::vector<SlicerSegment> vecsegments = iter->second;
-
         std::vector<SlicerSegment> colorsegments;
+        ClipperLib::Paths cpaths;
         for (int i = 0; i < vecsegments.size(); i++)
         {
             // 判断是否重复
@@ -793,7 +795,9 @@ void SlicerLayer::SplitSlicerTopAndBottomSegmentBycolor(Polygons& open_polylines
                 {
                     continue;
                 }
-                if (colorsegments[curridx].end == colorsegments[j].start)
+                // if (colorsegments[curridx].end == colorsegments[j].start)
+                if (std::abs(colorsegments[curridx].end.X - colorsegments[j].start.X)<=1
+                &&std::abs(colorsegments[curridx].end.Y - colorsegments[j].start.Y)<=1)
                 {
                     // poly.add(colorsegments[j].end);
                     cpath[0].push_back(colorsegments[j].end);
@@ -806,34 +810,61 @@ void SlicerLayer::SplitSlicerTopAndBottomSegmentBycolor(Polygons& open_polylines
                     break;
                 }
             }
-            // cpath[0].push_back(cpath[0][0]);
-            ClipperLib::ClipperOffset co;
+            cpaths.push_back(cpath[0]);
+        }
+        ClipperLib::Clipper clipper;
+        clipper.StrictlySimple(true) ;
+        clipper.AddPaths(cpaths,ClipperLib::ptSubject,true);
+        clipper.Execute(ClipperLib::ctDifference, cpaths, ClipperLib::pftEvenOdd, ClipperLib::pftEvenOdd);
 
-            co.AddPaths(cpath, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
-            co.Execute(cpath, -inner * 3 * 200);
-            if (cpath.empty()) {
-                continue;
-            }
-            skinpath.push_back(cpath[0]);
-
-            ClipperLib::ClipperOffset co1;
-            co1.AddPaths(cpath, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
-            co1.Execute(cpath, -1);
-            if (cpath.empty()) {
-                continue;
-            }
-            Polygon poly(cpath[0]);
-            //
+        subpaths.insert(subpaths.end(),cpaths.begin(),cpaths.end());
+        mappaths.insert(std::pair<int,ClipperLib::Paths>(iter->first,cpaths));
+        
 
 
+    }
+
+    ClipperLib::ClipperOffset co1;
+    co1.AddPaths(subpaths, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
+    co1.Execute(subpaths, 100);
+
+    ClipperLib::Clipper c;
+    c.AddPaths(subpaths, ClipperLib::ptSubject, true);
+    // c.AddPath(path, ClipperLib::ptClip, true);
+    c.Execute(ClipperLib::ctUnion, subpaths, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+    ClipperLib::ClipperOffset co2;
+    co2.AddPaths(subpaths, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
+    co2.Execute(subpaths, -100);
+
+    // 内缩，做渗透
+    ClipperLib::ClipperOffset co;
+    co.AddPaths(subpaths, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
+    co.Execute(subpaths, -inner * 2 * 200);
+
+    skinpath.insert(skinpath.end(), subpaths.begin(), subpaths.end());
+    std::map<int, ClipperLib::Paths>::iterator iterator;
+    for (iterator = mappaths.begin(); iterator != mappaths.end(); iterator++)
+    {
+        ClipperLib::Paths cpaths = iterator->second;
+        int color = iterator->first;
+
+        // 执行交运算
+        ClipperLib::Clipper clipper;
+        clipper.AddPaths(subpaths, ClipperLib::ptSubject, true);
+        clipper.AddPaths(cpaths, ClipperLib::ptClip, true);
+        clipper.Execute(ClipperLib::ctIntersection, cpaths, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+
+        ClipperLib::ClipperOffset co1;
+        co1.AddPaths(cpaths, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
+        co1.Execute(cpaths, -50);
+        for (auto path : cpaths)
+        {
+            Polygon poly(path);
             polygons.add(poly);
-            polygons.colors.push_back(colorsegments[startidx].color);
+            polygons.colors.push_back(color);
             std::unique_ptr<Polygon> obj = std::make_unique<Polygon>(poly);
             polygons.polys.push_back(std::move(obj));
         }
-        // ClipperLib::ClipperOffset  co;
-        // co.AddPaths(skinpath, ClipperLib::jtRound, ClipperLib::etClosedPolygon);
-        // co.Execute(skinpath, 1);
     }
 }
 
@@ -861,42 +892,35 @@ int IsInsidePath(const ClipperLib::Paths& path1, const ClipperLib::Path& path2) 
 void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
 {
     std::vector<std::vector<SlicerSegment>> vecsegments;
-    // int segmentsflag[ segments.size()] = { 0 };
 
-    int* segmentsflag = new int[1000000]();
-    // std::vector<int> segmentsflag(0);
-    for (size_t start_segment_idx = 0; start_segment_idx < segments.size(); start_segment_idx++)
-    {
-        if (!segmentsflag[start_segment_idx])
-        {
-            std::vector<SlicerSegment> psegments;
-            double startx = segments[start_segment_idx].start.X;
-            double starty = segments[start_segment_idx].start.Y;
-            for (int segment_idx = start_segment_idx; segment_idx != -1;)
-            {
-                SlicerSegment segment = segments[segment_idx];
-                SlicerSegment s;
-                segmentsflag[segment_idx] = 1;
-                s.start.X = startx;
-                s.start.Y = starty;
-                s.end.X = segment.end.X;
-                s.end.Y = segment.end.Y;
-                startx = segment.end.X;
-                starty = segment.end.Y;
-                s.color = segment.color;
-                segment_idx = getNextSegmentIdx(segment, start_segment_idx);
-
-                psegments.push_back(s);
-
-                if (segment_idx == static_cast<int>(start_segment_idx))
-                {
-                    break;
-                }
-            }
-            vecsegments.push_back(psegments);
+    int *segmentsflag = new int[1000000]();
+    for (int i = 0; i < segments.size(); i++){
+        if (segmentsflag[i]){
+            continue;
         }
-    }
+        std::vector<SlicerSegment> psegments;
+        psegments.push_back(segments[i]);
+        segmentsflag[i]=1;
+        for (int j = 0; j < segments.size(); j++){
+            if (segmentsflag[j]){
+                continue;
+            }
+            Point start = psegments.front().start;
+            Point end = psegments.back().end;
+            if(std::abs( segments[j].start.X - end.X)<=2&&std::abs( segments[j].start.Y - end.Y)<=2){
+                segmentsflag[j]=1;
+                psegments.push_back(segments[j]);
+                j=0;
+            }
 
+            if(std::abs(segments[j].end.X - start.X)<=2 && std::abs(segments[j].end.Y - start.Y)<=2){
+                segmentsflag[j]=1;
+                psegments.insert(psegments.begin(),segments[j]);
+                j=0;
+            }
+        }
+        vecsegments.push_back(psegments);
+    }
     // 总路径
     ClipperLib::Paths subpath;
     for (int i = 0; i < vecsegments.size(); i++)
@@ -922,10 +946,10 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
         // c.Execute(ClipperLib::ctUnion, subpath, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
     }
 
-    ClipperLib::Clipper clpr = ClipperLib::Clipper();
-    clpr.AddPaths(subpath, ClipperLib::ptSubject, true);
-    ClipperLib::IntRect bounds = clpr.GetBounds();
-    // 输出边界框的坐标
+     ClipperLib::Clipper clpr = ClipperLib::Clipper();
+     clpr.AddPaths(subpath, ClipperLib::ptSubject,true);
+     ClipperLib::IntRect bounds = clpr.GetBounds();
+     // 输出边界框的坐标
 
     for (int i = 0; i < vecsegments.size(); i++)
     {
@@ -970,7 +994,7 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
         cpath[0].push_back(psegments[0].start);
         for (int j = 0; j < psegments.size(); j++)
         {
-            SlicerSegment& s = psegments.at(j);
+            SlicerSegment &s = psegments.at(j);
 
             // if(s.color = startcolor){
             cpath[0].push_back(s.end);
@@ -1031,12 +1055,11 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
         }
 
         std::vector<Polygon> plist;
-        ClipperLib::Paths addedpaths;
         for (auto it : colorpaths)
         {
             ClipperLib::Path cpath = it.second;
             int color = it.first;
-            if (cpath.size() < 2) {
+            if(cpath.size()<2){
                 continue;
             }
             //计算中点
@@ -1097,7 +1120,9 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
                 // 计算交集
                 ClipperLib::Paths intersectionpath;
                 ClipperLib::Clipper intersectionCo;
-
+                if(cpaths.size()==0){
+                    continue;
+                }
                 intersectionpath.push_back(cpaths[0]);
                 intersectionCo.AddPaths(skinofpath, ClipperLib::ptSubject, true);
 
@@ -1116,14 +1141,13 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
                 {
                     continue;
                 }
-
                 cpaths = solution;
             }
             //偏移一
-            ClipperLib::ClipperOffset co1;
-            co1.AddPaths(cpaths, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
-            co1.Execute(cpaths, -2);
-
+             ClipperLib::ClipperOffset co1;
+             co1.AddPaths(cpaths, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
+             co1.Execute(cpaths, -2);
+            
 
             if (cpaths.size() <= 0)
             {
@@ -1133,13 +1157,13 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
             {
                 return;
             }
-            for (auto path : cpaths) {
+            for(auto path :cpaths){
                 path.push_back(path[0]);
                 Polygon polygon(path);
                 polygon.color = color;
                 plist.push_back(polygon);
             }
-
+           
             // polygons.colors[i] = color;
             // std::unique_ptr<Polygon> obj = std::make_unique<Polygon>(poly);
             // polygons.polys.push_back(std::move(obj));
@@ -1152,7 +1176,7 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
         //         }
         //     }
         // }
-
+       
         for (int m = 0; m < plist.size(); m++)
         {
 
@@ -1164,7 +1188,6 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
         }
     }
 }
-
 
 #endif 
 
@@ -1391,7 +1414,6 @@ void SlicerLayer::makePolygons(const Mesh* mesh)
 
     SplitSlicerTopAndBottomSegmentBycolor(open_polylines);
     SplitSlicerSegmentBycolor(open_polylines);
-	///makeBasicPolygonLoops(open_polylines);
 
     connectOpenPolylines(open_polylines);
 
@@ -1492,17 +1514,14 @@ Slicer::Slicer(SliceContext* _application, Mesh* i_mesh, const coord_t thickness
 
 void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)
 {
-    //cura52::parallel_for(application, layers,
-    //                   [&](auto layer_it)
-    for(auto& layer_it : layers)
+    cura52::parallel_for(application, layers,
+                       [&](auto layer_it)
                        {
                            std::vector<SlicerSegment> segments;
-                           SlicerLayer& layer = layer_it;
+                           SlicerLayer& layer = *layer_it;
                            const int32_t& z = layer.z;
-                           //const int32_t& minz = 200;
                            int layer_height = mesh.settings.get<coord_t>("layer_height");
                            const int32_t& minz = layer_height;
-                           
                            layer.segments.reserve(100);
 
                            // loop over all mesh faces
@@ -1528,11 +1547,10 @@ void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const st
                                }
                                if (p0.z == p1.z && p1.z == p2.z)
                                {
-                                 
-                                   //if ((z + minz >= p0.z&&z<p0.z)|| z - minz <= p0.z&&z>p0.z)
-                                   //    if ((z + minz >= p0.z&&z<p0.z)|| z - minz <p0.z&&z>=p0.z)
-                                   int n = 3;
-                                   if (((z + minz > p0.z) && z <= p0.z) || ((z + minz * n > p0.z) && z <= p0.z) || (z > 0 && z < minz && p0.z == 0))
+                                  
+                                //    if ((z + minz >= p0.z&&z<p0.z)|| z - minz <p0.z&&z>=p0.z)
+                                    int n = 3;
+                                   if ( ((z + minz > p0.z)&&z<=p0.z)||((z - minz*n <= p0.z)&&z>p0.z)||((z + minz*n > p0.z)&&z<=p0.z)||(z>0&&z<minz&&p0.z==0))
                                    {    
                                        SlicerSegment s1;
                                        s1.start.X = p0.x;
@@ -1557,14 +1575,22 @@ void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const st
                                        layer.skinsegments.push_back(s2);
                                        layer.skinsegments.push_back(s3);
                                        layer.isSkin = true;
-
-                                       for (int inner = 1; inner <= n; inner++) {
-                                           if ((z + minz * inner > p0.z) && z <= p0.z) {
-                                               layer.inner = inner - 1;
-                                               break;
-                                           }
+                                       
+                                       for(int inner = 1;inner<=n;inner++){
+                                            if((z + minz*inner > p0.z)&&z<=p0.z){
+                                                layer.inner = inner-1;
+                                                break;
+                                            }
                                        }
 
+                                       for(int inner = 1;inner<=n;inner++){
+                                            if((z - minz*inner <= p0.z)&&z>p0.z){
+                                                layer.inner = inner-1;
+                                                // std::cout << "s" << std::endl;
+                                                break;
+                                            }
+                                       }
+                                       
                                    }
                                    continue;
                                }
@@ -1662,7 +1688,7 @@ void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const st
                                segments.push_back(s);
                                layer.segments.push_back(s);
                            }
-                       }//);
+		});
 }
 
 void Slicer::buildSegments_paint_support(SliceContext* application, const Mesh& mesh, const std::vector<std::pair<int32_t, int32_t>>& zbbox, const SlicingTolerance& slicing_tolerance, std::vector<SlicerLayer>& layers)

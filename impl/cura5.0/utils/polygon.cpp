@@ -1418,22 +1418,60 @@ std::vector<PolygonsPart> Polygons::splitIntoParts(bool unionAll) const
     return ret;
 }
 
-bool IsInsidePath(const ClipperLib::Path& path, const ClipperLib::Path& path2)
-{
-    // ±»°üº¬´ÎÊı
-    int num = 0;
-
-    bool flag = true;
-    for (auto& point : path2)
+    bool IsInsidePath(const ClipperLib::Path &path, const ClipperLib::Path &path2)
     {
-        if (!ClipperLib::PointInPolygon(point, path))
+        // è¢«åŒ…å«æ¬¡æ•°
+        int num = 0;
+
+        bool flag = true;
+        for (auto &point : path2)
         {
-            flag = false;
+            if (!ClipperLib::PointInPolygon(point, path))
+            {
+                flag = false;
+            }
         }
+
+        return flag;
     }
 
-    return flag;
-}
+     bool IsInsidePath(const ClipperLib::Path &path, const ClipperLib::Paths &paths)
+    {
+        // è¢«åŒ…å«æ¬¡æ•°
+        int num = 0;
+
+        bool flag = true;
+         for (auto &path2 : paths){
+                for (auto &point : path2)
+            {
+                if (!ClipperLib::PointInPolygon(point, path))
+                {
+                    flag = false;
+                }
+                
+            }
+            if(flag){
+                return true;
+            }
+         }
+
+          for (auto &path2 : paths){
+                for (auto &point : path)
+            {
+                if (!ClipperLib::PointInPolygon(point, path2))
+                {
+                    flag = false;
+                }
+                
+            }
+            if(flag){
+                return true;
+            }
+         }
+        
+
+        return flag;
+    }
 
 std::vector<PolygonsPart> Polygons::splitIntoColorParts(bool unionAll)
 {
@@ -1442,41 +1480,44 @@ std::vector<PolygonsPart> Polygons::splitIntoColorParts(bool unionAll)
     for (int i = 0; i < paths.size(); i++)
     {
         bool flag = false;
-        for (int j = 0; j < i; j++)
-        {
-
-            if (colors[i] == colors[j]) {
-                flag = IsInsidePath(paths[i], paths[j]) || IsInsidePath(paths[j], paths[i]);
-                if (flag) {
+        for(int j = 0; j < ret.size(); j++){
+            
+            if(colors[i] == ret[j].color){
+                flag=IsInsidePath(paths[i],ret[j].paths);
+                for(auto path:ret[j].paths){
+                    flag=flag||IsInsidePath(path,paths[i]);
+                }
+                if(flag){
                     ret[j].add(paths[i]);
-                    colors[i] = -i - 1;
+                    colors[i]=-i-1;
                 }
             }
-
         }
+
 
         if (!flag)
         {
             ret.emplace_back();
             ret.back().add(paths[i]);
+            ret.back().color = colors[i];
         }
     }
 
     for (auto iter = colors.begin(); iter != colors.end(); )
-    {
-        if (*iter < 0)
-        {
-            iter = colors.erase(iter);
-        }
-        else
-        {
-            iter++;
-        }
-    }
+	{
+		if (*iter < 0)
+		{
+			iter=colors.erase(iter);
+		}
+		else
+		{
+			iter++;
+		}
+	}
 
-    for (auto color : colors) {
-        if (color == -1) {
-            colors.erase(colors.begin());
+    for (auto color : colors){
+        if(color<=-1){
+            colors.erase(colors.begin() );
         }
     }
     //  for (int i = 0; i < paths.size(); i++)
@@ -1485,7 +1526,6 @@ std::vector<PolygonsPart> Polygons::splitIntoColorParts(bool unionAll)
     //         colors.erase(colors.begin() + i);
     //     }
     // }
-
     return ret;
 }
 

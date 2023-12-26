@@ -2018,7 +2018,9 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
 		// {
 		// 	setExtruder_addPrime(storage, gcode_layer, extruder_nr);
 		// }
-        setExtruder_addPrime(storage, gcode_layer, extruder_nr);
+        // setExtruder_addPrime(storage, gcode_layer, extruder_nr);
+
+
     }
 
     if (include_helper_parts && mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::NORMAL)
@@ -2031,10 +2033,10 @@ LayerPlan& FffGcodeWriter::processLayer(const SliceDataStorage& storage, LayerIn
         }
     }
 
-    if (!gcode_layer.getTowerIsPlanned() && mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE)
-    {
-        addPrimeTower(storage, gcode_layer, gcode_layer.getExtruder());
-    }
+    // if (!gcode_layer.getTowerIsPlanned() && mesh_group->settings.get<PrimeTowerType>("prime_tower_type") == PrimeTowerType::SINGLE)
+    // {
+    //     addPrimeTower(storage, gcode_layer, gcode_layer.getExtruder());
+    // }
     storage.primeTower.addToGcode_sparse(gcode_layer);
     gcode_layer.applyBackPressureCompensation();
 
@@ -2453,16 +2455,42 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
     }
     // 排序会消除颜色信息
     // part_order_optimizer.optimize();
+    if(mesh.settings.get<bool>("flush_into_infill")){
+        for (const PathOrderPath<const SliceLayerPart *> &path : part_order_optimizer.paths)
+        {
+            int color = (*path.vertices).color;
+            if (extruder_nr == color)
+            {   
+                addMeshPartInfillToGCode(storage, mesh, color, mesh_config, *path.vertices, gcode_layer);
+                INTERRUPT_RETURN("addMeshLayerToGCode");
+            }
+        }
+    }
+    
+
     for (const PathOrderPath<const SliceLayerPart*>& path : part_order_optimizer.paths)
     {
         int color =  ( *path.vertices).color;
-        //if(extruder_nr==color)
-        {
+        if(extruder_nr==color){
 
             addMeshPartToGCode(storage, mesh, color, mesh_config, *path.vertices, gcode_layer);
             INTERRUPT_RETURN("addMeshLayerToGCode");
         }
     }
+
+    if(!mesh.settings.get<bool>("flush_into_infill")){
+        for (const PathOrderPath<const SliceLayerPart *> &path : part_order_optimizer.paths)
+        {
+            int color = (*path.vertices).color;
+            if (extruder_nr == color)
+            {
+
+                addMeshPartInfillToGCode(storage, mesh, color, mesh_config, *path.vertices, gcode_layer);
+                INTERRUPT_RETURN("addMeshLayerToGCode");
+            }
+        }
+    }
+
 
     const std::string extruder_identifier = (mesh.settings.get<size_t>("roofing_layer_count") > 0) ? "roofing_extruder_nr" : "top_bottom_extruder_nr";
     if (extruder_nr == mesh.settings.get<ExtruderTrain&>(extruder_identifier).extruder_nr)
@@ -2488,7 +2516,7 @@ void FffGcodeWriter::addMeshPartToGCode(const SliceDataStorage& storage, const S
 
     if (mesh.settings.get<bool>("infill_before_walls"))
     {
-        added_something = added_something | processInfill(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
+        // added_something = added_something | processInfill(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
     }
     INTERRUPT_RETURN("infill_before_walls");
 
@@ -2496,7 +2524,7 @@ void FffGcodeWriter::addMeshPartToGCode(const SliceDataStorage& storage, const S
 
     if (! mesh.settings.get<bool>("infill_before_walls"))
     {
-        added_something = added_something | processInfill(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
+        // added_something = added_something | processInfill(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
     }
     INTERRUPT_RETURN("infill_before_walls");
 
@@ -2513,6 +2541,16 @@ void FffGcodeWriter::addMeshPartToGCode(const SliceDataStorage& storage, const S
         gcode_layer.moveInsideCombBoundary(innermost_wall_line_width, part);
     }
 
+    gcode_layer.setIsInside(false);
+}
+
+void FffGcodeWriter::addMeshPartInfillToGCode(const SliceDataStorage& storage, const SliceMeshStorage& mesh, const size_t extruder_nr, const PathConfigStorage::MeshPathConfigs& mesh_config, const SliceLayerPart& part, LayerPlan& gcode_layer)
+    const
+{
+    const Settings& mesh_group_settings = application->currentGroup()->settings;
+    INTERRUPT_RETURN("addMeshPartToGCode");
+    bool added_something = false;
+    added_something = added_something | processInfill(storage, gcode_layer, mesh, extruder_nr, mesh_config, part);
     gcode_layer.setIsInside(false);
 }
 
@@ -4373,14 +4411,21 @@ void FffGcodeWriter::setExtruder_addPrime(const SliceDataStorage& storage, Layer
 
         if (gcode_layer.getLayerNr() == 0 && ! gcode_layer.getSkirtBrimIsPlanned(extruder_nr))
         {
-            processSkirtBrim(storage, gcode_layer, extruder_nr);
+            if(extruder_nr == 0) {
+                processSkirtBrim(storage, gcode_layer, extruder_nr);
+            }
         }
     }
 
 
     // When the first layer of the prime tower is printed with one material only, do not prime another material on the
     // first layer again.
-    //if (((/*(gcode_layer.getLayerNr() > 0) && */extruder_changed) || ((gcode_layer.getLayerNr() == 0) && storage.primeTower.multiple_extruders_on_first_layer)) || (extruder_nr == outermost_prime_tower_extruder))
+    // if (((/*(gcode_layer.getLayerNr() > 0) && */extruder_changed) || ((gcode_layer.getLayerNr() == 0) && storage.primeTower.multiple_extruders_on_first_layer)) || (extruder_nr == outermost_prime_tower_extruder))
+    // {
+    //     addPrimeTower(storage, gcode_layer, previous_extruder);
+    // }
+
+         if (((gcode_layer.getLayerNr() >= 0) && extruder_changed) )
     {
         addPrimeTower(storage, gcode_layer, previous_extruder);
     }
