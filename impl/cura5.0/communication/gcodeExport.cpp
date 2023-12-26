@@ -479,10 +479,10 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
                 prefix << "00.0000m";
             }
             prefix << new_line;
-            prefix << ";Layer height:" << application->get_layer_height() << new_line;
+            prefix << ";Layer height:" << INT2MM(application->get_layer_height()) << new_line;
         }
         else
-            prefix << ";Layer Height:" << application->get_layer_height() << new_line;
+            prefix << ";Layer Height:" << INT2MM(application->get_layer_height()) << new_line;
         prefix << ";MINX:" << INT2MM(total_bounding_box.min.x) << new_line;
         prefix << ";MINY:" << INT2MM(total_bounding_box.min.y) << new_line;
         prefix << ";MINZ:" << INT2MM(total_bounding_box.min.z) << new_line;
