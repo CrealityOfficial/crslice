@@ -135,7 +135,9 @@ void SlicerLayer::stitch(Polygons& open_polylines)
     bool allow_reverse = true;
 	//先正向缝合，剩余的再参与反向缝合
 	connectOpenPolylinesImpl(open_polylines, max_stitch1, max_stitch1, false);
+#ifndef CUSTOM_KEY
     connectOpenPolylinesImpl(open_polylines, max_stitch2, max_stitch2, allow_reverse);
+#endif
 }
 
 const SlicerLayer::Terminus SlicerLayer::Terminus::INVALID_TERMINUS{ ~static_cast<Index>(0U) };
@@ -776,9 +778,9 @@ void SlicerLayer::makePolygons(const Mesh* mesh)
     }
 
     // Remove all the tiny polygons, or polygons that are not closed. As they do not contribute to the actual print.
-    const coord_t snap_distance = std::max(mesh->settings.get<coord_t>("minimum_polygon_circumference"), static_cast<coord_t>(1));
-    auto it = std::remove_if(polygons.begin(), polygons.end(), [snap_distance](PolygonRef poly) { return poly.shorterThan(snap_distance); });
-    polygons.erase(it, polygons.end());
+    const coord_t snap_distance = 0;// std::max(mesh->settings.get<coord_t>("minimum_polygon_circumference"), static_cast<coord_t>(1));
+	auto it = std::remove_if(polygons.begin(), polygons.end(), [snap_distance](PolygonRef poly) { return poly.shorterThan(snap_distance); });
+	polygons.erase(it, polygons.end());
 
     // Finally optimize all the polygons. Every point removed saves time in the long run.
     polygons = simplifyPolygon(polygons, mesh->settings);
