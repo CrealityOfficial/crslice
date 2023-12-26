@@ -22,6 +22,20 @@ namespace cura52
     class MeshVertex;
     class SliceContext;
 
+    class ZseamDrawPoint
+    {
+    public:
+        ZseamDrawPoint(Point _start) { start = _start; };
+        Point start;
+        bool flag = false;
+    };
+    class ZseamDrawlayer
+    {
+    public:
+        std::vector<ZseamDrawPoint> ZseamLayers;
+    };
+
+
     class SlicerSegment
     {
     public:

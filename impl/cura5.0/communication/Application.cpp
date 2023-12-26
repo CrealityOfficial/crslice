@@ -10,6 +10,10 @@
 #include <boost/filesystem.hpp>
 
 #include "communication/scenefactory.h"
+#include "crslice/gcode/sliceresult.h"
+
+#include "crslice/gcode/gcodedata.h"
+#include "crslice/gcode/pressureEquity.h"
 
 namespace cura52
 {
@@ -76,7 +80,7 @@ namespace cura52
         return tracer;
     }
 
-    crslice::FDMDebugger* Application::debugger()
+    gcode::GcodeTracer* Application::debugger()
     {
         return scene->fDebugger;
     }
@@ -107,6 +111,30 @@ namespace cura52
                 // Finalize the processor. This adds the end g-code and reports statistics.
                 gcode_writer.gcode.finalize();
 
+                //bool is_pe = scene.get()->settings.get<bool>("pressure_equity");
+                bool is_pe = false;
+                if (is_pe)
+                {
+                    gcode::SliceResult sr;
+                    bool readable = sr.load_pressureEquity(scene->gcodeFile.c_str(), tracer);
+                    if (!readable)
+                        tick("pressure equalizer read gcode faliure");
+                    std::vector<std::string> inputGcodes = sr.layerCode();
+                    std::vector<std::string> outputGcode;
+                    std::vector<std::string> outputGcodes;
+                    double filament_diameter = 1.75;
+                    float extrusion_rate = 100;
+                    float segment_length = 1;
+                    bool relative_e_distances = false;
+  
+                    crslice::pressureE(inputGcodes, outputGcodes, filament_diameter, extrusion_rate, segment_length, relative_e_distances);
+
+                    std::string fileNameOutput = "overhang_splitfaceNOfan1sss11.gcode";
+                    std::string previewImageString = "imgPreview.png";
+                    std::string prefixString = sr.prefixCode();
+                    std::string tailCode = sr.tailCode();
+                    gcode::_SaveGCode(scene->gcodeFile.c_str(), previewImageString, outputGcodes, prefixString, tailCode);
+                }
                 tick("slice 1");
 
                 if (tracer)

@@ -370,7 +370,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
 {
     std::ostringstream prefix;
 
-    crslice::PathParam pathParam;
+    gcode::GCodeParseInfo pathParam;
     const size_t extruder_count = application->extruderCount();
     switch (flavor)
     {
@@ -598,6 +598,10 @@ SliceResult GCodeExport::getFileHeaderC(const std::vector<bool>& extruder_is_use
                     }
                 }
             }
+        }
+        else {
+            sliceResult.filament_len += ((filament_used.size() >= 1) ? static_cast<int>(filament_used[0]) : 6666);
+            sliceResult.filament_len += ((filament_used.size() >= 2) ? static_cast<int>(filament_used[1]) : 0);
         }
         sliceResult.x = INT2MM(total_bounding_box.max.x) - INT2MM(total_bounding_box.min.x);
         sliceResult.y = INT2MM(total_bounding_box.max.y) - INT2MM(total_bounding_box.min.y);
@@ -2841,8 +2845,7 @@ bool GCodeExport::detect_limit_speed(LimitType limitType)
 
 void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
-	Acceleration acc = acceleration;
-
+	Acceleration acc = std::max(acceleration, Acceleration(100));
 	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
 	{       
         if (acceleration_limit_mess_enable)
@@ -2874,21 +2877,32 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
                 application->debugger()->getNotPath();
         }
         break;
+    case EGCodeFlavor::Creality_OS:
+        if (current_print_acceleration != acc)
+        {
+            if (acceleration_breaking_enable)
+            {
+                //Acceleration breakAcc = std::max(acc * acceleration_percent / 100, Acceleration(100));
+                *output_stream << "SET_VELOCITY_LIMIT ACCEL=" << PrecisionedDouble{ 0, acc };
+                *output_stream << " ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc * acceleration_percent / 100 } << new_line;
+                if (application->debugger())
+                    application->debugger()->getNotPath();
+            }
+            else
+            {
+                *output_stream << "SET_VELOCITY_LIMIT ACCEL=" << PrecisionedDouble{ 0, acc } << new_line;
+                if (application->debugger())
+                    application->debugger()->getNotPath();
+            }
+        }
+        break;
     default:
         // MARLIN, etc. only have one acceleration for both print and travel
         if (current_print_acceleration != acc)
         {
             *output_stream << "M204 S" << PrecisionedDouble{ 0, acc } << new_line;
-
             if (application->debugger())
                 application->debugger()->getNotPath();
-            if (acceleration_breaking_enable)
-            {
-                *output_stream << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc* acceleration_percent/100 } << new_line;
-            
-                if (application->debugger())
-                    application->debugger()->getNotPath();
-            }
         }
         break;
     }

@@ -30,6 +30,11 @@ namespace cura52
         coord_t w;
 
         /*!
+         * The ZSeam draw Point.
+         */
+        bool isZSeamDrow = false;
+
+        /*!
          * Which perimeter this junction is part of.
          *
          * Perimeters are counted from the outside inwards. The outer wall has index

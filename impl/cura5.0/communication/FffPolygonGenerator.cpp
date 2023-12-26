@@ -46,6 +46,7 @@
 
 #include "slice/slicestep.h"
 #include "poly/polystep.h"
+#include "slice/slicer.h"
 
 #include "slice/sliceddata.h"
 #include "communication/slicecontext.h"
@@ -248,10 +249,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     INTERRUPT_RETURN_FALSE("FffPolygonGenerator::sliceModel");
 
     storage.support.supportLayers.resize(storage.print_layer_count);
-
-    //get paint_support
-    if(meshgroup->settings.get<bool>("support_enable"))
-        getPaintSupport(storage, layer_thickness, slice_layer_count, use_variable_layer_heights);
 
     storage.meshes.reserve(meshCount); // causes there to be no resize in meshes so that the pointers in sliceMeshStorage._config to retraction_config don't get invalidated.
     for (int meshIdx = 0; meshIdx < meshCount; meshIdx++)
@@ -1297,72 +1294,4 @@ void FffPolygonGenerator::processFuzzyWalls(SliceMeshStorage& mesh)
         }
     }
 }
-
-void FffPolygonGenerator::getPaintSupport(SliceDataStorage& storage,const int layer_thickness,const int slice_layer_count, const bool use_variable_layer_heights)
-{
-    std::fstream in(application->supportFile(), std::ios::in | std::ios::binary);
-    if (in.is_open())
-    {
-        std::vector<Mesh> meshs;
-
-        while (1)
-        {
-            int pNum = 0;
-            in.read((char*)&pNum, sizeof(int));
-            if (pNum > 0)
-            {
-                meshs.push_back(Mesh(application->currentGroup()->settings));
-                meshs.back().faces.resize(pNum);
-                for (int i = 0; i < pNum; ++i)
-                {
-                    int num = 0;
-                    in.read((char*)&num, sizeof(int));
-                    if (num == 3)
-                    {
-                        for (int j = 0; j < num; j++)
-                        {
-                            in.read((char*)&meshs.back().faces[i].vertex_index[j], sizeof(int));
-                        }
-                    }
-                }
-            }
-            else
-                break;
-
-            pNum = 0;
-            in.read((char*)&pNum, sizeof(int));
-            if (pNum > 0)
-            {
-                for (int i = 0; i < pNum; ++i)
-                {
-                    int num = 0;
-                    in.read((char*)&num, sizeof(int));
-                    if (num == 3)
-                    {
-                        std::vector<float> v(3);
-                        for (int j = 0; j < num; j++)
-                        {
-                            in.read((char*)&v[j], sizeof(float));
-                        }
-                        meshs.back().vertices.push_back(MeshVertex(Point3(MM2INT(v[0]), MM2INT(v[1]), MM2INT(v[02]))));
-                    }
-                }
-            }
-            meshs.back().finish();
-        }
-
-        for (Mesh& mesh : meshs)
-        {
-            SlicedData slicedData;
-
-            mesh.settings.add("support_paint_enable", "true");
-            mesh.settings.add("keep_open_polygons", "true");
-            mesh.settings.add("minimum_polygon_circumference", "0.05");//长度小于此值会被移除
-            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, slicedData);
-            handleSupportModifierMesh(storage, mesh.settings, &slicedData);
-        }
-        in.close();
-    }
-}
-
 } // namespace cura52

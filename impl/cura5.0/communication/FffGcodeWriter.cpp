@@ -22,6 +22,7 @@
 #include "utils/math.h"
 #include "utils/orderOptimizer.h"
 #include "utils/SettingsWrapper.h"
+#include "utils/paintzseam.h"
 
 #include "communication/slicecontext.h"
 #include "tools/serial.h"
@@ -215,10 +216,24 @@ void FffGcodeWriter::writeGCode(SliceDataStorage& storage)
         }
     }
 
+    paintzseam apaintzseam(&storage, total_layers);
+	if (!storage.interceptSeamPoints.empty())
+	{
+		apaintzseam.intercept();
+	}
     if (!mesh_group->settings.get<bool>("magic_spiralize") && mesh_group->settings.get<EZSeamType>("z_seam_type") == EZSeamType::SHARPEST_CORNER)
     {
         SAFE_MESSAGE(7, 0);
-        processZSeam(storage, total_layers);
+		MeshGroup* mesh_group = application->currentGroup();
+		AngleDegrees z_seam_min_angle_diff = mesh_group->settings.get<AngleDegrees>("z_seam_min_angle_diff");
+		AngleDegrees z_seam_max_angle = mesh_group->settings.get<AngleDegrees>("z_seam_max_angle");
+		coord_t wall_line_width_0 = mesh_group->settings.get<coord_t>("wall_line_width_0");
+		coord_t wall_line_count = mesh_group->settings.get<coord_t>("wall_line_count");
+        apaintzseam.processZSeam(mesh_group, z_seam_min_angle_diff, z_seam_max_angle, wall_line_width_0, wall_line_count);
+    }
+    if (!storage.zSeamPoints.empty())
+    {
+        apaintzseam.paint();
     }
 
     INTERRUPT_RETURN("FffGcodeWriter::writeGCode");
@@ -831,7 +846,7 @@ void FffGcodeWriter::processStartingCode(const SliceDataStorage& storage, const 
     }
 
     gcode.writeExtrusionMode(false); // ensure absolute extrusion mode is set before the start gcode
-    if (application->sceneSettings().get<bool>("special_object_cancel"))
+    if (application->sceneSettings().get<bool>("special_object_cancel") && !storage.m_Object_Exclude_FileName.empty())
     {
         std::ostringstream tmp ;
         tmp << "; Pre-Processed for Cancel-Object support by preprocess_cancellation v0.2.0" ;

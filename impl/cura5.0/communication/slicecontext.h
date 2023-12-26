@@ -18,9 +18,9 @@
 #include <stdarg.h>
 #include "ccglobal/log.h"
 
-namespace crslice
+namespace gcode
 {
-    class FDMDebugger;
+    class GcodeTracer;
 }
 
 namespace cura52
@@ -89,7 +89,7 @@ namespace cura52
         virtual void tick(const std::string& tag) = 0;
         virtual void message(const char* msg) = 0;
         virtual ccglobal::Tracer* getTracer() = 0;
-        virtual crslice::FDMDebugger* debugger() = 0;
+        virtual gcode::GcodeTracer* debugger() = 0;
         virtual Cache* cache() = 0;
 
         void formatMessage(const char* format, ...)
