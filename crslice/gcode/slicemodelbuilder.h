@@ -130,6 +130,8 @@ namespace gcode
 		std::vector<int> m_zSeams;
 		std::vector<int> m_retractions;
 
+		std::vector<std::string> m_nozzleColorList;
+
 		void getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode = false);
 		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true,bool fromGcode = false);
 		void setParam(gcode::GCodeParseInfo& pathParam);
@@ -143,6 +145,7 @@ namespace gcode
 		void setE(float e);
 		void setTime(float time);
 		void getNotPath();
+		void setNozzleColorList(std::string& colorList);
 	private:
 		void processLayer(const std::string& layerCode, int layer, std::vector<int>& stepIndexMap);
 		void processStep(const std::string& stepCode, int nIndex, std::vector<int>& stepIndexMap);

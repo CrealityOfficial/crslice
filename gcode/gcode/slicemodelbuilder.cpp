@@ -1389,6 +1389,17 @@ namespace gcode
         nIndex++;
     }
 
+    void GCodeStruct::setNozzleColorList(std::string& colorList)
+    {
+        //TODO std::vector<std::string> nozzleColorList;
+        //#006cff, #ffaaff, #ff0e00, #aaaa7f, #d87206, #43b7b0
+        if (!colorList.empty())
+        {
+            colorList = str_trimmed(colorList);
+            m_nozzleColorList = splitString(colorList,",");
+        }
+    }
+
     void GCodeStruct::setParam(gcode::GCodeParseInfo& pathParam){
         parseInfo = pathParam;
     }
