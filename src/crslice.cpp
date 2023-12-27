@@ -1,5 +1,6 @@
 #include "crslice/crslice.h"
 #include "communication/Application.h"
+#include "Slice3rBase/wrapper/orcaslicewrapper.h"
 
 #include "ccglobal/log.h"
 #include "crslicefromscene.h"
@@ -31,5 +32,16 @@ namespace crslice
 		cura52::SliceResult result = app.runSceneFactory(&factory);
         sliceResult = { result.print_time, result.filament_len, result.filament_volume, result.layer_count,
 			result.x, result.y, result.z };
+	}
+
+	void CrSlice::sliceFromSceneOrca(CrScenePtr scene, ccglobal::Tracer* tracer)
+	{
+		if (!scene)
+		{
+			LOGM("CrSlice::sliceFromSceneOrca empty scene.");
+			return;
+		}
+
+		orca_slice_impl(scene, tracer);
 	}
 }

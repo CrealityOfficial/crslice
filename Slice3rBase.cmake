@@ -19,11 +19,16 @@ __assert_target(admesh)
 __assert_target(tbb_static)
 
 set(items
-	#libslic3r_version.h
+	Slice3rBase/libslic3r_version.h
+	Slice3rBase/clonable_ptr.hpp
+	Slice3rBase/Exception.hpp
+	Slice3rBase/wrapper/orcaslicewrapper.h
+	Slice3rBase/wrapper/orcaslicewrapper.cpp
 	Slice3rBase/MultiPoint.cpp
     Slice3rBase/MultiPoint.hpp
     Slice3rBase/ArcFitter.cpp
     Slice3rBase/ArcFitter.hpp
+	Slice3rBase/I18N.hpp
     #pchheader.cpp
     #pchheader.hpp
     Slice3rBase/AABBTreeIndirect.hpp
@@ -46,8 +51,8 @@ set(items
     Slice3rBase/ClipperUtils.hpp
     Slice3rBase/Clipper2Utils.cpp
     Slice3rBase/Clipper2Utils.hpp
-    #Config.cpp
-    #Config.hpp
+    Slice3rBase/Config.cpp
+    Slice3rBase/Config.hpp
     #CurveAnalyzer.cpp
     #CurveAnalyzer.hpp
     #EdgeGrid.cpp
@@ -100,7 +105,7 @@ set(items
     #Fill/FillRectilinear.hpp
     #Flow.cpp
     #Flow.hpp
-    #format.hpp
+    Slice3rBase/format.hpp
 	#Format/3mf.cpp
 	#Format/3mf.hpp
 	#Format/bbs_3mf.cpp
@@ -148,14 +153,14 @@ set(items
     #GCode/ExtrusionProcessor.hpp
     #GCode/ConflictChecker.cpp
     #GCode/ConflictChecker.hpp
-    #GCode.cpp
-    #GCode.hpp
+    #Slice3rBase/GCode.cpp
+    #Slice3rBase/GCode.hpp
     #GCodeReader.cpp
     #GCodeReader.hpp
     ## GCodeSender.cpp
     ## GCodeSender.hpp
-    #GCodeWriter.cpp
-    #GCodeWriter.hpp
+    #Slice3rBase/GCodeWriter.cpp
+    #Slice3rBase/GCodeWriter.hpp
     Slice3rBase/Geometry.cpp
     Slice3rBase/Geometry.hpp
     Slice3rBase/Geometry/Bicubic.hpp
@@ -207,8 +212,8 @@ set(items
     #PerimeterGenerator.hpp
     #PlaceholderParser.cpp
     #PlaceholderParser.hpp
-    #Platform.cpp
-    #Platform.hpp
+    Slice3rBase/Platform.cpp
+    Slice3rBase/Platform.hpp
     Slice3rBase/Point.cpp
     Slice3rBase/Point.hpp
     Slice3rBase/Polygon.cpp
@@ -234,8 +239,8 @@ set(items
     #PrintApply.cpp
     #PrintBase.cpp
     #PrintBase.hpp
-    #PrintConfig.cpp
-    #PrintConfig.hpp
+    Slice3rBase/PrintConfig.cpp
+    Slice3rBase/PrintConfig.hpp
     #PrintObject.cpp
     #PrintObjectSlice.cpp
     #PrintRegion.cpp
@@ -243,7 +248,10 @@ set(items
     #PNGReadWrite.cpp
     #QuadricEdgeCollapse.cpp
     #QuadricEdgeCollapse.hpp
-    #Semver.cpp
+    Slice3rBase/Semver.hpp
+	Slice3rBase/Semver.cpp
+	Slice3rBase/Semver.h
+	Slice3rBase/Semver.c
     #ShortEdgeCollapse.cpp
     #ShortEdgeCollapse.hpp
     #ShortestPath.cpp
@@ -284,10 +292,10 @@ set(items
     #MeshSplitImpl.hpp
     #TriangulateWall.hpp
     #TriangulateWall.cpp
-    #utils.cpp
-    #Utils.hpp
-    #Time.cpp
-    #Time.hpp
+    Slice3rBase/utils.cpp
+    Slice3rBase/Utils.hpp
+    Slice3rBase/Time.cpp
+    Slice3rBase/Time.hpp
     #Thread.cpp
     #Thread.hpp
     #TriangleSelector.cpp
@@ -387,8 +395,8 @@ set(items
     #Arachne/WallToolPaths.cpp
     #Shape/TextShape.hpp
     #Shape/TextShape.cpp
-    #calib.hpp
-    #calib.cpp
+    #Slice3rBase/calib.hpp
+    #Slice3rBase/calib.cpp
 	Slice3rBase/clipper/clipper_z.cpp
 	Slice3rBase/clipper/clipper_z.hpp
 	Slice3rBase/fast_float/fast_float.h
@@ -404,9 +412,10 @@ if(WIN32)
     list(APPEND LIBS Psapi.lib)
 endif()
 
-list(APPEND LIBS eigen clipper2 admesh boost_filesystem boost_nowide cereal)
+list(APPEND LIBS eigen clipper2 admesh boost_filesystem boost_nowide 
+			 cereal)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
-	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX)
+	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 
 if(TARGET tbb_static)
 	list(APPEND DEFS SLICE3R_USE_TBB)

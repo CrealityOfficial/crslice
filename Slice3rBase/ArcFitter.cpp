@@ -1,7 +1,8 @@
 #include "ArcFitter.hpp"
-#include "BoundingBox.hpp"
+
 #include <cmath>
 #include <cassert>
+#include "Slice3rBase/Polyline.hpp"
 
 namespace Slic3r {
 

@@ -1871,9 +1871,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // SoftFever: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
-        if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
-        }
+        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
 
         if (m_config.default_jerk.value > 0) {
             double jerk = m_config.outer_wall_jerk.value;
@@ -2859,7 +2857,7 @@ GCode::LayerResult GCode::process_layer(
         m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
     }
     else if (print.calib_mode() == CalibMode::Calib_Retraction_tower) {
-        auto _length = print.calib_params().start + std::floor(std::max(0.0,print_z-0.4)) * print.calib_params().step;
+        auto _length = print.calib_params().start + std::floor(print_z) * print.calib_params().step;
         DynamicConfig _cfg;
         _cfg.set_key_value("retraction_length", new ConfigOptionFloats{_length});
         writer().config.apply(_cfg);
@@ -3342,6 +3340,7 @@ GCode::LayerResult GCode::process_layer(
                                            print.default_region_config().wall_infill_order == WallInfillOrder::InfillOuterInner;
                     //BBS: for first layer, we always print wall firstly to get better bed adhesive force
                     //This behaviour is same with cura
+                    std::cout << "################@@@@@@@@@@@@@!!!!!!!!!!!!!Exported layer " << layer.id() << " print_z " << print_z <<std::endl;
                     if (is_infill_first && !first_layer) {
                         gcode += this->extrude_infill(print, by_region_specific, false);
                         gcode += this->extrude_perimeters(print, by_region_specific);
@@ -4156,12 +4155,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
     bool is_overhang_fan_on = false;
     bool is_supp_interface_fan_on = false;
-    if (!variable_speed) {
+    if (!variable_speed) {    //get value from estimate_extrusion_quality()
         // F is mm per minute.
+      std::cout << "########################variable_speed is NOT empty" << std::endl;
         gcode += m_writer.set_speed(F, "", comment);
         double path_length = 0.;
         {
-            if (m_enable_cooling_markers) {
+            if (m_enable_cooling_markers) { //orca ++   yi
                 if (enable_overhang_bridge_fan) {
                     // BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external
                     // perimeter
@@ -4187,7 +4187,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     gcode += m_writer.extrude_to_xy(
                         this->point_to_gcode(line.b),
                         e_per_mm * line_length,
-                        GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                        GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());  //yi
                 }
             } else {
                 // BBS: start to generate gcode from arc fitting data which includes line and arc
@@ -4219,7 +4219,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             center_offset,
                             e_per_mm * arc_length,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
-                            GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());
+                            GCodeWriter::full_gcode_comment ? description : "", path.is_force_no_extrusion());  //yi
                         break;
                     }
                     default:
@@ -4240,30 +4240,30 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     } else {
         double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
-
+      std::cout << "########################variable_speed is  empty" << std::endl;
         gcode += m_writer.set_speed(last_set_speed, "", comment);
         Vec2d prev = this->point_to_gcode_quantized(new_points[0].p);
         for (size_t i = 1; i < new_points.size(); i++) {
             const ProcessedPoint &processed_point = new_points[i];
             Vec2d p = this->point_to_gcode_quantized(processed_point.p);
             const double line_length = (p - prev).norm();
-            if (m_enable_cooling_markers) {
+            if (m_enable_cooling_markers) { //bambu  have  this  but  is  out 2th row
                 if(enable_overhang_bridge_fan) {
                     if (is_bridge(path.role()) || check_overhang_fan(new_points[i - 1].overlap) ) {
                         if(!is_overhang_fan_on)
-                            gcode += ";_OVERHANG_FAN_START\n";
+                            gcode += ";_OVERHANG_FAN_START\n";  //change
                         is_overhang_fan_on = true;
                     }else {
                         if (is_overhang_fan_on) {
-                            gcode += ";_OVERHANG_FAN_END\n";
+                            gcode += ";_OVERHANG_FAN_END\n"; //change
                             is_overhang_fan_on = false;
                         }
                     }
                 }
-                if(supp_interface_fan_speed >= 0){
+                if(supp_interface_fan_speed >= 0){ //change
                     if(path.role() == erSupportMaterialInterface) {
                         if(!is_supp_interface_fan_on)
-                            gcode += ";_SUPP_INTERFACE_FAN_START\n";
+                            gcode += ";_SUPP_INTERFACE_FAN_START\n"; //change
                         is_supp_interface_fan_on = true;
                     } else {
                         if(is_supp_interface_fan_on) {
@@ -4274,16 +4274,15 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     
                 }
             }
+            gcode +=
+                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
+
+            prev = p;
             double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), processed_point.speed) * 60.0;
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
             }
-            gcode +=
-                m_writer.extrude_to_xy(p, e_per_mm * line_length, GCodeWriter::full_gcode_comment ? description : "");
-
-            prev = p;
-
         }
         if (is_overhang_fan_on) {
             is_overhang_fan_on = false;

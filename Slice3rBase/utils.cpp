@@ -41,17 +41,17 @@
 	#endif
 #endif
 
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/support/date_time.hpp>
+//#include <boost/log/core.hpp>
+//#include <boost/log/trivial.hpp>
+//#include <boost/log/expressions.hpp>
+//#include <boost/log/sinks/text_file_backend.hpp>
+//#include <boost/log/utility/setup/file.hpp>
+//#include <boost/log/utility/setup/common_attributes.hpp>
+//#include <boost/log/sources/severity_logger.hpp>
+//#include <boost/log/sources/record_ostream.hpp>
+//#include <boost/log/support/date_time.hpp>
 
-#include <boost/locale.hpp>
+//#include <boost/locale.hpp>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
@@ -87,34 +87,34 @@
 
 namespace Slic3r {
 
-static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
-
-static boost::log::trivial::severity_level level_to_boost(unsigned level)
-{
-    switch (level) {
-    // Report fatal errors only.
-    case 0: return boost::log::trivial::fatal;
-    // Report fatal errors and errors.
-    case 1: return boost::log::trivial::error;
-    // Report fatal errors, errors and warnings.
-    case 2: return boost::log::trivial::warning;
-    // Report all errors, warnings and infos.
-    case 3: return boost::log::trivial::info;
-    // Report all errors, warnings, infos and debugging.
-    case 4: return boost::log::trivial::debug;
-    // Report everyting including fine level tracing information.
-    default: return boost::log::trivial::trace;
-    }
-}
+//static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
+//
+//static boost::log::trivial::severity_level level_to_boost(unsigned level)
+//{
+//    switch (level) {
+//    // Report fatal errors only.
+//    case 0: return boost::log::trivial::fatal;
+//    // Report fatal errors and errors.
+//    case 1: return boost::log::trivial::error;
+//    // Report fatal errors, errors and warnings.
+//    case 2: return boost::log::trivial::warning;
+//    // Report all errors, warnings and infos.
+//    case 3: return boost::log::trivial::info;
+//    // Report all errors, warnings, infos and debugging.
+//    case 4: return boost::log::trivial::debug;
+//    // Report everyting including fine level tracing information.
+//    default: return boost::log::trivial::trace;
+//    }
+//}
 
 void set_logging_level(unsigned int level)
 {
-    logSeverity = level_to_boost(level);
-
-    boost::log::core::get()->set_filter
-    (
-        boost::log::trivial::severity >= logSeverity
-    );
+    //logSeverity = level_to_boost(level);
+	//
+    //boost::log::core::get()->set_filter
+    //(
+    //    boost::log::trivial::severity >= logSeverity
+    //);
 }
 
 unsigned int level_string_to_boost(std::string level)
@@ -145,18 +145,19 @@ std::string get_string_logging_level(unsigned level)
 
 unsigned get_logging_level()
 {
-    switch (logSeverity) {
-    case boost::log::trivial::fatal : return 0;
-    case boost::log::trivial::error : return 1;
-    case boost::log::trivial::warning : return 2;
-    case boost::log::trivial::info : return 3;
-    case boost::log::trivial::debug : return 4;
-    case boost::log::trivial::trace : return 5;
-    default: return 1;
-    }
+    //switch (logSeverity) {
+    //case boost::log::trivial::fatal : return 0;
+    //case boost::log::trivial::error : return 1;
+    //case boost::log::trivial::warning : return 2;
+    //case boost::log::trivial::info : return 3;
+    //case boost::log::trivial::debug : return 4;
+    //case boost::log::trivial::trace : return 5;
+    //default: return 1;
+    //}
+	return 0;
 }
 
-boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> g_log_sink;
+//boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> g_log_sink;
 
 // Force set_logging_level(<=error) after loading of the DLL.
 // This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
@@ -170,10 +171,11 @@ static struct RunOnInit {
 
 void trace(unsigned int level, const char *message)
 {
-    boost::log::trivial::severity_level severity = level_to_boost(level);
-
-    BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
-        (::boost::log::keywords::severity = severity)) << message;
+	LOGI("%s", message);
+    //boost::log::trivial::severity_level severity = level_to_boost(level);
+	//
+    //BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
+    //    (::boost::log::keywords::severity = severity)) << message;
 }
 
 void disable_multi_threading()
@@ -289,11 +291,11 @@ std::string debug_out_path(const char *name, ...)
 	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
 }
 
-namespace logging = boost::log;
-namespace src = boost::log::sources;
-namespace expr = boost::log::expressions;
-namespace keywords = boost::log::keywords;
-namespace attrs = boost::log::attributes;
+//namespace logging = boost::log;
+//namespace src = boost::log::sources;
+//namespace expr = boost::log::expressions;
+//namespace keywords = boost::log::keywords;
+//namespace attrs = boost::log::attributes;
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
 #ifdef __APPLE__
@@ -305,25 +307,25 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 #endif
 
 	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuStudio\\log\\[log_filename].log
-	auto log_folder = boost::filesystem::path(g_data_dir) / "log";
-	if (!boost::filesystem::exists(log_folder)) {
-		boost::filesystem::create_directory(log_folder);
-	}
-	auto full_path = (log_folder / file).make_preferred();
-
-	g_log_sink = boost::log::add_file_log(
-		keywords::file_name = full_path.string() + ".%N",
-		keywords::rotation_size = 100 * 1024 * 1024,
-		keywords::format =
-		(
-			expr::stream
-			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-			<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-			<< ":" << expr::smessage
-			)
-	);
-
-	logging::add_common_attributes();
+	//auto log_folder = boost::filesystem::path(g_data_dir) / "log";
+	//if (!boost::filesystem::exists(log_folder)) {
+	//	boost::filesystem::create_directory(log_folder);
+	//}
+	//auto full_path = (log_folder / file).make_preferred();
+	//
+	//g_log_sink = boost::log::add_file_log(
+	//	keywords::file_name = full_path.string() + ".%N",
+	//	keywords::rotation_size = 100 * 1024 * 1024,
+	//	keywords::format =
+	//	(
+	//		expr::stream
+	//		<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+	//		<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
+	//		<< ":" << expr::smessage
+	//		)
+	//);
+	//
+	//logging::add_common_attributes();
 
 	set_logging_level(level);
 
@@ -332,8 +334,8 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 
 void flush_logs()
 {
-	if (g_log_sink)
-		g_log_sink->flush();
+	//if (g_log_sink)
+	//	g_log_sink->flush();
 
 	return;
 }
@@ -490,7 +492,7 @@ namespace WindowsSupport
 		if (! from_handle)
 		{
 			auto err_code = map_windows_error(GetLastError());
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("can not open file %1%, error: %2%") % from.c_str() % err_code.message();
+			LOGE("can not open file %s, error: %s", from.c_str(), err_code.message().c_str());
 			return err_code;
 		}
 
@@ -514,7 +516,7 @@ namespace WindowsSupport
 		  		return errcode;
 
 			//BBS: add some log for error tracing
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(",first rename file from %1% to %2% failed, reason: %3%") % from.c_str() % to.c_str() % errcode.message();
+			LOGE(",first rename file from %s to %s failed, reason: %s", from.c_str(), to.c_str(), errcode.message().c_str());
 			// The destination file probably exists and is currently open in another
 			// process, either because the file was opened without FILE_SHARE_DELETE or
 			// it is mapped into memory (e.g. using MemoryBuffer). Rename it in order to
@@ -531,7 +533,7 @@ namespace WindowsSupport
 					continue;
 
 				//BBS: add some log for error tracing
-				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(",open dest file %1% failed, reason: %2%") % to.c_str() % errcode.message();
+				//BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(",open dest file %1% failed, reason: %2%") % to.c_str() % errcode.message();
 				return errcode;
 			}
 
@@ -555,7 +557,7 @@ namespace WindowsSupport
 							if (errcode == std::errc::no_such_file_or_directory)
 						  		break;
 							//BBS: add some log for error tracing
-							BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
+							//BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
 							return errcode;
 						}
 						BY_HANDLE_FILE_INFORMATION FI2;
@@ -566,7 +568,7 @@ namespace WindowsSupport
 						continue;
 					}
 					//BBS: add some log for error tracing
-					BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
+					//BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error: %2%") % __LINE__ % errcode.message();
 					return errcode;
 				}
 				break;
@@ -580,7 +582,7 @@ namespace WindowsSupport
 
 		// The most likely root cause.
 		//BBS: add some log for error tracing
-		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error in the end, permission_denied") % __LINE__;
+		//BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", line %1%, error in the end, permission_denied") % __LINE__;
 		return std::make_error_code(std::errc::permission_denied);
 	}
 } // namespace WindowsSupport
@@ -806,7 +808,7 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 	boost::system::error_code ec;
 	boost::filesystem::permissions(target, perms, ec);
 	if (ec)
-		BOOST_LOG_TRIVIAL(debug) << "boost::filesystem::permisions before copy error message (this could be irrelevant message based on file system): " << ec.message();
+		//BOOST_LOG_TRIVIAL(debug) << "boost::filesystem::permisions before copy error message (this could be irrelevant message based on file system): " << ec.message();
 	ec.clear();
 #ifdef __linux__
 	// We want to allow copying files on Linux to succeed even if changing the file attributes fails.
@@ -817,14 +819,14 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 #endif // __linux__
 	if (ec) {
 		error_message = ec.message();
-        BOOST_LOG_TRIVIAL(error) << boost::format("###copy_file from %1% to %2% failed, error: %3% ")
-            %source.string() %target.string() % error_message;
+        //BOOST_LOG_TRIVIAL(error) << boost::format("###copy_file from %1% to %2% failed, error: %3% ")
+        //    %source.string() %target.string() % error_message;
 		return FAIL_COPY_FILE;
 	}
 	ec.clear();
 	boost::filesystem::permissions(target, perms, ec);
-	if (ec)
-		BOOST_LOG_TRIVIAL(debug) << "boost::filesystem::permisions after copy error message (this could be irrelevant message based on file system): " << ec.message();
+	//if (ec)
+	//	BOOST_LOG_TRIVIAL(debug) << "boost::filesystem::permisions after copy error message (this could be irrelevant message based on file system): " << ec.message();
 	return SUCCESS;
 }
 
@@ -1068,8 +1070,9 @@ std::string decode_path(const char *src)
 
 std::string normalize_utf8_nfc(const char *src)
 {
-    static std::locale locale_utf8(boost::locale::generator().generate(""));
-    return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
+	return std::string(src);
+    //static std::locale locale_utf8(boost::locale::generator().generate(""));
+    //return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 
 namespace PerlUtils {
@@ -1261,7 +1264,7 @@ std::string format_memsize_MB(size_t n)
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-    if (ignore_loglevel || logSeverity <= boost::log::trivial::info) {
+    if (ignore_loglevel) {
 #ifdef WIN32
     #ifndef PROCESS_MEMORY_COUNTERS_EX
         // MingW32 doesn't have this struct in psapi.h
@@ -1413,29 +1416,30 @@ bool makedir(const std::string path) {
 
 bool bbl_calc_md5(std::string &filename, std::string &md5_out)
 {
-    unsigned char digest[16];
-    MD5_CTX       ctx;
-    MD5_Init(&ctx);
-    boost::nowide::ifstream ifs(filename, std::ios::binary);
-    std::string                 buf(64 * 1024, 0);
-    const std::size_t &         size      = boost::filesystem::file_size(filename);
-    std::size_t                 left_size = size;
-    while (ifs) {
-        ifs.read(buf.data(), buf.size());
-        int read_bytes = ifs.gcount();
-        MD5_Update(&ctx, (unsigned char *) buf.data(), read_bytes);
-    }
-    MD5_Final(digest, &ctx);
-    char md5_str[33];
-    for (int j = 0; j < 16; j++) { sprintf(&md5_str[j * 2], "%02X", (unsigned int) digest[j]); }
-    md5_out = std::string(md5_str);
+	//to do
+    //unsigned char digest[16];
+    //MD5_CTX       ctx;
+    //MD5_Init(&ctx);
+    //boost::nowide::ifstream ifs(filename, std::ios::binary);
+    //std::string                 buf(64 * 1024, 0);
+    //const std::size_t &         size      = boost::filesystem::file_size(filename);
+    //std::size_t                 left_size = size;
+    //while (ifs) {
+    //    ifs.read(buf.data(), buf.size());
+    //    int read_bytes = ifs.gcount();
+    //    MD5_Update(&ctx, (unsigned char *) buf.data(), read_bytes);
+    //}
+    //MD5_Final(digest, &ctx);
+    //char md5_str[33];
+    //for (int j = 0; j < 16; j++) { sprintf(&md5_str[j * 2], "%02X", (unsigned int) digest[j]); }
+    //md5_out = std::string(md5_str);
     return true;
 }
 
 // SoftFever: copy directory recursively
 void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target)
 {
-    BOOST_LOG_TRIVIAL(info) << format("copy_directory_recursively %1% -> %2%", source, target);
+    //BOOST_LOG_TRIVIAL(info) << format("copy_directory_recursively %1% -> %2%", source, target);
     std::string error_message;
 
     if (boost::filesystem::exists(target))
@@ -1454,10 +1458,10 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
         else {
             CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
             if (cfr != CopyFileResult::SUCCESS) {
-                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
-                throw Slic3r::CriticalException(format(
-                    ("Copying directory %1% to %2% failed: %3%"),
-                    source, target, error_message));
+                //BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+                //throw Slic3r::CriticalException(format(
+                //    ("Copying directory %1% to %2% failed: %3%"),
+                //    source, target, error_message));
             }
         }
     }

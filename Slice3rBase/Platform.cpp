@@ -1,7 +1,7 @@
 #include "Platform.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <boost/filesystem/operations.hpp>
+#include "ccglobal/log.h"
 
 #if defined(__APPLE__)
 #include <sys/types.h>
@@ -17,7 +17,7 @@ static auto s_platform_flavor = PlatformFlavor::Uninitialized;
 void detect_platform()
 {
 #if defined(_WIN32)
-    BOOST_LOG_TRIVIAL(info) << "Platform: Windows";
+    LOGI("Platform: Windows");
 	s_platform 		  = Platform::Windows;
 	s_platform_flavor = PlatformFlavor::Generic;
 #elif defined(__APPLE__)

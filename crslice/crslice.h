@@ -23,6 +23,7 @@ namespace crslice
 		~CrSlice();
 
 		void sliceFromScene(CrScenePtr scene, ccglobal::Tracer* tracer = nullptr);
+        void sliceFromSceneOrca(CrScenePtr scene, ccglobal::Tracer* tracer = nullptr);
 
         SliceResult sliceResult;
 	};

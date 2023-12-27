@@ -1,13 +1,14 @@
 #include "PrintConfig.hpp"
 #include "Config.hpp"
 #include "I18N.hpp"
+#include "ClipperUtils.hpp"
 
 #include <set>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/thread.hpp>
 
 #include <float.h>
@@ -1784,8 +1785,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("fan_speedup_time", coFloat);
-	// Label is set in Tab.cpp in the Line object.
-    //def->label = L("Fan speed-up time");
+    def->label = L("Fan Speedup Time");
     def->tooltip = L("Start the fan this number of seconds earlier than its target start time (you can use fractional seconds)."
         " It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting"
         " is unsupported)."
@@ -4950,7 +4950,7 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_DEFINITION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
     int print_config_static_initializer() { \
         /* Putting a trace here to avoid the compiler to optimize out this function. */ \
-        BOOST_LOG_TRIVIAL(trace) << "Initializing StaticPrintConfigs"; \
+        /*BOOST_LOG_TRIVIAL(trace) << "Initializing StaticPrintConfigs"; */\
         BOOST_PP_SEQ_FOR_EACH(PRINT_CONFIG_CACHE_ELEMENT_INITIALIZATION, _, BOOST_PP_TUPLE_TO_SEQ(CLASSES_SEQ)) \
         return 1; \
     }
