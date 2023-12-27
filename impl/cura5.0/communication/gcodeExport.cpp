@@ -363,6 +363,15 @@ void GCodeExport::writeSpecialModelAndMeshConfig()
     tmp << ";Layer0 ZOverLap:" << (float)extruderSettings->get<coord_t>("layer_0_z_overlap") / 1000.0f << new_line;
     tmp << ";Adaptive Layers:" << (float)extruderSettings->get<bool>("adaptive_layer_height_enabled") << new_line;
 
+    tmp << "; --------Colors--------" << new_line;
+    tmp << ";ASM Material Count:" << groupSettings->get<int>("asm_material_count") << new_line;
+    tmp << ";Model Color Count:" << groupSettings->get<int>("model_color_count") << new_line;
+    tmp << ";Flush Volumes Matrix:" << groupSettings->get<std::string>("flush_volumes_matrix") << new_line;
+    tmp << ";Filament Colour:" << groupSettings->get<std::string>("filament_colour") << new_line;
+    tmp << ";Flush into objects:" << groupSettings->get<bool>("flush_into_objects") << new_line;
+    tmp << ";Flush into objects:" << groupSettings->get<bool>("flush_into_infill") << new_line;
+    tmp << ";Filament minimal purge on wipe tower:" << (float)meshSettings->get<coord_t>("filament_minimal_purge_on_wipe_tower") / 1000.0f << new_line;
+
     *output_stream << tmp.str();
 }
 
