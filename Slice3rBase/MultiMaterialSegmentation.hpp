@@ -3,6 +3,8 @@
 
 #include <utility>
 #include <vector>
+#include <functional>
+#include "ExPolygon.hpp"
 
 namespace Slic3r {
 

@@ -3,10 +3,8 @@
 #include "Print.hpp"
 #include "Fill/Fill.hpp"
 #include "ShortestPath.hpp"
-#include "SVG.hpp"
+//#include "SVG.hpp"
 #include "BoundingBox.hpp"
-
-#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 
@@ -141,7 +139,7 @@ ExPolygons Layer::merged(float offset_scaled) const
 // The resulting fill surface is split back among the originating regions.
 void Layer::make_perimeters()
 {
-    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
+    LOGI("Generating perimeters for layer %d", (int)this->id());
     
     // keep track of regions whose perimeters we have already generated
     std::vector<unsigned char> done(m_regions.size(), false);
@@ -155,7 +153,7 @@ void Layer::make_perimeters()
 	        size_t region_id = layerm - m_regions.begin();
 	        if (done[region_id])
 	            continue;
-	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
+	        LOGD("Generating perimeters for layer %d, region %d", (int)this->id(), (int)region_id);
 	        done[region_id] = true;
 	        const PrintRegionConfig &config = (*layerm)->region().config();
 	        
@@ -231,11 +229,12 @@ void Layer::make_perimeters()
 	            }
 	        }
 	    }
-    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
+    LOGD("Generating perimeters for layer %d - Done", (int)this->id());
 }
 
 void Layer::export_region_slices_to_svg(const char *path) const
 {
+#if 0 //zenggui
     BoundingBox bbox;
     for (const auto *region : m_regions)
         for (const auto &surface : region->slices.surfaces)
@@ -251,6 +250,7 @@ void Layer::export_region_slices_to_svg(const char *path) const
             svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
     export_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close(); 
+#endif
 }
 
 // Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
@@ -262,6 +262,7 @@ void Layer::export_region_slices_to_svg_debug(const char *name) const
 
 void Layer::export_region_fill_surfaces_to_svg(const char *path) const
 {
+#if 0 //zenggui
     BoundingBox bbox;
     for (const auto *region : m_regions)
         for (const auto &surface : region->slices.surfaces)
@@ -277,6 +278,7 @@ void Layer::export_region_fill_surfaces_to_svg(const char *path) const
             svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
     export_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close();
+#endif
 }
 
 //BBS: method to simplify support path

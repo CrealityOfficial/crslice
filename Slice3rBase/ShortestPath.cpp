@@ -8,7 +8,7 @@
 #include "ShortestPath.hpp"
 #include "KDTreeIndirect.hpp"
 #include "MutablePriorityQueue.hpp"
-#include "Print.hpp"
+//#include "Print.hpp"
 
 #include <cmath>
 #include <cassert>
@@ -1959,7 +1959,7 @@ template<class T> static inline T chain_path_items(const Points &points, const T
 	return out;
 }
 
-ClipperLib::PolyNodes chain_clipper_polynodes(const Points &points, const ClipperLib::PolyNodes &items)
+Clipper3r::PolyNodes chain_clipper_polynodes(const Points &points, const Clipper3r::PolyNodes &items)
 {
 	return chain_path_items(points, items);
 }
@@ -1968,30 +1968,31 @@ ClipperLib::PolyNodes chain_clipper_polynodes(const Points &points, const Clippe
 std::vector<const PrintInstance*> chain_print_object_instances(const std::vector<const PrintObject*>& print_objects, const Point* start_near)
 {
 	// Order objects using a nearest neighbor search.
-	Points object_reference_points;
-	std::vector<std::pair<size_t, size_t>> instances;
-	for (size_t i = 0; i < print_objects.size(); ++i) {
-		const PrintObject& object = *print_objects[i];
-		for (size_t j = 0; j < object.instances().size(); ++j) {
-			// Sliced PrintObjects are centered, object.instances()[j].shift is the center of the PrintObject in G-code coordinates.
-			object_reference_points.emplace_back(object.instances()[j].shift);
-			instances.emplace_back(i, j);
-		}
-	}
-	auto segment_end_point = [&object_reference_points](size_t idx, bool /* first_point */) -> const Point& { return object_reference_points[idx]; };
-	std::vector<std::pair<size_t, bool>> ordered = chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, instances.size(), start_near);
+	//Points object_reference_points;
+	//std::vector<std::pair<size_t, size_t>> instances;
+	//for (size_t i = 0; i < print_objects.size(); ++i) {
+	//	const PrintObject& object = *print_objects[i];
+	//	for (size_t j = 0; j < object.instances().size(); ++j) {
+	//		// Sliced PrintObjects are centered, object.instances()[j].shift is the center of the PrintObject in G-code coordinates.
+	//		object_reference_points.emplace_back(object.instances()[j].shift);
+	//		instances.emplace_back(i, j);
+	//	}
+	//}
+	//auto segment_end_point = [&object_reference_points](size_t idx, bool /* first_point */) -> const Point& { return object_reference_points[idx]; };
+	//std::vector<std::pair<size_t, bool>> ordered = chain_segments_greedy<Point, decltype(segment_end_point)>(segment_end_point, instances.size(), start_near);
 	std::vector<const PrintInstance*> out;
-	out.reserve(instances.size());
-	for (auto& segment_and_reversal : ordered) {
-		const std::pair<size_t, size_t>& inst = instances[segment_and_reversal.first];
-		out.emplace_back(&print_objects[inst.first]->instances()[inst.second]);
-	}
+	//out.reserve(instances.size());
+	//for (auto& segment_and_reversal : ordered) {
+	//	const std::pair<size_t, size_t>& inst = instances[segment_and_reversal.first];
+	//	out.emplace_back(&print_objects[inst.first]->instances()[inst.second]);
+	//}
 	return out;
 }
 
 std::vector<const PrintInstance*> chain_print_object_instances(const Print &print)
 {
-	return chain_print_object_instances(print.objects().vector(), nullptr);
+	return std::vector<const PrintInstance*>();
+	//return chain_print_object_instances(print.objects().vector(), nullptr);
 }
 
 Polylines chain_lines(const std::vector<Line> &lines, const double point_distance_epsilon)

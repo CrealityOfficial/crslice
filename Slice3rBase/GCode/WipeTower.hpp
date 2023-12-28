@@ -7,7 +7,7 @@
 #include <utility>
 #include <algorithm>
 
-#include "libslic3r/Point.hpp"
+#include "Slice3rBase/Point.hpp"
 
 namespace Slic3r
 {

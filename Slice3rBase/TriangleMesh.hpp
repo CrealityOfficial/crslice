@@ -10,7 +10,8 @@
 #include "Point.hpp"
 #include "Polygon.hpp"
 #include "ExPolygon.hpp"
-#include "Format/STL.hpp"
+//#include "Format/STL.hpp"
+
 namespace Slic3r {
 
 class TriangleMesh;

@@ -41,7 +41,8 @@ set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(gcode/gcode.cmake)
 include(impl/cura5.0/cura.cmake)
-include(Slice3rBase.cmake)
+#include(Slice3rBase.cmake)
+add_subdirectory(libslic3r)
 
 #binary
 set(BINARY_JSONS)
@@ -49,6 +50,10 @@ set(BINARY_PARAMETERS)
 if(Python3_FOUND)
 	include(parameter/binary.cmake)
 	include(parameter/parameter.cmake)
+endif()
+
+if(TARGET libslic3r)
+	list(APPEND LIBS libslic3r)
 endif()
 
 __add_common_library(crslice FOLDER slice OPENMP

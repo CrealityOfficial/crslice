@@ -1,9 +1,9 @@
 #include <stack>
 
-#include <libslic3r/Geometry.hpp>
-#include <libslic3r/Line.hpp>
-#include <libslic3r/Polygon.hpp>
-#include <libslic3r/SVG.hpp>
+#include "Slice3rBase/Geometry.hpp"
+#include "Slice3rBase/Line.hpp"
+#include "Slice3rBase/Polygon.hpp"
+//#include "Slice3rBase/SVG.hpp"
 
 #include "VoronoiOffset.hpp"
 
@@ -302,6 +302,7 @@ static inline void dump_voronoi_to_svg(
     const Lines         &helper_lines = Lines(),
     double               scale = 0)
 {
+#if 0 //zenggui
     const bool          internalEdgesOnly           = false;
 
     BoundingBox bbox;
@@ -448,6 +449,7 @@ static inline void dump_voronoi_to_svg(
     svg.draw(helper_lines, helperLineColor, helperLineWidth);
 
     svg.Close();
+#endif
 }
 
 } // namespace Slic3r

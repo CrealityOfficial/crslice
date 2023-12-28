@@ -2,7 +2,7 @@
 #define slic3r_ThumbnailData_hpp_
 
 #include <vector>
-#include "libslic3r/Point.hpp"
+#include "Slice3rBase/Point.hpp"
 #include "nlohmann/json.hpp"
 
 namespace Slic3r {

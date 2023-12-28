@@ -19,7 +19,7 @@
 #include "GCode/GCodeProcessor.hpp"
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
-#include "libslic3r/ObjectID.hpp"
+#include "Slice3rBase/ObjectID.hpp"
 #include "GCode/ExtrusionProcessor.hpp"
 
 #include <memory>

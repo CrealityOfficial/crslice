@@ -1,9 +1,6 @@
 
 set(CMAKE_CXX_STANDARD 17)
-
-if (MINGW)
-    add_compile_options(-Wa,-mbig-obj)
-endif ()
+__enable_bigobj()
 
 __cc_find(boost_static)
 __cc_find(eigen)
@@ -11,6 +8,7 @@ __cc_find(cereal)
 __cc_find(admesh)
 __cc_find(tbb_static)
 __cc_find(clipper2)
+__cc_find(png_static)
 
 __assert_target(clipper2)
 __assert_target(cereal)
@@ -55,19 +53,19 @@ set(items
     Slice3rBase/Config.hpp
     #CurveAnalyzer.cpp
     #CurveAnalyzer.hpp
-    #EdgeGrid.cpp
-    #EdgeGrid.hpp
+    Slice3rBase/EdgeGrid.cpp
+    Slice3rBase/EdgeGrid.hpp
     #ElephantFootCompensation.cpp
     #ElephantFootCompensation.hpp
-    #enum_bitmask.hpp
+    Slice3rBase/enum_bitmask.hpp
     Slice3rBase/ExPolygon.cpp
     Slice3rBase/ExPolygon.hpp
     #Extruder.cpp
     #Extruder.hpp
-    #ExtrusionEntity.cpp
-    #ExtrusionEntity.hpp
-    #ExtrusionEntityCollection.cpp
-    #ExtrusionEntityCollection.hpp
+    Slice3rBase/ExtrusionEntity.cpp
+    Slice3rBase/ExtrusionEntity.hpp
+    Slice3rBase/ExtrusionEntityCollection.cpp
+    Slice3rBase/ExtrusionEntityCollection.hpp
     #ExtrusionSimulator.cpp
     #ExtrusionSimulator.hpp
     #FileParserError.hpp
@@ -103,8 +101,8 @@ set(items
     #Fill/Lightning/TreeNode.hpp
     #Fill/FillRectilinear.cpp
     #Fill/FillRectilinear.hpp
-    #Flow.cpp
-    #Flow.hpp
+    Slice3rBase/Flow.cpp
+    Slice3rBase/Flow.hpp
     Slice3rBase/format.hpp
 	#Format/3mf.cpp
 	#Format/3mf.hpp
@@ -124,43 +122,43 @@ set(items
 	#Format/SL1.cpp
 	#Format/svg.hpp
     #Format/svg.cpp
-	#GCode/ThumbnailData.cpp
-	#GCode/ThumbnailData.hpp
-    #GCode/CoolingBuffer.cpp
-    #GCode/CoolingBuffer.hpp
-	#GCode/FanMover.cpp
-    #GCode/FanMover.hpp
-    #GCode/PostProcessor.cpp
-    #GCode/PostProcessor.hpp
-	##GCode/PressureEqualizer.cpp
-	##GCode/PressureEqualizer.hpp
-    #GCode/PrintExtents.cpp
-    #GCode/PrintExtents.hpp
-    #GCode/RetractWhenCrossingPerimeters.cpp
-    #GCode/RetractWhenCrossingPerimeters.hpp
-    #GCode/SpiralVase.cpp
-    #GCode/SpiralVase.hpp
-    #GCode/SeamPlacer.cpp
-    #GCode/SeamPlacer.hpp
-    #GCode/ToolOrdering.cpp
-    #GCode/ToolOrdering.hpp
-    #GCode/WipeTower.cpp
-    #GCode/WipeTower.hpp
-    #GCode/GCodeProcessor.cpp
-    #GCode/GCodeProcessor.hpp
-    #GCode/AvoidCrossingPerimeters.cpp
-    #GCode/AvoidCrossingPerimeters.hpp
-    #GCode/ExtrusionProcessor.hpp
-    #GCode/ConflictChecker.cpp
-    #GCode/ConflictChecker.hpp
-    #Slice3rBase/GCode.cpp
-    #Slice3rBase/GCode.hpp
+	Slice3rBase/GCode/ThumbnailData.cpp
+	Slice3rBase/GCode/ThumbnailData.hpp
+    Slice3rBase/GCode/CoolingBuffer.cpp
+    Slice3rBase/GCode/CoolingBuffer.hpp
+	Slice3rBase/GCode/FanMover.cpp
+    Slice3rBase/GCode/FanMover.hpp
+    Slice3rBase/GCode/PostProcessor.cpp
+    Slice3rBase/GCode/PostProcessor.hpp
+	Slice3rBase/GCode/PressureEqualizer.cpp
+	Slice3rBase/GCode/PressureEqualizer.hpp
+    Slice3rBase/GCode/PrintExtents.cpp
+    Slice3rBase/GCode/PrintExtents.hpp
+    Slice3rBase/GCode/RetractWhenCrossingPerimeters.cpp
+    Slice3rBase/GCode/RetractWhenCrossingPerimeters.hpp
+    Slice3rBase/GCode/SpiralVase.cpp
+    Slice3rBase/GCode/SpiralVase.hpp
+    Slice3rBase/GCode/SeamPlacer.cpp
+    Slice3rBase/GCode/SeamPlacer.hpp
+    Slice3rBase/GCode/ToolOrdering.cpp
+    Slice3rBase/GCode/ToolOrdering.hpp
+    Slice3rBase/GCode/WipeTower.cpp
+    Slice3rBase/GCode/WipeTower.hpp
+    Slice3rBase/GCode/GCodeProcessor.cpp
+    Slice3rBase/GCode/GCodeProcessor.hpp
+    Slice3rBase/GCode/AvoidCrossingPerimeters.cpp
+    Slice3rBase/GCode/AvoidCrossingPerimeters.hpp
+    Slice3rBase/GCode/ExtrusionProcessor.hpp
+    Slice3rBase/GCode/ConflictChecker.cpp
+    Slice3rBase/GCode/ConflictChecker.hpp
+    Slice3rBase/GCode.cpp
+    Slice3rBase/GCode.hpp
     #GCodeReader.cpp
     #GCodeReader.hpp
     ## GCodeSender.cpp
     ## GCodeSender.hpp
-    #Slice3rBase/GCodeWriter.cpp
-    #Slice3rBase/GCodeWriter.hpp
+    Slice3rBase/GCodeWriter.cpp
+    Slice3rBase/GCodeWriter.hpp
     Slice3rBase/Geometry.cpp
     Slice3rBase/Geometry.hpp
     Slice3rBase/Geometry/Bicubic.hpp
@@ -171,19 +169,19 @@ set(items
     Slice3rBase/Geometry/Curves.hpp
     Slice3rBase/Geometry/MedialAxis.cpp
     Slice3rBase/Geometry/MedialAxis.hpp
-    #Geometry/Voronoi.hpp
-    #Geometry/VoronoiOffset.cpp
-    #Geometry/VoronoiOffset.hpp
+    Slice3rBase/Geometry/Voronoi.hpp
+    Slice3rBase/Geometry/VoronoiOffset.cpp
+    Slice3rBase/Geometry/VoronoiOffset.hpp
     #Geometry/VoronoiUtilsCgal.cpp
     #Geometry/VoronoiUtilsCgal.hpp
-    #Geometry/VoronoiVisualUtils.hpp
+    Slice3rBase/Geometry/VoronoiVisualUtils.hpp
     Slice3rBase/Int128.hpp
     #InternalBridgeDetector.cpp
     #InternalBridgeDetector.hpp
-    #KDTreeIndirect.hpp
-    #Layer.cpp
-    #Layer.hpp
-    #LayerRegion.cpp
+    Slice3rBase/KDTreeIndirect.hpp
+    Slice3rBase/Layer.cpp
+    Slice3rBase/Layer.hpp
+    Slice3rBase/LayerRegion.cpp
     Slice3rBase/libslic3r.h
     Slice3rBase/Line.cpp
     Slice3rBase/Line.hpp
@@ -191,35 +189,35 @@ set(items
     #BlacklistedLibraryCheck.hpp
     Slice3rBase/LocalesUtils.cpp
     Slice3rBase/LocalesUtils.hpp
-    #Model.cpp
-    #Model.hpp
+    Slice3rBase/Model.cpp
+    Slice3rBase/Model.hpp
     #ModelArrange.hpp
     #ModelArrange.cpp
-    #MultiMaterialSegmentation.cpp
-    #MultiMaterialSegmentation.hpp
-    #CustomGCode.cpp
-    #CustomGCode.hpp
+    Slice3rBase/MultiMaterialSegmentation.cpp
+    Slice3rBase/MultiMaterialSegmentation.hpp
+    Slice3rBase/CustomGCode.cpp
+    Slice3rBase/CustomGCode.hpp
     #Arrange.hpp
     #Arrange.cpp
     #NormalUtils.cpp
     #NormalUtils.hpp
     #Orient.hpp
     #Orient.cpp
-    #MutablePriorityQueue.hpp
-    #ObjectID.cpp
-    #ObjectID.hpp
+    Slice3rBase/MutablePriorityQueue.hpp
+    Slice3rBase/ObjectID.cpp
+    Slice3rBase/ObjectID.hpp
     #PerimeterGenerator.cpp
     #PerimeterGenerator.hpp
-    #PlaceholderParser.cpp
-    #PlaceholderParser.hpp
+    Slice3rBase/PlaceholderParser.cpp
+    Slice3rBase/PlaceholderParser.hpp
     Slice3rBase/Platform.cpp
     Slice3rBase/Platform.hpp
     Slice3rBase/Point.cpp
     Slice3rBase/Point.hpp
     Slice3rBase/Polygon.cpp
     Slice3rBase/Polygon.hpp
-    #MutablePolygon.cpp
-    #MutablePolygon.hpp
+    Slice3rBase/MutablePolygon.cpp
+    Slice3rBase/MutablePolygon.hpp
     #PolygonTrimmer.cpp
     #PolygonTrimmer.hpp
     Slice3rBase/Polyline.cpp
@@ -234,18 +232,18 @@ set(items
     #PrincipalComponents2D.cpp
 	#AppConfig.cpp
 	#AppConfig.hpp
-    #Print.cpp
-    #Print.hpp
-    #PrintApply.cpp
-    #PrintBase.cpp
-    #PrintBase.hpp
+    Slice3rBase/Print.cpp
+    Slice3rBase/Print.hpp
+    Slice3rBase/PrintApply.cpp
+    Slice3rBase/PrintBase.cpp
+    Slice3rBase/PrintBase.hpp
     Slice3rBase/PrintConfig.cpp
     Slice3rBase/PrintConfig.hpp
     #PrintObject.cpp
     #PrintObjectSlice.cpp
     #PrintRegion.cpp
-    #PNGReadWrite.hpp
-    #PNGReadWrite.cpp
+    Slice3rBase/PNGReadWrite.hpp
+    Slice3rBase/PNGReadWrite.cpp
     #QuadricEdgeCollapse.cpp
     #QuadricEdgeCollapse.hpp
     Slice3rBase/Semver.hpp
@@ -254,8 +252,8 @@ set(items
 	Slice3rBase/Semver.c
     #ShortEdgeCollapse.cpp
     #ShortEdgeCollapse.hpp
-    #ShortestPath.cpp
-    #ShortestPath.hpp
+    Slice3rBase/ShortestPath.cpp
+    Slice3rBase/ShortestPath.hpp
     #SLAPrint.cpp
     #SLAPrintSteps.cpp
     #SLAPrintSteps.hpp
@@ -276,10 +274,10 @@ set(items
     #TreeSupport.cpp
     #MinimumSpanningTree.hpp
     #MinimumSpanningTree.cpp
-    #Surface.cpp
-    #Surface.hpp
-    #SurfaceCollection.cpp
-    #SurfaceCollection.hpp
+    Slice3rBase/Surface.cpp
+    Slice3rBase/Surface.hpp
+    Slice3rBase/SurfaceCollection.cpp
+    Slice3rBase/SurfaceCollection.hpp
     #SVG.cpp
     #SVG.hpp
     Slice3rBase/Technologies.hpp
@@ -413,7 +411,7 @@ if(WIN32)
 endif()
 
 list(APPEND LIBS eigen clipper2 admesh boost_filesystem boost_nowide 
-			 cereal)
+			 boost_regex cereal png_static)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 

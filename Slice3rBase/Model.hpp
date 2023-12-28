@@ -15,11 +15,11 @@
 #include "enum_bitmask.hpp"
 
 //BBS: add bbs 3mf
-#include "Format/bbs_3mf.hpp"
+//#include "Format/bbs_3mf.hpp"
 //BBS: add step
-#include "Format/STEP.hpp"
+//#include "Format/STEP.hpp"
 //BBS: add stl
-#include "Format/STL.hpp"
+//#include "Format/STL.hpp"
 
 #include <map>
 #include <memory>

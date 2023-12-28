@@ -1,6 +1,6 @@
-#include "Print.hpp"
+#include "Slice3rBase/Print.hpp"
 #include "ToolOrdering.hpp"
-#include "Layer.hpp"
+#include "Slice3rBase/Layer.hpp"
 
 // #define SLIC3R_DEBUG
 
@@ -15,7 +15,7 @@
 #include <limits>
 #include <algorithm>
 
-#include <libslic3r.h>
+#include "../libslic3r.h"
 
 namespace Slic3r {
 

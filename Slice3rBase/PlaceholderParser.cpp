@@ -1,6 +1,5 @@
 #include "PlaceholderParser.hpp"
 #include "Exception.hpp"
-#include "Flow.hpp"
 #include <cstring>
 #include <ctime>
 #include <iomanip>
@@ -827,40 +826,41 @@ namespace client
             case coBool:    output.set_b(opt.opt->getBool());    break;
             case coFloatOrPercent:
             {
-                std::string opt_key(opt.it_range.begin(), opt.it_range.end());
-                if (boost::ends_with(opt_key, "line_width")) {
-                	// Extrusion width supports defaults and a complex graph of dependencies.
-                    output.set_d(Flow::extrusion_width(opt_key, *ctx, static_cast<unsigned int>(ctx->current_extruder_id)));
-                } else if (! static_cast<const ConfigOptionFloatOrPercent*>(opt.opt)->percent) {
-                	// Not a percent, just return the value.
-                    output.set_d(opt.opt->getFloat());
-                } else {
-                	// Resolve dependencies using the "ratio_over" link to a parent value.
-			        const ConfigOptionDef  *opt_def = print_config_def.get(opt_key);
-			        assert(opt_def != nullptr);
-			        double v = opt.opt->getFloat() * 0.01; // percent to ratio
-			        for (;;) {
-			        	const ConfigOption *opt_parent = opt_def->ratio_over.empty() ? nullptr : ctx->resolve_symbol(opt_def->ratio_over);
-			        	if (opt_parent == nullptr)
-			                ctx->throw_exception("FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies", opt.it_range);
-			            if (boost::ends_with(opt_def->ratio_over, "line_width")) {
-                			// Extrusion width supports defaults and a complex graph of dependencies.
-                            assert(opt_parent->type() == coFloatOrPercent);
-                    		v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloatOrPercent*>(opt_parent), *ctx, static_cast<unsigned int>(ctx->current_extruder_id));
-                    		break;
-                    	}
-                    	if (opt_parent->type() == coFloat || opt_parent->type() == coFloatOrPercent) {
-			        		v *= opt_parent->getFloat();
-			        		if (opt_parent->type() == coFloat || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_parent)->percent)
-			        			break;
-			        		v *= 0.01; // percent to ratio
-			        	}
-		        		// Continue one level up in the "ratio_over" hierarchy.
-				        opt_def = print_config_def.get(opt_def->ratio_over);
-				        assert(opt_def != nullptr);
-			        }
-                    output.set_d(v);
-	            }
+                //zenggui
+                //std::string opt_key(opt.it_range.begin(), opt.it_range.end());
+                //if (boost::ends_with(opt_key, "line_width")) {
+                //	// Extrusion width supports defaults and a complex graph of dependencies.
+                //    output.set_d(Flow::extrusion_width(opt_key, *ctx, static_cast<unsigned int>(ctx->current_extruder_id)));
+                //} else if (! static_cast<const ConfigOptionFloatOrPercent*>(opt.opt)->percent) {
+                //	// Not a percent, just return the value.
+                //    output.set_d(opt.opt->getFloat());
+                //} else {
+                //	// Resolve dependencies using the "ratio_over" link to a parent value.
+			    //    const ConfigOptionDef  *opt_def = print_config_def.get(opt_key);
+			    //    assert(opt_def != nullptr);
+			    //    double v = opt.opt->getFloat() * 0.01; // percent to ratio
+			    //    for (;;) {
+			    //    	const ConfigOption *opt_parent = opt_def->ratio_over.empty() ? nullptr : ctx->resolve_symbol(opt_def->ratio_over);
+			    //    	if (opt_parent == nullptr)
+			    //            ctx->throw_exception("FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies", opt.it_range);
+			    //        if (boost::ends_with(opt_def->ratio_over, "line_width")) {
+                //			// Extrusion width supports defaults and a complex graph of dependencies.
+                //            assert(opt_parent->type() == coFloatOrPercent);
+                //    		v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloatOrPercent*>(opt_parent), *ctx, static_cast<unsigned int>(ctx->current_extruder_id));
+                //    		break;
+                //    	}
+                //    	if (opt_parent->type() == coFloat || opt_parent->type() == coFloatOrPercent) {
+			    //    		v *= opt_parent->getFloat();
+			    //    		if (opt_parent->type() == coFloat || ! static_cast<const ConfigOptionFloatOrPercent*>(opt_parent)->percent)
+			    //    			break;
+			    //    		v *= 0.01; // percent to ratio
+			    //    	}
+		        //		// Continue one level up in the "ratio_over" hierarchy.
+				//        opt_def = print_config_def.get(opt_def->ratio_over);
+				//        assert(opt_def != nullptr);
+			    //    }
+                //    output.set_d(v);
+	            //}
 		        break;
 		    }
             //BBS: Add enum. Otherwise enum can not be judged in placeholder

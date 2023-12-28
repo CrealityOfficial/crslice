@@ -53,6 +53,7 @@ Point export_surface_type_legend_to_svg_box_size()
 
 void export_surface_type_legend_to_svg(SVG &svg, const Point &pos)
 {
+#if 0 // zenggui
     // 1st row
     coord_t pos_x0 = pos(0) + scale_(1.);
     coord_t pos_x = pos_x0;
@@ -77,10 +78,12 @@ void export_surface_type_legend_to_svg(SVG &svg, const Point &pos)
     svg.draw_legend(Point(pos_x, pos_y), "internal bridge", surface_type_to_color_name(stInternalBridge));
     pos_x += step_x;
     svg.draw_legend(Point(pos_x, pos_y), "internal void"  , surface_type_to_color_name(stInternalVoid));
+#endif
 }
 
 bool export_to_svg(const char *path, const Surfaces &surfaces, const float transparency)
 {
+#if 0 //zenggui
     BoundingBox bbox;
     for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface)
         bbox.merge(get_extents(surface->expolygon));
@@ -89,6 +92,7 @@ bool export_to_svg(const char *path, const Surfaces &surfaces, const float trans
     for (Surfaces::const_iterator surface = surfaces.begin(); surface != surfaces.end(); ++surface)
         svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
     svg.Close();
+#endif
     return true;
 }
 

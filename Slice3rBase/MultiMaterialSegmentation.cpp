@@ -2,16 +2,17 @@
 #include "ClipperUtils.hpp"
 #include "EdgeGrid.hpp"
 #include "Layer.hpp"
-#include "Print.hpp"
+//#include "Print.hpp"
 #include "Geometry/VoronoiVisualUtils.hpp"
 #include "MutablePolygon.hpp"
+#include "Utils.hpp"
 #include "format.hpp"
+#include "stl.h"
 
 #include <utility>
 #include <cfloat>
 #include <unordered_set>
 
-#include <boost/log/trivial.hpp>
 #include <tbb/parallel_for.h>
 #include <mutex>
 #include <boost/thread/lock_guard.hpp>
@@ -1374,7 +1375,7 @@ static void cut_segmented_layers(const std::vector<ExPolygons>        &input_exp
                                  const float                           cut_width,
                                  const std::function<void()>          &throw_on_cancel_callback)
 {
-    BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - cutting segmented layers in parallel - begin";
+    LOGD("MMU segmentation - cutting segmented layers in parallel - begin");
     tbb::parallel_for(tbb::blocked_range<size_t>(0, segmented_regions.size()),[&segmented_regions, &input_expolygons, &cut_width, &throw_on_cancel_callback](const tbb::blocked_range<size_t>& range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
@@ -1386,14 +1387,15 @@ static void cut_segmented_layers(const std::vector<ExPolygons>        &input_exp
             segmented_regions[layer_idx] = std::move(segmented_regions_cuts);
         }
     }); // end of parallel_for
-    BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - cutting segmented layers in parallel - end";
+    LOGD("MMU segmentation - cutting segmented layers in parallel - end");
 }
 
+static const float SINKING_Z_THRESHOLD0 = -0.001f;
 static bool is_volume_sinking(const indexed_triangle_set &its, const Transform3d &trafo)
 {
     const Transform3f trafo_f = trafo.cast<float>();
     for (const stl_vertex &vertex : its.vertices)
-        if ((trafo_f * vertex).z() < SINKING_Z_THRESHOLD) return true;
+        if ((trafo_f * vertex).z() < SINKING_Z_THRESHOLD0) return true;
     return false;
 }
 
@@ -1404,6 +1406,7 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                                                                           const std::vector<ExPolygons> &input_expolygons,
                                                                                           const std::function<void()>   &throw_on_cancel_callback)
 {
+#if 0 // zenggui
     // BBS
     const size_t num_extruders = print_object.print()->config().filament_colour.size() + 1;
     const size_t num_layers    = input_expolygons.size();
@@ -1667,8 +1670,10 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                                                                           triangles_by_color_merged[color_idx - 1][layer_idx]);
         }
     });
-
     return triangles_by_color_merged;
+#else
+    return std::vector<std::vector<ExPolygons>>();
+#endif
 }
 
 static std::vector<std::vector<ExPolygons>> merge_segmented_layers(
@@ -1682,7 +1687,7 @@ static std::vector<std::vector<ExPolygons>> merge_segmented_layers(
     segmented_regions_merged.assign(num_layers, std::vector<ExPolygons>(num_extruders));
     assert(num_extruders + 1 == top_and_bottom_layers.size());
 
-    BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - merging segmented layers in parallel - begin";
+    LOGI("MMU segmentation - merging segmented layers in parallel - begin");
     tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&segmented_regions, &top_and_bottom_layers, &segmented_regions_merged, &num_extruders, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             assert(segmented_regions[layer_idx].size() == num_extruders + 1);
@@ -1709,7 +1714,7 @@ static std::vector<std::vector<ExPolygons>> merge_segmented_layers(
             }
         }
     }); // end of parallel_for
-    BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - merging segmented layers in parallel - end";
+    LOGD("MMU segmentation - merging segmented layers in parallel - end");
 
     return segmented_regions_merged;
 }
@@ -1819,6 +1824,7 @@ static bool has_layer_only_one_color(const std::vector<std::vector<ColoredLine>>
 
 std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
+#if 0 //zenggui
     const size_t                          num_extruders = print_object.print()->config().filament_colour.size();
     const size_t                          num_layers    = print_object.layers().size();
     std::vector<std::vector<ExPolygons>>  segmented_regions(num_layers);
@@ -2058,6 +2064,9 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
 #endif // MMU_SEGMENTATION_DEBUG_REGIONS
 
     return segmented_regions_merged;
+#else
+    return std::vector<std::vector<ExPolygons>>();
+#endif
 }
 
 } // namespace Slic3r
