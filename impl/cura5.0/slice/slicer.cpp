@@ -3,7 +3,7 @@
 
 #include <algorithm> // remove_if
 #include <stdio.h>
-
+#include <buildinfo.h>
 #include "magic/AdaptiveLayerHeights.h"
 
 #include "slicer.h"
