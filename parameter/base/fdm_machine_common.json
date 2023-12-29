@@ -1,114 +1,493 @@
 {
-    "printer_technology": "FFF",
-    "deretraction_speed": [
-        "40"
-    ],
-    "extruder_colour": [
-        "#FCE94F"
-    ],
-    "extruder_offset": [
-        "0x0"
-    ],
-    "gcode_flavor": "marlin",
-    "silent_mode": "0",
-    "machine_max_acceleration_e": [
-        "5000"
-    ],
-    "machine_max_acceleration_extruding": [
-        "10000"
-    ],
-    "machine_max_acceleration_retracting": [
-        "1000"
-    ],
-    "machine_max_acceleration_x": [
-        "10000"
-    ],
-    "machine_max_acceleration_y": [
-        "10000"
-    ],
-    "machine_max_acceleration_z": [
-        "100"
-    ],
-    "machine_max_speed_e": [
-        "60"
-    ],
-    "machine_max_speed_x": [
-        "500"
-    ],
-    "machine_max_speed_y": [
-        "500"
-    ],
-    "machine_max_speed_z": [
-        "10"
-    ],
-    "machine_max_jerk_e": [
-        "5"
-    ],
-    "machine_max_jerk_x": [
-        "8"
-    ],
-    "machine_max_jerk_y": [
-        "8"
-    ],
-    "machine_max_jerk_z": [
-        "3"
-    ],
-    "machine_min_extruding_rate": [
-        "0"
-    ],
-    "machine_min_travel_rate": [
-        "0"
-    ],
-    "max_layer_height": [
-        "0.28"
-    ],
-    "min_layer_height": [
-        "0.08"
-    ],
-    "printable_height": "250",
-    "extruder_clearance_radius": "65",
-    "extruder_clearance_height_to_rod": "36",
-    "extruder_clearance_height_to_lid": "140",
-    "nozzle_diameter": [
-        "0.4"
-    ],
-    "printer_settings_id": "",
-    "printer_variant": "0.4",
-    "retraction_minimum_travel": [
-        "2"
-    ],
-    "retract_before_wipe": [
-        "70%"
-    ],
-    "retract_when_changing_layer": [
-        "1"
-    ],
-    "retraction_length": [
-        "5"
-    ],
-    "retract_length_toolchange": [
-        "1"
-    ],
-    "z_hop": [
-        "0"
-    ],
-    "retract_restart_extra": [
-        "0"
-    ],
-    "retract_restart_extra_toolchange": [
-        "0"
-    ],
-    "retraction_speed": [
-        "60"
-    ],
-    "single_extruder_multi_material": "0",
-    "change_filament_gcode": "",
-    "wipe": [
-        "1"
-    ],
-    "default_filament_profile":[],
-    "default_print_profile": "0.16mm Optimal @BBL X1C",
-    "upward_compatible_machine": [],
-    "machine_start_gcode": "G0 Z20 F9000\nG92 E0; G1 E-10 F1200\nG28\nM970 Q1 A10 B10 C130 K0\nM970 Q1 A10 B131 C250 K1\nM974 Q1 S1 P0\nM970 Q0 A10 B10 C130 H20 K0\nM970 Q0 A10 B131 C250 K1\nM974 Q0 S1 P0\nM220 S100 ;Reset Feedrate\nM221 S100 ;Reset Flowrate\nG29 ;Home\nG90;\nG92 E0 ;Reset Extruder \nG1 Z2.0 F3000 ;Move Z Axis up \nG1 X10.1 Y20 Z0.28 F5000.0 ;Move to start position\nM109 S205;\nG1 X10.1 Y200.0 Z0.28 F1500.0 E15 ;Draw the first line\nG1 X10.4 Y200.0 Z0.28 F5000.0 ;Move to side a little\nG1 X10.4 Y20 Z0.28 F1500.0 E30 ;Draw the second line\nG92 E0 ;Reset Extruder \nG1 X110 Y110 Z2.0 F3000 ;Move Z Axis up",
-    "machine_end_gcode": "M400 ; wait for buffer to clear\nG92 E0 ; zero the extruder\nG1 E-4.0 F3600; retract \nG91\nG1 Z3;\nM104 S0 ; turn off hotend\nM140 S0 ; turn off bed\nM106 S0 ; turn off fan\nG90 \nG0 X110 Y200 F3600 \nprint_end"
+  "printer_technology": {
+    "label": "Printer technology",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": "FFF",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "deretraction_speed": {
+    "label": "Deretraction speed",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["60"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "extruder_colour": {
+    "label": "Extruder colour",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": ["#FCE94F"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "extruder_offset": {
+    "label": "Extruder offset",
+    "description": "",
+    "type": "[str]",
+    "enabled": "",
+    "default_value": ["0x0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "gcode_flavor": {
+    "label": "G-code flavor",
+    "description": "What kind of G-code the printer is compatible with.",
+    "type": "str",
+    "enabled": "",
+    "default_value": "marlin",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "silent_mode": {
+    "label": "Silent mode",
+    "description": "",
+    "type": "int",
+    "enabled": "",
+    "default_value": "0",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_max_acceleration_e": {
+    "label": "Maximum acceleration E",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["5000"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_max_acceleration_extruding": {
+    "label": "Maximum acceleration for extruding",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["10000"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_acceleration_retracting": {
+    "label": "Maximum acceleration for retracting",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["1000"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_acceleration_x": {
+    "label": "Maximum acceleration X",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["10000"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_acceleration_y": {
+    "label": "Maximum acceleration Y",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["10000"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_acceleration_z": {
+    "label": "Maximum acceleration Z",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["100"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_speed_e": {
+    "label": "Maximum speed E",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["60"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_max_speed_x": {
+    "label": "Machine max speed X",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["500"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_max_speed_y": {
+    "label": "Machine max speed Y",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["500"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_speed_z": {
+    "label": "Machine max speed z",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["10"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_jerk_e": {
+    "label": "Machine max jerk E",
+    "description": "",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": ["5"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_max_jerk_x": {
+    "label": "Machine max jerk X",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["8"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_jerk_y": {
+    "label": "Machine max jerk y",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["8"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_max_jerk_z": {
+    "label": "Machine max jerk z",
+    "description": "",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": ["0.4"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_min_extruding_rate": {
+    "label": "Machine min extruding rate",
+    "description": "",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": ["0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+
+  "machine_min_travel_rate": {
+    "label": "Machine min travel rate",
+    "description": "",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": ["0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "max_layer_height": {
+    "label": "Max layer height",
+    "description": "The highest printable layer height for the extruder. This is used to limit the maximum layer height when adaptive layer height is enabled.",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": ["0.28"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "min_layer_height": {
+    "label": "Min layer height",
+    "description": "The lowest printable layer height for the extruder. This is used to limit the minimum layer height when adaptive layer height is enabled.",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": ["0.08"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "printable_height": {
+    "label": "Printable height",
+    "description": "This is the maximum printable height which is limited by the height of the build area.",
+    "type": "int",
+    "enabled": "",
+    "default_value": "250",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "extruder_clearance_radius": {
+    "label": "Extruder clearance radius",
+    "description": "",
+    "type": "int",
+    "enabled": "",
+    "default_value": "65",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "extruder_clearance_height_to_rod": {
+    "label": "Extruder clearance height to rod",
+    "description": "",
+    "type": "int",
+    "enabled": "",
+    "default_value": "36",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "extruder_clearance_height_to_lid": {
+    "label": "Extruder clearance height to lid",
+    "description": "",
+    "type": "int",
+    "enabled": "",
+    "default_value": "140",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "nozzle_diameter": {
+    "label": "Nozzle diameter",
+    "description": "The diameter of the nozzle",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": ["0.4"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "printer_settings_id": {
+    "label": "Printer settings id",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": "",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "printer_variant": {
+    "label": "Printer variant",
+    "description": "",
+    "type": "float",
+    "enabled": "",
+    "default_value": "0.4",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retraction_minimum_travel": {
+    "label": "Retraction minimum travel",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["2"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retract_before_wipe": {
+    "label": "Retract before wipe",
+    "description": "",
+    "type": "[str]",
+    "enabled": "",
+    "default_value": ["70%"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retract_when_changing_layer": {
+    "label": "Retract when changing layer",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["1"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retraction_length": {
+    "label": "Retraction length",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["5"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retract_length_toolchange": {
+    "label": "Retract length toolchange",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["1"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "z_hop": {
+    "label": "Z hop",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retract_restart_extra": {
+    "label": "Retract restart extra",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retract_restart_extra_toolchange": {
+    "label": "Retract restart extra toolchange",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "retraction_speed": {
+    "label": "Retraction speed",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["60"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "single_extruder_multi_material": {
+    "label": "Single extruder multi material",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "change_filament_gcode": {
+    "label": "Change filament gcode",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": "",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "wipe": {
+    "label": "Wipe",
+    "description": "",
+    "type": "[int]",
+    "enabled": "",
+    "default_value": ["1"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "default_filament_profile": {
+    "label": "Default filament profile",
+    "description": "",
+    "type": "[]",
+    "enabled": "",
+    "default_value": [],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "default_print_profile": {
+    "label": "Default print profile",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": ["0"],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "upward_compatible_machine": {
+    "label": "Upward compatible machine",
+    "description": "",
+    "type": "[]",
+    "enabled": "",
+    "default_value": [],
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_start_gcode": {
+    "label": "Machine start G-code",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": "G0 Z20 F9000\nG92 E0; G1 E-10 F1200\nG28\nM970 Q1 A10 B10 C130 K0\nM970 Q1 A10 B131 C250 K1\nM974 Q1 S1 P0\nM970 Q0 A10 B10 C130 H20 K0\nM970 Q0 A10 B131 C250 K1\nM974 Q0 S1 P0\nM220 S100 ;Reset Feedrate\nM221 S100 ;Reset Flowrate\nG29 ;Home\nG90;\nG92 E0 ;Reset Extruder \nG1 Z2.0 F3000 ;Move Z Axis up \nG1 X10.1 Y20 Z0.28 F5000.0 ;Move to start position\nM109 S205;\nG1 X10.1 Y200.0 Z0.28 F1500.0 E15 ;Draw the first line\nG1 X10.4 Y200.0 Z0.28 F5000.0 ;Move to side a little\nG1 X10.4 Y20 Z0.28 F1500.0 E30 ;Draw the second line\nG92 E0 ;Reset Extruder \nG1 X110 Y110 Z2.0 F3000 ;Move Z Axis up",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_end_gcode": {
+    "label": "Maximum jerk Z",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": "M400 ; wait for buffer to clear\nG92 E0 ; zero the extruder\nG1 E-4.0 F3600; retract \nG91\nG1 Z3;\nM104 S0 ; turn off hotend\nM140 S0 ; turn off bed\nM106 S0 ; turn off fan\nG90 \nG0 X110 Y200 F3600 \nprint_end",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  }
 }
