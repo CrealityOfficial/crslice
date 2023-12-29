@@ -1,6 +1,8 @@
+#if 0
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Surface_sweep_2_algorithms.h>
+#endif 
 
 #include "libslic3r/Geometry/Voronoi.hpp"
 #include "libslic3r/Arachne/utils/VoronoiUtils.hpp"
@@ -11,14 +13,17 @@ using VD = Slic3r::Geometry::VoronoiDiagram;
 
 namespace Slic3r::Geometry {
 
+#if 0
 using CGAL_Point   = CGAL::Exact_predicates_exact_constructions_kernel::Point_2;
 using CGAL_Segment = CGAL::Arr_segment_traits_2<CGAL::Exact_predicates_exact_constructions_kernel>::Curve_2;
 
 inline static CGAL_Point to_cgal_point(const VD::vertex_type &pt) { return {pt.x(), pt.y()}; }
+#endif 
 
 // FIXME Lukas H.: Also includes parabolic segments.
 bool VoronoiUtilsCgal::is_voronoi_diagram_planar_intersection(const VD &voronoi_diagram)
 {
+#if 0
     assert(std::all_of(voronoi_diagram.edges().cbegin(), voronoi_diagram.edges().cend(),
                        [](const VD::edge_type &edge) { return edge.color() == 0; }));
 
@@ -44,8 +49,12 @@ bool VoronoiUtilsCgal::is_voronoi_diagram_planar_intersection(const VD &voronoi_
     std::vector<CGAL_Point> intersections_pt;
     CGAL::compute_intersection_points(segments.begin(), segments.end(), std::back_inserter(intersections_pt));
     return intersections_pt.empty();
+#else
+    return true;
+#endif
 }
 
+#if 0
 static bool check_if_three_vectors_are_ccw(const CGAL_Point &common_pt, const CGAL_Point &pt_1, const CGAL_Point &pt_2, const CGAL_Point &test_pt) {
     CGAL::Orientation orientation = CGAL::orientation(common_pt, pt_1, pt_2);
     if (orientation == CGAL::Orientation::COLLINEAR) {
@@ -66,6 +75,7 @@ static bool check_if_three_vectors_are_ccw(const CGAL_Point &common_pt, const CG
         return (orientation1 == CGAL::Orientation::RIGHT_TURN || orientation2 == CGAL::Orientation::LEFT_TURN);
     }
 }
+#endif
 
 bool VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(const VoronoiDiagram &voronoi_diagram)
 {
@@ -89,9 +99,11 @@ bool VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(const VoronoiDiagram &vor
                 const Geometry::VoronoiDiagram::edge_type *curr_edge = *edge_it;
                 const Geometry::VoronoiDiagram::edge_type *next_edge = std::next(edge_it) == edges.end() ? edges.front() : *std::next(edge_it);
 
+#if 0
                 if (!check_if_three_vectors_are_ccw(to_cgal_point(*prev_edge->vertex0()), to_cgal_point(*prev_edge->vertex1()),
                                                     to_cgal_point(*curr_edge->vertex1()), to_cgal_point(*next_edge->vertex1())))
                     return false;
+#endif
             }
         }
     }

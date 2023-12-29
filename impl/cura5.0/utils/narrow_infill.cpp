@@ -1,6 +1,6 @@
-#include "Slice3rBase/ClipperUtils.hpp"
-#include "Slice3rBase/overhangquality/overhanghead.hpp"
-#include "Slice3rBase/overhangquality/extrusionerocessor.hpp"
+#include "libslic3r/ClipperUtils.hpp"
+#include "wrapper/overhangquality/overhanghead.hpp"
+#include "wrapper/overhangquality/extrusionerocessor.hpp"
 
 #include "narrow_infill.h"
 
@@ -30,14 +30,14 @@ namespace cura52
         return expolygon;
     }
 
-    Slic3r::Clipper3r::Paths  Polygons2clipperpaths(Slic3r::Polygons& out)
+    Slic3r::ClipperLib::Paths  Polygons2clipperpaths(Slic3r::Polygons& out)
     {
-        Slic3r::Clipper3r::Path out2path;
-        Slic3r::Clipper3r::Paths out2paths;
+        Slic3r::ClipperLib::Path out2path;
+        Slic3r::ClipperLib::Paths out2paths;
         for (int i = 0; i < out.size(); i++)
         {
             Slic3r::Polygon path = out.at(i);
-            Slic3r::Clipper3r::IntPoint pointcli;
+            Slic3r::ClipperLib::IntPoint pointcli;
 
             for (int j = 0; j < path.size(); j++)
             {
@@ -81,13 +81,13 @@ namespace cura52
         const float delta = -3000000.0;
         double miterLimit = 3.000;
 
-        Slic3r::Clipper3r::JoinType joinType = Slic3r::Clipper3r::JoinType::jtMiter;;
+        Slic3r::ClipperLib::JoinType joinType = Slic3r::ClipperLib::JoinType::jtMiter;;
         Slic3r::Polygons  out;
         out = Slic3r::offset(expolygon, delta, joinType, miterLimit);
 
         bool fillType = false;
 
-        Slic3r::Clipper3r::Paths out2paths;
+        Slic3r::ClipperLib::Paths out2paths;
         out2paths = Polygons2clipperpaths(out);
 
         Slic3r::ExPolygons result;
@@ -111,13 +111,13 @@ namespace cura52
     */
     bool processEstimatePoints(const Polygons& prev_paths, const Polygons& cur_paths, const coord_t layer_width, std::vector<std::vector<Slic3r::ExtendedPoint>>& extendedPoints)
     {
-        Slic3r::Clipper3r::Paths  paths3r;
+        Slic3r::ClipperLib::Paths  paths3r;
         for (auto path : prev_paths.paths)
         {
-            paths3r.push_back(Slic3r::Clipper3r::Path());
+            paths3r.push_back(Slic3r::ClipperLib::Path());
             for (auto p : path)
             {
-                paths3r.back().push_back(Slic3r::Clipper3r::IntPoint((int)p.X, (int)p.Y));
+                paths3r.back().push_back(Slic3r::ClipperLib::IntPoint((int)p.X, (int)p.Y));
             }
         }
 

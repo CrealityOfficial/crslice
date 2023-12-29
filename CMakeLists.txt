@@ -31,8 +31,9 @@ endif()
 
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/crslice/ SRCS1)
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/src/ SRCS2)
+__files_group(${CMAKE_CURRENT_SOURCE_DIR}/wrapper/ SRCS3)
 
-set(SRCS ${SRCS1} ${SRCS2})		 
+set(SRCS ${SRCS1} ${SRCS2} ${SRCS3})		 
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR}
 		 ${CMAKE_CURRENT_SOURCE_DIR}/src
 		 )
@@ -41,8 +42,15 @@ set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(gcode/gcode.cmake)
 include(impl/cura5.0/cura.cmake)
-#include(Slice3rBase.cmake)
-add_subdirectory(libslic3r)
+
+set(USE_SLICE3R_BASE 0)
+if(USE_SLICE3R_BASE)
+	include(Slice3rBase.cmake)
+else()
+	add_subdirectory(qhull)
+	add_subdirectory(glu-libtess)
+	add_subdirectory(libslic3r)
+endif()
 
 #binary
 set(BINARY_JSONS)

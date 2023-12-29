@@ -329,8 +329,8 @@ set(lisbslic3r_sources
     SLA/RasterToPolygons.cpp
     SLA/ConcaveHull.hpp
     SLA/ConcaveHull.cpp
-    SLA/Hollowing.hpp
-    SLA/Hollowing.cpp
+    #SLA/Hollowing.hpp
+    #SLA/Hollowing.cpp
     SLA/JobController.hpp
     SLA/SupportPoint.hpp
     SLA/SupportPointGenerator.hpp
@@ -415,6 +415,7 @@ __cc_find(clipper2)
 __cc_find(png_static)
 __cc_find(openssl)
 __cc_find(opencascade_static)
+__cc_find(nlopt_static)
 __cc_find(expat)
 
 __assert_target(clipper2)
@@ -422,25 +423,27 @@ __assert_target(cereal)
 __assert_target(eigen)
 __assert_target(admesh)
 __assert_target(tbb_static)
+__assert_target(nlopt_static)
+__assert_target(expat)
 
 set(libslic3r_dir ${CMAKE_CURRENT_SOURCE_DIR}/../)
-set(LIBS)
-set(INTERFACES ${CMAKE_CURRENT_BINARY_DIR} ${libslic3r_dir})
+set(ILIBS)
+set(INTERFACES ${CMAKE_CURRENT_BINARY_DIR} ${libslic3r_dir} ${CMAKE_CURRENT_SOURCE_DIR})
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${libslic3r_dir})
 set(DEFS)
 
 if(WIN32)
-    list(APPEND LIBS Psapi.lib)
+    list(APPEND ILIBS Psapi.lib)
 endif()
 
-list(APPEND LIBS eigen clipper2 admesh boost_filesystem boost_nowide 
-			 boost_regex cereal png_static ssl crypto expat)
+list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide 
+			 boost_regex cereal png_static ssl crypto expat nlopt_static qhullstatic glu-libtess)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 
 if(TARGET tbb_static)
 	list(APPEND DEFS USE_TBB)
-	list(APPEND LIBS tbb_static)
+	list(APPEND ILIBS tbb_static)
 endif()
 
 set(OLIBS TKernel
@@ -484,11 +487,11 @@ set(OLIBS TKernel
 		 TKBinXCAF     
 		)
 list(REVERSE OLIBS)  # for linux build
-list(APPEND LIBS ${OLIBS})
+list(APPEND ILIBS ${OLIBS})
 
 __add_real_target(libslic3r lib 
 	SOURCE ${lisbslic3r_sources} "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h" ${OpenVDBUtils_SOURCES}
-	LIB ${LIBS}
+	ILIB ${ILIBS}
 	INTERFACE ${INTERFACES}
 	INC ${INCS}
 	DEF ${DEFS}

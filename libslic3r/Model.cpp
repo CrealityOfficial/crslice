@@ -28,6 +28,7 @@
 #include <boost/filesystem/string_file.hpp>
 ////#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "SVG.hpp"
 #include <Eigen/Dense>

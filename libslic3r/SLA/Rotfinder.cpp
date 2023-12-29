@@ -283,7 +283,6 @@ std::array<double, N> find_min_score(Fn &&fn, It from, It to, StopCond &&stopfn)
 } // namespace
 
 
-
 template<unsigned MAX_ITER>
 struct RotfinderBoilerplate {
     static constexpr unsigned MAX_TRIES = MAX_ITER;

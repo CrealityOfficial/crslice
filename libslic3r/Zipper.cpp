@@ -1,5 +1,5 @@
 #include <exception>
-
+#include "libslic3r.h"
 #include "Exception.hpp"
 #include "Zipper.hpp"
 #include "miniz_extension.hpp"

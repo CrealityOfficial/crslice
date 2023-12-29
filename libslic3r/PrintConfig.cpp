@@ -1,5 +1,6 @@
 #include "PrintConfig.hpp"
 #include "Config.hpp"
+#include "ClipperUtils.hpp"
 #include "I18N.hpp"
 
 #include <set>

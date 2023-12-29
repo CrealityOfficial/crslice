@@ -27,7 +27,7 @@
 
 #include <algorithm>
 #include <vector>
-
+#include "libslic3r.h"
 #include <boost/predef/other/endian.h>
 //#include <boost/log/trivial.hpp>
 // Boost pool: Don't use mutexes to synchronize memory allocation.

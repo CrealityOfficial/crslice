@@ -22,6 +22,11 @@
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/nowide/iostream.hpp>
+#include <boost/nowide/cstdio.hpp>
+#include <boost/nowide/fstream.hpp>
+#include "format.hpp"
+
 //#include <boost/log/trivial.hpp>
 #include "tbb/parallel_for.h"
 

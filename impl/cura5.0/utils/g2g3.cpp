@@ -1,5 +1,5 @@
 #include "g2g3.h"
-#include "Slice3rBase/ArcFitter.hpp"
+#include "libslic3r/ArcFitter.hpp"
 
 namespace cura52
 {

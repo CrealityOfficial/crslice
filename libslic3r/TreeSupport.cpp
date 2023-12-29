@@ -11,6 +11,7 @@
 #include "ShortestPath.hpp"
 #include "I18N.hpp"
 #include <libnest2d/backends/libslic3r/geometries.hpp>
+#include "tbb/parallel_for.h"
 
 #define _L(s) Slic3r::I18N::translate(s)
 

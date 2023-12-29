@@ -1,7 +1,7 @@
 #include "Print.hpp"
 #include "ToolOrdering.hpp"
 #include "Layer.hpp"
-#include "ExPolygon.hpp"
+#include "ClipperUtils.hpp"
 // #define SLIC3R_DEBUG
 
 // Make assert active if SLIC3R_DEBUG

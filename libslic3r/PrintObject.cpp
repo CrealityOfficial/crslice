@@ -18,16 +18,16 @@
 #include "Format/STL.hpp"
 #include "InternalBridgeDetector.hpp"
 #include "TreeSupport.hpp"
-
+#include "libslic3r.h"
 #include <float.h>
 #include <string_view>
 #include <utility>
+#include "format.hpp"
 
 //#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
-
-#include <Shiny/Shiny.h>
+#include <tbb/spin_mutex.h>
 
 using namespace std::literals;
 

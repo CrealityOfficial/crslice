@@ -1,9 +1,10 @@
 #include "../libslic3r.h"
 #include "../Model.hpp"
 #include "../TriangleMesh.hpp"
+#include "../ClipperUtils.hpp"
 
 #include "svg.hpp"
-#include "nanosvg/nanosvg.h"
+#include "../nanosvg/nanosvg.h"
 
 #include <string>
 
@@ -19,7 +20,9 @@
 #include "TopExp_Explorer.hxx"
 #include "TopoDS.hxx"
 #include "BRepExtrema_SelfIntersection.hxx"
-#include "clipper/clipper.hpp"
+
+#include "../clipper.hpp"
+#include "../clipper/clipper.hpp"
 
 using namespace ClipperLib;
 

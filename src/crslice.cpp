@@ -1,6 +1,6 @@
 #include "crslice/crslice.h"
 #include "communication/Application.h"
-#include "Slice3rBase/wrapper/orcaslicewrapper.h"
+#include "wrapper/orcaslicewrapper.h"
 
 #include "ccglobal/log.h"
 #include "crslicefromscene.h"

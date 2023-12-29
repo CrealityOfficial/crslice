@@ -26,9 +26,9 @@
 
 #include "communication/slicecontext.h"
 #include "tools/serial.h"
-#include "Slice3rBase/MultiPoint.hpp"
-#include "Slice3rBase/Polygon.hpp"
-#include "Slice3rBase/Point.hpp"
+//#include "Slice3rBase/MultiPoint.hpp"
+//#include "Slice3rBase/Polygon.hpp"
+//#include "Slice3rBase/Point.hpp"
 
 
 namespace cura52

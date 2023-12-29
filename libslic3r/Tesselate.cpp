@@ -1,11 +1,13 @@
 #include "Tesselate.hpp"
 
 #include "ExPolygon.hpp"
+#define USE_GLU_TESS 1
 
+#if USE_GLU_TESS
 #include <glu-libtess.h>
-
+#endif
 namespace Slic3r {
-
+#if USE_GLU_TESS
 class GluTessWrapper {
 public:
     GluTessWrapper() : m_tesselator(gluNewTess()) {
@@ -188,6 +190,7 @@ private:
     // Output triangles shall be flipped (normal points down).
     bool            m_flipped;
 };
+#endif
 
 std::vector<Vec3d> triangulate_expolygon_3d(const ExPolygon &poly, coordf_t z, bool flip)
 {

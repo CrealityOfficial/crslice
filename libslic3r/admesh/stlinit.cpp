@@ -25,7 +25,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-
+#include "libslic3r.h"
 //#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/predef/other/endian.h>

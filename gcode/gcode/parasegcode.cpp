@@ -1,6 +1,7 @@
 #include <sstream>
 #include <fstream>
 #include <memory>
+#include <corecrt_math_defines.h>
 
 #include "crslice/gcode/parasegcode.h"
 #include "gcodeprocesslib/gcode_position.h"
