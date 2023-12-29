@@ -1017,8 +1017,14 @@ void GCodeExport::writeZoffsetComment(const double zOffset)
 
 void GCodeExport::writePressureComment(const double length)
 {
-    *output_stream << "M900 K" << length << new_line;
-
+    if(flavor == EGCodeFlavor::Creality_OS)
+	{
+        *output_stream << "SET_PRESSURE_ADVANCE ADVANCE=" << length << "; Override pressure advance value" << new_line;
+	}
+    else
+    {
+        *output_stream << "M900 K" << length << new_line;
+    }
     if (application->debugger())
         application->debugger()->getNotPath();
 }
@@ -2568,7 +2574,16 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
             {
                 //Acceleration breakAcc = std::max(acc * acceleration_percent / 100, Acceleration(100));
                 *output_stream << "SET_VELOCITY_LIMIT ACCEL=" << PrecisionedDouble{ 0, acc };
-                *output_stream << " ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc * acceleration_percent / 100 } << new_line;
+                *output_stream << " ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc * acceleration_percent / 100 } << new_line;;
+                //if (acc >10000)
+                //{
+                //    *output_stream << " SQUARE_CORNER_VELOCITY=12" << new_line;
+                //    
+                //} 
+                //else
+                //{
+                //    *output_stream << " SQUARE_CORNER_VELOCITY=1" << new_line;
+                //}
                 if (application->debugger())
                     application->debugger()->getNotPath();
             }
