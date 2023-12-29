@@ -967,9 +967,9 @@
 		"type": "str",
 		"default_value": "280",
 		"enabled": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
-		"settable_per_meshgroup": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
+		"settable_per_meshgroup": "false"
 	},
 	"filament_colour":
 	{
@@ -978,9 +978,9 @@
 		"type": "str",
 		"default_value": "#00FF00",
 		"enabled": "false",
-		"settable_per_mesh": false,
-		"settable_per_extruder": true,
-		"settable_per_meshgroup": false
+		"settable_per_mesh": "false",
+		"settable_per_extruder": "true",
+		"settable_per_meshgroup": "false"
 	},
 	"flush_into_objects":
 	{
