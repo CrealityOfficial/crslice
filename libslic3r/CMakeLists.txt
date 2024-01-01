@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
 set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
+#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
 
 __enable_bigobj()
 
@@ -400,6 +400,10 @@ set(lisbslic3r_sources
 	miniz.c
 )
 
+list(APPEND lisbslic3r_sources 
+	#"${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h"
+	)
 if (APPLE)
     list(APPEND lisbslic3r_sources
 			MacUtils.mm
@@ -408,7 +412,6 @@ endif ()
 
 __cc_find(boost_static)
 __cc_find(eigen)
-__cc_find(cereal)
 __cc_find(admesh)
 __cc_find(tbb_static)
 __cc_find(clipper2)
@@ -419,7 +422,6 @@ __cc_find(nlopt_static)
 __cc_find(expat)
 
 __assert_target(clipper2)
-__assert_target(cereal)
 __assert_target(eigen)
 __assert_target(admesh)
 __assert_target(tbb_static)
@@ -428,16 +430,18 @@ __assert_target(expat)
 
 set(libslic3r_dir ${CMAKE_CURRENT_SOURCE_DIR}/../)
 set(ILIBS)
-set(INTERFACES ${CMAKE_CURRENT_BINARY_DIR} ${libslic3r_dir} ${CMAKE_CURRENT_SOURCE_DIR})
-set(INCS ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${libslic3r_dir})
+set(INTERFACES ${libslic3r_dir} ${CMAKE_CURRENT_SOURCE_DIR}
+	#${CMAKE_CURRENT_BINARY_DIR} 
+	)
+set(INCS ${INTERFACES})
 set(DEFS)
 
 if(WIN32)
     list(APPEND ILIBS Psapi.lib)
 endif()
 
-list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide 
-			 boost_regex cereal png_static ssl crypto expat nlopt_static qhullstatic glu-libtess)
+list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thread
+			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 
@@ -490,7 +494,7 @@ list(REVERSE OLIBS)  # for linux build
 list(APPEND ILIBS ${OLIBS})
 
 __add_real_target(libslic3r lib 
-	SOURCE ${lisbslic3r_sources} "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h" ${OpenVDBUtils_SOURCES}
+	SOURCE ${lisbslic3r_sources} ${OpenVDBUtils_SOURCES}
 	ILIB ${ILIBS}
 	INTERFACE ${INTERFACES}
 	INC ${INCS}

@@ -468,16 +468,6 @@
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
-    },
-    "compatible_printers": {
-      "label": "Compatible printers",
-      "description": "",
-      "type": "[]",
-      "enabled": "",
-      "default_value": [],
-      "resolve": "",
-      "settable_per_mesh": "false",
-      "settable_per_extruder": "false"
     }
   }
   

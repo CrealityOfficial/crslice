@@ -1,22 +1,29 @@
-set(JSONS "blackmagic.json command_line_settings.json cooling.json dual.json experimental.json infill.json machine.json material.json meshfix.json platform_adhesion.json resolution.json shell.json special.json speed.json support.json travel.json")
-		  
-set(FULL_JSONS  ${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/blackmagic.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/command_line_settings.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/cooling.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/dual.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/experimental.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/infill.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/machine.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/material.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/meshfix.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/platform_adhesion.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/resolution.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/shell.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/special.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/speed.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/support.json
-				${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/travel.json
-				)
+if(USE_SLICE3R_BASE)	
+	set(FULL_JSONS  ${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/blackmagic.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/command_line_settings.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/cooling.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/dual.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/experimental.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/infill.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/machine.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/material.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/meshfix.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/platform_adhesion.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/resolution.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/shell.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/special.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/speed.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/support.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/travel.json
+					)
+	set(JSONS "blackmagic.json command_line_settings.json cooling.json dual.json experimental.json infill.json machine.json material.json meshfix.json platform_adhesion.json resolution.json shell.json special.json speed.json support.json travel.json")
+else()
+	set(FULL_JSONS  ${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/fdm_filament_common.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/fdm_machine_common.json
+					${CMAKE_CURRENT_SOURCE_DIR}/parameter/base/fdm_process_common.json
+		)
+	set(JSONS "fdm_filament_common.json fdm_machine_common.json fdm_process_common.json")
+endif()
 		  
 set(WRAPPERS parameter_wrapper.h
 			 parameter_wrapper.cpp

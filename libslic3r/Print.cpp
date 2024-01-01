@@ -671,7 +671,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
     for (auto &inst : print_instance_with_bounding_box)
         BOOST_LOG_TRIVIAL(debug) << "after sorting print_instance " << inst.print_instance->model_instance->get_object()->name << ", object_index: " << inst.object_index
-                                 << ", height:"<< inst.height;
+                                 << ", height:"<< inst.height << std::endl;
 
 #endif
     // sequential_print_vertical_clearance_valid
@@ -1342,13 +1342,13 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 void  PrintObject::set_shared_object(PrintObject *object)
 {
     m_shared_object = object;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, found shared object from %2%")%this%m_shared_object;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, found shared object from %2%")%this%m_shared_object << std::endl;
 }
 
 void  PrintObject::clear_shared_object()
 {
     if (m_shared_object) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, clear previous shared object data %2%")%this %m_shared_object;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, clear previous shared object data %2%")%this %m_shared_object << std::endl;
         m_layers.clear();
         m_support_layers.clear();
 
@@ -1367,7 +1367,7 @@ void  PrintObject::copy_layers_from_shared_object()
         firstLayerObjSliceByVolume.clear();
         firstLayerObjSliceByGroups.clear();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layers from object %2%")%this%m_shared_object;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layers from object %2%")%this%m_shared_object << std::endl;
         m_layers = m_shared_object->layers();
         m_support_layers = m_shared_object->support_layers();
 
@@ -1426,7 +1426,7 @@ void Print::process(bool use_cache)
     name_tbb_thread_pool_threads_set_locale();
 
     //compute the PrintObject with the same geometries
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%, object size=%3%")%this%use_cache%m_objects.size();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%, object size=%3%")%this%use_cache%m_objects.size() << std::endl;
     if (m_objects.empty())
         return;
 
@@ -1513,15 +1513,15 @@ void Print::process(bool use_cache)
                     }
                 }
                 if (!found_shared) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("Also can not find the shared object, identify_id %1%")%obj->model_object()->instances[0]->loaded_id;
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Also can not find the shared object, identify_id %1%")%obj->model_object()->instances[0]->loaded_id << std::endl;
                     throw Slic3r::SlicingError("Can not find the cached data.");
                 }
             }
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size();
-    BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info() << std::endl;
     if (!use_cache) {
         for (PrintObject *obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
@@ -1731,15 +1731,15 @@ void Print::process(bool use_cache)
         auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects, wipe_tower_opt);
         auto            endTime     = Clock::now();
         volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
-        BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs.";
+        BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs." << std::endl;
 
         m_conflict_result = conflictRes;
         if (conflictRes.has_value()) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value()._objName1 %conflictRes.value()._objName2;
+            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value()._objName1 %conflictRes.value()._objName2 << std::endl;
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info() << std::endl;
 }
 
 // G-code export process, running at a background thread.
@@ -2229,13 +2229,13 @@ void Print::set_gcode_file_ready()
 {
     this->set_started(psGCodeExport);
 	this->set_done(psGCodeExport);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done") << std::endl;
 }
 //BBS: add gcode file preload logic
 void Print::set_gcode_file_invalidated()
 {
     this->invalidate_step(psGCodeExport);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done") << std::endl;
 }
 
 //BBS: add gcode file preload logic
@@ -2250,12 +2250,12 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
 
         *result = std::move(processor.extract_result());
     } catch (std::exception & /* ex */) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file %1%") %file.c_str();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file %1%") %file.c_str() << std::endl;
         throw Slic3r::RuntimeError(
             std::string("Failed to process the G-code file ") + file + " from previous 3mf\n");
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  process the G-code file %1% successfully")%file.c_str();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  process the G-code file %1% successfully")%file.c_str() << std::endl;
 }
 
 DynamicConfig PrintStatistics::config() const
@@ -2297,7 +2297,7 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
         std::string new_stem = pp.process(path.stem().string(), 0, &cfg);
         final_path = (path.parent_path() / (new_stem + path.extension().string())).string();
     } catch (const std::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what();
+        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what() << std::endl;
         final_path = path_in;
     }
     return final_path;
@@ -2503,7 +2503,7 @@ static bool convert_extrusion_to_json(json& entity_json, json& entity_paths_json
 
     path_type = path?JSON_EXTRUSION_TYPE_PATH:(multipath?JSON_EXTRUSION_TYPE_MULTIPATH:(loop?JSON_EXTRUSION_TYPE_LOOP:JSON_EXTRUSION_TYPE_COLLECTION));
     if (path_type.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":invalid extrusion path type Found");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":invalid extrusion path type Found") << std::endl;
         return false;
     }
 
@@ -2575,7 +2575,7 @@ static void to_json(json& j, const LayerRegion& layer_region) {
         json thinfills_entity_json, thinfill_entity_paths_json = json::array();
         bool ret = convert_extrusion_to_json(thinfills_entity_json, thinfill_entity_paths_json, extrusion_entity);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error found at print_z %1%") % layer_region.layer()->print_z;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error found at print_z %1%") % layer_region.layer()->print_z << std::endl;
             continue;
         }
 
@@ -2770,7 +2770,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     if (path_type == JSON_EXTRUSION_TYPE_PATH) {
         ExtrusionPath* path = new ExtrusionPath();
         if (!path) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionPath");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionPath") << std::endl;
             return false;
         }
         *path = entity_json[JSON_EXTRUSION_PATHS][0];
@@ -2779,7 +2779,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     else if (path_type == JSON_EXTRUSION_TYPE_MULTIPATH) {
         ExtrusionMultiPath* multipath = new ExtrusionMultiPath();
         if (!multipath) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionMultiPath");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionMultiPath") << std::endl;
             return false;
         }
         int paths_count = entity_json[JSON_EXTRUSION_PATHS].size();
@@ -2794,7 +2794,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     else if (path_type == JSON_EXTRUSION_TYPE_LOOP) {
         ExtrusionLoop* loop = new ExtrusionLoop();
         if (!loop) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionLoop");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionLoop") << std::endl;
             return false;
         }
         loop->set_loop_role(entity_json[JSON_EXTRUSION_LOOP_ROLE]);
@@ -2810,7 +2810,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     else if (path_type == JSON_EXTRUSION_TYPE_COLLECTION) {
         ExtrusionEntityCollection* collection = new ExtrusionEntityCollection();
         if (!collection) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionEntityCollection");
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionEntityCollection") << std::endl;
             return false;
         }
         collection->no_sort = entity_json[JSON_EXTRUSION_NO_SORT];
@@ -2820,14 +2820,14 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
             const json& entity_item_json = entity_json[JSON_EXTRUSION_ENTITIES][entity_index];
             ret = convert_extrusion_from_json(entity_item_json, *collection);
             if (!ret) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": convert_extrusion_from_json failed");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": convert_extrusion_from_json failed") << std::endl;
                 return false;
             }
         }
         entity_collection.entities.push_back(collection);
     }
     else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unknown path type %1%")%path_type;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unknown path type %1%")%path_type << std::endl;
         return false;
     }
 
@@ -2863,7 +2863,7 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         const json& extrusion_entity_json =  j[JSON_LAYER_REGION_THIN_FILLS][JSON_EXTRUSION_ENTITIES][thinfills_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, layer_region.thin_fills);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error parsing thin_fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error parsing thin_fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z << std::endl;
             char error_buf[1024];
             ::sprintf(error_buf, "Error while parsing thin_fills at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
@@ -2918,7 +2918,7 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         const json& extrusion_entity_json =  j[JSON_LAYER_REGION_PERIMETERS][JSON_EXTRUSION_ENTITIES][perimeters_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, layer_region.perimeters);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing perimeters found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing perimeters found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z << std::endl;
             char error_buf[1024];
             ::sprintf(error_buf, "Error while parsing perimeters at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
@@ -2933,7 +2933,7 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         const json& extrusion_entity_json =  j[JSON_LAYER_REGION_FILLS][JSON_EXTRUSION_ENTITIES][fills_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, layer_region.fills);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z << std::endl;
             char error_buf[1024];
             ::sprintf(error_buf, "Error while parsing fills at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
@@ -3001,7 +3001,7 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
         const json& extrusion_entity_json =  support_layer_json[JSON_SUPPORT_LAYER_FILLS][JSON_EXTRUSION_ENTITIES][support_fills_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, support_layer.support_fills);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at support_layer %1%, print_z %2%")%support_layer.id() %support_layer.print_z;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at support_layer %1%, print_z %2%")%support_layer.id() %support_layer.print_z << std::endl;
             char error_buf[1024];
             ::sprintf(error_buf, "Error while parsing fills at support_layer %d, print_z %f", support_layer.id(), support_layer.print_z);
             throw Slic3r::FileIOError(error_buf);
@@ -3078,7 +3078,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         fs::remove_all(directory_path);
     }
     if (!fs::create_directory(directory_path)) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
+        BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory << std::endl;
         return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
     }
 
@@ -3088,7 +3088,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     for (PrintObject *obj : m_objects) {
         const ModelObject* model_obj = obj->model_object();
         if (obj->get_shared_object()) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("shared object %1%, skip directly")%model_obj->name;
+            BOOST_LOG_TRIVIAL(info) << boost::format("shared object %1%, skip directly")%model_obj->name << std::endl;
             continue;
         }
 
@@ -3097,7 +3097,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         size_t identify_id = (model_instance->loaded_id > 0)?model_instance->loaded_id: model_instance->id().id;
         std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name;
+        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name << std::endl;
 
         try {
             json root_json, layers_json = json::array(), support_layers_json = json::array(), first_layer_groups = json::array();
@@ -3249,10 +3249,10 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                 c << root_json.dump(0) << std::endl;
             c.close();*/
             count ++;
-            BOOST_LOG_TRIVIAL(info) << boost::format("will dump object %1%'s json to %2%.")%model_obj->name%file_name;
+            BOOST_LOG_TRIVIAL(info) << boost::format("will dump object %1%'s json to %2%.")%model_obj->name%file_name << std::endl;
         }
         catch(std::exception &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<file_name<<" got a generic exception, reason = " << err.what();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<file_name<<" got a generic exception, reason = " << err.what() << std::endl;
             ret = CLI_EXPORT_CACHE_WRITE_FAILED;
         }
     }
@@ -3272,7 +3272,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                     c.close();
                 }
                 catch(std::exception &err) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<filename_vector[object_index]<<" got a generic exception, reason = " << err.what();
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<filename_vector[object_index]<<" got a generic exception, reason = " << err.what() << std::endl;
                     boost::unique_lock l(mutex);
                     ret = CLI_EXPORT_CACHE_WRITE_FAILED;
                 }
@@ -3280,7 +3280,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         }
     );
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, saved %2%, ret=%3%")%m_objects.size() %count %ret;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, saved %2%, ret=%3%")%m_objects.size() %count %ret << std::endl;
     return ret;
 }
 
@@ -3321,13 +3321,13 @@ int Print::load_cached_data(const std::string& directory)
         if (identify_id <= 0) {
             //for old 3mf
             identify_id = model_instance->id().id;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1%'s loaded_id is 0, need to use the instance_id %2%")%model_obj->name %identify_id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1%'s loaded_id is 0, need to use the instance_id %2%")%model_obj->name %identify_id << std::endl;
             //continue;
         }
         std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
 
         if (!fs::exists(file_name)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name << std::endl;
             continue;
         }
         object_filenames.push_back({file_name, obj});
@@ -3346,7 +3346,7 @@ int Print::load_cached_data(const std::string& directory)
                     object_jsons[filename_index] = std::move(root_json);
                 }
                 catch(std::exception &err) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[filename_index].first<<" got a generic exception, reason = " << err.what();
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[filename_index].first<<" got a generic exception, reason = " << err.what() << std::endl;
                     boost::unique_lock l(mutex);
                     ret = CLI_IMPORT_CACHE_LOAD_FAILED;
                 }
@@ -3355,7 +3355,7 @@ int Print::load_cached_data(const std::string& directory)
     );
 
     if (ret) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": load json failed.");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": load json failed.") << std::endl;
         return ret;
     }
 
@@ -3376,7 +3376,7 @@ int Print::load_cached_data(const std::string& directory)
             firstlayer_group_count = root_json[JSON_FIRSTLAYER_GROUPS].size();
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, identify_id %2%, layer_count %3%, support_layer_count %4%, firstlayer_group_count %5%")
-                %name %identify_id %layer_count %support_layer_count %firstlayer_group_count;
+                %name %identify_id %layer_count %support_layer_count %firstlayer_group_count << std::endl;
 
             Layer* previous_layer = NULL;
             //create layer and layer regions
@@ -3385,7 +3385,7 @@ int Print::load_cached_data(const std::string& directory)
                 json& layer_json = root_json[JSON_LAYERS][index];
                 Layer* new_layer = obj->add_layer(layer_json[JSON_LAYER_ID], layer_json[JSON_LAYER_HEIGHT], layer_json[JSON_LAYER_PRINT_Z], layer_json[JSON_LAYER_SLICE_Z]);
                 if (!new_layer) {
-                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":create_layer failed, out of memory");
+                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":create_layer failed, out of memory") << std::endl;
                     return CLI_OUT_OF_MEMORY;
                 }
                 if (previous_layer) {
@@ -3404,7 +3404,7 @@ int Print::load_cached_data(const std::string& directory)
 
                     if (!print_region){
                         BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":can not find print region of object %1%, layer %2%, print_z %3%, layer_region %4%")
-                            %name % index %new_layer->print_z %region_index;
+                            %name % index %new_layer->print_z %region_index << std::endl;
                         //delete new_layer;
                         return CLI_IMPORT_CACHE_DATA_CAN_NOT_USE;
                     }
@@ -3415,7 +3415,7 @@ int Print::load_cached_data(const std::string& directory)
             }
 
             //load the layer data parallel
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": load the layers in parallel");
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": load the layers in parallel") << std::endl;
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, obj->layer_count()),
                 [&root_json, &obj](const tbb::blocked_range<size_t>& layer_range) {
@@ -3435,7 +3435,7 @@ int Print::load_cached_data(const std::string& directory)
                 json& layer_json = root_json[JSON_SUPPORT_LAYERS][index];
                 SupportLayer* new_support_layer = obj->add_support_layer(layer_json[JSON_LAYER_ID], layer_json[JSON_SUPPORT_LAYER_INTERFACE_ID], layer_json[JSON_LAYER_HEIGHT], layer_json[JSON_LAYER_PRINT_Z]);
                 if (!new_support_layer) {
-                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":add_support_layer failed, out of memory");
+                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":add_support_layer failed, out of memory") << std::endl;
                     return CLI_OUT_OF_MEMORY;
                 }
                 if (previous_support_layer) {
@@ -3445,7 +3445,7 @@ int Print::load_cached_data(const std::string& directory)
                 previous_support_layer = new_support_layer;
             }
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": finished load layers, start to load support_layers.");
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": finished load layers, start to load support_layers.") << std::endl;
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, obj->support_layer_count()),
                 [&root_json, &obj](const tbb::blocked_range<size_t>& support_layer_range) {
@@ -3475,7 +3475,7 @@ int Print::load_cached_data(const std::string& directory)
                     }
                     else {
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": can not find volume_id %1% from object file %2% in firstlayer groups, volume_count %3%!")
-                            %obj_id.id %object_filenames[obj_index].first %volume_count;
+                            %obj_id.id %object_filenames[obj_index].first %volume_count << std::endl;
                         return CLI_IMPORT_CACHE_LOAD_FAILED;
                     }
                 }
@@ -3483,21 +3483,21 @@ int Print::load_cached_data(const std::string& directory)
             }
 
             count ++;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": load object %1% from %2% successfully.")%count%object_filenames[obj_index].first;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": load object %1% from %2% successfully.")%count%object_filenames[obj_index].first << std::endl;
         }
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<object_filenames[obj_index].first<<" got a nlohmann::detail::parse_error, reason = " << err.what();
             return CLI_IMPORT_CACHE_LOAD_FAILED;
         }
         catch(std::exception &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[obj_index].first<<" got a generic exception, reason = " << err.what();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[obj_index].first<<" got a generic exception, reason = " << err.what() << std::endl;
             ret = CLI_IMPORT_CACHE_LOAD_FAILED;
         }
     }
 
     object_jsons.clear();
     object_filenames.clear();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret << std::endl;
     return ret;
 }
 

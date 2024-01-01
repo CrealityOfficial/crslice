@@ -9,7 +9,6 @@ polyclipping/0.0.1
 clipper2/0.0.1
 admesh/0.0.1
 tbb_static/2.0.0
-cereal/0.0.1
 png_static/1.0.0
 openssl/0.0.2
 expat/0.0.1

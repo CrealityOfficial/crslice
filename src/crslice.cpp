@@ -44,4 +44,9 @@ namespace crslice
 
 		orca_slice_impl(scene, tracer);
 	}
+
+	void orcaSliceFromFile(const std::string& file, const std::string& out)
+	{
+		orca_slice_fromfile_impl(file, out);
+	}
 }

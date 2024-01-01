@@ -60,11 +60,13 @@ if(Python3_FOUND)
 	include(parameter/parameter.cmake)
 endif()
 
+set(DEFS _UNICODE UNICODE NOMINMAX BOOST_ALL_NO_LIB)
 if(TARGET libslic3r)
 	list(APPEND LIBS libslic3r)
 endif()
 
 __add_common_library(crslice FOLDER slice OPENMP
+							 DEF ${DEFS}
 							 GENERATED_SOURCE ${BINARY_JSONS} ${BINARY_PARAMETERS}
 							 )
 

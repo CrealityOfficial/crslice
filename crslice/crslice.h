@@ -27,5 +27,7 @@ namespace crslice
 
         SliceResult sliceResult;
 	};
+
+    CRSLICE_API void orcaSliceFromFile(const std::string& file, const std::string& out);
 }
 #endif  // MSIMPLIFY_SIMPLIFY_H

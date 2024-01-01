@@ -2163,10 +2163,11 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
             TriangleMesh mesh(volume->mesh());
             mesh.transform(instance_matrix * volume_matrix, true);
             volume->reset_mesh();
-
+#if 0  //zenggui
             auto mesh_segments = MeshBoolean::cgal::segment(mesh, smoothing_alpha, segment_number);
-
-
+#else
+            std::vector<Slic3r::TriangleMesh> mesh_segments;
+#endif
             // Reset volume transformation except for offset
             const Vec3d offset = volume->get_offset();
             volume->set_transformation(Geometry::Transformation());

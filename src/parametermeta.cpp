@@ -6,6 +6,7 @@
 
 #ifdef USE_BINARY_JSON
 #include "base.json.h"
+#ifdef USE_CURA_META
 #include "blackmagic.json.h"
 #include "command_line_settings.json.h"
 #include "cooling.json.h"
@@ -22,6 +23,11 @@
 #include "speed.json.h"
 #include "support.json.h"
 #include "travel.json.h"
+#else
+#include "fdm_filament_common.json.h"
+#include "fdm_machine_common.json.h"
+#include "fdm_process_common.json.h"
+#endif
 
 #include "extruder_keys.json.h"
 #include "machine_keys.json.h"
@@ -141,6 +147,8 @@ namespace crslice
 
         if (baseDoc.HasMember("subs") && baseDoc["subs"].IsArray())
         {
+#ifdef USE_CURA_META
+            int count = 16;
             const unsigned char* subs[16] = {
                 blackmagic,
                 command_line_settings,
@@ -159,7 +167,15 @@ namespace crslice
                 support,
                 travel
             };
-            for (int i = 0; i < 16; ++i)
+#else
+            int count = 3;
+            const unsigned char* subs[3] = {
+                fdm_filament_common,
+                fdm_machine_common,
+                fdm_process_common
+            };
+#endif
+            for (int i = 0; i < count; ++i)
             {
                 const unsigned char* str = subs[i];
                 rapidjson::Document subDoc;

@@ -87,7 +87,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transfor
 
 PrintObject::~PrintObject()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, m_shared_object %2%")%this%m_shared_object;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, m_shared_object %2%")%this%m_shared_object << std::endl;
     if (m_shared_regions && -- m_shared_regions->m_ref_cnt == 0) delete m_shared_regions;
     clear_layers();
     clear_support_layers();
@@ -136,7 +136,7 @@ void PrintObject::make_perimeters()
         return;
 
     m_print->set_status(15, L("Generating walls"));
-    BOOST_LOG_TRIVIAL(info) << "Generating walls..." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Generating walls..." << log_memory_info() << std::endl;
 
     // Revert the typed slices into untyped slices.
     if (m_typed_slices) {
@@ -160,7 +160,7 @@ void PrintObject::make_perimeters()
         //if (! region.config().extra_perimeters || region.config().wall_loops == 0 || region.config().sparse_infill_density == 0 || this->layer_count() < 2)
             continue;
 
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start" << std::endl;
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size() - 1),
             [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
@@ -215,10 +215,10 @@ void PrintObject::make_perimeters()
                 }
             });
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end" << std::endl;
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start" << std::endl;
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, m_layers.size()),
         [this](const tbb::blocked_range<size_t>& range) {
@@ -229,7 +229,7 @@ void PrintObject::make_perimeters()
         }
     );
     m_print->throw_if_canceled();
-    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end" << std::endl;
 
     this->set_done(posPerimeters);
 }
@@ -260,7 +260,7 @@ void PrintObject::prepare_infill()
     // Decide what surfaces are to be filled.
     // Here the stTop / stBottomBridge / stBottom infill is turned to just stInternal if zero top / bottom infill layers are configured.
     // Also tiny stInternal surfaces are turned to stInternalSolid.
-    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info() << std::endl;
     for (auto *layer : m_layers)
         for (auto *region : layer->m_regions) {
             region->prepare_fill_surfaces();
@@ -370,7 +370,7 @@ void PrintObject::infill()
         auto lightning_generator = this->prepare_lightning_infill_data();
 
 
-        BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start" << std::endl;
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
             [this, &adaptive_fill_octree = adaptive_fill_octree, &support_fill_octree = support_fill_octree, &lightning_generator](const tbb::blocked_range<size_t>& range) {
@@ -381,7 +381,7 @@ void PrintObject::infill()
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - end" << std::endl;
         /*  we could free memory now, but this would make this step not idempotent
         ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
         */
@@ -392,7 +392,7 @@ void PrintObject::infill()
 void PrintObject::ironing()
 {
     if (this->set_started(posIroning)) {
-        BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - start" << std::endl;
         tbb::parallel_for(
             // Ironing starting with layer 0 to support ironing all surfaces.
             tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -404,7 +404,7 @@ void PrintObject::ironing()
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - end" << std::endl;
         this->set_done(posIroning);
     }
 }
@@ -468,7 +468,7 @@ void PrintObject::generate_support_material()
             SupportNecessaryType sntype = this->is_support_necessary();
 
             double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
-            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(0) << "is_support_necessary takes " << duration << " secs.";
+            BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(0) << "is_support_necessary takes " << duration << " secs." << std::endl;
 
             if (sntype != NoNeedSupp) {
                 std::map<SupportNecessaryType, std::string> reasons = {
@@ -497,7 +497,7 @@ void PrintObject::simplify_extrusion_path()
 {
     if (this->set_started(posSimplifyPath)) {
         m_print->set_status(75, L("Optimizing toolpath"));
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - start" << std::endl;
         //BBS: infill and walls
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -509,14 +509,14 @@ void PrintObject::simplify_extrusion_path()
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - end" << std::endl;
         this->set_done(posSimplifyPath);
     }
 
     if (this->set_started(posSimplifySupportPath)) {
         //BBS: share same progress
         m_print->set_status(75, L("Optimizing toolpath"));
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - start" << std::endl;
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_support_layers.size()),
             [this](const tbb::blocked_range<size_t>& range) {
@@ -527,7 +527,7 @@ void PrintObject::simplify_extrusion_path()
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of support in parallel - end" << std::endl;
         this->set_done(posSimplifySupportPath);
     }
 }
@@ -977,7 +977,7 @@ bool PrintObject::invalidate_all_steps()
 // If a part of a region is of stBottom and stTop, the stBottom wins.
 void PrintObject::detect_surfaces_type()
 {
-    BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces..." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces..." << log_memory_info() << std::endl;
 
     // Interface shells: the intersecting parts are treated as self standing objects supporting each other.
     // Each of the objects will have a full number of top / bottom layers, even if these top / bottom layers
@@ -989,7 +989,7 @@ void PrintObject::detect_surfaces_type()
     size_t num_layers     = spiral_mode ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " in parallel - start" << std::endl;
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (Layer *layer : m_layers)
             layer->m_regions[region_id]->export_region_fill_surfaces_to_svg_debug("1_detect_surfaces_type-initial");
@@ -1160,7 +1160,7 @@ void PrintObject::detect_surfaces_type()
 	        	m_layers[i]->m_regions[region_id]->slices.set_type(stInternal);
         }
 
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - start" << std::endl;
         // Fill in layerm->fill_surfaces by trimming the layerm->slices by the cummulative layerm->fill_surfaces.
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -1175,7 +1175,7 @@ void PrintObject::detect_surfaces_type()
                 } // for each layer of a region
             });
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - end" << std::endl;
     } // for each this->print->region_count
 
     // Mark the object to have the region slices classified (typed, which also means they are split based on whether they are supported, bridging, top layers etc.)
@@ -1184,7 +1184,7 @@ void PrintObject::detect_surfaces_type()
 
 void PrintObject::process_external_surfaces()
 {
-    BOOST_LOG_TRIVIAL(info) << "Processing external surfaces..." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Processing external surfaces..." << log_memory_info() << std::endl;
 
     // Cached surfaces covered by some extrusion, defining regions, over which the from the surfaces one layer higher are allowed to expand.
     std::vector<Polygons> surfaces_covered;
@@ -1217,7 +1217,7 @@ void PrintObject::process_external_surfaces()
 	    	}
 		end:;
 		}
-	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - start";
+	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - start" << std::endl;
 	    surfaces_covered.resize(m_layers.size() - 1, Polygons());
     	auto unsupported_width = - float(scale_(0.3 * EXTERNAL_INFILL_MARGIN));
 	    tbb::parallel_for(
@@ -1238,11 +1238,11 @@ void PrintObject::process_external_surfaces()
 	        }
 	    );
 	    m_print->throw_if_canceled();
-	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - end";
+	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - end" << std::endl;
 	}
 
 	for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
-        BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - start";
+        BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - start" << std::endl;
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
             [this, &surfaces_covered, region_id](const tbb::blocked_range<size_t>& range) {
@@ -1256,7 +1256,7 @@ void PrintObject::process_external_surfaces()
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - end" << std::endl;
     }
 }
 
@@ -1264,7 +1264,7 @@ void PrintObject::discover_vertical_shells()
 {
     PROFILE_FUNC();
 
-    BOOST_LOG_TRIVIAL(info) << "Discovering vertical shells..." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Discovering vertical shells..." << log_memory_info() << std::endl;
 
     struct DiscoverVerticalShellsCacheEntry
     {
@@ -1305,7 +1305,7 @@ void PrintObject::discover_vertical_shells()
         if (! has_extra_layers)
             // The "ensure vertical wall thickness" feature is not applicable to any of the regions. Quit.
             return;
-        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - start : cache top / bottom";
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - start : cache top / bottom" << std::endl;
         //FIXME Improve the heuristics for a grain size.
         size_t grain_size = std::max(num_layers / 16, size_t(1));
         tbb::parallel_for(
@@ -1370,7 +1370,7 @@ void PrintObject::discover_vertical_shells()
                 }
             });
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - end : cache top / bottom";
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - end : cache top / bottom" << std::endl;
     }
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
@@ -1390,7 +1390,7 @@ void PrintObject::discover_vertical_shells()
         if (! top_bottom_surfaces_all_regions) {
             // This is either a single material print, or a multi-material print and interface_shells are enabled, meaning that the vertical shell thickness
             // is calculated over a single material.
-            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - start : cache top / bottom";
+            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - start : cache top / bottom" << std::endl;
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, num_layers, grain_size),
                 [this, region_id, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
@@ -1415,10 +1415,10 @@ void PrintObject::discover_vertical_shells()
                     }
                 });
             m_print->throw_if_canceled();
-            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - end : cache top / bottom";
+            BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - end : cache top / bottom" << std::endl;
         }
 
-        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - start : ensure vertical wall thickness";
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - start : ensure vertical wall thickness" << std::endl;
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, num_layers, grain_size),
             [this, region_id, &cache_top_botom_regions]
@@ -1648,7 +1648,7 @@ void PrintObject::discover_vertical_shells()
                 } // for each layer
             });
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells for region " << region_id << " in parallel - end" << std::endl;
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
 		for (size_t idx_layer = 0; idx_layer < m_layers.size(); ++idx_layer) {
@@ -1668,7 +1668,7 @@ void PrintObject::discover_vertical_shells()
    sparse infill */
 void PrintObject::bridge_over_infill()
 {
-    BOOST_LOG_TRIVIAL(info) << "Bridge over infill..." << log_memory_info();
+    BOOST_LOG_TRIVIAL(info) << "Bridge over infill..." << log_memory_info() << std::endl;
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
@@ -2126,7 +2126,7 @@ void PrintObject::clip_fill_surfaces()
 
 void PrintObject::discover_horizontal_shells()
 {
-    BOOST_LOG_TRIVIAL(trace) << "discover_horizontal_shells()";
+    BOOST_LOG_TRIVIAL(trace) << "discover_horizontal_shells()" << std::endl;
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (size_t i = 0; i < m_layers.size(); ++ i) {

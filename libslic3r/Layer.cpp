@@ -141,7 +141,7 @@ ExPolygons Layer::merged(float offset_scaled) const
 // The resulting fill surface is split back among the originating regions.
 void Layer::make_perimeters()
 {
-    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
+    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << std::endl;
     
     // keep track of regions whose perimeters we have already generated
     std::vector<unsigned char> done(m_regions.size(), false);
@@ -155,7 +155,7 @@ void Layer::make_perimeters()
 	        size_t region_id = layerm - m_regions.begin();
 	        if (done[region_id])
 	            continue;
-	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
+	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id << std::endl;
 	        done[region_id] = true;
 	        const PrintRegionConfig &config = (*layerm)->region().config();
 	        
@@ -231,7 +231,7 @@ void Layer::make_perimeters()
 	            }
 	        }
 	    }
-    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
+    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done" << std::endl;
 }
 
 void Layer::export_region_slices_to_svg(const char *path) const
