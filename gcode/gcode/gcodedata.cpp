@@ -399,19 +399,22 @@ namespace gcode
 			std::string tStr = sm[1];
 			parseInfo.material_density = atof(tStr.c_str()); //gap
 		}
-
-		//单位面积密度
-		parseInfo.materialDensity = PI * (parseInfo.material_diameter * 0.5) * (parseInfo.material_diameter * 0.5) * parseInfo.material_density;
-
-		float filament_cost = 0.0;
 		if (regex_match(gcodeStr, "Filament Cost", sm))
 		{
 			std::string tStr = sm[1];
-			filament_cost = atof(tStr.c_str()); //gap
+			parseInfo.cost = atof(tStr.c_str()); //gap
+		}
+		if (regex_match(gcodeStr, "Filament Weight", sm))
+		{
+			std::string tStr = sm[1];
+			parseInfo.weight = atof(tStr.c_str()); //gap
+		}
+		if (regex_match(gcodeStr, "Filament Length", sm))
+		{
+			std::string tStr = sm[1];
+			parseInfo.materialLenth = atof(tStr.c_str()); //gap
 		}
 
-		parseInfo.unitPrice = filament_cost / parseInfo.materialLenth;
-		parseInfo.filament_weight = parseInfo.materialLenth * parseInfo.materialDensity;
 
 		parseInfo.lineWidth = 0.4;
 		if (regex_match(gcodeStr, "Out Wall Line Width", sm))
