@@ -235,7 +235,7 @@
     "description": "The highest printable layer height for the extruder. This is used to limit the maximum layer height when adaptive layer height is enabled.",
     "type": "[float]",
     "enabled": "",
-    "default_value": ["0.28"],
+    "default_value": "[0.28]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -245,7 +245,7 @@
     "description": "The lowest printable layer height for the extruder. This is used to limit the minimum layer height when adaptive layer height is enabled.",
     "type": "[float]",
     "enabled": "",
-    "default_value": ["0.08"],
+    "default_value": "[0.08]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -295,7 +295,7 @@
     "description": "The diameter of the nozzle",
     "type": "[float]",
     "enabled": "",
-    "default_value": ["0.4"],
+    "default_value": "[0.4]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"

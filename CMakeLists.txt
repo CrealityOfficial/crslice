@@ -60,7 +60,7 @@ if(Python3_FOUND)
 	include(parameter/parameter.cmake)
 endif()
 
-set(DEFS _UNICODE UNICODE NOMINMAX BOOST_ALL_NO_LIB)
+list(APPEND DEFS _UNICODE UNICODE NOMINMAX BOOST_ALL_NO_LIB)
 if(TARGET libslic3r)
 	list(APPEND LIBS libslic3r)
 endif()

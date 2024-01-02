@@ -104,7 +104,7 @@
       "description": "Force cooling fan to be a specific speed when overhang degree of printed part exceeds this value. This is expressed as a percentage which indicates how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter the overhang degree.",
       "type": "int",
       "enabled": "",
-      "default_value": ["95%"],
+      "default_value": "[95%]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -144,7 +144,7 @@
       "description": "",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["; filament end gcode \nM106 P3 S0\n"],
+      "default_value": "[; filament end gcode \nM106 P3 S0\n]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -204,7 +204,7 @@
       "description": "The speed for reloading filament into the extruder after a retraction; setting this to 0 means that it will be the same speed as the retraction.",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -214,7 +214,7 @@
       "description": "Filament diameter is used to calculate extrusion variables in G-code, so it is important that this is accurate and precise.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["1.75"],
+      "default_value": "[1.75]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -244,7 +244,7 @@
       "description": "",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -254,7 +254,7 @@
       "description": "This is the length of fast retraction before a wipe, relative to retraction length.",
       "type": "int",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -264,7 +264,7 @@
       "description": "",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -274,7 +274,7 @@
       "description": "This is the amount of filament in the extruder that is pulled back to avoid oozing during long travel distances. Set to 0 to disable retraction.",
       "type": "int",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -284,7 +284,7 @@
       "description": "",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -294,7 +294,7 @@
       "description": "Z hop type",
       "type": "int",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -304,7 +304,7 @@
       "description": "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed.",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -344,7 +344,7 @@
       "description": "Filament material type",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["PLA"],
+      "default_value": "[PLA]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -354,7 +354,7 @@
       "description": "Vendor of filament. For show only.",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["Generic"],
+      "default_value": "[Generic]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -364,7 +364,7 @@
       "description": "",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -374,7 +374,7 @@
       "description": "This describes how long the nozzle will move along the last path while retracting.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[nil]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -444,7 +444,7 @@
       "description": "",
       "type": "[str]",
       "enabled": "",
-      "default_value": ["; Filament gcode\n"],
+      "default_value": "[; Filament gcode\n]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
