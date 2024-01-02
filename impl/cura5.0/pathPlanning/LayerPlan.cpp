@@ -2289,7 +2289,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     for (size_t extruder_plan_idx = 0; extruder_plan_idx < extruder_plans.size(); extruder_plan_idx++)
     {
         ExtruderPlan& extruder_plan = extruder_plans[extruder_plan_idx];
-        const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[extruder_plan.extruder_nr];
+        const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[0];
         coord_t z_hop_height = retraction_config.zHop;
 
         double cds_fan_speed = extruder_plan.cds_fan_speed;

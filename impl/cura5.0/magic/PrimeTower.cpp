@@ -135,13 +135,15 @@ namespace cura52
             const coord_t y = mesh_group_settings.get<coord_t>("prime_tower_position_y");
             const coord_t tower_radius = tower_size / 2;
             base_poly.add(PolygonUtils::makeRect(x + tower_size * offset, y, tower_size, tower_hight));
-            offset++;
-            pattern.polygons.add(base_poly);
-            for (int i = 0; i < tower_size / line_width / 2; i++)
+            int space = line_width*2;
+            for (int i = 0; i < tower_size / space /2; i++)
             {
-                Polygons polygons = base_poly.offset(-i * line_width - line_width / 2);
+                // Polygons polygons = base_poly.offset(-i * line_width - line_width / 2);
+                Polygons polygons = base_poly.offset(-i * space * 2- space*2 );
                 pattern.polygons.add(polygons);
             }
+            offset++;
+            pattern.polygons.add(base_poly);
 
             // for (int i=0; i<tower_size/line_width/2; i++)
             // {
