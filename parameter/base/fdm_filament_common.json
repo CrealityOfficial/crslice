@@ -4,7 +4,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["0"],
+      "default_value": "[0]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -14,7 +14,7 @@
       "description": "Minimum HRC of nozzle required to print the filament. A value of 0 means no checking of the nozzle's HRC.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["3"],
+      "default_value": "[3]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -24,7 +24,7 @@
       "description": "",
       "type": "int",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -34,7 +34,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -44,7 +44,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -54,7 +54,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -64,7 +64,7 @@
       "description": "",
       "type": "int",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -74,7 +74,7 @@
       "description": "",
       "type": "int",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -84,7 +84,7 @@
       "description": "",
       "type": "int",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -94,7 +94,7 @@
       "description": "",
       "type": "int",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -114,7 +114,7 @@
       "description": "Force part cooling fan to be this speed when printing bridges or overhang walls which have a large overhang degree. Forcing cooling for overhangs and bridges can achieve better quality for these parts.",
       "type": "int",
       "enabled": "",
-      "default_value": ["100"],
+      "default_value": "[100]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -124,7 +124,7 @@
       "description": "Enable this option to slow printing speed down to ensure that the final layer time is not shorter than the layer time threshold in 'Max fan speed threshold', so that the layer can be cooled for a longer time. This can improve the quality for small details.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["1"],
+      "default_value": "[1]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -134,7 +134,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["3"],
+      "default_value": "[3]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -154,7 +154,7 @@
       "description": "The material may have volumetric change after switching between molten and crystalline states. This setting changes all extrusion flow of this filament in G-code proportionally. The recommended value range is between 0.95 and 1.05. You may be able to tune this value to get a nice flat surface if there is slight overflow or underflow.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["1"],
+      "default_value": "[1]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -164,7 +164,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["0"],
+      "default_value": "[0]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -174,7 +174,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["60"],
+      "default_value": "[60]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -184,7 +184,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["0"],
+      "default_value": "[0]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -194,7 +194,7 @@
       "description": "Filament density, for statistical purposes only.",
       "type": "int",
       "enabled": "",
-      "default_value": ["0"],
+      "default_value": "[0]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -224,7 +224,7 @@
       "description": "This setting is the volume of filament that can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. This value cannot be zero.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["0"],
+      "default_value": "[0]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -234,7 +234,7 @@
       "description": "After a tool change, the exact position of the newly loaded filament inside the nozzle may not be known, and the filament pressure is likely not yet stable. Before purging the print head into an infill or a sacrificial object, OrcaSlicer will always prime this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["15"],
+      "default_value": "[15]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -314,7 +314,7 @@
       "description": "The is the speed for retraction.",
       "type": "int",
       "enabled": "",
-      "default_value": ["nil"],
+      "default_value": "[\"nil\"]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -324,7 +324,7 @@
       "description": "",
       "type": "[str]",
       "enabled": "",
-      "default_value": [""],
+      "default_value": "[\"\"]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -334,7 +334,7 @@
       "description": "Support material is commonly used to print support and support interfaces.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["0"],
+      "default_value": "[0]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -384,7 +384,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["200"],
+      "default_value": "[200]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -394,7 +394,7 @@
       "description": "Fan speed will be ramped up linearly from zero at layer 'close fan the first x layers' to maximum at layer 'full_fan_speed_layer'. 'fuI\\Jan_speedJayer' will be ignored if lower than 'close fan the first x layers', in which case the fan will be running at maximum allowed speed at layer 'close fan the first x layers' + 1.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["0"],
+      "default_value": "[0]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -404,7 +404,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["100"],
+      "default_value": "[100]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -414,7 +414,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["35"],
+      "default_value": "[35]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -424,7 +424,7 @@
       "description": "The minimum printing speed for the filament when slow down for better layer cooling is enabled, when printing overhangs and when feature speeds are not specified explicitly.",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["10"],
+      "default_value": "[10]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -434,7 +434,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["8"],
+      "default_value": "[8]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -454,7 +454,7 @@
       "description": "Nozzle temperature when printing.",
       "type": "int",
       "enabled": "",
-      "default_value": ["200"],
+      "default_value": "[200]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
@@ -464,7 +464,7 @@
       "description": "",
       "type": "[int]",
       "enabled": "",
-      "default_value": ["100"],
+      "default_value": "[100]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"

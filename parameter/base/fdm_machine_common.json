@@ -14,7 +14,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["60"],
+    "default_value": "[60]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -24,7 +24,7 @@
     "description": "",
     "type": "str",
     "enabled": "",
-    "default_value": ["#FCE94F"],
+    "default_value": "[\"#FCE94F\"]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -34,7 +34,7 @@
     "description": "",
     "type": "[str]",
     "enabled": "",
-    "default_value": ["0x0"],
+    "default_value": "[\"0x0\"]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -64,7 +64,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["5000"],
+    "default_value": "[5000]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -74,7 +74,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["10000"],
+    "default_value": "[10000]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -85,7 +85,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["1000"],
+    "default_value": "[1000]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -96,7 +96,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["10000"],
+    "default_value": "[10000]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -107,7 +107,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["10000"],
+    "default_value": "[10000]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -118,7 +118,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["100"],
+    "default_value": "[100]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -129,7 +129,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["60"],
+    "default_value": "[60]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -139,7 +139,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["500"],
+    "default_value": "[500]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -149,7 +149,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["500"],
+    "default_value": "[500]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -160,7 +160,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["10"],
+    "default_value": "[10]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -171,7 +171,7 @@
     "description": "",
     "type": "[float]",
     "enabled": "",
-    "default_value": ["5"],
+    "default_value": "[5]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -181,7 +181,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["8"],
+    "default_value": "[8]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -192,7 +192,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["8"],
+    "default_value": "[8]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -203,7 +203,7 @@
     "description": "",
     "type": "[float]",
     "enabled": "",
-    "default_value": ["0.4"],
+    "default_value": "[\"0.4\"]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -214,7 +214,7 @@
     "description": "",
     "type": "[float]",
     "enabled": "",
-    "default_value": ["0"],
+    "default_value": "[0]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -225,7 +225,7 @@
     "description": "",
     "type": "[float]",
     "enabled": "",
-    "default_value": ["0"],
+    "default_value": "[0]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -325,7 +325,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["2"],
+    "default_value": "[2]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -335,7 +335,7 @@
     "description": "",
     "type": "[str]",
     "enabled": "",
-    "default_value": ["70%"],
+    "default_value": "[\"70%\"]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -345,7 +345,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["1"],
+    "default_value": "[1]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -355,7 +355,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["5"],
+    "default_value": "[5]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -365,7 +365,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["1"],
+    "default_value": "[1]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -375,7 +375,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["0"],
+    "default_value": "[0]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -385,7 +385,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["0"],
+    "default_value": "[0]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -395,7 +395,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["0"],
+    "default_value": "[0]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -405,7 +405,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["60"],
+    "default_value": "[60]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -415,7 +415,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["0"],
+    "default_value": "[0]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -435,7 +435,7 @@
     "description": "",
     "type": "[int]",
     "enabled": "",
-    "default_value": ["1"],
+    "default_value": "[1]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -445,7 +445,7 @@
     "description": "",
     "type": "[]",
     "enabled": "",
-    "default_value": [],
+    "default_value": "[]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -455,7 +455,7 @@
     "description": "",
     "type": "str",
     "enabled": "",
-    "default_value": ["0"],
+    "default_value": "[0]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -465,7 +465,7 @@
     "description": "",
     "type": "[]",
     "enabled": "",
-    "default_value": [],
+    "default_value": "[]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"

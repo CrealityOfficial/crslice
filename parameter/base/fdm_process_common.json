@@ -84,7 +84,7 @@
     "description": "",
     "type": "int",
     "enabled": "",
-    "default_value": [],
+    "default_value": "[]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
