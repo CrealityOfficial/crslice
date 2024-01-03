@@ -73,14 +73,14 @@ namespace cura52
     public:
         ClipperLib::Paths skinpath;
         std::vector<SlicerSegment> segments;
-        //±í²ã
+        //?? ??
         std::vector<SlicerSegment> skinsegments;
+        std::map<int, ClipperLib::Paths> skincolorpaths;
         std::unordered_map<int, int> face_idx_to_segment_idx; // topology
 
-        //bool isSkin = false;
         int inner = 0;
         bool isSkin = false;
-        std::map<int, std::vector<SlicerLayer>> slicerLayers;
+        std::map<int,std::vector<SlicerLayer>> slicerLayers;
         int z = -1;
         Polygons polygons;
         Polygons openPolylines;

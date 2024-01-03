@@ -730,99 +730,14 @@ void SlicerLayer::SplitSlicerTopAndBottomSegmentBycolor(Polygons& open_polylines
      std::map<int, ClipperLib::Paths> mappaths;
     //总路径
      ClipperLib::Paths subpaths;
-    int *segmentsflag = new int[1000000]();
-    for (size_t start_segment_idx = 0; start_segment_idx < skinsegments.size(); start_segment_idx++)
-    {
-        SlicerSegment s = skinsegments[start_segment_idx];
-        int color = s.color;
-        if (mapsegments.count(color) < 1)
-        {
-            std::vector<SlicerSegment> vecsegments;
-            vecsegments.push_back(s);
-            mapsegments.insert(std::pair(color, vecsegments));
-        }
-        else
-        {   
-            mapsegments[color].push_back(s);
-        }
+   std::vector<std::vector<SlicerSegment>> vecsegments;
+
+
+    for(auto it :skincolorpaths){
+        ClipperLib::Paths paths = it.second;
+        subpaths.insert(subpaths.end(),paths.begin(),paths.end());
     }
-    std::map<int, std::vector<SlicerSegment>>::iterator iter;
-    for (iter = mapsegments.begin(); iter != mapsegments.end(); iter++)
-    {
-        std::vector<SlicerSegment> vecsegments = iter->second;
-        std::vector<SlicerSegment> colorsegments;
-        ClipperLib::Paths cpaths;
-        for (int i = 0; i < vecsegments.size(); i++)
-        {
-            // 判断是否重复
-            bool flag = true;
-            for (int j = 0; j < vecsegments.size(); j++)
-            {
-                if (j != i)
-                {
-                    if (vecsegments[i].end == vecsegments[j].end &&
-                        vecsegments[i].start == vecsegments[j].start)
-                    {
-                        flag = false;
-                    }
-                    if (vecsegments[i].start == vecsegments[j].end &&
-                        vecsegments[i].end == vecsegments[j].start)
-                    {
-                        flag = false;
-                    }
-                }
-            }
-            if (flag)
-            {
-                colorsegments.push_back(vecsegments[i]);
-            }
-        }
-        for (int startidx = 0; startidx < colorsegments.size(); startidx++)
-        {
-            if (colorsegments[startidx].addedToPolygon)
-            {
-                continue;
-            }
 
-            ClipperLib::Paths cpath(1);
-            cpath[0].push_back(colorsegments[startidx].start);
-            cpath[0].push_back(colorsegments[startidx].end);
-            colorsegments[startidx].addedToPolygon = true;
-            int curridx = startidx;
-            for (int j = startidx + 1; j < colorsegments.size(); j++)
-            {
-                if (colorsegments[j].addedToPolygon)
-                {
-                    continue;
-                }
-                // if (colorsegments[curridx].end == colorsegments[j].start)
-                if (std::abs(colorsegments[curridx].end.X - colorsegments[j].start.X)<=1
-                &&std::abs(colorsegments[curridx].end.Y - colorsegments[j].start.Y)<=1)
-                {
-                    // poly.add(colorsegments[j].end);
-                    cpath[0].push_back(colorsegments[j].end);
-                    colorsegments[j].addedToPolygon = true;
-                    curridx = j;
-                    j = startidx + 1;
-                }
-                if (colorsegments[curridx].end == colorsegments[startidx].start)
-                {
-                    break;
-                }
-            }
-            cpaths.push_back(cpath[0]);
-        }
-        ClipperLib::Clipper clipper;
-        clipper.StrictlySimple(true) ;
-        clipper.AddPaths(cpaths,ClipperLib::ptSubject,true);
-        clipper.Execute(ClipperLib::ctDifference, cpaths, ClipperLib::pftEvenOdd, ClipperLib::pftEvenOdd);
-
-        subpaths.insert(subpaths.end(),cpaths.begin(),cpaths.end());
-        mappaths.insert(std::pair<int,ClipperLib::Paths>(iter->first,cpaths));
-        
-
-
-    }
 
     ClipperLib::ClipperOffset co1;
     co1.AddPaths(subpaths, ClipperLib::jtSquare, ClipperLib::etClosedPolygon);
@@ -843,7 +758,7 @@ void SlicerLayer::SplitSlicerTopAndBottomSegmentBycolor(Polygons& open_polylines
 
     skinpath.insert(skinpath.end(), subpaths.begin(), subpaths.end());
     std::map<int, ClipperLib::Paths>::iterator iterator;
-    for (iterator = mappaths.begin(); iterator != mappaths.end(); iterator++)
+    for (iterator = skincolorpaths.begin(); iterator != skincolorpaths.end(); iterator++)
     {
         ClipperLib::Paths cpaths = iterator->second;
         int color = iterator->first;
@@ -893,7 +808,8 @@ void SlicerLayer::SplitSlicerSegmentBycolor(Polygons& open_polylines)
 {
     std::vector<std::vector<SlicerSegment>> vecsegments;
 
-    int *segmentsflag = new int[1000000]();
+    int *segmentsflag = (int * ) malloc (segments.size() * sizeof(int));
+    memset(segmentsflag, 0, segments.size() * sizeof(int));
     for (int i = 0; i < segments.size(); i++){
         if (segmentsflag[i]){
             continue;
@@ -1570,7 +1486,17 @@ void Slicer::buildSegments(SliceContext* application, const Mesh& mesh, const st
                                        s3.end.X = p0.x;
                                        s3.end.Y = p0.y;
                                        s3.color = color;
-
+                                      ClipperLib::Path path;
+                                      path.push_back(s1.end);
+                                      path.push_back(s2.end);
+                                      path.push_back(s3.end);
+                                      if(layer.skincolorpaths.find(color)!=layer.skincolorpaths.end()){
+                                        layer.skincolorpaths[color].push_back(path);
+                                      } else {
+                                         ClipperLib::Paths paths;
+                                          paths.push_back(path);
+                                        layer.skincolorpaths.insert(std::pair<int,ClipperLib::Paths>(color,paths));
+                                      }
                                        layer.skinsegments.push_back(s1);
                                        layer.skinsegments.push_back(s2);
                                        layer.skinsegments.push_back(s3);
@@ -1931,7 +1857,7 @@ void Slicer::makePolygons(SliceContext* application, Mesh& mesh, SlicingToleranc
         layer_apply_initial_xy_offset = 1;
     }
 
-    if (mesh.settings.get<bool>("support_mesh_drop_down"))
+    if (mesh.settings.get<bool>("support_paint_enable"))
         return;
 
     const coord_t xy_offset = mesh.settings.get<coord_t>("xy_offset");
