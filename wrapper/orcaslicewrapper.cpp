@@ -14,6 +14,9 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
 
+#include "crgroup.h"
+#include "crobject.h"
+
 namespace cereal
 {
 	// Let cereal know that there are load / save non-member functions declared for ModelObject*, ignore serialization of pointers triggering
@@ -26,10 +29,96 @@ namespace cereal
 	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
 }
 
+void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tmesh)
+{
+	if (!mesh)
+		return;
+	int pointSize = (int)mesh->vertices.size();
+	int facesSize = (int)mesh->faces.size();
+	if (pointSize < 3 || facesSize < 1)
+		return;
+
+	indexed_triangle_set indexedTriangleSet;
+	indexedTriangleSet.vertices.resize(pointSize);
+	indexedTriangleSet.indices.resize(facesSize);
+	for (int i = 0; i < pointSize; i++)
+	{
+		const trimesh::vec3& v = mesh->vertices.at(i);
+		indexedTriangleSet.vertices.at(i) = stl_vertex(v.x, v.y, v.z);
+	}
+
+	for (int i = 0; i < facesSize; i++)
+	{
+		const trimesh::TriMesh::Face& f = mesh->faces.at(i);
+		stl_triangle_vertex_indices faceIndex(f[0], f[1], f[2]);
+		indexedTriangleSet.indices.at(i) = faceIndex;
+	}
+
+	stl_file stl;
+	stl.stats.type = inmemory;
+	// count facets and allocate memory
+	stl.stats.number_of_facets = uint32_t(indexedTriangleSet.indices.size());
+	stl.stats.original_num_facets = int(stl.stats.number_of_facets);
+	stl_allocate(&stl);
+
+#pragma omp parallel for
+	for (int i = 0; i < (int)stl.stats.number_of_facets; ++i) {
+		stl_facet facet;
+		facet.vertex[0] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](0))];
+		facet.vertex[1] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](1))];
+		facet.vertex[2] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](2))];
+		facet.extra[0] = 0;
+		facet.extra[1] = 0;
+
+		stl_normal normal;
+		stl_calculate_normal(normal, &facet);
+		stl_normalize_vector(normal);
+		facet.normal = normal;
+
+		stl.facet_start[i] = facet;
+	}
+
+	stl_get_size(&stl);
+	tmesh.from_stl(stl);
+}
+
 void convert_scene_2_orca(CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config)
 {
+	size_t numGroup = scene->m_groups.size();
+	assert(numGroup > 0);
 
+	for (const std::pair<std::string, std::string> pair : scene->m_settings->settings)
+	{
+		config.set_key_value(pair.first, config.optptr(pair.second));
+	}
+
+	std::vector<Slic3r::ModelObject*> objects;
+	for (crslice::CrGroup* aCrgroup : scene->m_groups)
+	{
+		Slic3r::ModelObject* currentObject = model.add_object();
+		objects.push_back(currentObject);
+
+		currentObject->config.assign_config(config);
+		for (const std::pair<std::string, std::string> pair : aCrgroup->m_settings->settings)
+		{
+			currentObject->config.set_key_value(pair.first, config.optptr(pair.second));
+		}
+		for (crslice::CrObject aObject : aCrgroup->m_objects)
+		{
+			Slic3r::TriangleMesh mesh;
+			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
+			Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+
+			v->config.assign_config(currentObject->config);
+			for (const std::pair<std::string, std::string> pair : aObject.m_settings->settings)
+			{
+				v->config.set_key_value(pair.first, config.optptr(pair.second));
+			}
+			currentObject->volumes.push_back(v);
+		}
+	}
 }
+
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, const std::string& out)
 {
