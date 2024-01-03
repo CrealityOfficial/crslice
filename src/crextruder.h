@@ -1,7 +1,7 @@
 #ifndef CRSLICE_CREXTRUDER_1669515380930_H
 #define CRSLICE_CREXTRUDER_1669515380930_H
 
-namespace crslice
+namespace crslice2
 {
 
 }

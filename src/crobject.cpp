@@ -3,7 +3,7 @@
 
 #include "ccglobal/serial.h"
 
-namespace crslice
+namespace crslice2
 {
 	CrObject::CrObject()
 	{

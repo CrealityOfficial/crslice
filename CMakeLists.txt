@@ -29,7 +29,7 @@ if(TARGET cxlog)
 	list(APPEND LIBS cxlog)
 endif() 
 
-__files_group(${CMAKE_CURRENT_SOURCE_DIR}/crslice/ SRCS1)
+__files_group(${CMAKE_CURRENT_SOURCE_DIR}/crslice2/ SRCS1)
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/src/ SRCS2)
 __files_group(${CMAKE_CURRENT_SOURCE_DIR}/wrapper/ SRCS3)
 
@@ -40,40 +40,37 @@ set(INCS ${CMAKE_CURRENT_SOURCE_DIR}
 set(DEFS BOOST_ALL_NO_LIB)
 set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
-include(gcode/gcode.cmake)
-include(impl/cura5.0/cura.cmake)
-
-set(USE_SLICE3R_BASE 0)
-if(USE_SLICE3R_BASE)
-	include(Slice3rBase.cmake)
-else()
-	add_subdirectory(qhull)
-	add_subdirectory(glu-libtess)
-	add_subdirectory(libslic3r)
-endif()
+add_subdirectory(qhull)
+add_subdirectory(glu-libtess)
+add_subdirectory(libslic3r)
 
 #binary
 set(BINARY_JSONS)
 set(BINARY_PARAMETERS)
 if(Python3_FOUND)
 	include(parameter/binary.cmake)
-	include(parameter/parameter.cmake)
+	#include(parameter/parameter.cmake)
 endif()
 
 list(APPEND DEFS _UNICODE UNICODE NOMINMAX BOOST_ALL_NO_LIB)
 if(TARGET libslic3r)
 	list(APPEND LIBS libslic3r)
 endif()
+if(CC_BC_WIN)
+	list(APPEND LIBS Bcrypt.lib)
+endif()
 
-__add_common_library(crslice FOLDER slice OPENMP
+__add_common_library(crslice2 FOLDER slice OPENMP
 							 DEF ${DEFS}
+							 LIB ${LIBS}
+							 ILIB ${ILIBS}
 							 GENERATED_SOURCE ${BINARY_JSONS} ${BINARY_PARAMETERS}
 							 )
 
-use_threads(crslice)
-enable_sanitizers(crslice)
+use_threads(crslice2)
+enable_sanitizers(crslice2)
 
-if(CC_INSTALL_CRSLICE)
-	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/crslice crslice)
+if(CC_INSTALL_CRSLICE2)
+	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/crslice2 crslice2)
 endif()
 								

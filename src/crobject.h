@@ -1,9 +1,9 @@
 #ifndef CRSLICE_CROBJECT_1669515380930_H
 #define CRSLICE_CROBJECT_1669515380930_H
-#include "crslice/header.h"
+#include "crslice2/header.h"
 #include <fstream>
 
-namespace crslice
+namespace crslice2
 {
 	class CrObject
 	{

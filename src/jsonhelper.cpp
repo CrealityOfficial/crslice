@@ -8,7 +8,14 @@
 
 #include "ccglobal/log.h"
 
-namespace crslice
+#define META_LABEL "label"
+#define META_DESCRIPTION "description"
+#define META_TYPE "type"
+#define META_DEFAULT_VALUE "default_value"
+#define META_VALUE "value"
+#define META_ENABLED "enabled"
+
+namespace crslice2
 {
     bool openJson(rapidjson::Document& doc, const std::string& fileName)
 	{

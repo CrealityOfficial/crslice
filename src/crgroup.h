@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 
-namespace crslice
+namespace crslice2
 {
 	class CrGroup
 	{

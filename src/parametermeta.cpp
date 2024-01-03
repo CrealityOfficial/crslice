@@ -1,4 +1,4 @@
-#include "crslice/base/parametermeta.h"
+#include "crslice2/base/parametermeta.h"
 #include <boost/filesystem.hpp>
 
 #include "jsonhelper.h"
@@ -6,28 +6,9 @@
 
 #ifdef USE_BINARY_JSON
 #include "base.json.h"
-#ifdef USE_CURA_META
-#include "blackmagic.json.h"
-#include "command_line_settings.json.h"
-#include "cooling.json.h"
-#include "dual.json.h"
-#include "experimental.json.h"
-#include "infill.json.h"
-#include "machine.json.h"
-#include "material.json.h"
-#include "meshfix.json.h"
-#include "platform_adhesion.json.h"
-#include "resolution.json.h"
-#include "shell.json.h"
-#include "special.json.h"
-#include "speed.json.h"
-#include "support.json.h"
-#include "travel.json.h"
-#else
 #include "fdm_filament_common.json.h"
 #include "fdm_machine_common.json.h"
 #include "fdm_process_common.json.h"
-#endif
 
 #include "extruder_keys.json.h"
 #include "machine_keys.json.h"
@@ -35,7 +16,7 @@
 #include "profile_keys.json.h"
 #endif
 
-namespace crslice
+namespace crslice2
 {
 	ParameterMetas::ParameterMetas()
 	{

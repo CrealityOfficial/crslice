@@ -21,7 +21,7 @@
 #include "boost/filesystem.hpp"
 #include "ccglobal/log.h"
 
-namespace crslice
+namespace crslice2
 {
 
     void _add_item(const std::string& key, const std::string value, KValues& KVs)

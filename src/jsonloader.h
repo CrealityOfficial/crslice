@@ -1,12 +1,12 @@
 #ifndef CRCOMMON_JSONLOADER_1669972280254_H
 #define CRCOMMON_JSONLOADER_1669972280254_H
-#include "crslice/interface.h"
+#include "crslice2/interface.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <string>
 
-namespace crslice
+namespace crslice2
 {
 	typedef std::unordered_map<std::string, std::string> KValues;
     /*

@@ -1,31 +1,10 @@
 set(Script ${PYTHON_MODULES}/textlizer.py)
 
-if(USE_SLICE3R_BASE)
-	set(JSONS base.json
-			blackmagic.json
-			command_line_settings.json
-			cooling.json
-			dual.json
-			experimental.json
-			infill.json
-			machine.json
-			material.json
-			meshfix.json
-			platform_adhesion.json
-			resolution.json
-			shell.json
-			special.json
-			speed.json
-			support.json
-			travel.json
-			)
-else()
-	set(JSONS base.json
-			fdm_filament_common.json
-			fdm_machine_common.json
-			fdm_process_common.json
-			)
-endif()		  
+set(JSONS base.json
+		fdm_filament_common.json
+		fdm_machine_common.json
+		fdm_process_common.json
+		)	  
 
 foreach(json ${JSONS})
 	set(binary_json ${json}.h)

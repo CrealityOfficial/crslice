@@ -1,11 +1,11 @@
 #ifndef CRCOMMON_PARAMETERGENERATOR_1690769853658_H
 #define CRCOMMON_PARAMETERGENERATOR_1690769853658_H
 #include <rapidjson/document.h>
-#include "crslice/base/parametermeta.h"
+#include "crslice2/base/parametermeta.h"
 #include <string>
 #include <fstream>
 
-namespace crslice
+namespace crslice2
 {
 	bool openJson(rapidjson::Document& doc, const std::string& fileName);
 

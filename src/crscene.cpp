@@ -1,15 +1,15 @@
-#include "crslice/crscene.h"
+#include "crslice2/crscene.h"
 
 #include "crgroup.h"
 #include "crobject.h"
 #include "jsonhelper.h"
 #include "jsonloader.h"
-#include "crslice/base/parametermeta.h"
+#include "crslice2/base/parametermeta.h"
 #include "ccglobal/log.h"
 
 #include "ccglobal/serial.h"
 
-namespace crslice
+namespace crslice2
 {
 	class CrSceneSerial : public ccglobal::Serializeable
 	{
@@ -73,7 +73,6 @@ namespace crslice
 	};
 
 	CrScene::CrScene()
-		:m_debugger(nullptr)
 	{
 		m_settings.reset(new Settings());
 		machine_center_is_zero = false;

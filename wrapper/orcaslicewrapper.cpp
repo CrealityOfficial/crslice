@@ -82,7 +82,7 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 	tmesh.from_stl(stl);
 }
 
-void convert_scene_2_orca(CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config)
+void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config)
 {
 	size_t numGroup = scene->m_groups.size();
 	assert(numGroup > 0);
@@ -93,7 +93,7 @@ void convert_scene_2_orca(CrScenePtr scene, Slic3r::Model& model, Slic3r::Dynami
 	}
 
 	std::vector<Slic3r::ModelObject*> objects;
-	for (crslice::CrGroup* aCrgroup : scene->m_groups)
+	for (crslice2::CrGroup* aCrgroup : scene->m_groups)
 	{
 		Slic3r::ModelObject* currentObject = model.add_object();
 		objects.push_back(currentObject);
@@ -103,7 +103,7 @@ void convert_scene_2_orca(CrScenePtr scene, Slic3r::Model& model, Slic3r::Dynami
 		{
 			currentObject->config.set_key_value(pair.first, config.optptr(pair.second));
 		}
-		for (crslice::CrObject aObject : aCrgroup->m_objects)
+		for (crslice2::CrObject aObject : aCrgroup->m_objects)
 		{
 			Slic3r::TriangleMesh mesh;
 			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
@@ -142,7 +142,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 
-void orca_slice_impl(CrScenePtr scene, ccglobal::Tracer* tracer)
+void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 {
 	if (!scene)
 		return;

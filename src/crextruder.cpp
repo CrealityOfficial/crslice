@@ -1,6 +1,6 @@
 #include "crextruder.h"
 
-namespace crslice
+namespace crslice2
 {
 
 }
