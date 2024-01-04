@@ -581,7 +581,9 @@ namespace gcode
             auto iter = kvs.find("FEATURE");
             if (iter != kvs.end())
             {
-                if (iter->second == "Outer wall")
+                if (iter->second == "Outer wall"
+                    || iter->second == "Overhang wall"
+                    || iter->second == "Bridge")
                 {
                     iter->second = "WALL-OUTER";
                 }
@@ -590,7 +592,10 @@ namespace gcode
                     iter->second = "WALL-INNER";
                 }
                 else if (iter->second == "Bottom surface"
-                    || iter->second == "Bottom surface")
+                    || iter->second == "Bottom surface"
+                    || iter->second == "Top solid infill"
+                    || iter->second == "Bottom surface"
+                    || iter->second == "Top surface")
                 {
                     iter->second = "SKIN";
                 }
@@ -604,6 +609,10 @@ namespace gcode
                 }
                 else if (iter->second == "Internal solid infill"
                     || iter->second == "Gap infill"
+                    || iter->second == "Sparse infill"
+                    || iter->second == "Bridge infill"
+                    || iter->second == "Gap infill"
+                    || iter->second == "Internal solid infill"
                     || iter->second == "Sparse infill")
                 {
                     iter->second = "FILL";
@@ -921,15 +930,19 @@ namespace gcode
             auto iter = kvs.find("TYPE");
             if (iter != kvs.end())
             {
-                if (iter->second == "External perimeter")
+                if (iter->second == "External perimeter" || iter->second == "Custom" || iter->second == "Outer wall"
+                    || iter->second == "Overhang wall"
+                    || iter->second == "Bridge")
                 {
                     iter->second = "WALL-OUTER";
                 }
-                else if (iter->second == "perimeter")
+                else if (iter->second == "perimeter" || iter->second == "Inner wall")
                 {
                     iter->second = "WALL-INNER";
                 }
-                else if (iter->second == "Top solid infill")
+                else if (iter->second == "Top solid infill"
+                    || iter->second == "Bottom surface"
+                    || iter->second == "Top surface")
                 {
                     iter->second = "SKIN";
                 }
@@ -944,12 +957,14 @@ namespace gcode
                 }
                 else if (iter->second == "Solid infill"
                     || iter->second == "Internal infill"
-                    || iter->second == "Bridge infill")
+                    || iter->second == "Bridge infill"
+                    || iter->second == "Gap infill"
+                    || iter->second == "Internal solid infill"
+                    || iter->second == "Sparse infill")
                 {
                     iter->second = "FILL";
                 }
             }
-
 
             kvs.insert(std::make_pair("TIME_ELAPSED", "0"));
             return;
@@ -1073,7 +1088,7 @@ namespace gcode
             iter = kvs.find("outer perimeter");
             if (iter != kvs.end())
             {
-                iter->second = " WALL-OUTER";
+                iter->second = "WALL-OUTER";
                 changeKey("outer perimeter", "TYPE", kvs);
             }
 
@@ -1639,11 +1654,11 @@ namespace gcode
             {
                 sliceCompany = SliceCompany::creality;
             }
-            else if (comment.find("PrusaSlicer") != std::string::npos)
+            else if (comment.find("PrusaSlicer") != std::string::npos )
             {
                 sliceCompany = SliceCompany::prusa;
             }
-            else if (comment.find("BambuStudio") != std::string::npos)
+            else if (comment.find("BambuStudio") != std::string::npos || comment.find("OrcaSlicer") != std::string::npos)
             {
                 sliceCompany = SliceCompany::bambu;
             }
