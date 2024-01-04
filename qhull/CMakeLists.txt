@@ -137,7 +137,7 @@ __add_real_target(${qhull_STATIC} lib SOURCE ${libqhull_SOURCES}
 									  FOLDER slice
 									  )
 if(UNIX)
-    target_link_libraries(${qhull_STATIC} m)
+    target_link_libraries(${qhull_STATIC} PUBLIC m)
 endif(UNIX)
 ##################################################
 

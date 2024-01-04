@@ -33,5 +33,5 @@ __add_real_target(glu-libtess lib SOURCE
 	)
 
 if(UNIX)
-    target_link_libraries(glu-libtess m)
+    target_link_libraries(glu-libtess PUBLIC m)
 endif(UNIX)
