@@ -14,6 +14,7 @@
 
 #include "crslice/gcode/gcodedata.h"
 #include "crslice/gcode/pressureEquity.h"
+#include "utils/Coord_t.h"
 
 namespace cura52
 {
@@ -264,6 +265,13 @@ namespace cura52
 
     void Application::compute()
     {
+        // add ams extruders
+        size_t material_boxes_size = scene->settings.get<size_t>("asm_material_count");
+        scene->extruders.reserve(material_boxes_size);
+
+        for(int j = scene->extruders.size() ;j<=material_boxes_size;j++){
+            scene->extruders.push_back(ExtruderTrain(scene->extruders.size(), &scene->extruders[0].settings));
+        }
         //build setting
         size_t numExtruder = scene->extruders.size();
         for (size_t i = 0; i < numExtruder; ++i)
@@ -300,6 +308,23 @@ namespace cura52
         for (MeshGroup& meshGroup : scene->mesh_groups)
             meshGroup.finalize();
 
+        //get box
+        {
+            AABB3D box3;
+            for (MeshGroup& meshGroup : scene->mesh_groups)
+                for (Mesh& mesh : meshGroup.meshes)
+                {
+                    box3.include(mesh.getAABB());
+                }
+
+            if (scene->fDebugger)
+            {
+                trimesh::box3 b;
+                b += trimesh::vec3(INT2MM(box3.min.x), INT2MM(box3.min.y), INT2MM(box3.min.z));
+                b += trimesh::vec3(INT2MM(box3.max.x), INT2MM(box3.max.y), INT2MM(box3.max.z));
+                scene->fDebugger->setSceneBox(b);
+            }        
+        }
 
         // slice
         int index = 0;

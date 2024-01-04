@@ -43,9 +43,11 @@
 #include "utils/algorithm.h"
 #include "utils/math.h"
 #include "utils/Simplify.h"
+#include "utils/paintdata.h"
 
 #include "slice/slicestep.h"
 #include "poly/polystep.h"
+#include "poly/getlayerdata.h"
 #include "slice/slicer.h"
 
 #include "slice/sliceddata.h"
@@ -251,11 +253,17 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
     storage.support.supportLayers.resize(storage.print_layer_count);
 
     //get paint_support
-    if(meshgroup->settings.get<bool>("support_enable"))
-        getPaintSupport(storage, layer_thickness, slice_layer_count, use_variable_layer_heights);
-
+    if (meshgroup->settings.get<bool>("support_enable"))
+    {
+        getPaintSupport(storage, application, layer_thickness, slice_layer_count, use_variable_layer_heights);
+        getPaintSupport_anti(storage, application, layer_thickness, slice_layer_count, use_variable_layer_heights);
+    }
+        
     //get Zseam line;
-    getZseamLine(storage, layer_thickness, slice_layer_count, use_variable_layer_heights);
+    {
+        getZseamLine(storage, application, layer_thickness, slice_layer_count, use_variable_layer_heights);
+        getZseamLine_anti(storage, application, layer_thickness, slice_layer_count, use_variable_layer_heights);
+    }
 
     storage.meshes.reserve(meshCount); // causes there to be no resize in meshes so that the pointers in sliceMeshStorage._config to retraction_config don't get invalidated.
     for (int meshIdx = 0; meshIdx < meshCount; meshIdx++)
@@ -355,7 +363,6 @@ bool FffPolygonGenerator::sliceModel(MeshGroup* meshgroup, SliceDataStorage& sto
 
         application->messageProgress(Progress::Stage::PARTS, meshIdx + 1, meshCount);
     }
-
     return true;
 }
 
@@ -435,19 +442,20 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     AreaSupport::generateSupportAreas(storage);
 
     INTERRUPT_RETURN("FffPolygonGenerator::slices2polygons");
-
-    if (application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE)
+    mergePaintSupport(storage);
+    if (application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE
+        || application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::THOMASTREE_MANUAL)
     {
         //ThomasTreeSupport thomas_tree_support_generator(storage);
         //thomas_tree_support_generator.generateSupportAreas(storage);
         cura54::TreeSupportT tree_support_generator(storage);
         tree_support_generator.generateSupportAreas(storage);
     }
-    else if(application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::TREE)
-    {
-        TreeSupport tree_support_generator(storage);
-        tree_support_generator.generateSupportAreas(storage);
-    }
+    //else if(application->sceneSettings().get<ESupportStructure>("support_structure") == ESupportStructure::TREE)
+    //{
+    //    TreeSupport tree_support_generator(storage);
+    //    tree_support_generator.generateSupportAreas(storage);
+    //}
 
     AreaSupport::generateSharpTailSupport(storage);
 
@@ -503,6 +511,10 @@ void FffPolygonGenerator::slices2polygons(SliceDataStorage& storage)
     LOGD("Processing gradual support");
     // generate gradual support
     AreaSupport::generateSupportInfillFeatures(storage);
+
+
+    if(application->debugger())
+        getLayerSupportData(storage, application);
 
 #if USE_CACHE
         cacheAll(storage);
@@ -1302,139 +1314,5 @@ void FffPolygonGenerator::processFuzzyWalls(SliceMeshStorage& mesh)
     }
 }
 
-void FffPolygonGenerator::getPaintSupport(SliceDataStorage& storage,const int layer_thickness,const int slice_layer_count, const bool use_variable_layer_heights)
-{
-    std::vector<cura52::Mesh> supportMesh;
-    getBinaryData(application->supportFile(),supportMesh);
-    if (!supportMesh.empty())
-    {
-        for (Mesh& mesh : supportMesh)
-        {
-            SlicedData slicedData;
-            mesh.settings.add("support_paint_enable", "true");
-            mesh.settings.add("keep_open_polygons", "true");
-            mesh.settings.add("minimum_polygon_circumference", "0.05");//长度小于此值会被移除
-            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, slicedData);
-            handleSupportModifierMesh(storage, mesh.settings, &slicedData);
-        }
-    }
-
-    std::vector<cura52::Mesh> antiMesh;
-    getBinaryData(application->antiSupportFile(), antiMesh);
-    if (!antiMesh.empty())
-    {
-        for (Mesh& mesh : antiMesh)
-        {
-            SlicedData slicedData;
-            mesh.settings.add("support_paint_enable", "true"); 
-            mesh.settings.add("keep_open_polygons", "true");
-            mesh.settings.add("minimum_polygon_circumference", "0.05");//长度小于此值会被移除
-            mesh.settings.add("anti_overhang_mesh", "true");
-            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, slicedData);
-            handleSupportModifierMesh(storage, mesh.settings, &slicedData);
-        }
-    }
-}
-
-void FffPolygonGenerator::getZseamLine(SliceDataStorage& storage, const int layer_thickness, const int slice_layer_count, const bool use_variable_layer_heights)
-{
-    std::vector<cura52::Mesh> ZseamMesh;
-    getBinaryData(application->seamFile(), ZseamMesh);
-    if (!ZseamMesh.empty())
-    {
-        storage.zSeamPoints.resize(slice_layer_count);
-        for (Mesh& mesh : ZseamMesh)
-        {
-            SlicedData slicedData;
-            std::vector<SlicerLayer> Zseamlineslayers;
-
-            mesh.settings.add("zseam_paint_enable", "true");
-            sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, Zseamlineslayers);
-            for (unsigned int layer_nr = 0; layer_nr < Zseamlineslayers.size(); layer_nr++)
-            {
-                for (size_t i = 0; i < Zseamlineslayers[layer_nr].segments.size(); i++)
-                {
-                    storage.zSeamPoints[layer_nr].ZseamLayers.push_back(ZseamDrawPoint(Zseamlineslayers[layer_nr].segments[i].start));
-                }
-            }
-        }
-    }
-
-    ZseamMesh.clear();
-	getBinaryData(application->antiSeamFile(), ZseamMesh);
-	if (!ZseamMesh.empty())
-	{
-		storage.zSeamPoints.resize(slice_layer_count);
-		for (Mesh& mesh : ZseamMesh)
-		{
-			SlicedData slicedData;
-			std::vector<SlicerLayer> Zseamlineslayers;
-
-			mesh.settings.add("zseam_paint_enable", "true");
-			sliceMesh(application, &mesh, layer_thickness, slice_layer_count, use_variable_layer_heights, nullptr, Zseamlineslayers);
-			for (unsigned int layer_nr = 0; layer_nr < Zseamlineslayers.size(); layer_nr++)
-			{
-				for (size_t i = 0; i < Zseamlineslayers[layer_nr].segments.size(); i++)
-				{
-					storage.interceptSeamPoints[layer_nr].ZseamLayers.push_back(ZseamDrawPoint(Zseamlineslayers[layer_nr].segments[i].start));
-				}
-			}
-		}
-	}
-}
-
-void FffPolygonGenerator::getBinaryData(std::string fileName, std::vector<Mesh>& meshs)
-{
-    std::fstream in(fileName, std::ios::in | std::ios::binary);
-    if (in.is_open())
-    {
-        while (1)
-        {
-            int pNum = 0;
-            in.read((char*)&pNum, sizeof(int));
-            if (pNum > 0)
-            {
-                meshs.push_back(Mesh(application->currentGroup()->settings));
-                meshs.back().faces.resize(pNum);
-                for (int i = 0; i < pNum; ++i)
-                {
-                    int num = 0;
-                    in.read((char*)&num, sizeof(int));
-                    if (num == 3)
-                    {
-                        for (int j = 0; j < num; j++)
-                        {
-                            in.read((char*)&meshs.back().faces[i].vertex_index[j], sizeof(int));
-                        }
-                    }
-                }
-            }
-            else
-                break;
-
-            pNum = 0;
-            in.read((char*)&pNum, sizeof(int));
-            if (pNum > 0)
-            {
-                for (int i = 0; i < pNum; ++i)
-                {
-                    int num = 0;
-                    in.read((char*)&num, sizeof(int));
-                    if (num == 3)
-                    {
-                        std::vector<float> v(3);
-                        for (int j = 0; j < num; j++)
-                        {
-                            in.read((char*)&v[j], sizeof(float));
-                        }
-                        meshs.back().vertices.push_back(MeshVertex(Point3(MM2INT(v[0]), MM2INT(v[1]), MM2INT(v[02]))));
-                    }
-                }
-            }
-            meshs.back().finish();
-        }
-    }
-    in.close();
-}
 
 } // namespace cura52

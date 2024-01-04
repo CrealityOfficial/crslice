@@ -419,9 +419,9 @@ namespace gcode
         changeKey("Top/Bottom Thickness", "top_bottom_thickness", kvs); 	
         changeKey("Out Wall Line Width", "wall_line_width", kvs);
         changeKey("Filament Cost", "filament_cost", kvs);
+        changeKey("Filament Colour", "filament_colour", kvs);
+        changeKey("Flush Volumes Matrix", "flush_volumes_matrix", kvs);
         
-        
-
         //changeKey("Print Speed", "speed_print", kvs);
         changeKey("Initial Layer Speed", "speed_layer_0", kvs);
         changeKey("Travel Speed", "speed_travel", kvs);
@@ -1886,6 +1886,13 @@ namespace gcode
                     pathData->setLayers(std::atoi(iter->second.c_str()));
                     haveLayerCount = true;
                 }
+
+                iter = kvs.find("filament_colour");
+                if (iter != kvs.end() && !haveLayerCount)
+                {
+                    pathData->setNozzleColorList(iter->second);
+                    haveLayerCount = true;
+                }   
 
                 //temp
                 if (cmd.command == "M104" || cmd.command == "109")

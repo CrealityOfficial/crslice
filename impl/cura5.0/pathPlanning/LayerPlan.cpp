@@ -188,11 +188,6 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 	GCodePath last_path = extruder_plans.back().paths[index];
 	last_path.points.clear();
 	coord_t distance = wall_0_wipe_dist;
-	//if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
-	//{
-	//	return;
-	//}
-
 
 	std::vector<Point> aPoints;
 	bool isEmpty = extruder_plans.back().paths.back().points.empty();
@@ -264,8 +259,16 @@ void LayerPlan::wipeBeforRetract(coord_t wall_0_wipe_dist, GCodePath* path)
 		}
 	}
 
+    if (last_path.points.empty())
+    {
+        return;
+    }
+	Point p0(last_path.points[last_path.points.size()-1]);//last_planned_position
+    if (last_path.config->type == PrintFeatureType::Infill || last_path.config->type == PrintFeatureType::Skin)
+    {
+        p0=(last_path.points[0]);
+    }
 
-	Point p0(*last_planned_position);
 	int distance_traversed = 0;
 	std::vector<Point> backPoints;
 	for (unsigned int point_idx = 0;; point_idx++)
@@ -505,7 +508,9 @@ bool LayerPlan::setExtruder(const size_t extruder_nr)
     { // first extruder plan in a layer might be empty, cause it is made with the last extruder planned in the previous layer
         extruder_plans.back().extruder_nr = extruder_nr;
     }
-    extruder_plans.emplace_back(extruder_nr, layer_nr, is_initial_layer, is_raft_layer, layer_thickness, fan_speed_layer_time_settings_per_extruder[extruder_nr], storage.retraction_config_per_extruder[extruder_nr]);
+    if( extruder_plans.back().extruder_nr!=extruder_nr){
+         extruder_plans.emplace_back(extruder_nr, layer_nr, is_initial_layer, is_raft_layer, layer_thickness, fan_speed_layer_time_settings_per_extruder[extruder_nr], storage.retraction_config_per_extruder[extruder_nr]);
+    }
     //assert(extruder_plans.size() <= application->scene->extruders.size() && "Never use the same extruder twice on one layer!");
     last_planned_extruder = &application->extruders()[extruder_nr];
 
@@ -2268,11 +2273,11 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 
     gcode.setZ(z);
 
-    bool speed_limit_to_height_enable = mesh_group_settings.get<bool>("speed_limit_to_height_enable");
-    FlowTempGraph speed_limit_to_height = mesh_group_settings.get<FlowTempGraph>("speed_limit_to_height");
+    bool speed_limit_to_height_enable = mesh_group_settings.get<bool>("speed_limit_to_height_enable");  
     if (speed_limit_to_height_enable)
     {
-        gcode.calculatMaxSpeedLimitToHeight(speed_limit_to_height);
+        FlowTempGraph speed_limit_to_height = mesh_group_settings.get<FlowTempGraph>("speed_limit_to_height");
+        gcode.smoothSpeedAcc->calculatMaxSpeedLimitToHeight(speed_limit_to_height, gcode.get_current_layer_z());
     }
 
     const GCodePathConfig* last_extrusion_config = nullptr; // used to check whether we need to insert a TYPE comment in the gcode.
@@ -2287,7 +2292,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
     for (size_t extruder_plan_idx = 0; extruder_plan_idx < extruder_plans.size(); extruder_plan_idx++)
     {
         ExtruderPlan& extruder_plan = extruder_plans[extruder_plan_idx];
-        const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[extruder_plan.extruder_nr];
+        const RetractionConfig& retraction_config = storage.retraction_config_per_extruder[0];
         coord_t z_hop_height = retraction_config.zHop;
 
         double cds_fan_speed = extruder_plan.cds_fan_speed;
@@ -2488,7 +2493,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                     if (entireLayerSlowdown)
                         gcode.writePrintAcceleration(speed_slowtofast_slowdown_revise_acceleration, acceleration_breaking_enabled, acceleration_breaking);
                     else
-                        gcode.writePrintAcceleration(path.config->getAcceleration() * extruder_plan.getExtrudeSpeedFactor(), acceleration_breaking_enabled, acceleration_breaking);
+                        gcode.writePrintAcceleration(path.config->getAcceleration(), acceleration_breaking_enabled, acceleration_breaking);
                 }
             }
             if (jerk_enabled)
@@ -2605,7 +2610,10 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 				{
 					RetractionConfig retraction_config_1 = retraction_config;
 					retraction_config_1.distance = extruder.settings.get<Ratio>("before_wipe_retraction_amount_percent") * retraction_config_1.distance;
-					gcode.writeRetraction(retraction_config_1);
+					if (retraction_config_1.distance > 0)
+					{
+						gcode.writeRetraction(retraction_config_1);
+					}
 					std::vector<Point> last_path;
 					std::vector<std::pair<Point, double>> wipe_path_record;
 					bool openPolygen = getLastExtrusionPath(last_path, path_idx);
@@ -2735,7 +2743,8 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                 {
                     ss << "MESH:" << current_mesh;
                     gcode.writeComment(ss.str());
-                    ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
+                    if (tmp_mesh_name != "NONMESH" && tmp_mesh_name != "")
+                        ss_exclude_end << "EXCLUDE_OBJECT_END NAME=" << tmp_mesh_name;
                     gcode.writeComment2(ss_exclude_end.str());
                     if (current_mesh != "NONMESH")
                     {

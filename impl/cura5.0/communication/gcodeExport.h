@@ -20,6 +20,7 @@
 
 #include "utils/IntPoint.h"
 #include "tools/NoCopy.h"
+#include "utils/smoothspeedacc.h"
 
 namespace cura52
 {
@@ -28,11 +29,6 @@ namespace cura52
     class SliceContext;
     struct SliceResult;
     class TimeEstimateCalculator;
-    enum LimitType
-    {
-        LIMIT_MESS,
-        LIMIT_HEIGHT
-    };
 
     struct ExtruderTrainAttributes
     {
@@ -106,18 +102,6 @@ namespace cura52
         double e_value_cleaned; //E celaned
         double material_diameter = { 1.75 };
         double material_density = { 1.24 };
-        double acceleration_limit_mess;
-
-        std::vector<LimitGraph> vctacceleration_limit_mass;
-        std::vector<LimitGraph> vctacceleration_limit_height;
-
-        bool acceleration_limit_mess_enable = false;
-        bool acceleration_limit_height_enable = false;
-        Velocity max_speed_limit_to_height;
-
-        Velocity current_limit_speed = -1.0f;
-        Velocity current_limit_Acc = -1.0f;
-        Temperature current_limit_Temp = -1.0f;
 
         // flow-rate compensation
         double current_e_offset; //!< Offset to compensate for flow rate (mm or mm^3)
@@ -416,18 +400,8 @@ namespace cura52
         Acceleration get_current_travel_acceleration();
         Acceleration get_current_print_acceleration();
 
-        void setAccelerationLimitMessEnable(bool limitMess);
-        void setAccelerationLimitHeightEnable(bool limitHeight);
-        void setAcc_Limit_mass(std::vector<LimitGraph>& acceleration_limit_mass);
-        void setAcc_Limit_height(std::vector<LimitGraph>& acceleration_limit_height);
-
-        void calculatMaxSpeedLimitToHeight(const FlowTempGraph& speed_limit_to_height);
-
-    private:
-     bool detect_limit(LimitType limitType);
-     bool detect_limit_acc(LimitType limitType);
-     bool detect_limit_temp(LimitType limitType);
-     bool detect_limit_speed(LimitType limitType);
+        float get_current_layer_z();
+        std::shared_ptr<SmoothSpeedAcc> smoothSpeedAcc;
     private:
         /*!
          * Coordinates are build plate coordinates, which might be offsetted when extruder offsets are encoded in the gcode.

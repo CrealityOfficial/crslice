@@ -2,6 +2,7 @@
 
 #include "crgroup.h"
 #include "mesh/trimecr30.h"
+#include "mesh/colorflag.h"
 #include "ccglobal/log.h"
 #include <assert.h>
 
@@ -24,7 +25,9 @@ namespace crslice
             cura52::Point3 p1(MM2INT(v1.x), MM2INT(v1.y), MM2INT(v1.z));
             cura52::Point3 p2(MM2INT(v2.x), MM2INT(v2.y), MM2INT(v2.z));
             cura52::Point3 p3(MM2INT(v3.x), MM2INT(v3.y), MM2INT(v3.z));
-            curaMesh.addFace(p1, p2, p3);
+            int color = mesh->flags[i];
+            curaMesh.addFace(p1, p2, p3,color);
+
 
             if (i % 10000 == 0)
             {
@@ -167,8 +170,10 @@ namespace crslice
             //CR30 end
         }
 
+        
         for (size_t i = 0; i < numGroup; i++)
         {
+            std::set<int> colorNums;
             CrGroup* crGroup = scene->getGroupsIndex(i);
             if (crGroup)
             {
@@ -179,7 +184,7 @@ namespace crslice
                     if (object.m_mesh.get() != nullptr)
                     {
                         INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
-
+                        getColors(object.m_mesh.get(), colorNums);
                         slice->mesh_groups[i].meshes.emplace_back(cura52::Mesh());
                         cura52::Mesh& mesh = slice->mesh_groups[i].meshes.back();
                         std::string name = std::to_string(i) + "_" + std::to_string(index);
@@ -193,6 +198,8 @@ namespace crslice
                     }
                 }
                 slice->mesh_groups[i].m_offset = cura52::FPoint3(crGroup->m_offset.x, crGroup->m_offset.y, crGroup->m_offset.z);
+
+                crGroup->m_settings->add("model_color_count",std::to_string(colorNums.size()));
             }
             INTERRUPT_BREAK("CRSliceFromScene::sliceNext");
         }

@@ -32,6 +32,7 @@ GCodeExport::GCodeExport()
 	, currentPosition(0, 0, MM2INT(20))
 	, layer_nr(0)
     , estimateCalculator(new TimeEstimateCalculator())
+    , smoothSpeedAcc(new SmoothSpeedAcc())
 {
     *output_stream << std::fixed;
 
@@ -62,7 +63,7 @@ GCodeExport::GCodeExport()
     fan_number = 0;
 
     total_bounding_box = AABB3D();
-    max_speed_limit_to_height = -1.0;
+    //max_speed_limit_to_height = -1.0;
 }
 
 GCodeExport::~GCodeExport()
@@ -363,13 +364,23 @@ void GCodeExport::writeSpecialModelAndMeshConfig()
     tmp << ";Layer0 ZOverLap:" << (float)extruderSettings->get<coord_t>("layer_0_z_overlap") / 1000.0f << new_line;
     tmp << ";Adaptive Layers:" << (float)extruderSettings->get<bool>("adaptive_layer_height_enabled") << new_line;
 
+    tmp << "; --------Colors--------" << new_line;
+    tmp << ";ASM Material Count:" << groupSettings->get<int>("asm_material_count") << new_line;
+    tmp << ";Model Color Count:" << groupSettings->get<int>("model_color_count") << new_line;
+    tmp << ";Flush Volumes Matrix:" << groupSettings->get<std::string>("flush_volumes_matrix") << new_line;
+    tmp << ";Filament Colour:" << groupSettings->get<std::string>("filament_colour") << new_line;
+    tmp << ";Flush into objects:" << groupSettings->get<bool>("flush_into_objects") << new_line;
+    tmp << ";Flush into objects:" << groupSettings->get<bool>("flush_into_infill") << new_line;
+    tmp << ";Filament minimal purge on wipe tower:" << (float)meshSettings->get<coord_t>("filament_minimal_purge_on_wipe_tower") / 1000.0f << new_line;
+
     *output_stream << tmp.str();
 }
 
 std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used, const Duration* print_time, const std::vector<double>& filament_used, const std::vector<std::string>& mat_ids)
 {
     std::ostringstream prefix;
-
+	Settings* setting = &application->currentGroup()->settings;
+	Settings* extruderSettings = &application->extruders()[0].settings;
     gcode::GCodeParseInfo pathParam;
     const size_t extruder_count = application->extruderCount();
     switch (flavor)
@@ -479,7 +490,27 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
                 prefix << "00.0000m";
             }
             prefix << new_line;
-            prefix << ";Layer height:" << INT2MM(application->get_layer_height()) << new_line;
+			//pathParam.printTime;
+			//pathParam.materialLenth;
+			pathParam.material_diameter = extruderSettings->get<double>("material_diameter"); //材料直径
+			pathParam.material_density = extruderSettings->get<double>("material_density");  //材料密度			
+			pathParam.lineWidth = setting->get<double>("line_width");
+			pathParam.layerHeight = setting->get<double>("layer_height");
+			//pathParam.unitPrice;
+            float materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
+			float filament_cost = extruderSettings->get<double>("filament_cost");
+            float filament_weight = extruderSettings->get<double>("filament_weight");
+            float unitPrice = filament_weight>0? filament_cost / filament_weight : 0.0f;
+			pathParam.spiralMode = setting->get<bool>("magic_spiralize");
+			pathParam.exportFormat = setting->get<std::string>("preview_img_type");//QString exportFormat;
+			pathParam.screenSize = setting->get<std::string>("screen_size");//QString screenSize;
+            pathParam.weight = materialDensity * pathParam.materialLenth;
+            prefix << ";Layer height:" << application->currentGroup()->settings.get<double>("layer_height") << new_line;
+            prefix << ";Material Diameter:" << extruderSettings->get<std::string>("material_diameter") << new_line;
+            prefix << ";Material Density:" << extruderSettings->get<std::string>("material_density") << new_line;
+            prefix << ";Filament Cost:" << std::to_string(unitPrice * pathParam.materialLenth * materialDensity) << new_line;
+            prefix << ";Filament Weight:" << std::to_string(pathParam.weight) << new_line;
+            prefix << ";Filament Length:" << std::to_string(pathParam.materialLenth) << new_line;
         }
         else
             prefix << ";Layer Height:" << INT2MM(application->get_layer_height()) << new_line;
@@ -495,29 +526,6 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         //
 
         {
-            Settings* setting = &application->currentGroup()->settings;
-            Settings* meshSettings = &application->currentGroup()->meshes[0].settings;
-            Settings* extruderSettings = &application->extruders()[0].settings;
-
-            pathParam.machine_height = setting->get<double>("machine_height");
-            pathParam.machine_width = setting->get<double>("machine_width");
-            pathParam.machine_depth = setting->get<double>("machine_depth");
-            //pathParam.printTime;
-            //pathParam.materialLenth;
-            pathParam.material_diameter = setting->get<double>("material_diameter"); //材料直径
-            pathParam.material_density = setting->get<double>("material_density");  //材料密度
-            pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
-            pathParam.lineWidth = setting->get<double>("line_width");
-            pathParam.layerHeight = INT2MM(application->get_layer_height());
-            //pathParam.unitPrice;
-
-            float filament_cost = setting->get<double>("filament_cost");
-            pathParam.unitPrice = filament_cost / pathParam.materialLenth;
-            pathParam.spiralMode = setting->get<bool>("magic_spiralize");
-            ;
-            pathParam.exportFormat = setting->get<std::string>("preview_img_type");//QString exportFormat;
-            pathParam.screenSize = setting->get<std::string>("screen_size");//QString screenSize;
-
             if (total_print_times.size() > 9)
             {
                 pathParam.timeParts = {
@@ -1024,8 +1032,14 @@ void GCodeExport::writeZoffsetComment(const double zOffset)
 
 void GCodeExport::writePressureComment(const double length)
 {
-    *output_stream << "M900 K" << length << new_line;
-
+    if(flavor == EGCodeFlavor::Creality_OS)
+	{
+        *output_stream << "SET_PRESSURE_ADVANCE ADVANCE=" << length << "; Override pressure advance value" << new_line;
+	}
+    else
+    {
+        *output_stream << "M900 K" << length << new_line;
+    }
     if (application->debugger())
         application->debugger()->getNotPath();
 }
@@ -1396,16 +1410,7 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
         return;
     }
 
-    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-    {
-        if (acceleration_limit_mess_enable)
-            detect_limit_speed(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_speed(LimitType::LIMIT_HEIGHT);
-
-        if (current_limit_speed > 0.0f)
-            speed = std::min(speed, current_limit_speed);
-    }
+    smoothSpeedAcc->detect_speed(speed, getEvalue(), current_layer_z);
 
 #ifdef ASSERT_INSANE_OUTPUT
     assert(speed < 1000 && speed > 1); // normal F values occurring in UM2 gcode (this code should not be compiled for release)
@@ -1505,16 +1510,7 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
         return;
     }
 
-    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-    {
-        if (acceleration_limit_mess_enable)
-            detect_limit_speed(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_speed(LimitType::LIMIT_HEIGHT);
-
-        if (current_limit_speed > 0.0f)
-            speed = std::min(speed, current_limit_speed);
-    }
+    smoothSpeedAcc->detect_speed(speed, getEvalue(), current_layer_z);
 
 #ifdef ASSERT_INSANE_OUTPUT
     assert(speed < 1000 && speed > 1); // normal F values occurring in UM2 gcode (this code should not be compiled for release)
@@ -1860,12 +1856,12 @@ coord_t GCodeExport::writeTrapezoidalLeft(const Velocity& speed, Point endPoint,
     }
     else if (len < zHopTravelDistance)
     {
-        writeTravel(Point3(endPoint.X, endPoint.Y, currentPosition.z), speed);
+        writeTravel(Point3(endPoint.X, endPoint.Y, current_layer_z + is_z_hopped), speed);
     }
     else
     {
         Point HopTravel = source + Travel * (zHopTravelDistance / len);
-        writeTravel(Point3(HopTravel.X, HopTravel.Y, currentPosition.z), speed);
+        writeTravel(Point3(HopTravel.X, HopTravel.Y, current_layer_z + is_z_hopped), speed);
     }
 
     return is_z_hopped;
@@ -2333,16 +2329,7 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
 {
     Temperature temperature = _temperature;
 
-    if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-    {
-        if (acceleration_limit_mess_enable)
-            detect_limit_temp(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_temp(LimitType::LIMIT_HEIGHT);
-
-        if (current_limit_Temp > 0.0f)
-            temperature = std::min(temperature, current_limit_Temp);
-    }
+    //limit temp
 
     const ExtruderTrain& extruder_train = application->extruders()[extruder];
 
@@ -2382,6 +2369,9 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
     {
         return;
     }
+    if (extruder != current_extruder) {
+        return;
+    }
 
     if (wait && flavor != EGCodeFlavor::MAKERBOT)
     {
@@ -2397,6 +2387,7 @@ void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperatu
     }
     else
     {
+        //加热喷头
         *output_stream << "M104";
         extruder_attr[extruder].waited_for_temperature = false;
 
@@ -2457,16 +2448,7 @@ void GCodeExport::writeTopHeaterCommand(const size_t extruder, const Temperature
 {
 	Temperature temperature = _temperature;
 
-	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-	{
-        if (acceleration_limit_mess_enable)
-            detect_limit_temp(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_temp(LimitType::LIMIT_HEIGHT);
-
-		if (current_limit_Temp > 0.0f)
-			temperature = std::min(temperature, current_limit_Temp);
-	}
+    //limit temp
 
 	if (wait)
 	{
@@ -2578,280 +2560,11 @@ void GCodeExport::writeBuildVolumeTemperatureCommand(const Temperature& temperat
         application->debugger()->getNotPath();
 }
 
-bool GCodeExport::detect_limit(LimitType limitType)
-{
-    //double value = 0.0f;
-
-    //if (limitType == LimitType::LIMIT_MESS)
-    //{
-    //    double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-    //    value = volume * (getDensity() / 1000.0);
-    //}
-    //else if (limitType == LimitType::LIMIT_HEIGHT)
-    //{
-    //    value = current_layer_z;
-    //}
-
-    //if (value < 0)
-    //    return false;
-
-    ////检测在第几个区间
-    //std::vector<LimitGraph> limit_data;
-    //if (limitType == LimitType::LIMIT_MESS){
-    //    limit_data = vctacceleration_limit_mass;
-    //}
-    //else if (limitType == LimitType::LIMIT_HEIGHT){
-    //    limit_data = vctacceleration_limit_height;
-    //}
-
-    //for (size_t i = 0; i < limit_data.size(); i++)
-    //{
-    //    LimitGraph& limit = limit_data[i];
-    //    double& value1 = limit.data.value1;
-    //    double& value2 = limit.data.value2;
-
-    //    if (value <= value2 && value >= value1)
-    //    {
-    //        //speed
-    //        {
-    //            double& s1 = limit.data.speed1;
-    //            double& s2 = limit.data.speed2;
-    //            if ((value2 - value1) && (s1 - s2))
-    //            {
-    //                //y = ax + b
-    //                double a = (s2 - s1) / (value2 - value1);
-    //                double b = s1 - a * value1;
-    //                double out = a * value + b;
-    //                if (out < current_limit_speed || current_limit_speed < 0.0f)
-    //                {
-    //                    current_limit_speed = out;
-    //                }
-    //            }
-    //        }
-
-    //        ////Acc
-    //        //{
-    //        //    double& s1 = limit.data.Acc1;
-    //        //    double& s2 = limit.data.Acc2;
-    //        //    if ((value2 - value1) && (s1 - s2))
-    //        //    {
-    //        //        //y = ax + b
-    //        //        double a = (s2 - s1) / (value2 - value1);
-    //        //        double b = s1 - a * value1;
-    //        //        double out = a * value + b;
-    //        //        if (out < current_limit_Acc || current_limit_Acc < 0.0f)
-    //        //        {
-    //        //            current_limit_Acc = out;
-    //        //        }
-    //        //    }
-    //        //}
-
-    //        //Temp
-    //        {
-    //            double& s1 = limit.data.Temp1;
-    //            double& s2 = limit.data.Temp2;
-    //            if ((value2 - value1) && (s1 - s2))
-    //            {
-    //                //y = ax + b
-    //                double a = (s2 - s1) / (value2 - value1);
-    //                double b = s1 - a * value1;
-    //                double out = a * value + b;
-    //                if (out < current_limit_Temp || current_limit_Temp < 0.0f)
-    //                {
-    //                    current_limit_Temp = out;
-    //                }
-    //            }
-    //        }
-
-    //        //return true;
-    //    }
-    //}
-
-    return true;
-}
-
-bool GCodeExport::detect_limit_acc(LimitType limitType)
-{
-    double value = 0.0f;
-
-    if (limitType == LimitType::LIMIT_MESS)
-    {
-        double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-        value = volume * (getDensity() / 1000.0);
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT)
-    {
-        value = current_layer_z;
-    }
-
-    if (value < 0)
-        return false;
-
-    //检测在第几个区间
-    std::vector<LimitGraph> limit_data;
-    if (limitType == LimitType::LIMIT_MESS) {
-        limit_data = vctacceleration_limit_mass;
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT) {
-        limit_data = vctacceleration_limit_height;
-    }
-
-    for (size_t i = 0; i < limit_data.size(); i++)
-    {
-        LimitGraph& limit = limit_data[i];
-        double& value1 = limit.data.value1;
-        double& value2 = limit.data.value2;
-
-        if (value <= value2 && value >= value1)
-        {
-            //Acc
-            {
-                double& s1 = limit.data.Acc1;
-                double& s2 = limit.data.Acc2;
-                if ((value2 - value1) && (s1 - s2))
-                {
-                    //y = ax + b
-                    double a = (s2 - s1) / (value2 - value1);
-                    double b = s1 - a * value1;
-                    double out = a * value + b;
-                    if (out < current_limit_Acc || current_limit_Acc < 0.0f)
-                    {
-                        current_limit_Acc = out;
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-bool GCodeExport::detect_limit_temp(LimitType limitType)
-{
-    double value = 0.0f;
-
-    if (limitType == LimitType::LIMIT_MESS)
-    {
-        double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-        value = volume * (getDensity() / 1000.0);
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT)
-    {
-        value = current_layer_z;
-    }
-
-    if (value < 0)
-        return false;
-
-    //检测在第几个区间
-    std::vector<LimitGraph> limit_data;
-    if (limitType == LimitType::LIMIT_MESS) {
-        limit_data = vctacceleration_limit_mass;
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT) {
-        limit_data = vctacceleration_limit_height;
-    }
-
-    for (size_t i = 0; i < limit_data.size(); i++)
-    {
-        LimitGraph& limit = limit_data[i];
-        double& value1 = limit.data.value1;
-        double& value2 = limit.data.value2;
-
-        if (value <= value2 && value >= value1)
-        {
-            //Temp
-            {
-                double& s1 = limit.data.Temp1;
-                double& s2 = limit.data.Temp2;
-                if ((value2 - value1) && (s1 - s2))
-                {
-                    //y = ax + b
-                    double a = (s2 - s1) / (value2 - value1);
-                    double b = s1 - a * value1;
-                    double out = a * value + b;
-                    if (out < current_limit_Temp || current_limit_Temp < 0.0f)
-                    {
-                        current_limit_Temp = out;
-                    }
-                }
-            }
-            //return true;
-        }
-    }
-
-    return true;
-}
-
-bool GCodeExport::detect_limit_speed(LimitType limitType)
-{
-    double value = 0.0f;
-
-    if (limitType == LimitType::LIMIT_MESS)
-    {
-        double volume = getEvalue() * (0.25 * getDiameter() * getDiameter() * 3.1415926);
-        value = volume * (getDensity() / 1000.0);
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT)
-    {
-        value = current_layer_z;
-    }
-
-    if (value < 0)
-        return false;
-
-    //检测在第几个区间
-    std::vector<LimitGraph> limit_data;
-    if (limitType == LimitType::LIMIT_MESS) {
-        limit_data = vctacceleration_limit_mass;
-    }
-    else if (limitType == LimitType::LIMIT_HEIGHT) {
-        limit_data = vctacceleration_limit_height;
-    }
-
-    for (size_t i = 0; i < limit_data.size(); i++)
-    {
-        LimitGraph& limit = limit_data[i];
-        double& value1 = limit.data.value1;
-        double& value2 = limit.data.value2;
-
-        if (value <= value2 && value >= value1)
-        {
-            //speed
-            {
-                double& s1 = limit.data.speed1;
-                double& s2 = limit.data.speed2;
-                if ((value2 - value1) && (s1 - s2))
-                {
-                    //y = ax + b
-                    double a = (s2 - s1) / (value2 - value1);
-                    double b = s1 - a * value1;
-                    double out = a * value + b;
-                    if (out < current_limit_speed || current_limit_speed < 0.0f)
-                    {
-                        current_limit_speed = out;
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
 void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool acceleration_breaking_enable, float acceleration_percent)
 {
 	Acceleration acc = std::max(acceleration, Acceleration(100));
-	if (acceleration_limit_mess_enable || acceleration_limit_height_enable)
-	{       
-        if (acceleration_limit_mess_enable)
-            detect_limit_acc(LimitType::LIMIT_MESS);
-        if (acceleration_limit_height_enable)
-            detect_limit_acc(LimitType::LIMIT_HEIGHT);
 
-        if (current_limit_Acc > 0.0f)
-            acc = std::min(acc, current_limit_Acc);
-	}
+    smoothSpeedAcc->detect_acc(acc,getEvalue(), current_layer_z);
 
     switch (getFlavor())
     {
@@ -2880,7 +2593,16 @@ void GCodeExport::writePrintAcceleration(const Acceleration& acceleration, bool 
             {
                 //Acceleration breakAcc = std::max(acc * acceleration_percent / 100, Acceleration(100));
                 *output_stream << "SET_VELOCITY_LIMIT ACCEL=" << PrecisionedDouble{ 0, acc };
-                *output_stream << " ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc * acceleration_percent / 100 } << new_line;
+                *output_stream << " ACCEL_TO_DECEL=" << PrecisionedDouble{ 0, acc * acceleration_percent / 100 } << new_line;;
+                //if (acc >10000)
+                //{
+                //    *output_stream << " SQUARE_CORNER_VELOCITY=12" << new_line;
+                //    
+                //} 
+                //else
+                //{
+                //    *output_stream << " SQUARE_CORNER_VELOCITY=1" << new_line;
+                //}
                 if (application->debugger())
                     application->debugger()->getNotPath();
             }
@@ -3157,48 +2879,9 @@ Acceleration GCodeExport::get_current_print_acceleration()
 	return current_print_acceleration;
 }
 
-void GCodeExport::setAccelerationLimitMessEnable(bool limitMess)
+float GCodeExport::get_current_layer_z()
 {
-    acceleration_limit_mess_enable = limitMess;
-}
-void GCodeExport::setAccelerationLimitHeightEnable(bool limitHeight)
-{
-    acceleration_limit_height_enable = limitHeight;
-}
-void GCodeExport::setAcc_Limit_mass(std::vector<LimitGraph>& _acceleration_limit_mass)
-{
-    vctacceleration_limit_mass = _acceleration_limit_mass;
-}
-
-void GCodeExport::setAcc_Limit_height(std::vector<LimitGraph>& _acceleration_limit_height)
-{
-    vctacceleration_limit_height = _acceleration_limit_height;
-}
-
-void GCodeExport::calculatMaxSpeedLimitToHeight(const FlowTempGraph& speed_limit_to_height)
-{
-    std::vector <std::pair<float, float>> limit_data;
-    for (int i = 0; i < speed_limit_to_height.data.size(); i++)
-    {
-        limit_data.push_back(std::pair(speed_limit_to_height.data[i].flow, speed_limit_to_height.data[i].temp));
-    }
-
-    std::sort(limit_data.begin(), limit_data.end(),
-        [](const std::pair<float, float>& a, const std::pair<float, float>& b) {
-            if (a.first == b.first) {
-                return a.second > b.second;
-            }
-            return a.first < b.first; });
-
-    auto iter = limit_data.begin();
-    while (iter != limit_data.end())
-    {
-        if (current_layer_z >= MM2INT(iter->first))
-        {
-            max_speed_limit_to_height = iter->second;
-        }
-        iter++;
-    }
+    return current_layer_z;
 }
 
 } // namespace cura52
