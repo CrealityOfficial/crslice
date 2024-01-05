@@ -3110,7 +3110,7 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
                         const Point p1 = path.points[point_idx];
                         length += vSizeMM(p0 - p1);
                         p0 = p1;
-                        if (application->get_special_slope_slice_angle() != 0.0)
+                        if (application->get_special_slope_slice_angle() == 0.0)
                         {
                             gcode.setZ(std::round(z + layer_thickness * length / totalLength));
                         }
