@@ -19,6 +19,10 @@ namespace crslice2
 
 		TriMeshPtr m_mesh;
 		SettingsPtr m_settings;
+
+		std::vector<std::string> m_colors2Facets; //序列化数据
+		std::vector<std::string> m_seam2Facets; //涂抹Z缝
+		std::vector<std::string> m_support2Facets; //涂抹支撑
 	};
 }
 

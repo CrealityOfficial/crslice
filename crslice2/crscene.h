@@ -19,6 +19,11 @@ namespace crslice2
 		int addOneGroup();
 		int addObject2Group(int groupID);
 		void setOjbectMesh(int groupID, int objectID, TriMeshPtr mesh);
+		void setOjbectMeshPaint(int groupID, int objectID, TriMeshPtr mesh
+			, const std::vector<std::string>& colors2Facets
+			, const std::vector<std::string>& seam2Facets
+			, const std::vector<std::string>& support2Facets);
+
 		void setGroupOffset(int groupID, trimesh::vec3 offset);
 
 		void setObjectSettings(int groupID, int objectID, SettingsPtr settings);

@@ -109,6 +109,24 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
 			Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
 
+			if (aObject.m_mesh->faces.size() == aObject.m_colors2Facets.size())
+				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
+					if (!aObject.m_colors2Facets[i].empty())
+						v->mmu_segmentation_facets.set_triangle_from_string(i, aObject.m_colors2Facets[i]);
+				}
+
+			if (aObject.m_mesh->faces.size() == aObject.m_seam2Facets.size())
+				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
+					if (!aObject.m_seam2Facets[i].empty())
+						v->seam_facets.set_triangle_from_string(i, aObject.m_seam2Facets[i]);
+				}
+
+			if (aObject.m_mesh->faces.size() == aObject.m_support2Facets.size())
+				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
+					if (!aObject.m_support2Facets[i].empty())
+						v->supported_facets.set_triangle_from_string(i, aObject.m_support2Facets[i]);
+				}
+
 			v->config.assign_config(currentObject->config);
 			for (const std::pair<std::string, std::string> pair : aObject.m_settings->settings)
 			{

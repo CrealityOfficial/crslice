@@ -114,6 +114,21 @@ namespace crslice2
 		group->setObjectMesh(objectID, mesh);
 	}
 
+	void CrScene::setOjbectMeshPaint(int groupID, int objectID, TriMeshPtr mesh
+		, const std::vector<std::string>& m_colors2Facets
+		, const std::vector<std::string>& m_seam2Facets
+		, const std::vector<std::string>& m_support2Facets)
+	{
+		if (groupID < 0 || groupID >= (int)m_groups.size())
+		{
+			LOGE("CrScene::setOjbectMesh [%d] not exist.", groupID);
+			return;
+		}
+
+		CrGroup* group = m_groups.at(groupID);
+		group->setObjectMeshPaint(objectID, mesh, m_colors2Facets, m_seam2Facets, m_support2Facets);
+	}
+
 	void CrScene::setOjbectExclude(int groupID, int objectID, const std::string& fileName, std::vector<trimesh::vec3>& outline_ObjectExclude)
 	{
 		m_Object_Exclude_FileName.push_back(fileName);

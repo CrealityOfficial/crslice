@@ -14,6 +14,11 @@ namespace crslice2
 
 		int addObject();
 		void setObjectMesh(int objectID, TriMeshPtr mesh);
+		void setObjectMeshPaint(int objectID, TriMeshPtr mesh
+			, const std::vector<std::string>& colors2Facets
+			, const std::vector<std::string>& seam2Facets
+			, const std::vector<std::string>& support2Facets);
+
 		void setObjectSettings(int objectID, SettingsPtr settings);
 		void setSettings(SettingsPtr settings);
 		void setOffset(trimesh::vec3 offset);
