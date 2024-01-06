@@ -138,14 +138,16 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 }
 
 
-void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, const std::string& out)
+void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
+	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
+	const std::string& out)
 {
 	Slic3r::GCodeProcessorResult result;
 	Slic3r::Print print;
 	print.apply(model, config);
 	
-	print.is_BBL_printer() = false;
-	print.set_plate_origin(Slic3r::Vec3d(0.0, 0.0, 0.0));
+	print.is_BBL_printer() = is_bbl_printer;
+	print.set_plate_origin();
 
 	//BBS: reset the gcode before reload_print in slicing_completed event processing
 	//FIX the gcode rename failed issue
@@ -169,7 +171,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	Slic3r::DynamicPrintConfig config;
 	convert_scene_2_orca(scene, model, config);
 
-	slice_impl(model, config, scene->m_gcodeFileName);
+	slice_impl(model, config, false, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
@@ -178,9 +180,13 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 
 	cereal::BinaryInputArchive iarchive(in);
 
+	bool is_bbl_printer = false;
+	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
 
+	iarchive(is_bbl_printer);
+	iarchive(plate_origin);
 	size_t count;
 	iarchive(count);
 
@@ -237,5 +243,5 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	//	std::cout << serialization_key_ordinal << std::endl;
 	//}
 #endif
-	slice_impl(model, config, out);
+	slice_impl(model, config, is_bbl_printer, plate_origin, out);
 }
