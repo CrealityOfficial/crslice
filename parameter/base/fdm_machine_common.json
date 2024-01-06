@@ -1,4 +1,44 @@
 {
+  "machine_width": {
+    "label": "Machine Width",
+    "description": "The width (X-direction) of the printable area.",
+    "type": "int",
+    "enabled": "",
+    "default_value": "250",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_depth": {
+    "label": "Machine Depth",
+    "description": "The depth (Y-direction) of the printable area.",
+    "type": "int",
+    "enabled": "",
+    "default_value": "250",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_height": {
+    "label": "Machine Height",
+    "description": "The height (Z-direction) of the printable area.",
+    "type": "int",
+    "enabled": "",
+    "default_value": "250",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "printable_area": {
+    "label": "Printable Area",
+    "description": "This is the maximum printable area, limited by the length and width of the build area.",
+    "type": "str",
+    "enabled": "",
+    "default_value": "[\"0x0\", \"220x0\", \"220x220\", \"0x220\"]",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
   "printer_technology": {
     "label": "Printer technology",
     "description": "",
@@ -86,6 +126,16 @@
     "type": "[int]",
     "enabled": "",
     "default_value": "[1000]",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_max_acceleration_travel": {
+    "label": "Maximum acceleration for travel",
+    "description": "",
+    "type": "[str]",
+    "enabled": "",
+    "default_value":"[\"9000\", \"9000\"]",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
@@ -300,6 +350,16 @@
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
   },
+  "nozzle_type": {
+    "label": "Nozzle type",
+    "description": "The metallic material of the nozzle: This determines the abrasive resistance of the nozzle and what kind of filament can be printed.",
+    "type": "[float]",
+    "enabled": "",
+    "default_value": "[0.4]",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
   "printer_settings_id": {
     "label": "Printer settings id",
     "description": "",
@@ -486,6 +546,16 @@
     "type": "str",
     "enabled": "",
     "default_value": "M400 ; wait for buffer to clear\nG92 E0 ; zero the extruder\nG1 E-4.0 F3600; retract \nG91\nG1 Z3;\nM104 S0 ; turn off hotend\nM140 S0 ; turn off bed\nM106 S0 ; turn off fan\nG90 \nG0 X110 Y200 F3600 \nprint_end",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "machine_pause_gcode": {
+    "label": "Pause G-code",
+    "description": "",
+    "type": "str",
+    "enabled": "",
+    "default_value": "PAUSE",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"

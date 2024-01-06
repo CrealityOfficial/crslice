@@ -59,6 +59,16 @@
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
   },
+  "brim_type": {
+    "label": "Brim type",
+    "description": "This controls the generation of the brim at outer and/or innerside of models. Auto means the brim width is analyzed and calculatted automatically.",
+    "type": "[str]",
+    "enabled": "",
+    "default_value": "['Auto', 'Mouse ear', 'Outer brim only', 'Inner brim only', 'Outer and inner brim', 'No-brim']",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
   "brim_width": {
     "label": "Brim width",
     "description": "This is the distance from the model to the outermost brim line.",
@@ -175,6 +185,16 @@
     "type": "int",
     "enabled": "",
     "default_value": "0",
+    "resolve": "",
+    "settable_per_mesh": "false",
+    "settable_per_extruder": "false"
+  },
+  "support_style": {
+    "label": "Support style",
+    "description": "Style and shape of the support. For normal support, projectingthe supports into a regular grid will create more stable supports (default), while snug support towers will save material and reduce object scarring. For tree support, slim and organic style will merge branches more aggressively and save a lot of material (default organic), while hybrid style will create similar structure to normal support under large flat overhangs.",
+    "type": "str",
+    "enabled": "",
+    "default_value": "default",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"

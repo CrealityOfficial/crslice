@@ -109,6 +109,16 @@
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
     },
+    "additional_cooling_fan_speed": {
+      "label": "Auxiliary fan speed",
+      "description": "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers which is defined by no cooling layers. Please enable auxiliary fan in printer settings to use this feature. G- code command: M106 P2 S(0-255).",
+      "type": "[int]",
+      "enabled": "",
+      "default_value": "[70]",
+      "resolve": "",
+      "settable_per_mesh": "false",
+      "settable_per_extruder": "false"
+    },
     "overhang_fan_speed": {
       "label": "Overhang fan speed",
       "description": "Force part cooling fan to be this speed when printing bridges or overhang walls which have a large overhang degree. Forcing cooling for overhangs and bridges can achieve better quality for these parts.",
@@ -455,6 +465,26 @@
       "type": "int",
       "enabled": "",
       "default_value": "[200]",
+      "resolve": "",
+      "settable_per_mesh": "false",
+      "settable_per_extruder": "false"
+    },
+    "nozzle_temperature_range_low": {
+      "label": "Recommended nozzle temperature",
+      "description": "Recommended minimum nozzle temperature.",
+      "type": "int",
+      "enabled": "",
+      "default_value": "[190]",
+      "resolve": "",
+      "settable_per_mesh": "false",
+      "settable_per_extruder": "false"
+    },
+    "nozzle_temperature_range_high": {
+      "label": "Recommended nozzle temperature",
+      "description": "Recommended maximum nozzle temperature.",
+      "type": "int",
+      "enabled": "",
+      "default_value": "[230]",
       "resolve": "",
       "settable_per_mesh": "false",
       "settable_per_extruder": "false"
