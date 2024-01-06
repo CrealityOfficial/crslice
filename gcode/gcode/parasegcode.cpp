@@ -568,6 +568,26 @@ namespace gcode
 
     }
 
+    //orca
+    //case erNone: return L("Undefined");
+    //case erPerimeter: return L("Inner wall");
+    //case erExternalPerimeter: return L("Outer wall");
+    //case erOverhangPerimeter: return L("Overhang wall");
+    //case erInternalInfill: return L("Sparse infill");
+    //case erSolidInfill: return L("Internal solid infill");
+    //case erTopSolidInfill: return L("Top surface");
+    //case erBottomSurface: return L("Bottom surface");
+    //case erIroning: return L("Ironing");
+    //case erBridgeInfill: return L("Bridge");
+    //case erGapFill: return L("Gap infill");
+    //case erSkirt: return ("Skirt");
+    //case erBrim: return ("Brim");
+    //case erSupportMaterial: return L("Support");
+    //case erSupportMaterialInterface: return L("Support interface");
+    //case erSupportTransition: return L("Support transition");
+    //case erWipeTower: return L("Prime tower");
+    //case erCustom: return L("Custom");
+    //case erMixed: return L("Multiple");
     void _bambuKv(std::unordered_map<std::string, std::string>& kvs, bool _layer)
     {
         if (_layer)
@@ -592,31 +612,34 @@ namespace gcode
                     iter->second = "WALL-INNER";
                 }
                 else if (iter->second == "Bottom surface"
-                    || iter->second == "Bottom surface"
+                    || iter->second == "Top surface"
                     || iter->second == "Top solid infill"
-                    || iter->second == "Bottom surface"
-                    || iter->second == "Top surface")
+                    || iter->second == "Bottom solid infill")
                 {
                     iter->second = "SKIN";
                 }
-                else if (iter->second == "Support")
+                else if (iter->second == "Support"
+                    || iter->second == "Support interface"
+                    || iter->second == "Support transition")
                 {
                     iter->second = "SUPPORT";
                 }
-                else if (iter->second == "Skirt")
+                else if (iter->second == "Skirt"
+                    || iter->second == "Brim")
                 {
                     iter->second = "SKIRT";
                 }
                 else if (iter->second == "Internal solid infill"
                     || iter->second == "Gap infill"
-                    || iter->second == "Sparse infill"
                     || iter->second == "Bridge infill"
-                    || iter->second == "Gap infill"
-                    || iter->second == "Internal solid infill"
                     || iter->second == "Sparse infill")
                 {
                     iter->second = "FILL";
                 }
+                else if (iter->second == "Prime tower")
+                {
+                    iter->second = "PRIME-TOWER";
+                }     
             }
 
             changeKey("FEATURE", "TYPE", kvs);
