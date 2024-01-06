@@ -147,7 +147,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	print.apply(model, config);
 	
 	print.is_BBL_printer() = is_bbl_printer;
-	print.set_plate_origin();
+	print.set_plate_origin(plate_origin);
 
 	//BBS: reset the gcode before reload_print in slicing_completed event processing
 	//FIX the gcode rename failed issue
