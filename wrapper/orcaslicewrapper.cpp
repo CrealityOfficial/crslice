@@ -149,6 +149,12 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	print.is_BBL_printer() = is_bbl_printer;
 	print.set_plate_origin(plate_origin);
 
+	Slic3r::StringObjectException warning;
+	//BBS: refine seq-print logic
+	Slic3r::Polygons polygons;
+	std::vector<std::pair<Slic3r::Polygon, float>> height_polygons;
+	print.validate(&warning, &polygons, &height_polygons);
+
 	//BBS: reset the gcode before reload_print in slicing_completed event processing
 	//FIX the gcode rename failed issue
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: will start slicing, reset gcode_result firstly") % __LINE__ ;
@@ -207,6 +213,9 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 		}
 		for (size_t j = 0; j < i_count; ++j) {
 			iarchive(*o->instances.at(j));
+			int order = 0;
+			iarchive(order);
+			o->instances.at(j)->arrange_order = order;
 		}
 
 		size_t v_count = o->volumes.size();
