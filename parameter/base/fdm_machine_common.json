@@ -1,27 +1,7 @@
 {
-  "machine_width": {
-    "label": "Machine Width",
-    "description": "The width (X-direction) of the printable area.",
-    "type": "int",
-    "enabled": "",
-    "default_value": "250",
-    "resolve": "",
-    "settable_per_mesh": "false",
-    "settable_per_extruder": "false"
-  },
-  "machine_depth": {
-    "label": "Machine Depth",
-    "description": "The depth (Y-direction) of the printable area.",
-    "type": "int",
-    "enabled": "",
-    "default_value": "250",
-    "resolve": "",
-    "settable_per_mesh": "false",
-    "settable_per_extruder": "false"
-  },
-  "machine_height": {
-    "label": "Machine Height",
-    "description": "The height (Z-direction) of the printable area.",
+  "printable_height": {
+    "label": "Printable height",
+    "description": "This is the maximum printable height which is limited by the height of the build area.",
     "type": "int",
     "enabled": "",
     "default_value": "250",
@@ -296,16 +276,6 @@
     "type": "[float]",
     "enabled": "",
     "default_value": "[0.08]",
-    "resolve": "",
-    "settable_per_mesh": "false",
-    "settable_per_extruder": "false"
-  },
-  "printable_height": {
-    "label": "Printable height",
-    "description": "This is the maximum printable height which is limited by the height of the build area.",
-    "type": "int",
-    "enabled": "",
-    "default_value": "250",
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
