@@ -89,7 +89,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 	for (const std::pair<std::string, std::string> pair : scene->m_settings->settings)
 	{
-		config.set_key_value(pair.first, config.optptr(pair.second));
+		config.set_key_value(pair.first, new Slic3r::ConfigOptionString(pair.second));
 	}
 
 	std::vector<Slic3r::ModelObject*> objects;
@@ -101,7 +101,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		currentObject->config.assign_config(config);
 		for (const std::pair<std::string, std::string> pair : aCrgroup->m_settings->settings)
 		{
-			currentObject->config.set_key_value(pair.first, config.optptr(pair.second));
+			currentObject->config.set_key_value(pair.first, new Slic3r::ConfigOptionString(pair.second));
 		}
 		for (crslice2::CrObject aObject : aCrgroup->m_objects)
 		{
@@ -130,9 +130,9 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 			v->config.assign_config(currentObject->config);
 			for (const std::pair<std::string, std::string> pair : aObject.m_settings->settings)
 			{
-				v->config.set_key_value(pair.first, config.optptr(pair.second));
+				v->config.set_key_value(pair.first, new Slic3r::ConfigOptionString(pair.second));
 			}
-			currentObject->volumes.push_back(v);
+			//currentObject->volumes.push_back(v);
 		}
 	}
 }

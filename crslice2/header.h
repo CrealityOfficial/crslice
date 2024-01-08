@@ -14,6 +14,9 @@
 typedef std::shared_ptr<trimesh::TriMesh> TriMeshPtr;
 
 #include "crslice2/settings.h"
-typedef std::shared_ptr<crslice2::Settings> SettingsPtr;
+namespace crslice2
+{
+    typedef std::shared_ptr<crslice2::Settings> SettingsPtr;
+}
 
 #endif // CRSLICE_HEADER_INTERFACE_2
