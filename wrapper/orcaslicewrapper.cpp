@@ -14,8 +14,12 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
 
+#include "crslice2/base/parametermeta.h"
+
 #include "crgroup.h"
 #include "crobject.h"
+
+#include <sstream>
 
 namespace cereal
 {
@@ -82,14 +86,185 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 	tmesh.from_stl(stl);
 }
 
+void removeSpace(std::string& str)
+{
+	str.erase(0, str.find_first_not_of(" "));
+	str.erase(str.find_last_not_of(" ") + 1);
+}
+
+void Stringsplit(std::string str, const char split, std::vector<std::string>& res)
+{
+	std::istringstream iss(str);	// 输入流
+	std::string token;			// 接收缓冲区
+	while (getline(iss, token, split))	// 以split为分隔符
+	{
+		removeSpace(token);
+		res.push_back(token);
+	}
+}
+
+Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::string& key, const std::string& value)
+{
+	std::string type = "";
+	auto iter = datas.find(key);
+	if (iter == datas.end() || value.empty())
+	{
+		return new Slic3r::ConfigOptionString(value);
+	}
+
+	type = iter->second->type;
+
+	if (type.find("coFloats") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		std::vector<double> vec1;
+		Stringsplit(value, ',', res);
+		for (auto& v : res)
+			vec1.push_back(std::stof(v));
+		return new Slic3r::ConfigOptionFloats(vec1);
+	}
+	else if (type.find("coFloat") != std::string::npos)
+	{
+		return new Slic3r::ConfigOptionFloat(std::stof(value));
+	}
+	else if (type.find("coInts") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		std::vector<int> vec_i;
+		Stringsplit(value, ',', res);
+		for (auto& v : res)
+			vec_i.push_back(std::stoi(v));
+		return new Slic3r::ConfigOptionInts(vec_i);
+	}
+	else if (type.find("coInt") != std::string::npos)
+	{
+		return new Slic3r::ConfigOptionInt(std::stoi(value));
+	}
+	else if (type.find("coStrings") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		Stringsplit(value, ',', res);
+		return new Slic3r::ConfigOptionStrings(res);
+	}
+	else if (type.find("coString") != std::string::npos)
+	{
+		return new Slic3r::ConfigOptionString(value);
+	}
+	else if (type.find("coPercents") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		std::vector<double> vec1;
+		Stringsplit(value, ',', res);
+		for (auto& v : res)
+			vec1.push_back(std::stof(v));
+		return new Slic3r::ConfigOptionPercents(vec1);
+	}
+	else if (type.find("coPercent") != std::string::npos)
+	{
+		return new Slic3r::ConfigOptionPercent(std::stof(value));
+	}
+	else if (type.find("coFloatsOrPercents") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		Slic3r::FloatOrPercent floatOrPercent;
+		std::vector<Slic3r::FloatOrPercent> vec_p;
+		Stringsplit(value, ',', res);
+		for (auto& v : res) {
+			floatOrPercent.value = std::stof(v);
+			floatOrPercent.percent = false;
+			vec_p.push_back(floatOrPercent);
+		}
+		return new Slic3r::ConfigOptionFloatsOrPercents(vec_p);
+	}
+	else if (type.find("coFloatOrPercent") != std::string::npos)
+	{
+		return new Slic3r::ConfigOptionFloatOrPercent(std::stof(value), false);
+	}
+	else if (type.find("coPoint3") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		Slic3r::Vec3d vec3d;
+		Stringsplit(value, ',', res);
+		if (res.size() > 2) {
+			vec3d.x() = std::stof(res[0]);
+			vec3d.y() = std::stof(res[1]);
+			vec3d.z() = std::stof(res[2]);
+		}
+		return new Slic3r::ConfigOptionPoint3(vec3d);
+	}
+	else if (type.find("coPoints") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		Slic3r::Vec2d vec2d;
+		std::vector<Slic3r::Vec2d> vec2ds;
+		Stringsplit(value, ',', res);
+		for (int i = 0; i < res.size() - 1; i++, i++) {
+			vec2d.x() = std::stof(res[i]);
+			vec2d.y() = std::stof(res[i + 1]);
+			vec2ds.push_back(vec2d);
+		}
+		return new Slic3r::ConfigOptionPoints(vec2ds);
+	}
+	else if (type.find("coPoint") != std::string::npos)
+	{
+		std::vector<std::string> res;
+		Slic3r::Vec2d vec2d;
+		Stringsplit(value, ',', res);
+		if (res.size() > 1) {
+			vec2d.x() = std::stof(res[0]);
+			vec2d.y() = std::stof(res[1]);
+		}
+		return new Slic3r::ConfigOptionPoint(vec2d);
+	}
+	//else if (type.find("coPoint3s") != std::string::npos)
+	//{
+	//	return  new Slic3r::ConfigOptionString(value);
+	//}
+	else if (type.find("coBools") != std::string::npos)
+	{
+	std::vector<std::string> res;
+	std::vector<unsigned char> vec_bs;
+	Stringsplit(value, ',', res);
+	for (auto& v : res)
+		vec_bs.push_back(std::stoi(v) > 0 ? true : false);
+	return new Slic3r::ConfigOptionBools(vec_bs);
+	}
+	else if (type.find("coBool") != std::string::npos)
+	{
+		bool vec_b = std::stoi(value) > 0 ? true : false;
+		return new Slic3r::ConfigOptionBool(vec_b);
+	}
+	else if ((type.find("coEnum") != std::string::npos)
+		|| (type.find("coEnums") != std::string::npos))
+	{
+		std::unordered_map<std::string, std::string>& options = iter->second->options;
+		Slic3r::t_config_enum_values config;
+		auto iter = options.begin();
+		int i = 0;
+		int current = 0;
+		while (iter != options.end())
+		{
+			config.insert(std::make_pair(iter->first, i));
+			if (iter->first == value)
+				current = i;
+			iter++;
+			i++;
+		}
+		return new Slic3r::ConfigOptionEnumGeneric(&config, current);
+	}
+}
+
 void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config)
 {
 	size_t numGroup = scene->m_groups.size();
 	assert(numGroup > 0);
 
+	crslice2::MetasMap datas;
+	parseMetasMap(datas);
+
 	for (const std::pair<std::string, std::string> pair : scene->m_settings->settings)
 	{
-		config.set_key_value(pair.first, new Slic3r::ConfigOptionString(pair.second));
+		config.set_key_value(pair.first, _set_key_value(datas, pair.first, pair.second));
 	}
 
 	std::vector<Slic3r::ModelObject*> objects;
@@ -101,7 +276,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		currentObject->config.assign_config(config);
 		for (const std::pair<std::string, std::string> pair : aCrgroup->m_settings->settings)
 		{
-			currentObject->config.set_key_value(pair.first, new Slic3r::ConfigOptionString(pair.second));
+			currentObject->config.set_key_value(pair.first, _set_key_value(datas, pair.first, pair.second));
 		}
 		for (crslice2::CrObject aObject : aCrgroup->m_objects)
 		{
@@ -130,9 +305,8 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 			v->config.assign_config(currentObject->config);
 			for (const std::pair<std::string, std::string> pair : aObject.m_settings->settings)
 			{
-				v->config.set_key_value(pair.first, new Slic3r::ConfigOptionString(pair.second));
+				v->config.set_key_value(pair.first, _set_key_value(datas, pair.first, pair.second));
 			}
-			//currentObject->volumes.push_back(v);
 		}
 	}
 }
