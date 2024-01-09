@@ -176,7 +176,7 @@
     },
     "bridge_angle": {
         "default_value": "0",
-        "description": "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for external bridges. Use 180¡ãfor zero angle.",
+        "description": "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for external bridges. Use 180 for zero angle.",
         "enabled": "true",
         "label": "Bridge infill direction",
         "settable_globally": "false",
