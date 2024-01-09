@@ -116,6 +116,9 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 
 	if (type.find("coFloats") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionFloats();
+
 		std::vector<std::string> res;
 		std::vector<double> vec1;
 		Stringsplit(value, ',', res);
@@ -125,10 +128,16 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 	}
 	else if (type.find("coFloat") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionFloat();
+
 		return new Slic3r::ConfigOptionFloat(std::stof(value));
 	}
 	else if (type.find("coInts") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionInts();
+
 		std::vector<std::string> res;
 		std::vector<int> vec_i;
 		Stringsplit(value, ',', res);
@@ -138,20 +147,32 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 	}
 	else if (type.find("coInt") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionInt();
+
 		return new Slic3r::ConfigOptionInt(std::stoi(value));
 	}
 	else if (type.find("coStrings") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionStrings();
+
 		std::vector<std::string> res;
 		Stringsplit(value, ',', res);
 		return new Slic3r::ConfigOptionStrings(res);
 	}
 	else if (type.find("coString") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionString();
+
 		return new Slic3r::ConfigOptionString(value);
 	}
 	else if (type.find("coPercents") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionPercents();
+
 		std::vector<std::string> res;
 		std::vector<double> vec1;
 		Stringsplit(value, ',', res);
@@ -161,10 +182,16 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 	}
 	else if (type.find("coPercent") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionPercent();
+
 		return new Slic3r::ConfigOptionPercent(std::stof(value));
 	}
 	else if (type.find("coFloatsOrPercents") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionFloatsOrPercents();
+
 		std::vector<std::string> res;
 		Slic3r::FloatOrPercent floatOrPercent;
 		std::vector<Slic3r::FloatOrPercent> vec_p;
@@ -178,10 +205,16 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 	}
 	else if (type.find("coFloatOrPercent") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionFloatOrPercent();
+
 		return new Slic3r::ConfigOptionFloatOrPercent(std::stof(value), false);
 	}
 	else if (type.find("coPoint3") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionPoint3();
+
 		std::vector<std::string> res;
 		Slic3r::Vec3d vec3d;
 		Stringsplit(value, ',', res);
@@ -194,6 +227,9 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 	}
 	else if (type.find("coPoints") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionPoints();
+
 		std::vector<std::string> res;
 		Slic3r::Vec2d vec2d;
 		std::vector<Slic3r::Vec2d> vec2ds;
@@ -207,6 +243,9 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 	}
 	else if (type.find("coPoint") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionPoint();
+
 		std::vector<std::string> res;
 		Slic3r::Vec2d vec2d;
 		Stringsplit(value, ',', res);
@@ -222,21 +261,30 @@ Slic3r::ConfigOption* _set_key_value(crslice2::MetasMap& datas, const std::strin
 	//}
 	else if (type.find("coBools") != std::string::npos)
 	{
-	std::vector<std::string> res;
-	std::vector<unsigned char> vec_bs;
-	Stringsplit(value, ',', res);
-	for (auto& v : res)
-		vec_bs.push_back(std::stoi(v) > 0 ? true : false);
-	return new Slic3r::ConfigOptionBools(vec_bs);
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionBools();
+
+		std::vector<std::string> res;
+		std::vector<unsigned char> vec_bs;
+		Stringsplit(value, ',', res);
+		for (auto& v : res)
+			vec_bs.push_back(std::stoi(v) > 0 ? true : false);
+		return new Slic3r::ConfigOptionBools(vec_bs);
 	}
 	else if (type.find("coBool") != std::string::npos)
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionBool();
+
 		bool vec_b = std::stoi(value) > 0 ? true : false;
 		return new Slic3r::ConfigOptionBool(vec_b);
 	}
 	else if ((type.find("coEnum") != std::string::npos)
 		|| (type.find("coEnums") != std::string::npos))
 	{
+		if ("nil" == value)
+			return new Slic3r::ConfigOptionEnumGeneric();
+
 		std::unordered_map<std::string, std::string>& options = iter->second->options;
 		Slic3r::t_config_enum_values config;
 		auto iter = options.begin();
