@@ -529,5 +529,12 @@
     "resolve": "",
     "settable_per_mesh": "false",
     "settable_per_extruder": "false"
+  },
+  "software_version": 
+  {
+  	"description": "software version",
+  	"type": "str",
+  	"default_value": "V0.0.1.0",
+  	"enabled": "false"
   }
 }
