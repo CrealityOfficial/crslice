@@ -122,7 +122,7 @@ Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::Con
 	return option;
 }
 
-void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config)
+void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config,Slic3r::Calib_Params& _calibParams)
 {
 	size_t numGroup = scene->m_groups.size();
 	assert(numGroup > 0);
@@ -174,15 +174,25 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 			}
 		}
 	}
+
+	if (scene->m_calibParams.mode != crslice2::CalibMode::Calib_None)
+	{
+		_calibParams.start = scene->m_calibParams.start;
+		_calibParams.end = scene->m_calibParams.end;
+		_calibParams.step = scene->m_calibParams.step;
+		_calibParams.print_numbers = scene->m_calibParams.print_numbers;
+		_calibParams.mode = (Slic3r::CalibMode)scene->m_calibParams.mode;
+	}
 }
 
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
 	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
-	const std::string& out)
+	const std::string& out, Slic3r::Calib_Params& _calibParams)
 {
 	Slic3r::GCodeProcessorResult result;
 	Slic3r::Print print;
+	print.set_calib_params(_calibParams);
 	print.apply(model, config);
 	
 	print.is_BBL_printer() = is_bbl_printer;
@@ -214,9 +224,10 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
-	convert_scene_2_orca(scene, model, config);
+	Slic3r::Calib_Params calibParams;
+	convert_scene_2_orca(scene, model, config, calibParams);
 
-	slice_impl(model, config, false, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName);
+	slice_impl(model, config, false, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
@@ -291,7 +302,8 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	//	std::cout << serialization_key_ordinal << std::endl;
 	//}
 #endif
-	slice_impl(model, config, is_bbl_printer, plate_origin, out);
+	Slic3r::Calib_Params calibParams;
+	slice_impl(model, config, is_bbl_printer, plate_origin, out, calibParams);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)

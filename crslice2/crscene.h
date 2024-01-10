@@ -8,6 +8,25 @@
 
 namespace crslice2
 {
+	enum class CalibMode : int {
+		Calib_None = 0,
+		Calib_PA_Line,
+		Calib_PA_Tower,
+		Calib_Temp_Tower,
+		Calib_Vol_speed_Tower,
+		Calib_VFA_Tower,
+		Calib_Retraction_tower
+
+	};
+	struct Calib_Params
+	{
+		Calib_Params();
+		double start, end, step;
+		bool print_numbers;
+		CalibMode mode;
+	};
+
+
 	class CrGroup;
 	class CRSLICE2_API CrScene
 	{
@@ -42,6 +61,7 @@ namespace crslice2
 		void setAntiSupportFileName(const std::string& fileName);
 		void setSeamFileName(const std::string& fileName);
 		void setAntiSeamFileName(const std::string& fileName);
+		void setcalibParams(Calib_Params& _calibParams);
 		bool valid();
 
 		void save(const std::string& fileName);
@@ -64,9 +84,10 @@ namespace crslice2
 		std::string m_antiSupportFile;
 		std::string m_seamFile;
 		std::string m_antiSeamFile;
-
+	
 		std::string m_tempDirectory;
 		std::vector<std::string> m_Object_Exclude_FileName;
+		Calib_Params m_calibParams;
 	};
 
 	class SceneCreator

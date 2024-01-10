@@ -248,6 +248,11 @@ namespace crslice2
 		m_antiSeamFile = fileName;
 	}
 
+	void CrScene::setcalibParams(Calib_Params& _calibParams)
+	{
+		m_calibParams = _calibParams;
+	}
+
 	bool CrScene::valid()
 	{
 		return true;
