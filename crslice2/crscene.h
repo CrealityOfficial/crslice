@@ -20,7 +20,7 @@ namespace crslice2
 	};
 	struct Calib_Params
 	{
-		Calib_Params();
+		Calib_Params() {}
 		double start, end, step;
 		bool print_numbers;
 		CalibMode mode;
