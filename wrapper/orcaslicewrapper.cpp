@@ -293,3 +293,122 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 #endif
 	slice_impl(model, config, is_bbl_printer, plate_origin, out);
 }
+
+void parse_metas_map_impl(crslice2::MetasMap& datas)
+{
+	using namespace Slic3r;
+
+	datas.clear();
+	DynamicPrintConfig full_config;
+	const ConfigDef* _def = full_config.def();
+
+	for (Slic3r::t_optiondef_map::const_iterator it = _def->options.begin(); it != _def->options.end(); ++it)
+	{
+		const Slic3r::ConfigOptionDef& optDef = it->second;
+		if (optDef.printer_technology != Slic3r::ptSLA)
+		{
+			crslice2::ParameterMeta meta;
+			
+			meta.name = it->first;
+			meta.label = optDef.label;
+			meta.description = optDef.tooltip;
+			
+			std::string type = "coNone";
+			switch (optDef.type)
+			{
+			case coFloat:
+				type = "coFloat";
+				break;
+			case coFloats:
+				type = "coFloats";
+				break;
+			case coInt:
+				type = "coInt";
+				break;
+			case coInts:
+				type = "coInts";
+				break;
+			case coString:
+				type = "coString";
+				break;
+			case coStrings:
+				type = "coStrings";
+				break;
+			case coPercent:
+				type = "coPercent";
+				break;
+			case coPercents:
+				type = "coPercents";
+				break;
+			case coFloatOrPercent:
+				type = "coFloatOrPercent";
+				break;
+			case coFloatsOrPercents:
+				type = "coFloatsOrPercents";
+				break;
+			case coPoint:
+				type = "coPoint";
+				break;
+			case coPoints:
+				type = "coPoints";
+				break;
+			case coPoint3:
+				type = "coPoint3";
+				break;
+			case coBool:
+				type = "coBool";
+				break;
+			case coBools:
+				type = "coBools";
+				break;
+			case coEnum:
+				type = "coEnum";
+				break;
+			case coEnums:
+				type = "coEnums";
+				break;
+			};
+			
+			meta.type = type;
+			meta.enabled = "true";
+			Slic3r::ConfigOption* option = optDef.create_default_option();
+			meta.default_value = option->serialize();
+			delete option;
+
+			meta.settable_per_mesh = "false";
+			meta.unit = optDef.sidetext;
+			//meta.settable_per_extruder = "false";
+			//meta.settable_per_meshgroup = "false";
+			//meta.settable_globally = "false";
+			if (optDef.enum_values.size() > 0)
+			{
+				size_t size = optDef.enum_values.size();
+				
+				bool have = optDef.enum_labels.size() == optDef.enum_values.size();
+				for (size_t i = 0; i < size; ++i)
+				{
+					meta.options.insert(crslice2::OptionValue(optDef.enum_values.at(i),
+						(have ? optDef.enum_labels.at(i) : optDef.enum_values.at(i))));
+				}
+			}
+			
+			datas.insert(crslice2::MetasMap::value_type(it->first, new crslice2::ParameterMeta(meta)));
+		}
+	}
+}
+
+void get_meta_keys_impl(crslice2::MetaGroup metaGroup, std::vector<std::string>& keys)
+{
+	keys.clear();
+	Slic3r::DynamicPrintConfig full_config;
+	const Slic3r::ConfigDef* _def = full_config.def();
+
+	for (Slic3r::t_optiondef_map::const_iterator it = _def->options.begin(); it != _def->options.end(); ++it)
+	{
+		const Slic3r::ConfigOptionDef& optionDef = it->second;
+		if (optionDef.printer_technology != Slic3r::ptSLA)
+		{
+			keys.push_back(it->first);
+		}
+	}
+}

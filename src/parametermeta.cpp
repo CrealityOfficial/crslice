@@ -16,6 +16,8 @@
 #include "profile_keys.json.h"
 #endif
 
+#include "wrapper/orcaslicewrapper.h"
+
 namespace crslice2
 {
 	ParameterMetas::ParameterMetas()
@@ -117,6 +119,8 @@ namespace crslice2
 
     void parseMetasMap(MetasMap& datas)
     {
+        return parse_metas_map_impl(datas);
+#if 0
 #ifdef USE_BINARY_JSON
         rapidjson::Document baseDoc;
         baseDoc.Parse((const char*)base);
@@ -176,11 +180,14 @@ namespace crslice2
 #else
         LOGE("parseMetasMap::Binary not support.");
 #endif
+#endif
     }
 
     void getMetaKeys(MetaGroup metaGroup, std::vector<std::string>& keys)
     {
         keys.clear();
+        get_meta_keys_impl(metaGroup, keys);
+#if 0
 #ifdef USE_BINARY_JSON
         const unsigned char* data = machine_keys;
         if (metaGroup == MetaGroup::emg_extruder)
@@ -202,6 +209,7 @@ namespace crslice2
         processKeys(keyDoc, keys);
 #else
         LOGE("getMetaKeys::Binary not support.");
+#endif
 #endif
     }
 
