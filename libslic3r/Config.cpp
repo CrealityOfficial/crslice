@@ -264,7 +264,7 @@ ConfigOption* ConfigOptionDef::create_empty_option() const
 	    case coPercents:        return new ConfigOptionPercentsNullable();
         case coFloatsOrPercents: return new ConfigOptionFloatsOrPercentsNullable();
 	    case coBools:           return new ConfigOptionBoolsNullable();
-        case coEnums:           return new ConfigOptionEnumsGenericNullable();
+        case coEnums:           return new ConfigOptionEnumsGenericNullable(this->enum_keys_map);
 	    default:                throw ConfigurationError(std::string("Unknown option type for nullable option ") + this->label);
 	    }
 	} else {
