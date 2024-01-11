@@ -56,7 +56,9 @@
         "infill_combination",
         "infill_direction",
         "infill_jerk",
-        "infill_wall_overlap"
-		
+        "infill_wall_overlap",
+		"fuzzy_skin",
+        "fuzzy_skin_point_distance",
+        "fuzzy_skin_thickness"	
     ]
 }
