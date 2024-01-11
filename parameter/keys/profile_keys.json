@@ -59,6 +59,13 @@
         "infill_wall_overlap",
 		"fuzzy_skin",
         "fuzzy_skin_point_distance",
-        "fuzzy_skin_thickness"	
+        "fuzzy_skin_thickness",
+        "skirt_distance",
+        "skirt_height",
+        "skirt_loops",
+        "brim_object_gap",
+        "brim_type",
+        "brim_width",
+        "exclude_object"		
     ]
 }

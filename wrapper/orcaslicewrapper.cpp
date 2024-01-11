@@ -13,6 +13,8 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
+#include "nlohmann/json.hpp"
+#include <boost/nowide/fstream.hpp>
 
 #include "crslice2/base/parametermeta.h"
 
@@ -32,6 +34,56 @@ namespace cereal
 	template <class Archive> struct specialize<Archive, Slic3r::ModelInstance*, cereal::specialization::non_member_load_save> {};
 	template <class Archive> struct specialize<Archive, Slic3r::ModelMaterial*, cereal::specialization::non_member_load_save> {};
 	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
+}
+
+void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config)
+{
+	using namespace Slic3r;
+	using namespace nlohmann;
+
+	json j;
+
+	auto save_dynamic_config = [](const Slic3r::DynamicPrintConfig& config, json& j) {
+		t_config_option_keys ks = config.keys();
+		for (const t_config_option_key& k : ks)
+		{
+			const ConfigOption* option = config.optptr(k);
+			j[k] = option->serialize();
+		}
+	};
+	{
+		json G;
+		save_dynamic_config(config, G);
+		j["global"] = G;
+	}
+
+	{
+		json M;
+		int size = (int)model.objects.size();
+		for (int i = 0; i < size; ++i)
+		{
+			json MO;
+			ModelObject* object = model.objects.at(i);
+			save_dynamic_config(object->config.get(), MO);
+			int vsize = (int)object->volumes.size();
+			for (int j = 0; j < vsize; ++j)
+			{
+				json MOV;
+				ModelVolume* volume = object->volumes.at(j);
+				save_dynamic_config(volume->config.get(), MOV);
+
+				MO[std::to_string(j)] = MOV;
+			}
+
+			M[std::to_string(i)] = MO;
+		}
+		j["model"] = M;
+	}
+
+	boost::nowide::ofstream c;
+	c.open("parameter.json", std::ios::out | std::ios::trunc);
+	c << std::setw(4) << j << std::endl;
+	c.close();
 }
 
 void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tmesh)
@@ -138,7 +190,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		Slic3r::ModelObject* currentObject = model.add_object();
 		currentObject->add_instance();
 
-		currentObject->config.assign_config(config);
+		//currentObject->config.assign_config(config);
 		for (const std::pair<std::string, std::string> pair : aCrgroup->m_settings->settings)
 		{
 			currentObject->config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
@@ -167,7 +219,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 						v->supported_facets.set_triangle_from_string(i, aObject.m_support2Facets[i]);
 				}
 
-			v->config.assign_config(currentObject->config);
+			//v->config.assign_config(currentObject->config);
 			for (const std::pair<std::string, std::string> pair : aObject.m_settings->settings)
 			{
 				v->config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
@@ -190,6 +242,10 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
 	const std::string& out, Slic3r::Calib_Params& _calibParams)
 {
+#if _DEBUG
+	save_parameter_2_json("", model, config);
+#endif
+
 	Slic3r::GCodeProcessorResult result;
 	Slic3r::Print print;
 	print.set_calib_params(_calibParams);
