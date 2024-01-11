@@ -186,8 +186,9 @@ namespace crslice2
     void getMetaKeys(MetaGroup metaGroup, std::vector<std::string>& keys)
     {
         keys.clear();
-        get_meta_keys_impl(metaGroup, keys);
 #if 0
+        get_meta_keys_impl(metaGroup, keys);
+#else
 #ifdef USE_BINARY_JSON
         const unsigned char* data = machine_keys;
         if (metaGroup == MetaGroup::emg_extruder)
