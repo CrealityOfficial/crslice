@@ -281,7 +281,7 @@
         "unit": ""
     },
     "brim_width": {
-        "default_value": "1.4",
+        "default_value": "0.4",
         "description": "Distance from model to the outermost brim line",
         "enabled": "true",
         "label": "Brim width",
