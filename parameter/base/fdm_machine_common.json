@@ -281,7 +281,7 @@
         "unit": ""
     },
     "brim_width": {
-        "default_value": "0",
+        "default_value": "1.4",
         "description": "Distance from model to the outermost brim line",
         "enabled": "true",
         "label": "Brim width",
@@ -2348,7 +2348,7 @@
         "unit": "mm/s"
     },
     "outer_wall_line_width": {
-        "default_value": "0",
+        "default_value": "0.42",
         "description": "Line width of outer wall",
         "enabled": "true",
         "label": "Outer wall",
