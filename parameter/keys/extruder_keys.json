@@ -1,4 +1,16 @@
 {
     "keys": [
+        "retract_before_wipe",
+        "retract_restart_extra_toolchange",
+        "retract_when_changing_layer",
+        "retraction_length",
+        "retraction_minimum_travel",
+        "retract_length_toolchange",
+        "retraction_speed",
+        "retract_restart_extra",
+        "nozzle_diameter",
+        "max_layer_height",
+        "extruder_offset",
+        "min_layer_height"
     ]
 }
