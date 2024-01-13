@@ -1340,7 +1340,7 @@
     "fuzzy_skin_point_distance": {
         "default_value": "0.8",
         "description": "The average diatance between the random points introducded on each line segment",
-        "enabled": "true",
+        "enabled": "eval(contex.value(\"fuzzy_skin\")!=\"none\")",
         "label": "Fuzzy skin point distance",
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -1352,7 +1352,7 @@
     "fuzzy_skin_thickness": {
         "default_value": "0.3",
         "description": "The width within which to jitter. It's adversed to be below outer wall line width",
-        "enabled": "true",
+        "enabled": "eval(contex.value(\"fuzzy_skin\")!=\"none\")",
         "label": "Fuzzy skin thickness",
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -4329,5 +4329,58 @@
         "settable_per_meshgroup": "false",
         "type": "coEnums",
         "unit": ""
+    },
+    "z_offset": {
+        "default_value": "0",
+        "description": "This value will be added (or subtracted) from all the Z coordinates in the output G-code. It is used to compensate for bad Z endstop position: for example, if your endstop zero actually leaves the nozzle 0.3mm far from the print bed, set this to -0.3 (or fix your endstop).",
+        "enabled": "true",
+        "label": "Z offset",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": "mm"
+    },
+    "best_object_pos":{
+        "default_value": "0",
+        "description": "Best auto arranging position in range [0,1] w.r.t. bed shape.",
+        "enabled": "true",
+        "label": "Best object position",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coPoint",
+        "unit": ""
+    },
+    "thumbnails_format":{
+        "default_value": "png",
+        "description": "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, QOI for low memory firmware",
+        "enabled": "true",
+        "label": "Format of G-code thumbnails",
+        "options": {
+            "png": "PNG",
+            "jpeg": "JPEG"
+        },
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coEnums",
+        "unit": ""
+    },
+    "time_cost":{
+        "default_value": "0",
+        "description": "The printer cost per hour",
+        "enabled": "true",
+        "label": "Time Cost",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": ""
     }
+    
 }
