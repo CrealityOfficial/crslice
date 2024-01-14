@@ -3,7 +3,7 @@
 
 #include <stack>
 #include <optional>
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "linearAlg2D.hpp"
 #include "VoronoiUtils.hpp"

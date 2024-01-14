@@ -67,8 +67,6 @@ struct FillParams
     bool        use_arachne{ false };
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
-    //BBS
-    bool        with_loop       { false };
 
     // BBS
     Flow            flow;
@@ -78,6 +76,7 @@ struct FillParams
     float           no_extrusion_overlap{ 0.0 };
     const           PrintRegionConfig* config{ nullptr };
     bool            dont_sort{ false }; // do not sort the lines, just simply connect them
+    bool            can_reverse{true};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
@@ -105,6 +104,10 @@ public:
 
     // Octree builds on mesh for usage in the adaptive cubic infill
     FillAdaptive::Octree* adapt_fill_octree = nullptr;
+
+    // PrintConfig and PrintObjectConfig are used by infills that use Arachne (Concentric and FillEnsuring).
+    const PrintConfig       *print_config        = nullptr;
+    const PrintObjectConfig *print_object_config = nullptr;
 
     // BBS: all no overlap expolygons in same layer
     ExPolygons  no_overlap_expolygons;

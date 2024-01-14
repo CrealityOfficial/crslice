@@ -3,10 +3,8 @@
 #include "../TriangleMesh.hpp"
 
 #include "STEP.hpp"
-#include <boost/nowide/fstream.hpp>
-#include <boost/nowide/cstdio.hpp>
+
 #include <string>
-#include <tbb/parallel_for.h>
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
@@ -30,7 +28,7 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 
-const double STEP_TRANS_CHORD_ERROR = 0.0025;
+const double STEP_TRANS_CHORD_ERROR = 0.003;
 const double STEP_TRANS_ANGLE_RES = 0.5;
 
 

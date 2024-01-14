@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Filip Sykala @Jony01, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2019 Sijmen Schoon
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Utils_hpp_
 #define slic3r_Utils_hpp_
 
@@ -6,11 +11,13 @@
 #include <functional>
 #include <type_traits>
 #include <system_error>
-#include <iomanip>
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/date_time.hpp>
+#include "boost/date_time/posix_time/ptime.hpp"
+
 #include <openssl/md5.h>
 
 #include "libslic3r.h"
@@ -38,6 +45,9 @@
 #define CLI_PROCESS_NOT_COMPATIBLE     -17
 #define CLI_INVALID_VALUES_IN_3MF      -18
 #define CLI_POSTPROCESS_NOT_SUPPORTED  -19
+#define CLI_PRINTABLE_SIZE_REDUCED     -20
+#define CLI_OBJECT_ARRANGE_FAILED      -21
+#define CLI_OBJECT_ORIENT_FAILED       -22
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -51,6 +61,11 @@
 #define CLI_SLICING_TIME_EXCEEDS_LIMIT      -58
 #define CLI_TRIANGLE_COUNT_EXCEEDS_LIMIT    -59
 #define CLI_NO_SUITABLE_OBJECTS_AFTER_SKIP  -60
+#define CLI_FILAMENT_NOT_MATCH_BED_TYPE     -61
+#define CLI_FILAMENTS_DIFFERENT_TEMP        -62
+#define CLI_OBJECT_COLLISION_IN_SEQ_PRINT   -63
+#define CLI_OBJECT_COLLISION_IN_LAYER_PRINT -64
+#define CLI_SPIRAL_MODE_INVALID_PARAMS      -65
 
 #define CLI_SLICING_ERROR                  -100
 #define CLI_GCODE_PATH_CONFLICTS           -101
@@ -273,6 +288,20 @@ template<class T> size_t next_highest_power_of_2(T v,
     return next_highest_power_of_2(uint32_t(v));
 }
 
+template <class VectorType> void reserve_power_of_2(VectorType &vector, size_t n) {
+    vector.reserve(next_highest_power_of_2(n));
+}
+
+template<class VectorType> void reserve_more(VectorType &vector, size_t n)
+{
+    vector.reserve(vector.size() + n);
+}
+
+template<class VectorType> void reserve_more_power_of_2(VectorType &vector, size_t n)
+{
+    vector.reserve(next_highest_power_of_2(vector.size() + n));
+}
+
 template<typename INDEX_TYPE>
 inline INDEX_TYPE prev_idx_modulo(INDEX_TYPE idx, const INDEX_TYPE count)
 {
@@ -287,6 +316,14 @@ inline INDEX_TYPE next_idx_modulo(INDEX_TYPE idx, const INDEX_TYPE count)
 	if (++ idx == count)
 		idx = 0;
 	return idx;
+}
+
+
+// Return dividend divided by divisor rounded to the nearest integer
+template<typename INDEX_TYPE>
+inline INDEX_TYPE round_up_divide(const INDEX_TYPE dividend, const INDEX_TYPE divisor)
+{
+    return (dividend + divisor - 1) / divisor;
 }
 
 template<typename CONTAINER_TYPE>
@@ -549,6 +586,21 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     return buffer;
 }
 
+inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs)
+{
+    if (time_in_secs == 0.0f)
+        return {};
+
+    std::stringstream stream;
+    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
+    auto endTime = now + boost::posix_time::seconds(static_cast<int>(time_in_secs));
+    auto facet = new boost::posix_time::time_facet("%H:%M");//%Y-%m-%d %H:%M:%S
+    stream.imbue(std::locale(std::locale::classic(), facet));
+    stream << endTime;
+
+    return stream.str();
+}
+
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)
 {
     int days = (int) (time_in_secs / 86400.0f);
@@ -572,6 +624,19 @@ inline std::string get_bbl_remain_time_dhms(float time_in_secs)
 }
 
 bool bbl_calc_md5(std::string &filename, std::string &md5_out);
+
+inline std::string filter_characters(const std::string& str, const std::string& filterChars)
+{
+    std::string filteredStr = str;
+
+    auto removeFunc = [&filterChars](char ch) {
+        return filterChars.find(ch) != std::string::npos;
+    };
+
+    filteredStr.erase(std::remove_if(filteredStr.begin(), filteredStr.end(), removeFunc), filteredStr.end());
+
+    return filteredStr;
+}
 
 void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target);
 

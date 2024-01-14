@@ -3,11 +3,11 @@
 
 #define SLIC3R_APP_NAME "OrcaSlicer"
 #define SLIC3R_APP_KEY "OrcaSlicer"
-#define SLIC3R_VERSION "01.06.00.66"
-#define SoftFever_VERSION "1.6.3-beta"
+#define SLIC3R_VERSION "01.07.07.89"
+#define SoftFever_VERSION "1.8.1"
 #define SLIC3R_BUILD_ID ""
-#define SLIC3R_BUILD_TIME "20240104-175711"
-//#define SLIC3R_RC_VERSION "01.06.00.66"
+#define SLIC3R_BUILD_TIME "20240114-144606"
+//#define SLIC3R_RC_VERSION "01.07.07.89"
 #define BBL_RELEASE_TO_PUBLIC 1
 #define BBL_INTERNAL_TESTING 1
 

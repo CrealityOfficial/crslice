@@ -1,7 +1,6 @@
-#include "libslic3r.h"
 #include "Platform.hpp"
 
-////#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/filesystem/operations.hpp>
 
 #if defined(__APPLE__)

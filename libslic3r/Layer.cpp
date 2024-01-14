@@ -6,7 +6,7 @@
 #include "SVG.hpp"
 #include "BoundingBox.hpp"
 
-////#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 
@@ -141,7 +141,7 @@ ExPolygons Layer::merged(float offset_scaled) const
 // The resulting fill surface is split back among the originating regions.
 void Layer::make_perimeters()
 {
-    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
     
     // keep track of regions whose perimeters we have already generated
     std::vector<unsigned char> done(m_regions.size(), false);
@@ -155,7 +155,7 @@ void Layer::make_perimeters()
 	        size_t region_id = layerm - m_regions.begin();
 	        if (done[region_id])
 	            continue;
-	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id << std::endl;
+	        BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
 	        done[region_id] = true;
 	        const PrintRegionConfig &config = (*layerm)->region().config();
 	        
@@ -174,7 +174,10 @@ void Layer::make_perimeters()
                         && config.gap_infill_speed.value == other_config.gap_infill_speed.value
                         && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
 		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
+		                && config.overhang_reverse                       == other_config.overhang_reverse
+		                && config.overhang_reverse_threshold             == other_config.overhang_reverse_threshold
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
+		                && config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
 		                && config.detect_thin_wall                  == other_config.detect_thin_wall
 		                //&& config.wall_infill_order   == other_config.wall_infill_order
 		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
@@ -231,7 +234,7 @@ void Layer::make_perimeters()
 	            }
 	        }
 	    }
-    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done" << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << " - Done";
 }
 
 void Layer::export_region_slices_to_svg(const char *path) const

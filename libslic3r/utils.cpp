@@ -10,7 +10,6 @@
 #include "Platform.hpp"
 #include "Time.hpp"
 #include "libslic3r.h"
-#include "format.hpp"
 
 #ifdef __APPLE__
 #include "MacUtils.hpp"
@@ -42,19 +41,21 @@
 	#endif
 #endif
 
-//#include <boost/log/core.hpp>
-//#include <boost/log/trivial.hpp>
-//#include <boost/log/expressions.hpp>
-//#include <boost/log/sinks/text_file_backend.hpp>
-//#include <boost/log/utility/setup/file.hpp>
-//#include <boost/log/utility/setup/common_attributes.hpp>
-//#include <boost/log/sources/severity_logger.hpp>
-//#include <boost/log/sources/record_ostream.hpp>
-//#include <boost/log/support/date_time.hpp>
-//#include <boost/locale.hpp>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/text_file_backend.hpp>
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/support/date_time.hpp>
+
+#include <boost/locale.hpp>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
@@ -87,7 +88,6 @@
 
 namespace Slic3r {
 
-#if 0
 static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
 
 static boost::log::trivial::severity_level level_to_boost(unsigned level)
@@ -107,19 +107,17 @@ static boost::log::trivial::severity_level level_to_boost(unsigned level)
     default: return boost::log::trivial::trace;
     }
 }
-#endif
 
 void set_logging_level(unsigned int level)
 {
-    //logSeverity = level_to_boost(level);
-	//
-    //boost::log::core::get()->set_filter
-    //(
-    //    boost::log::trivial::severity >= logSeverity
-    //);
+    logSeverity = level_to_boost(level);
+
+    boost::log::core::get()->set_filter
+    (
+        boost::log::trivial::severity >= logSeverity
+    );
 }
 
-#if 0
 unsigned int level_string_to_boost(std::string level)
 {
     std::map<std::string, int> Control_Param;
@@ -161,8 +159,6 @@ unsigned get_logging_level()
 
 boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> g_log_sink;
 
-#endif 
-
 // Force set_logging_level(<=error) after loading of the DLL.
 // This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
 // to perform unit and integration tests.
@@ -175,12 +171,10 @@ static struct RunOnInit {
 
 void trace(unsigned int level, const char *message)
 {
-#if 0
     boost::log::trivial::severity_level severity = level_to_boost(level);
 
     BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
         (::boost::log::keywords::severity = severity)) << message;
-#endif
 }
 
 void disable_multi_threading()
@@ -296,14 +290,11 @@ std::string debug_out_path(const char *name, ...)
 	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
 }
 
-#if 0
 namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace expr = boost::log::expressions;
 namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
-#endif
-
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
 #ifdef __APPLE__
@@ -314,14 +305,13 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 	}
 #endif
 
-	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuStudio\\log\\[log_filename].log
+	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\OrcaSlicer\\log\\[log_filename].log
 	auto log_folder = boost::filesystem::path(g_data_dir) / "log";
 	if (!boost::filesystem::exists(log_folder)) {
 		boost::filesystem::create_directory(log_folder);
 	}
 	auto full_path = (log_folder / file).make_preferred();
 
-#if 0
 	g_log_sink = boost::log::add_file_log(
 		keywords::file_name = full_path.string() + ".%N",
 		keywords::rotation_size = 100 * 1024 * 1024,
@@ -337,16 +327,15 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 	logging::add_common_attributes();
 
 	set_logging_level(level);
-#endif
+
 	return;
 }
 
 void flush_logs()
 {
-#if 0
 	if (g_log_sink)
 		g_log_sink->flush();
-#endif
+
 	return;
 }
 
@@ -1080,12 +1069,8 @@ std::string decode_path(const char *src)
 
 std::string normalize_utf8_nfc(const char *src)
 {
-#if 0
     static std::locale locale_utf8(boost::locale::generator().generate(""));
     return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
-#else
-	return std::string(src);
-#endif
 }
 
 namespace PerlUtils {
@@ -1277,7 +1262,6 @@ std::string format_memsize_MB(size_t n)
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-#if 0
     if (ignore_loglevel || logSeverity <= boost::log::trivial::info) {
 #ifdef WIN32
     #ifndef PROCESS_MEMORY_COUNTERS_EX
@@ -1340,7 +1324,6 @@ std::string log_memory_info(bool ignore_loglevel)
             out += "N/A";
 #endif
     }
-#endif
     return out;
 }
 

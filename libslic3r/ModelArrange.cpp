@@ -2,6 +2,7 @@
 
 #include <libslic3r/Model.hpp>
 #include <libslic3r/Geometry/ConvexHull.hpp>
+#include <libslic3r/Print.hpp>
 #include "MTUtils.hpp"
 
 namespace Slic3r {
@@ -10,7 +11,7 @@ arrangement::ArrangePolygons get_arrange_polys(const Model &model, ModelInstance
 {
     size_t count = 0;
     for (auto obj : model.objects) count += obj->instances.size();
-    
+
     ArrangePolygons input;
     input.reserve(count);
     instances.clear(); instances.reserve(count);
@@ -21,21 +22,21 @@ arrangement::ArrangePolygons get_arrange_polys(const Model &model, ModelInstance
             input.emplace_back(ap);
             instances.emplace_back(minst);
         }
-    
+
     return input;
 }
 
 bool apply_arrange_polys(ArrangePolygons &input, ModelInstancePtrs &instances, VirtualBedFn vfn)
 {
     bool ret = true;
-    
+
     for(size_t i = 0; i < input.size(); ++i) {
         if (input[i].bed_idx != 0) { ret = false; if (vfn) vfn(input[i]); }
         if (input[i].bed_idx >= 0)
             instances[i]->apply_arrange_result(input[i].translation.cast<double>(),
                                                input[i].rotation);
     }
-    
+
     return ret;
 }
 
@@ -52,7 +53,7 @@ Slic3r::arrangement::ArrangePolygon get_arrange_poly(const Model &model)
             const Points &pts = obj_ap.poly.contour.points;
             std::copy(pts.begin(), pts.end(), std::back_inserter(apts));
         }
-    
+
     apts = std::move(Geometry::convex_hull(apts).points);
     return ap;
 }
@@ -118,7 +119,7 @@ arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst, const Slic3r::
 ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::DynamicPrintConfig& config)
 {
     ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, config);
-    
+
     //BBS: add temperature information
     if (config.has("curr_bed_type")) {
         ap.bed_temp = 0;
@@ -138,27 +139,43 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
         ap.print_temp = config.opt_int("nozzle_temperature", ap.extrude_ids.front() - 1);
     if (config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer
         ap.first_print_temp = config.opt_int("nozzle_temperature_initial_layer", ap.extrude_ids.front() - 1);
-    
+
     if (config.has("temperature_vitrification")) {
         ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_ids.front() - 1);
     }
 
+    // get filament temp types
+    auto* filament_types_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("filament_type"));
+    if (filament_types_opt) {
+        std::set<int> filament_temp_types;
+        for (auto i : ap.extrude_ids) {
+            std::string type_str = filament_types_opt->get_at(i-1);
+            int temp_type = Print::get_filament_temp_type(type_str);
+            filament_temp_types.insert(temp_type);
+        }
+        ap.filament_temp_type = Print::get_compatible_filament_type(filament_temp_types);
+    }
+
     // get brim width
     auto obj = instance->get_object();
-#if 0
-    ap.brim_width = instance->get_auto_brim_width();
-    auto brim_type_ptr = obj->get_config_value<ConfigOptionEnum<BrimType>>(config, "brim_type");
-    if (brim_type_ptr) {
-        auto brim_type = brim_type_ptr->getInt();
-        if (brim_type == btOuterOnly)
-            ap.brim_width = obj->get_config_value<ConfigOptionFloat>(config, "brim_width")->getFloat();
-        else if (brim_type == btNoBrim)
-            ap.brim_width = 0;
-    }        
-#else
-    ap.brim_width = 0;
-#endif
-    
+
+    ap.brim_width = 1.0;
+    // For by-layer printing, need to shrink bed a little, so the support won't go outside bed.
+    // We set it to 5mm because that's how much a normal support will grow by default.
+    // normal support 5mm, other support 22mm, no support 0mm
+    auto supp_type_ptr = obj->get_config_value<ConfigOptionBool>(config, "enable_support");
+    auto support_type_ptr = obj->get_config_value<ConfigOptionEnum<SupportType>>(config, "support_type");
+    auto support_type = support_type_ptr->value;
+    auto enable_support = supp_type_ptr->getBool();
+    int support_int = support_type_ptr->getInt();
+
+    if (enable_support && (support_type == stNormalAuto || support_type == stNormal))
+        ap.brim_width = 6.0;
+    else if (enable_support) {
+        ap.brim_width = 24.0; // 2*MAX_BRANCH_RADIUS_FIRST_LAYER
+        ap.has_tree_support = true;
+    }
+
     ap.height = obj->bounding_box().size().z();
     ap.name = obj->name;
     return ap;

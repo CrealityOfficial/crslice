@@ -3,7 +3,7 @@
 #include "TriangleMesh.hpp"
 #include "SlicingAdaptive.hpp"
 
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 #include <cfloat>
 
 // Based on the work of Florens Waserfall (@platch on github)

@@ -13,7 +13,7 @@
 #include "../Utils.hpp"
 #include "Print.hpp"
 
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 */
 
 

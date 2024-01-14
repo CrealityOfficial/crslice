@@ -1,16 +1,13 @@
 #include "../libslic3r.h"
 #include "../Model.hpp"
 #include "../TriangleMesh.hpp"
-#include "../ClipperUtils.hpp"
 
 #include "svg.hpp"
-
-#define NANOSVG_IMPLEMENTATION
-#include "../nanosvg/nanosvg.h"
+#include "nanosvg/nanosvg.h"
 
 #include <string>
 
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeEdge.hxx"
@@ -22,9 +19,7 @@
 #include "TopExp_Explorer.hxx"
 #include "TopoDS.hxx"
 #include "BRepExtrema_SelfIntersection.hxx"
-
-#include "../clipper.hpp"
-#include "../clipper/clipper.hpp"
+#include "clipper/clipper.hpp"
 
 using namespace ClipperLib;
 
@@ -195,6 +190,10 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
                     profile_line_points.push_back({pt1, pt2});
                 }
             }
+
+            if (profile_line_points.empty())
+                continue;
+
             // keep the start and end points of profile connected
             if (shape->fill.gradient != nullptr)
                 profile_line_points.back().second = profile_line_points[0].first;
@@ -273,6 +272,9 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
             }
             wires.emplace_back(wire);
         }
+
+        if (wires.empty())
+            continue;
 
         gp_Vec      dir(0, 0, 10);
         BRepBuilderAPI_MakeFace face_make(wires[index]);

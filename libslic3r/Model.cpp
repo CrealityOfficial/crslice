@@ -26,9 +26,8 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/string_file.hpp>
-////#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
@@ -40,6 +39,11 @@
 
 // Transtltion
 #include "I18N.hpp"
+
+// ModelIO support
+#ifdef __APPLE__
+#include "Format/ModelIO.hpp"
+#endif
 
 #define _L(s) Slic3r::I18N::translate(s)
 
@@ -72,6 +76,13 @@ Model& Model::assign_copy(const Model &rhs)
     // BBS
     this->plates_custom_gcodes = rhs.plates_custom_gcodes;
     this->curr_plate_index = rhs.curr_plate_index;
+    this->calib_pa_pattern.reset();
+
+    if (rhs.calib_pa_pattern) {
+        this->calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(
+            CalibPressureAdvancePattern(*rhs.calib_pa_pattern)
+        );
+    }
 
     // BBS: for design info
     this->design_info = rhs.design_info;
@@ -101,6 +112,8 @@ Model& Model::assign_copy(Model &&rhs)
     // BBS
     this->plates_custom_gcodes = std::move(rhs.plates_custom_gcodes);
     this->curr_plate_index = rhs.curr_plate_index;
+    this->calib_pa_pattern.reset();
+    this->calib_pa_pattern.swap(rhs.calib_pa_pattern);
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
@@ -182,7 +195,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".stl"))
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
-        result = load_obj(input_file.c_str(), &model);
+        result = load_obj(input_file.c_str(), &model, message);
     else if (boost::algorithm::iends_with(input_file, ".svg"))
         result = load_svg(input_file.c_str(), &model, message);
     //BBS: remove the old .amf.xml files
@@ -196,6 +209,18 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         //FIXME options & LoadStrategy::CheckVersion ?
         //BBS: is_xxx is used for is_bbs_3mf when load 3mf
         result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id);
+#ifdef __APPLE__
+    else if (boost::algorithm::iends_with(input_file, ".usd") || boost::algorithm::iends_with(input_file, ".usda") ||
+             boost::algorithm::iends_with(input_file, ".usdc") || boost::algorithm::iends_with(input_file, ".usdz") ||
+             boost::algorithm::iends_with(input_file, ".abc") || boost::algorithm::iends_with(input_file, ".ply")) {
+        std::string temp_stl = make_temp_stl_with_modelio(input_file);
+        if (temp_stl.empty()) {
+            throw Slic3r::RuntimeError("Failed to convert asset to STL via ModelIO.");
+        }
+        result = load_stl(temp_stl.c_str(), &model);
+        delete_temp_file(temp_stl);
+    }
+#endif
     else
         throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."));
 
@@ -894,6 +919,7 @@ void Model::load_from(Model& model)
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
+    model.calib_pa_pattern.reset();
 }
 
 // BBS: backup
@@ -1053,6 +1079,28 @@ void ModelObject::assign_new_unique_ids_recursive()
 
 // BBS: production extension
 int ModelObject::get_backup_id() const { return m_model ? get_model()->get_object_backup_id(*this) : -1; }
+
+// BBS: Boolean Operations impl. - MusangKing
+bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boolean_opts)
+{
+    // merge meshes into single volume instead of multi-parts object
+    if (this->volumes.size() != 1) {
+        // we can't merge meshes if there's not just one volume
+        return false;
+    }
+    std::vector<TriangleMesh> new_meshes;
+
+    const TriangleMesh &cut_mesh = cut_object->mesh();
+    MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
+
+    this->clear_volumes();
+    int i = 1;
+    for (TriangleMesh &mesh : new_meshes) {
+        ModelVolume *vol = this->add_volume(mesh);
+        vol->name        = this->name + "_" + std::to_string(i++);
+    }
+    return true;
+}
 
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {
@@ -1698,7 +1746,7 @@ void ModelObject::apply_cut_connectors(const std::string &name)
         // Transform the new modifier to be aligned inside the instance
         new_volume->set_transformation(translate_transform * connector.rotation_m * scale_transform);
 
-        new_volume->cut_info = {connector.attribs.type, connector.radius_tolerance, connector.height_tolerance};
+        new_volume->cut_info = {connector.attribs.type, connector.radius, connector.height, connector.radius_tolerance, connector.height_tolerance};
         new_volume->name     = name + "-" + std::to_string(++connector_id);
     }
     cut_id.increase_connectors_cnt(cut_connectors.size());
@@ -1850,7 +1898,7 @@ void ModelObject::process_connector_cut(
 
         // Perform cut
         TriangleMesh upper_mesh, lower_mesh;
-        process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh);
+        process_volume_cut(volume, Transform3d::Identity(), cut_matrix, attributes, upper_mesh, lower_mesh);
 
         // add small Z offset to better preview
         upper_mesh.translate((-0.05 * Vec3d::UnitZ()).cast<float>());
@@ -1973,6 +2021,16 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
 
     for (size_t i = 0; i < object->instances.size(); ++i) {
         auto& obj_instance = object->instances[i];
+
+        Geometry::Transformation instance_transformation_copy = obj_instance->get_transformation();
+        instance_transformation_copy.set_offset(Vec3d(0, 0, 0));
+        if (object->volumes.size() == 1) {
+            instance_transformation_copy.set_offset(-object->volumes[0]->get_offset());
+        }
+
+        if (i == src_instance_idx && object->volumes.size() == 1)
+            invalidate_translations(object, obj_instance);
+
         const Vec3d offset = obj_instance->get_offset();
         const double rot_z = obj_instance->get_rotation().z();
 
@@ -2002,6 +2060,16 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
         }
 
         obj_instance->set_rotation(rotation);
+
+        // update the assemble matrix
+        const Transform3d &assemble_matrix = obj_instance->get_assemble_transformation().get_matrix();
+        const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+        Transform3d new_instance_inverse_matrix = instance_inverse_matrix * obj_instance->get_transformation().get_matrix(true).inverse();
+        if (place_on_cut) { // reset the rotation of cut plane
+            new_instance_inverse_matrix = new_instance_inverse_matrix * Transformation(cut_matrix).get_matrix(true, false, true, true).inverse();
+        }
+        Transform3d new_assemble_transform = assemble_matrix * new_instance_inverse_matrix;
+        obj_instance->set_assemble_from_transform(new_assemble_transform);
     }
 }
 
@@ -2049,7 +2117,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     // Displacement (in instance coordinates) to be applied to place the upper parts
     Vec3d local_displace = Vec3d::Zero();
     Vec3d local_dowels_displace = Vec3d::Zero();
-    
+
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
 
@@ -2074,23 +2142,19 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     }
 
     ModelObjectPtrs res;
-    
+
     if (attributes.has(ModelObjectCutAttribute::CutToParts) && !upper->volumes.empty()) {
         reset_instance_transformation(upper, instance, cut_matrix);
         res.push_back(upper);
     }
     else {
         if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper->volumes.size() > 0) {
-            invalidate_translations(upper, instances[instance]);
-
             reset_instance_transformation(upper, instance, cut_matrix, attributes.has(ModelObjectCutAttribute::PlaceOnCutUpper),
                                           attributes.has(ModelObjectCutAttribute::FlipUpper), local_displace);
 
             res.push_back(upper);
         }
         if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower->volumes.size() > 0) {
-            invalidate_translations(lower, instances[instance]);
-
             reset_instance_transformation(lower, instance, cut_matrix, attributes.has(ModelObjectCutAttribute::PlaceOnCutLower),
                                           attributes.has(ModelObjectCutAttribute::PlaceOnCutLower) ? true : attributes.has(ModelObjectCutAttribute::FlipLower));
 
@@ -2099,8 +2163,6 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
 
         if (attributes.has(ModelObjectCutAttribute::CreateDowels) && !dowels.empty()) {
             for (auto dowel : dowels) {
-                invalidate_translations(dowel, instances[instance]);
-
                 reset_instance_transformation(dowel, instance, Transform3d::Identity(), false, false, local_dowels_displace);
 
                 local_dowels_displace += dowel->full_raw_mesh_bounding_box().size().cwiseProduct(Vec3d(-1.5, -1.5, 0.0));
@@ -2163,11 +2225,10 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
             TriangleMesh mesh(volume->mesh());
             mesh.transform(instance_matrix * volume_matrix, true);
             volume->reset_mesh();
-#if 0  //zenggui
+
             auto mesh_segments = MeshBoolean::cgal::segment(mesh, smoothing_alpha, segment_number);
-#else
-            std::vector<Slic3r::TriangleMesh> mesh_segments;
-#endif
+
+
             // Reset volume transformation except for offset
             const Vec3d offset = volume->get_offset();
             volume->set_transformation(Geometry::Transformation());
@@ -2315,8 +2376,15 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
             {
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
+
                 //BBS: add assemble_view related logic
-                model_instance->set_assemble_transformation(model_instance->get_transformation());
+                Geometry::Transformation instance_transformation_copy = model_instance->get_transformation();
+                instance_transformation_copy.set_offset(-new_vol->get_offset());
+                const Transform3d &assemble_matrix = model_instance->get_assemble_transformation().get_matrix();
+                const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+                Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix(true).inverse();
+                Transform3d new_assemble_transform      = assemble_matrix * new_instance_inverse_matrix;
+                model_instance->set_assemble_from_transform(new_assemble_transform);
                 model_instance->set_offset_to_assembly(new_vol->get_offset());
             }
 
@@ -2741,11 +2809,23 @@ void ModelVolume::apply_tolerance()
 
     Vec3d sf = get_scaling_factor();
     // make a "hole" wider
-    sf[X] *= 1. + double(cut_info.radius_tolerance);
-    sf[Y] *= 1. + double(cut_info.radius_tolerance);
+    double size_scale = 1.f;
+    if (abs(cut_info.radius - 0) < EPSILON) // For compatibility with old files
+        size_scale = 1.f + double(cut_info.radius_tolerance);
+    else
+        size_scale = (double(cut_info.radius) + double(cut_info.radius_tolerance)) / double(cut_info.radius);
+
+    sf[X] *= size_scale;
+    sf[Y] *= size_scale;
 
     // make a "hole" dipper
-    sf[Z] *= 1. + double(cut_info.height_tolerance);
+    double height_scale = 1.f;
+    if (abs(cut_info.height - 0) < EPSILON)  // For compatibility with old files
+        height_scale = 1.f + double(cut_info.height_tolerance);
+    else
+        height_scale = (double(cut_info.height) + double(cut_info.height_tolerance)) / double(cut_info.height);
+
+    sf[Z] *= height_scale;
 
     set_scaling_factor(sf);
 }
@@ -3175,6 +3255,91 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 }
 
 //BBS
+// BBS set print speed table and find maximum speed
+void Model::setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConfig& print_config) {
+    //Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    printSpeedMap.maxSpeed = 0;
+    if (config.has("inner_wall_speed")) {
+        printSpeedMap.perimeterSpeed = config.opt_float("inner_wall_speed");
+        if (printSpeedMap.perimeterSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
+    }
+    if (config.has("outer_wall_speed")) {
+        printSpeedMap.externalPerimeterSpeed = config.opt_float("outer_wall_speed");
+        printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
+    }
+    if (config.has("sparse_infill_speed")) {
+        printSpeedMap.infillSpeed = config.opt_float("sparse_infill_speed");
+        if (printSpeedMap.infillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.infillSpeed;
+    }
+    if (config.has("internal_solid_infill_speed")) {
+        printSpeedMap.solidInfillSpeed = config.opt_float("internal_solid_infill_speed");
+        if (printSpeedMap.solidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.solidInfillSpeed;
+    }
+    if (config.has("top_surface_speed")) {
+        printSpeedMap.topSolidInfillSpeed = config.opt_float("top_surface_speed");
+        if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
+    }
+    if (config.has("support_speed")) {
+        printSpeedMap.supportSpeed = config.opt_float("support_speed");
+
+        if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
+    }
+
+
+    //auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    //auto print_config = print.config();
+    //printSpeedMap.bed_poly.points = get_bed_shape(*(wxGetApp().plater()->config()));
+    printSpeedMap.bed_poly.points = get_bed_shape(config);
+    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
+    printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
+}
+
+// find temperature of heatend and bed and matierial of an given extruder
+void Model::setExtruderParams(const DynamicPrintConfig& config, int extruders_count) {
+    extruderParamsMap.clear();
+    //Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    // BBS
+    //int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+    for (unsigned int i = 0; i != extruders_count; ++i) {
+        std::string matName = "";
+        // BBS
+        int bedTemp = 35;
+        double endTemp = 0.f;
+        if (config.has("filament_type")) {
+            matName = config.opt_string("filament_type", i);
+        }
+        if (config.has("nozzle_temperature")) {
+            endTemp = config.opt_int("nozzle_temperature", i);
+        }
+
+        // FIXME: curr_bed_type is now a plate config rather than a global config.
+        // Currently bed temp is not used for brim generation, so just comment it for now.
+#if 0
+        if (config.has("curr_bed_type")) {
+            BedType curr_bed_type = config.opt_enum<BedType>("curr_bed_type");
+            bedTemp = config.opt_int(get_bed_temp_key(curr_bed_type), i);
+        }
+#endif
+        if (i == 0) extruderParamsMap.insert({ i,{matName, bedTemp, endTemp} });
+        extruderParamsMap.insert({ i + 1,{matName, bedTemp, endTemp} });
+    }
+}
+
 // update the maxSpeed of an object if it is different from the global configuration
 double Model::findMaxSpeed(const ModelObject* object) {
     auto objectKeys = object->config.keys();
@@ -3360,19 +3525,18 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
 
     //BBS: add materials related information
     ModelVolume *volume = NULL;
-    for (size_t i = 0; i < object->volumes.size(); ++ i) {
-        if (object->volumes[i]->is_model_part())
-        {
+    for (size_t i = 0; i < object->volumes.size(); ++i) {
+        if (object->volumes[i]->is_model_part()) {
             volume = object->volumes[i];
-            break;
+            if (!volume) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
+                return;
+            }
+            auto ve = object->volumes[i]->get_extruders();
+            ret.extrude_ids.insert(ret.extrude_ids.end(), ve.begin(), ve.end());
         }
     }
-    if (!volume)
-    {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid object, should not happen";
-        return;
-    }
-    ret.extrude_ids = volume->get_extruders();
+
     // get per-object support extruders
     auto op = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
     bool is_support_enabled = op && op->getBool();

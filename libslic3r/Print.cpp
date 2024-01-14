@@ -1,3 +1,26 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Oleksandra Iushchenko @YuSanka, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Roman Beránek @zavorka, David Kocík @kocikdav
+///|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
+///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
+///|/ Copyright (c) 2021 Martin Budden
+///|/ Copyright (c) 2020 Paul Arden @ardenpm
+///|/ Copyright (c) 2019 Thomas Moore
+///|/ Copyright (c) 2019 Bryan Smith
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
+///|/
+///|/ ported from lib/Slic3r/Print.pm:
+///|/ Copyright (c) Prusa Research 2016 - 2018 Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros
+///|/ Copyright (c) Slic3r 2011 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2012 - 2013 Mark Hindess
+///|/ Copyright (c) 2013 Devin Grady
+///|/ Copyright (c) 2012 - 2013 Mike Sheldrake @mesheldrake
+///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
+///|/ Copyright (c) 2012 Michael Moon
+///|/ Copyright (c) 2011 Richard Goodwin
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
+#include "Config.hpp"
 #include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
@@ -10,8 +33,10 @@
 #include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
 #include "Thread.hpp"
+#include "Time.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
+#include "GCode/WipeTower2.hpp"
 #include "Utils.hpp"
 #include "PrintConfig.hpp"
 #include "Model.hpp"
@@ -22,13 +47,8 @@
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
-#include <boost/nowide/iostream.hpp>
-#include <boost/nowide/cstdio.hpp>
-#include <boost/nowide/fstream.hpp>
-#include "format.hpp"
-
-//#include <boost/log/trivial.hpp>
-#include "tbb/parallel_for.h"
+#include <boost/log/trivial.hpp>
+#include <boost/regex.hpp>
 
 //BBS: add json support
 #include "nlohmann/json.hpp"
@@ -112,6 +132,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_diameter",
         "filament_density",
         "filament_cost",
+        "filament_notes",
         "outer_wall_acceleration",
         "inner_wall_acceleration",
         "initial_layer_acceleration",
@@ -127,14 +148,13 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "textured_plate_temp_initial_layer",
         "gcode_add_line_number",
         "layer_change_gcode",
+        "time_lapse_gcode",
         "fan_min_speed",
         "fan_max_speed",
         "printable_height",
         "slow_down_min_speed",
-#ifdef HAS_PRESSURE_EQUALIZER
-        "max_volumetric_extrusion_rate_slope_positive",
-        "max_volumetric_extrusion_rate_slope_negative",
-#endif /* HAS_PRESSURE_EQUALIZER */
+        "max_volumetric_extrusion_rate_slope",
+        "max_volumetric_extrusion_rate_slope_segment_length",
         "reduce_infill_retraction",
         "filename_format",
         "retraction_minimum_travel",
@@ -142,7 +162,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_when_changing_layer",
         "retraction_length",
         "retract_length_toolchange",
-        "z_hop",
+        "z_hop", 
+        "retract_lift_above",
+        "retract_lift_below", 
+        "retract_lift_enforce",
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
         "retraction_speed",
@@ -157,12 +180,13 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_distance",
         "curr_bed_type",
         "nozzle_volume",
-        "chamber_temperature",
-        "thumbnails",
         "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine",
-        // SoftFever
+        // Orca
+        "chamber_temperature",
+        "thumbnails",
+        "thumbnails_format",
         "seam_gap",
         "role_based_wipe_speed",
         "wipe_speed",
@@ -173,7 +197,14 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "gcode_comments",
         "gcode_label_objects", 
         "exclude_object",
-        "support_material_interface_fan_speed"
+        "support_material_interface_fan_speed",
+        "single_extruder_multi_material_priming",
+        "activate_air_filtration",
+        "during_print_exhaust_fan_speed",
+        "complete_print_exhaust_fan_speed",
+        "activate_chamber_temp_control",
+        "manual_filament_change"
+
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -191,6 +222,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // These steps have no influence on the G-code whatsoever. Just ignore them.
         } else if (
                opt_key == "skirt_loops"
+            || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
@@ -203,6 +235,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
             || opt_key == "filament_shrink"
+            || opt_key == "resolution"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
@@ -215,10 +248,22 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
+            || opt_key == "filament_loading_speed"
+            || opt_key == "filament_loading_speed_start"
+            || opt_key == "filament_unloading_speed"
+            || opt_key == "filament_unloading_speed_start"
+            || opt_key == "filament_toolchange_delay"
+            || opt_key == "filament_cooling_moves"
+            || opt_key == "filament_cooling_initial_speed"
+            || opt_key == "filament_cooling_final_speed"
+            || opt_key == "filament_ramming_parameters"
+            || opt_key == "filament_multitool_ramming"
+            || opt_key == "filament_multitool_ramming_volume"
+            || opt_key == "filament_multitool_ramming_flow"
+            || opt_key == "filament_max_volumetric_speed"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "nozzle_temperature"
-            // BBS
             || opt_key == "cool_plate_temp"
             || opt_key == "eng_plate_temp"
             || opt_key == "hot_plate_temp"
@@ -226,7 +271,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "enable_prime_tower"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_brim_width"
-            //|| opt_key == "wipe_tower_bridging"
+            || opt_key == "first_layer_print_sequence"
+            || opt_key == "wipe_tower_bridging"
             || opt_key == "wipe_tower_no_sparse_layers"
             || opt_key == "flush_volumes_matrix"
             || opt_key == "prime_volume"
@@ -237,8 +283,15 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "travel_speed_z"
             || opt_key == "initial_layer_speed"
             || opt_key == "initial_layer_travel_speed"
-            || opt_key == "slow_down_layers") {
-            //|| opt_key == "z_offset") {
+            || opt_key == "slow_down_layers"
+            || opt_key == "wipe_tower_cone_angle"
+            || opt_key == "wipe_tower_extra_spacing"
+            || opt_key == "wipe_tower_extruder"
+            || opt_key == "wiping_volumes_extruders"
+            || opt_key == "enable_filament_ramming"
+            || opt_key == "purge_in_prime_tower"
+            || opt_key == "z_offset"
+            ) {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);
         } else if (opt_key == "filament_soluble"
@@ -254,14 +307,16 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
                opt_key == "initial_layer_line_width"
             || opt_key == "min_layer_height"
             || opt_key == "max_layer_height"
-            || opt_key == "resolution"
+            //|| opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting"
             || opt_key == "wall_infill_order") {
             osteps.emplace_back(posPerimeters);
+            osteps.emplace_back(posEstimateCurledExtrusions);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
-            osteps.emplace_back(posSimplifyPath);
+			osteps.emplace_back(posSimplifyPath);
+            osteps.emplace_back(posSimplifyInfill);
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
         }
@@ -331,6 +386,18 @@ std::vector<unsigned int> Print::object_extruders() const
             for (int extruder : volume_extruders) {
                 assert(extruder > 0);
                 extruders.push_back(extruder - 1);
+            }
+        }
+
+        // layer range
+        for (auto layer_range : mo->layer_config_ranges) {
+            if (layer_range.second.has("extruder")) {
+                //BBS: actually when user doesn't change filament by height range(value is default 0), height range should not save key "extruder".
+                //Don't know why height range always save key "extruder" because of no change(should only save difference)...
+                //Add protection here to avoid overflow
+                auto value = layer_range.second.option("extruder")->getInt();
+                if (value > 0)
+                    extruders.push_back(value - 1);
             }
         }
     }
@@ -437,6 +504,25 @@ bool Print::has_brim() const
 }
 
 //BBS
+std::vector<size_t> Print::layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points> &objects_instances_shift)
+{
+    std::vector<size_t> idx_of_object_sorted;
+    size_t              idx = 0;
+    for (const auto &object : m_objects) {
+        idx_of_object_sorted.push_back(idx++);
+        object->get_certain_layers(start, end, layers_of_objects, boundingBox_for_objects);
+    }
+    std::sort(idx_of_object_sorted.begin(), idx_of_object_sorted.end(),
+              [boundingBox_for_objects](auto left, auto right) { return boundingBox_for_objects[left].area() > boundingBox_for_objects[right].area(); });
+
+    objects_instances_shift.clear();
+    objects_instances_shift.reserve(m_objects.size());
+    for (const auto& object : m_objects)
+        objects_instances_shift.emplace_back(object->get_instances_shift_without_plate_offset());
+
+    return idx_of_object_sorted;
+};
+
 StringObjectException Print::sequential_print_clearance_valid(const Print &print, Polygons *polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
 {
     StringObjectException single_object_exception;
@@ -508,7 +594,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 auto tmp = offset(convex_hull_no_offset,
                         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
+                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - 0.1)),
                         jtRound, scale_(0.1));
                 if (!tmp.empty()) { // tmp may be empty due to clipper's bug, see STUDIO-2452
                     convex_hull = tmp.front();
@@ -535,19 +621,24 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 // if output needed, collect indices (inside convex_hulls_other) of intersecting hulls
                 for (size_t i = 0; i < convex_hulls_other.size(); ++i) {
                     if (! intersection(convex_hulls_other[i], convex_hull).empty()) {
+                        bool has_exception = false;
                         if (single_object_exception.string.empty()) {
                             single_object_exception.string = (boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = instance.model_instance->get_object();
+                            has_exception                  = true;
                         }
                         else {
                             single_object_exception.string += "\n"+(boost::format(L("%1% is too close to others, and collisions may be caused.")) %instance.model_instance->get_object()->name).str();
                             single_object_exception.object = nullptr;
+                            has_exception                  = true;
                         }
 
                         if (polygons) {
                             intersecting_idxs.emplace_back(i);
                             intersecting_idxs.emplace_back(convex_hulls_other.size());
                         }
+
+                        if (has_exception) break;
                     }
                 }
                 struct print_instance_info print_info {&instance, convex_hull.bounding_box(), convex_hull};
@@ -671,7 +762,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
     for (auto &inst : print_instance_with_bounding_box)
         BOOST_LOG_TRIVIAL(debug) << "after sorting print_instance " << inst.print_instance->model_instance->get_object()->name << ", object_index: " << inst.object_index
-                                 << ", height:"<< inst.height << std::endl;
+                                 << ", height:"<< inst.height;
 
 #endif
     // sequential_print_vertical_clearance_valid
@@ -866,44 +957,82 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     return {};
 }
 
-//BBS
-static std::map<std::string, bool> filament_is_high_temp {
-        {"PLA",     false},
-        {"PLA-CF",  false},
-        //{"PETG",    true},
-        {"ABS",     true},
-        {"TPU",     false},
-        {"PA",      true},
-        {"PA-CF",   true},
-        {"PET-CF",  true},
-        {"PC",      true},
-        {"ASA",     true}
-};
-
-//BBS: this function is used to check whether multi filament can be printed
-StringObjectException Print::check_multi_filament_valid(const Print& print)
+bool Print::check_multi_filaments_compatibility(const std::vector<std::string>& filament_types)
 {
     bool has_high_temperature_filament = false;
     bool has_low_temperature_filament = false;
 
-    auto print_config = print.config();
-    std::vector<unsigned int> extruders = print.extruders();
-
-    for (const auto& extruder_idx : extruders) {
-        std::string filament_type = print_config.filament_type.get_at(extruder_idx);
-        if (filament_is_high_temp.find(filament_type) != filament_is_high_temp.end()) {
-            if (filament_is_high_temp[filament_type])
-                has_high_temperature_filament = true;
-            else
-                has_low_temperature_filament = true;
-        }
+    for (const auto& type : filament_types) {
+        if (get_filament_temp_type(type) ==FilamentTempType::HighTemp)
+            has_high_temperature_filament = true;
+        else if (get_filament_temp_type(type) == FilamentTempType::LowTemp)
+            has_low_temperature_filament = true;
     }
 
     if (has_high_temperature_filament && has_low_temperature_filament)
+        return false;
+
+    return true;
+}
+
+bool Print::is_filaments_compatible(const std::vector<int>& filament_types)
+{
+    bool has_high_temperature_filament = false;
+    bool has_low_temperature_filament = false;
+
+    for (const auto& type : filament_types) {
+        if (type == FilamentTempType::HighTemp)
+            has_high_temperature_filament = true;
+        else if (type == FilamentTempType::LowTemp)
+            has_low_temperature_filament = true;
+    }
+
+    if (has_high_temperature_filament && has_low_temperature_filament)
+        return false;
+
+    return true;
+}
+int Print::get_compatible_filament_type(const std::set<int>& filament_types)
+{
+    bool has_high_temperature_filament = false;
+    bool has_low_temperature_filament = false;
+
+    for (const auto& type : filament_types) {
+        if (type == FilamentTempType::HighTemp)
+            has_high_temperature_filament = true;
+        else if (type == FilamentTempType::LowTemp)
+            has_low_temperature_filament = true;
+    }
+
+    if (has_high_temperature_filament && has_low_temperature_filament)
+        return HighLowCompatible;
+    else if (has_high_temperature_filament)
+        return HighTemp;
+    else if (has_low_temperature_filament)
+        return LowTemp;
+    return HighLowCompatible;
+}
+
+//BBS: this function is used to check whether multi filament can be printed
+StringObjectException Print::check_multi_filament_valid(const Print& print)
+{
+    auto print_config = print.config();
+    std::vector<unsigned int> extruders = print.extruders();
+    std::vector<std::string> filament_types;
+    filament_types.reserve(extruders.size());
+
+    for (const auto& extruder_idx : extruders)
+        filament_types.push_back(print_config.filament_type.get_at(extruder_idx));
+
+    if (!check_multi_filaments_compatibility(filament_types))
         return { L("Can not print multiple filaments which have large difference of temperature together. Otherwise, the extruder and nozzle may be blocked or damaged during printing") };
 
     return {std::string()};
 }
+
+// Orca: this g92e0 regex is used copied from PrusaSlicer
+// Matches "G92 E0" with various forms of writing the zero and with an optional comment.
+boost::regex regex_g92e0 { "^[ \\t]*[gG]92[ \\t]*[eE](0(\\.0*)?|\\.0+)[ \\t]*(;.*)?$" };
 
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 //BBS: refine seq-print validation logic
@@ -920,7 +1049,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
         auto ret = check_multi_filament_valid(*this);
         if (!ret.string.empty())
+        {
+            ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
             return ret;
+        }
     }
 
     if (m_config.print_sequence == PrintSequence::ByObject) {
@@ -929,13 +1061,16 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
         //BBS: refine seq-print validation logic
         auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
-    	if (!ret.string.empty())
+        if (!ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT;
             return ret;
+        }
     }
     else {
         //BBS
         auto ret = layered_print_cleareance_valid(*this, warning);
         if (!ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
             return ret;
         }
     }
@@ -952,6 +1087,53 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
     }
 
+    // Cache of layer height profiles for checking:
+    // 1) Whether all layers are synchronized if printing with wipe tower and / or unsynchronized supports.
+    // 2) Whether layer height is constant for Organic supports.
+    // 3) Whether build volume Z is not violated.
+    std::vector<std::vector<coordf_t>> layer_height_profiles;
+    auto layer_height_profile = [this, &layer_height_profiles](const size_t print_object_idx) -> const std::vector<coordf_t>& {
+        const PrintObject       &print_object = *m_objects[print_object_idx];
+        if (layer_height_profiles.empty())
+            layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
+        std::vector<coordf_t>   &profile      = layer_height_profiles[print_object_idx];
+        if (profile.empty())
+            PrintObject::update_layer_height_profile(*print_object.model_object(), print_object.slicing_parameters(), profile);
+        return profile;
+    };
+
+    // Checks that the print does not exceed the max print height
+    for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx) {
+        const PrintObject &print_object = *m_objects[print_object_idx];
+        //FIXME It is quite expensive to generate object layers just to get the print height!
+        if (auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx));
+            ! layers.empty() && layers.back() > this->config().printable_height + EPSILON) {
+            return
+                // Test whether the last slicing plane is below or above the print volume.
+                { 0.5 * (layers[layers.size() - 2] + layers.back()) > this->config().printable_height + EPSILON ?
+                format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
+                format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
+                " " + _u8L("You might want to reduce the size of your model or change current print settings and retry.") };
+        }
+    }
+
+    // Some of the objects has variable layer height applied by painting or by a table.
+    bool has_custom_layering = std::find_if(m_objects.begin(), m_objects.end(), 
+        [](const PrintObject *object) { return object->model_object()->has_custom_layering(); }) 
+        != m_objects.end();
+
+    // Custom layering is not allowed for tree supports as of now.
+    for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx)
+        if (const PrintObject &print_object = *m_objects[print_object_idx];
+            print_object.has_support_material() && is_tree(print_object.config().support_type.value) && (print_object.config().support_style.value == smsOrganic || 
+                // Orca: use organic as default
+                print_object.config().support_style.value == smsDefault) &&
+            print_object.model_object()->has_custom_layering()) {
+            if (const std::vector<coordf_t> &layers = layer_height_profile(print_object_idx); ! layers.empty())
+                if (! check_object_layers_fixed(print_object.slicing_parameters(), layers))
+                    return {_u8L("Variable layer height is not supported with Organic supports.") };
+        }
+
     if (this->has_wipe_tower() && ! m_objects.empty()) {
         // Make sure all extruders use same diameter filament and have the same nozzle diameter
         // EPSILON comparison is used for nozzles and 10 % tolerance is used for filaments
@@ -965,10 +1147,9 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 // BBS: remove L()
                 return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
-        
+
         if (! m_config.use_relative_e_distances)
             return { ("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
-        
         if (m_config.ooze_prevention)
             return { ("Ooze prevention is currently not supported with the prime tower enabled.") };
 
@@ -1000,19 +1181,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 #endif
 
         if (m_objects.size() > 1) {
-            bool                                has_custom_layering = false;
-            std::vector<std::vector<coordf_t>>  layer_height_profiles;
-            for (const PrintObject *object : m_objects) {
-                has_custom_layering = ! object->model_object()->layer_config_ranges.empty() || ! object->model_object()->layer_height_profile.empty();
-                if (has_custom_layering) {
-                    layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
-                    break;
-                }
-            }
             const SlicingParameters &slicing_params0 = m_objects.front()->slicing_parameters();
-            size_t            tallest_object_idx = 0;
-            if (has_custom_layering)
-                PrintObject::update_layer_height_profile(*m_objects.front()->model_object(), slicing_params0, layer_height_profiles.front());
+            size_t                  tallest_object_idx = 0;
             for (size_t i = 1; i < m_objects.size(); ++ i) {
                 const PrintObject       *object         = m_objects[i];
                 const SlicingParameters &slicing_params = object->slicing_parameters();
@@ -1030,8 +1200,9 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
                 if (has_custom_layering) {
-                    PrintObject::update_layer_height_profile(*object->model_object(), slicing_params, layer_height_profiles[i]);
-                    if (*(layer_height_profiles[i].end()-2) > *(layer_height_profiles[tallest_object_idx].end()-2))
+                    auto &lh         = layer_height_profile(i);
+                    auto &lh_tallest = layer_height_profile(tallest_object_idx);
+                    if (*(lh.end() - 2) > *(lh_tallest.end() - 2))
                         tallest_object_idx = i;
                 }
             }
@@ -1080,19 +1251,15 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 return ("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
-        auto validate_extrusion_width = [/*min_nozzle_diameter,*/ max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
-            // This may change in the future, if we switch to "extrusion width wrt. nozzle diameter"
-            // instead of currently used logic "extrusion width wrt. layer height", see GH issues #1923 #2829.
-//        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
-//        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
-            double extrusion_width_min = config.get_abs_value(opt_key);
-            double extrusion_width_max = config.get_abs_value(opt_key);
+        auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
+            double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
+            double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
         	if (extrusion_width_min == 0) {
         		// Default "auto-generated" extrusion width is always valid.
         	} else if (extrusion_width_min <= layer_height) {
                 err_msg = L("Too small line width");
 				return false;
-			} else if (extrusion_width_max >= max_nozzle_diameter * 2.5) {
+			} else if (extrusion_width_max > max_nozzle_diameter * 5) {
                 err_msg = L("Too large line width");
 				return false;
 			}
@@ -1118,6 +1285,22 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     return {L("The prime tower requires that support has the same layer height with object."), object, "support_filament"};
                 }
 #endif
+
+                // Prusa: Fixing crashes with invalid tip diameter or branch diameter
+                // https://github.com/prusa3d/PrusaSlicer/commit/96b3ae85013ac363cd1c3e98ec6b7938aeacf46d
+                if (is_tree(object->config().support_type.value) && (object->config().support_style == smsOrganic ||
+                    // Orca: use organic as default
+                    object->config().support_style == smsDefault)) {
+                    float extrusion_width = std::min(
+                        support_material_flow(object).width(),
+                        support_material_interface_flow(object).width());
+                    if (object->config().tree_support_tip_diameter < extrusion_width - EPSILON)
+                        return { L("Organic support tree tip diameter must not be smaller than support material extrusion width."), object, "tree_support_tip_diameter" };
+                    if (object->config().tree_support_branch_diameter_organic < 2. * extrusion_width - EPSILON)
+                        return { L("Organic support branch diameter must not be smaller than 2x support material extrusion width."), object, "tree_support_branch_diameter_organic" };
+                    if (object->config().tree_support_branch_diameter_organic < object->config().tree_support_tip_diameter)
+                        return { L("Organic support branch diameter must not be smaller than support tree tip diameter."), object, "tree_support_branch_diameter_organic" };
+                }
             }
 
             // Do we have custom support data that would not be used?
@@ -1178,6 +1361,27 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
     }
 
+    // Orca: G92 E0 is not supported when using absolute extruder addressing
+    // This check is copied from PrusaSlicer, the original author is Vojtech Bubnik
+    if(!is_BBL_printer()) {
+        bool before_layer_gcode_resets_extruder =
+            boost::regex_search(m_config.before_layer_change_gcode.value, regex_g92e0);
+        bool layer_gcode_resets_extruder = boost::regex_search(m_config.layer_change_gcode.value, regex_g92e0);
+        if (m_config.use_relative_e_distances) {
+            // See GH issues #6336 #5073
+            if ((m_config.gcode_flavor == gcfMarlinLegacy || m_config.gcode_flavor == gcfMarlinFirmware) &&
+                !before_layer_gcode_resets_extruder && !layer_gcode_resets_extruder)
+                return {L("Relative extruder addressing requires resetting the extruder position at each layer to "
+                          "prevent loss of floating point accuracy. Add \"G92 E0\" to layer_gcode."),
+                        nullptr, "before_layer_change_gcode"};
+        } else if (before_layer_gcode_resets_extruder)
+            return {L("\"G92 E0\" was found in before_layer_gcode, which is incompatible with absolute extruder "
+                      "addressing."),
+                    nullptr, "before_layer_change_gcode"};
+        else if (layer_gcode_resets_extruder)
+            return {L("\"G92 E0\" was found in layer_gcode, which is incompatible with absolute extruder addressing."),
+                    nullptr, "layer_change_gcode"};
+    }
 
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);
@@ -1278,10 +1482,10 @@ double Print::skirt_first_layer_height() const
 
 Flow Print::brim_flow() const
 {
-    ConfigOptionFloat width = m_config.initial_layer_line_width;
-    if (width.value == 0)
+    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
+    if (width.value <= 0)
         width = m_print_regions.front()->config().inner_wall_line_width;
-    if (width.value == 0)
+    if (width.value <= 0)
         width = m_objects.front()->config().line_width;
 
     /* We currently use a random region's perimeter extruder.
@@ -1291,6 +1495,7 @@ Flow Print::brim_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
+        // Flow::new_from_config_width takes care of the percent to value substitution
 		width,
         (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().wall_filament-1),
 		(float)this->skirt_first_layer_height());
@@ -1298,8 +1503,8 @@ Flow Print::brim_flow() const
 
 Flow Print::skirt_flow() const
 {
-    ConfigOptionFloat width = m_config.initial_layer_line_width;
-    if (width.value == 0)
+    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
+    if (width.value <= 0)
         width = m_objects.front()->config().line_width;
 
     /* We currently use a random object's support material extruder.
@@ -1309,6 +1514,7 @@ Flow Print::skirt_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
+        // Flow::new_from_config_width takes care of the percent to value substitution
 		width,
 		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_filament-1),
 		(float)this->skirt_first_layer_height());
@@ -1342,13 +1548,13 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
 void  PrintObject::set_shared_object(PrintObject *object)
 {
     m_shared_object = object;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, found shared object from %2%")%this%m_shared_object << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, found shared object from %2%")%this%m_shared_object;
 }
 
 void  PrintObject::clear_shared_object()
 {
     if (m_shared_object) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, clear previous shared object data %2%")%this %m_shared_object << std::endl;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, clear previous shared object data %2%")%this %m_shared_object;
         m_layers.clear();
         m_support_layers.clear();
 
@@ -1367,7 +1573,7 @@ void  PrintObject::copy_layers_from_shared_object()
         firstLayerObjSliceByVolume.clear();
         firstLayerObjSliceByGroups.clear();
 
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layers from object %2%")%this%m_shared_object << std::endl;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layers from object %2%")%this%m_shared_object;
         m_layers = m_shared_object->layers();
         m_support_layers = m_shared_object->support_layers();
 
@@ -1375,6 +1581,20 @@ void  PrintObject::copy_layers_from_shared_object()
         firstLayerObjSliceByGroups = m_shared_object->firstLayerObjGroups();
     }
 }
+
+void  PrintObject::copy_layers_overhang_from_shared_object()
+{
+    if (m_shared_object) {
+        for (size_t index = 0; index <  m_layers.size() && index <  m_shared_object->m_layers.size(); index++)
+        {
+            Layer* layer_src = m_layers[index];
+            layer_src->loverhangs = m_shared_object->m_layers[index]->loverhangs;
+            layer_src->loverhangs_bbox = m_shared_object->m_layers[index]->loverhangs_bbox;
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layer overhang from object %2%")%this%m_shared_object;
+    }
+}
+
 
 // BBS
 BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std::string& name)
@@ -1386,7 +1606,7 @@ BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std
         auto layer = get_layer(0);
         layer_height = layer->height;
         // only work for object with single instance
-        auto shift = instances()[0].shift;
+        auto shift = instances()[0].shift_without_plate_offset();
         for (auto bb : layer->lslices_bboxes)
         {
             bb.translate(shift.x(), shift.y());
@@ -1421,12 +1641,16 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
 }
 
 // Slicing process, running at a background thread.
-void Print::process(bool use_cache)
+void Print::process(long long *time_cost_with_cache, bool use_cache)
 {
+    long long start_time = 0, end_time = 0;
+    if (time_cost_with_cache)
+        *time_cost_with_cache = 0;
+
     name_tbb_thread_pool_threads_set_locale();
 
     //compute the PrintObject with the same geometries
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%, object size=%3%")%this%use_cache%m_objects.size() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%, object size=%3%")%this%use_cache%m_objects.size();
     if (m_objects.empty())
         return;
 
@@ -1477,6 +1701,7 @@ void Print::process(bool use_cache)
     };
     int object_count = m_objects.size();
     std::set<PrintObject*> need_slicing_objects;
+    std::set<PrintObject*> re_slicing_objects;
     if (!use_cache) {
         for (int index = 0; index < object_count; index++)
         {
@@ -1513,15 +1738,19 @@ void Print::process(bool use_cache)
                     }
                 }
                 if (!found_shared) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("Also can not find the shared object, identify_id %1%")%obj->model_object()->instances[0]->loaded_id << std::endl;
-                    throw Slic3r::SlicingError("Can not find the cached data.");
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("Also can not find the shared object, identify_id %1%, maybe shared object is skipped")%obj->model_object()->instances[0]->loaded_id;
+                    //throw Slic3r::SlicingError("Can not find the cached data.");
+                    //don't report errot, set use_cache to false, and reslice these objects
+                    need_slicing_objects.insert(obj);
+                    re_slicing_objects.insert(obj);
+                    //use_cache = false;
                 }
             }
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size() << std::endl;
-    BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size();
+    BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     if (!use_cache) {
         for (PrintObject *obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
@@ -1532,6 +1761,15 @@ void Print::process(bool use_cache)
                     obj->set_done(posSlice);
                 if (obj->set_started(posPerimeters))
                     obj->set_done(posPerimeters);
+            }
+        }
+        for (PrintObject *obj : m_objects) {
+            if (need_slicing_objects.count(obj) != 0) {
+                obj->estimate_curled_extrusions();
+            }
+            else {
+                if (obj->set_started(posEstimateCurledExtrusions))
+                    obj->set_done(posEstimateCurledExtrusions);
             }
         }
         for (PrintObject *obj : m_objects) {
@@ -1569,28 +1807,51 @@ void Print::process(bool use_cache)
                 }
             }
         );
+
+        for (PrintObject* obj : m_objects) {
+            if (need_slicing_objects.count(obj) != 0) {
+                obj->detect_overhangs_for_lift();
+            }
+            else {
+                if (obj->set_started(posDetectOverhangsForLift))
+                    obj->set_done(posDetectOverhangsForLift);
+            }
+        }
     }
     else {
         for (PrintObject *obj : m_objects) {
-            if (obj->set_started(posSlice))
-                obj->set_done(posSlice);
-            if (obj->set_started(posPerimeters))
-                obj->set_done(posPerimeters);
-            if (obj->set_started(posPrepareInfill))
-                obj->set_done(posPrepareInfill);
-            if (obj->set_started(posInfill))
-                obj->set_done(posInfill);
-            if (obj->set_started(posIroning))
-                obj->set_done(posIroning);
-            if (obj->set_started(posSupportMaterial))
-                obj->set_done(posSupportMaterial);
+            if (re_slicing_objects.count(obj) == 0) {
+                if (obj->set_started(posSlice))
+                    obj->set_done(posSlice);
+                if (obj->set_started(posPerimeters))
+                    obj->set_done(posPerimeters);
+                if (obj->set_started(posPrepareInfill))
+                    obj->set_done(posPrepareInfill);
+                if (obj->set_started(posInfill))
+                    obj->set_done(posInfill);
+                if (obj->set_started(posIroning))
+                    obj->set_done(posIroning);
+                if (obj->set_started(posSupportMaterial))
+                    obj->set_done(posSupportMaterial);
+                if (obj->set_started(posDetectOverhangsForLift))
+                    obj->set_done(posDetectOverhangsForLift);
+            }
+            else {
+                obj->make_perimeters();
+                obj->infill();
+                obj->ironing();
+                obj->generate_support_material();
+                obj->estimate_curled_extrusions();
+            }
         }
     }
 
     for (PrintObject *obj : m_objects)
     {
-        if (need_slicing_objects.count(obj) == 0)
+        if (need_slicing_objects.count(obj) == 0) {
             obj->copy_layers_from_shared_object();
+            obj->copy_layers_overhang_from_shared_object();
+        }
     }
 
     if (this->set_started(psWipeTower)) {
@@ -1608,6 +1869,9 @@ void Print::process(bool use_cache)
     }
     if (this->set_started(psSkirtBrim)) {
         this->set_status(70, L("Generating skirt & brim"));
+
+        if (time_cost_with_cache)
+            start_time = (long long)Slic3r::Utils::get_current_time_utc();
 
         m_skirt.clear();
         m_skirt_convex_hull.clear();
@@ -1693,28 +1957,25 @@ void Print::process(bool use_cache)
 
         this->finalize_first_layer_convex_hull();
         this->set_done(psSkirtBrim);
+
+        if (time_cost_with_cache) {
+            end_time = (long long)Slic3r::Utils::get_current_time_utc();
+            *time_cost_with_cache = *time_cost_with_cache + end_time - start_time;
+        }
     }
     //BBS
     for (PrintObject *obj : m_objects) {
-        if ((!use_cache)&&(need_slicing_objects.count(obj) != 0)) {
+        if (((!use_cache)&&(need_slicing_objects.count(obj) != 0))
+            || (use_cache &&(re_slicing_objects.count(obj) != 0))){
             obj->simplify_extrusion_path();
         }
         else {
             if (obj->set_started(posSimplifyPath))
                 obj->set_done(posSimplifyPath);
+            if (obj->set_started(posSimplifyInfill))
+                obj->set_done(posSimplifyInfill);
             if (obj->set_started(posSimplifySupportPath))
                 obj->set_done(posSimplifySupportPath);
-        }
-    }
-
-    // BBS
-    for (PrintObject* obj : m_objects) {
-        if (need_slicing_objects.count(obj) != 0) {
-            obj->detect_overhangs_for_lift();
-        }
-        else {
-            if (obj->set_started(posDetectOverhangsForLift))
-                obj->set_done(posDetectOverhangsForLift);
         }
     }
 
@@ -1731,15 +1992,15 @@ void Print::process(bool use_cache)
         auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects, wipe_tower_opt);
         auto            endTime     = Clock::now();
         volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
-        BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs." << std::endl;
+        BOOST_LOG_TRIVIAL(info) << "gcode path conflicts check takes " << seconds << " secs.";
 
         m_conflict_result = conflictRes;
         if (conflictRes.has_value()) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value()._objName1 %conflictRes.value()._objName2 << std::endl;
+            BOOST_LOG_TRIVIAL(error) << boost::format("gcode path conflicts found between %1% and %2%")%conflictRes.value()._objName1 %conflictRes.value()._objName2;
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
 
 // G-code export process, running at a background thread.
@@ -2010,6 +2271,77 @@ Vec2d Print::translate_to_print_space(const Vec2d &point) const {
 Vec2d Print::translate_to_print_space(const Point &point) const {
     return Vec2d(unscaled(point.x()) - m_origin(0), unscaled(point.y()) - m_origin(1));
 }
+
+FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
+{
+    const static std::string HighTempFilamentStr = "high_temp_filament";
+    const static std::string LowTempFilamentStr = "low_temp_filament";
+    const static std::string HighLowCompatibleFilamentStr = "high_low_compatible_filament";
+    static std::unordered_map<std::string, std::unordered_set<std::string>>filament_temp_type_map;
+
+    if (filament_temp_type_map.empty()) {
+        fs::path file_path = fs::path(resources_dir()) / "info" / "filament_info.json";
+        std::ifstream in(file_path.string());
+        json j;
+        try{
+            j = json::parse(in);
+            in.close();
+            auto&&high_temp_filament_arr =j[HighTempFilamentStr].get < std::vector<std::string>>();
+            filament_temp_type_map[HighTempFilamentStr] = std::unordered_set<std::string>(high_temp_filament_arr.begin(), high_temp_filament_arr.end());
+            auto&& low_temp_filament_arr = j[LowTempFilamentStr].get < std::vector<std::string>>();
+            filament_temp_type_map[LowTempFilamentStr] = std::unordered_set<std::string>(low_temp_filament_arr.begin(), low_temp_filament_arr.end());
+            auto&& high_low_compatible_filament_arr = j[HighLowCompatibleFilamentStr].get < std::vector<std::string>>();
+            filament_temp_type_map[HighLowCompatibleFilamentStr] = std::unordered_set<std::string>(high_low_compatible_filament_arr.begin(), high_low_compatible_filament_arr.end());
+        }
+        catch (const json::parse_error& err){
+            in.close();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
+            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF"};
+            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA"};
+            filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG" };
+        }
+    }
+
+    if (filament_temp_type_map[HighLowCompatibleFilamentStr].find(filament_type) != filament_temp_type_map[HighLowCompatibleFilamentStr].end())
+        return HighLowCompatible;
+    if (filament_temp_type_map[HighTempFilamentStr].find(filament_type) != filament_temp_type_map[HighTempFilamentStr].end())
+        return HighTemp;
+    if (filament_temp_type_map[LowTempFilamentStr].find(filament_type) != filament_temp_type_map[LowTempFilamentStr].end())
+        return LowTemp;
+    return Undefine;
+}
+
+int Print::get_hrc_by_nozzle_type(const NozzleType&type)
+{
+    static std::map<std::string, int>nozzle_type_to_hrc;
+    if (nozzle_type_to_hrc.empty()) {
+        fs::path file_path = fs::path(resources_dir()) / "info" / "nozzle_info.json";
+        std::ifstream in(file_path.string());
+        json j;
+        try {
+            j = json::parse(in);
+            in.close();
+            for (const auto& elem : j["nozzle_hrc"].items())
+                nozzle_type_to_hrc[elem.key()] = elem.value();
+        }
+        catch (const json::parse_error& err) {
+            in.close();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
+            nozzle_type_to_hrc = {
+                {"hardened_steel",55},
+                {"stainless_steel",20},
+                {"brass",2},
+                {"undefine",0}
+            };
+        }
+    }
+    auto iter = nozzle_type_to_hrc.find(NozzleTypeEumnToStr[type]);
+    if (iter != nozzle_type_to_hrc.end())
+        return iter->second;
+    //0 represents undefine
+    return 0;
+}
+
 void Print::finalize_first_layer_convex_hull()
 {
     append(m_first_layer_convex_hull.points, m_skirt_convex_hull);
@@ -2034,20 +2366,35 @@ bool Print::has_wipe_tower() const
     return false;
 }
 
-const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
+const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
 {
     // If the wipe tower wasn't created yet, make sure the depth and brim_width members are set to default.
-    if (! is_step_done(psWipeTower) && filaments_cnt !=0) {
-        // BBS
-        double width = m_config.prime_tower_width;
+    if (!is_step_done(psWipeTower) && filaments_cnt != 0) {
+        double width        = m_config.prime_tower_width;
         double layer_height = 0.2; // hard code layer height
-        double wipe_volume = m_config.prime_volume;
-        if (filaments_cnt == 1 && enable_timelapse_print()) {
-            const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
+        if (m_config.purge_in_prime_tower) {
+            // Calculating depth should take into account currently set wiping volumes.
+            // For a long time, the initial preview would just use 900/width per toolchange (15mm on a 60mm wide tower)
+            // and it worked well enough. Let's try to do slightly better by accounting for the purging volumes.
+            std::vector<std::vector<float>> wipe_volumes = WipeTower2::extract_wipe_volumes(m_config);
+            std::vector<float>              max_wipe_volumes;
+            for (const std::vector<float> &v : wipe_volumes)
+                max_wipe_volumes.emplace_back(*std::max_element(v.begin(), v.end()));
+            float maximum = std::accumulate(max_wipe_volumes.begin(), max_wipe_volumes.end(), 0.f);
+            maximum       = maximum * filaments_cnt / max_wipe_volumes.size();
+            
+            // Orca: it's overshooting a bit, so let's reduce it a bit
+            maximum *= 0.6; 
+            const_cast<Print *>(this)->m_wipe_tower_data.depth = maximum / (layer_height * width);
         } else {
-            const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
+            double wipe_volume = m_config.prime_volume;
+            if (filaments_cnt == 1 && enable_timelapse_print()) {
+                const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
+            } else {
+                const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
+            }
         }
-        const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
+        const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
     }
 
     return m_wipe_tower_data;
@@ -2117,97 +2464,193 @@ void Print::_make_wipe_tower()
     }
     this->throw_if_canceled();
 
-    // Initialize the wipe tower.
-    // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
-    WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
-        m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
+    if (is_BBL_printer()) {
+        // in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
+        WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_config.prime_volume, m_wipe_tower_data.tool_ordering.first_extruder(),
+                             m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z);
 
-    //wipe_tower.set_retract();
-    //wipe_tower.set_zhop();
+        // wipe_tower.set_retract();
+        // wipe_tower.set_zhop();
 
-    // Set the extruder & material properties at the wipe tower object.
-    for (size_t i = 0; i < number_of_extruders; ++ i)
-        wipe_tower.set_extruder(i, m_config);
+        // Set the extruder & material properties at the wipe tower object.
+        for (size_t i = 0; i < number_of_extruders; ++i)
+            wipe_tower.set_extruder(i, m_config);
 
-    // BBS: remove priming logic
-    //m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
-    //    wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
+        // BBS: remove priming logic
+        // m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
+        //    wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
 
-    // Lets go through the wipe tower layers and determine pairs of extruder changes for each
-    // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
-    {
-        // BBS: priming logic is removed, so get the initial extruder by first_extruder()
-        unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.first_extruder();
-        for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
-            if (!layer_tools.has_wipe_tower) continue;
-            bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
-            wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id);
+        // Lets go through the wipe tower layers and determine pairs of extruder changes for each
+        // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
+        {
+            // BBS: priming logic is removed, so get the initial extruder by first_extruder()
+            unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.first_extruder();
+            for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
+                if (!layer_tools.has_wipe_tower)
+                    continue;
+                bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
+                wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_extruder_id,
+                                           current_extruder_id);
 
-            for (const auto extruder_id : layer_tools.extruders) {
-                // BBS: priming logic is removed, so no need to do toolchange for first extruder
-                if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */extruder_id != current_extruder_id) {
-                    float volume_to_purge = wipe_volumes[current_extruder_id][extruder_id];
-                    volume_to_purge *= m_config.flush_multiplier;
+                for (const auto extruder_id : layer_tools.extruders) {
+                    // BBS: priming logic is removed, so no need to do toolchange for first extruder
+                    if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */ extruder_id !=
+                        current_extruder_id) {
+                        float volume_to_purge = wipe_volumes[current_extruder_id][extruder_id];
+                        volume_to_purge *= m_config.flush_multiplier;
 
-                    // Not all of that can be used for infill purging:
-                    //volume_to_purge -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+                        // Not all of that can be used for infill purging:
+                        // volume_to_purge -= (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 
-                    // try to assign some infills/objects for the wiping:
-                    volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, volume_to_purge);
+                        // try to assign some infills/objects for the wiping:
+                        volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id,
+                                                                                                 volume_to_purge);
 
-                    // add back the minimal amount toforce on the wipe tower:
-                    //volume_to_purge += (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+                        // add back the minimal amount toforce on the wipe tower:
+                        // volume_to_purge += (float)m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 
-                    // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
-                    wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height,
-                                               current_extruder_id, extruder_id, m_config.prime_volume, volume_to_purge);
-                    current_extruder_id = extruder_id;
+                        // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
+                        wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height,
+                                                   current_extruder_id, extruder_id, m_config.prime_volume, volume_to_purge);
+                        current_extruder_id = extruder_id;
+                    }
                 }
-            }
-            layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
+                layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 
-            // if enable timelapse, slice all layer
-            if (enable_timelapse_print()) {
-                if (layer_tools.wipe_tower_partitions == 0)
-                    wipe_tower.set_last_layer_extruder_fill(false);
-                continue;
-            }
+                // if enable timelapse, slice all layer
+                if (enable_timelapse_print()) {
+                    if (layer_tools.wipe_tower_partitions == 0)
+                        wipe_tower.set_last_layer_extruder_fill(false);
+                    continue;
+                }
 
-            if (&layer_tools == &m_wipe_tower_data.tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
-                break;
+                if (&layer_tools == &m_wipe_tower_data.tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
+                    break;
+            }
         }
-    }
 
-    // Generate the wipe tower layers.
-    m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
-    wipe_tower.generate(m_wipe_tower_data.tool_changes);
-    m_wipe_tower_data.depth = wipe_tower.get_depth();
-    m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
+        // Generate the wipe tower layers.
+        m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
+        wipe_tower.generate(m_wipe_tower_data.tool_changes);
+        m_wipe_tower_data.depth      = wipe_tower.get_depth();
+        m_wipe_tower_data.brim_width = wipe_tower.get_brim_width();
 
-    // Unload the current filament over the purge tower.
-    coordf_t layer_height = m_objects.front()->config().layer_height.value;
-    if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
-        // The wipe tower goes up to the last layer of the print.
-        if (wipe_tower.layer_finished()) {
-            // The wipe tower is printed to the top of the print and it has no space left for the final extruder purge.
-            // Lift Z to the next layer.
-            wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z + layer_height), float(layer_height), 0, false, true);
+        // Unload the current filament over the purge tower.
+        coordf_t layer_height = m_objects.front()->config().layer_height.value;
+        if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
+            // The wipe tower goes up to the last layer of the print.
+            if (wipe_tower.layer_finished()) {
+                // The wipe tower is printed to the top of the print and it has no space left for the final extruder purge.
+                // Lift Z to the next layer.
+                wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z + layer_height), float(layer_height), 0, false,
+                                     true);
+            } else {
+                // There is yet enough space at this layer of the wipe tower for the final purge.
+            }
         } else {
-            // There is yet enough space at this layer of the wipe tower for the final purge.
+            // The wipe tower does not reach the last print layer, perform the pruge at the last print layer.
+            assert(m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions == 0);
+            wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z), float(layer_height), 0, false, true);
         }
-    } else {
-        // The wipe tower does not reach the last print layer, perform the pruge at the last print layer.
-        assert(m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions == 0);
-        wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z), float(layer_height), 0, false, true);
-    }
-    m_wipe_tower_data.final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.tool_change((unsigned int)(-1)));
+        m_wipe_tower_data.final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(wipe_tower.tool_change((unsigned int) (-1)));
 
-    m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
-    m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
-    const Vec3d origin                      = this->get_plate_origin();
-    m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position(), wipe_tower.width(), wipe_tower.get_height(), wipe_tower.get_layer_height(), m_wipe_tower_data.depth,
-                                              m_wipe_tower_data.brim_width, {scale_(origin.x()), scale_(origin.y())});
+        m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
+        m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
+        const Vec3d origin                      = this->get_plate_origin();
+        m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position(), wipe_tower.width(), wipe_tower.get_height(),
+                                                  wipe_tower.get_layer_height(), m_wipe_tower_data.depth, m_wipe_tower_data.brim_width,
+                                                  {scale_(origin.x()), scale_(origin.y())});
+    } else {
+        // Initialize the wipe tower.
+        WipeTower2 wipe_tower(m_config, m_default_region_config, m_plate_index, m_origin, wipe_volumes,
+                              m_wipe_tower_data.tool_ordering.first_extruder());
+
+        // wipe_tower.set_retract();
+        // wipe_tower.set_zhop();
+
+        // Set the extruder & material properties at the wipe tower object.
+        for (size_t i = 0; i < number_of_extruders; ++i)
+            wipe_tower.set_extruder(i, m_config);
+
+        // m_wipe_tower_data.priming = Slic3r::make_unique<std::vector<WipeTower::ToolChangeResult>>(
+        //     wipe_tower.prime((float)this->skirt_first_layer_height(), m_wipe_tower_data.tool_ordering.all_extruders(), false));
+
+        // Lets go through the wipe tower layers and determine pairs of extruder changes for each
+        // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
+        {
+            unsigned int current_extruder_id = m_wipe_tower_data.tool_ordering.first_extruder();
+            for (auto &layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
+                if (!layer_tools.has_wipe_tower)
+                    continue;
+                bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
+                wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height, current_extruder_id,
+                                           current_extruder_id, false);
+                for (const auto extruder_id : layer_tools.extruders) {
+                    if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */ extruder_id !=
+                        current_extruder_id) {
+                        float volume_to_wipe = m_config.prime_volume;
+                        if (m_config.purge_in_prime_tower) {
+                            volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id]; // total volume to wipe after this toolchange
+                            volume_to_wipe *= m_config.flush_multiplier;
+                            // Not all of that can be used for infill purging:
+                            volume_to_wipe -= (float) m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+
+                            // try to assign some infills/objects for the wiping:
+                            volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id,
+                                                                                                    volume_to_wipe);
+
+                            // add back the minimal amount toforce on the wipe tower:
+                            volume_to_wipe += (float) m_config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+                        }
+
+                        // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
+                        wipe_tower.plan_toolchange((float) layer_tools.print_z, (float) layer_tools.wipe_tower_layer_height,
+                                                   current_extruder_id, extruder_id, volume_to_wipe);
+                        current_extruder_id = extruder_id;
+                    }
+                }
+                layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
+                if (&layer_tools == &m_wipe_tower_data.tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
+                    break;
+            }
+        }
+
+        // Generate the wipe tower layers.
+        m_wipe_tower_data.tool_changes.reserve(m_wipe_tower_data.tool_ordering.layer_tools().size());
+        wipe_tower.generate(m_wipe_tower_data.tool_changes);
+        m_wipe_tower_data.depth             = wipe_tower.get_depth();
+        m_wipe_tower_data.z_and_depth_pairs = wipe_tower.get_z_and_depth_pairs();
+        m_wipe_tower_data.brim_width        = wipe_tower.get_brim_width();
+        m_wipe_tower_data.height            = wipe_tower.get_wipe_tower_height();
+
+        // Unload the current filament over the purge tower.
+        coordf_t layer_height = m_objects.front()->config().layer_height.value;
+        if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
+            // The wipe tower goes up to the last layer of the print.
+            if (wipe_tower.layer_finished()) {
+                // The wipe tower is printed to the top of the print and it has no space left for the final extruder purge.
+                // Lift Z to the next layer.
+                wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z + layer_height), float(layer_height), 0, false,
+                                     true);
+            } else {
+                // There is yet enough space at this layer of the wipe tower for the final purge.
+            }
+        } else {
+            // The wipe tower does not reach the last print layer, perform the pruge at the last print layer.
+            assert(m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions == 0);
+            wipe_tower.set_layer(float(m_wipe_tower_data.tool_ordering.back().print_z), float(layer_height), 0, false, true);
+        }
+        m_wipe_tower_data.final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(wipe_tower.tool_change((unsigned int) (-1)));
+
+        m_wipe_tower_data.used_filament         = wipe_tower.get_used_filament();
+        m_wipe_tower_data.number_of_toolchanges = wipe_tower.get_number_of_toolchanges();
+        const Vec3d origin                      = Vec3d::Zero();
+        m_fake_wipe_tower.set_fake_extrusion_data(wipe_tower.position(), wipe_tower.width(), wipe_tower.get_wipe_tower_height(),
+                                                  config().initial_layer_print_height, m_wipe_tower_data.depth,
+                                                  m_wipe_tower_data.z_and_depth_pairs, m_wipe_tower_data.brim_width,
+                                                  config().wipe_tower_rotation_angle, config().wipe_tower_cone_angle,
+                                                  {scale_(origin.x()), scale_(origin.y())});
+    }
 }
 
 // Generate a recommended G-code output file name based on the format template, default extension, and template parameters
@@ -2229,13 +2672,13 @@ void Print::set_gcode_file_ready()
 {
     this->set_started(psGCodeExport);
 	this->set_done(psGCodeExport);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done") << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done");
 }
 //BBS: add gcode file preload logic
 void Print::set_gcode_file_invalidated()
 {
     this->invalidate_step(psGCodeExport);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done") << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(": done");
 }
 
 //BBS: add gcode file preload logic
@@ -2250,12 +2693,12 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
 
         *result = std::move(processor.extract_result());
     } catch (std::exception & /* ex */) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file %1%") %file.c_str() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file %1%") %file.c_str();
         throw Slic3r::RuntimeError(
             std::string("Failed to process the G-code file ") + file + " from previous 3mf\n");
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  process the G-code file %1% successfully")%file.c_str() << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  process the G-code file %1% successfully")%file.c_str();
 }
 
 DynamicConfig PrintStatistics::config() const
@@ -2273,6 +2716,7 @@ DynamicConfig PrintStatistics::config() const
     config.set_key_value("total_weight",              new ConfigOptionFloat(this->total_weight));
     config.set_key_value("total_wipe_tower_cost",     new ConfigOptionFloat(this->total_wipe_tower_cost));
     config.set_key_value("total_wipe_tower_filament", new ConfigOptionFloat(this->total_wipe_tower_filament));
+    config.set_key_value("initial_tool",              new ConfigOptionInt(static_cast<int>(this->initial_tool)));
     return config;
 }
 
@@ -2282,7 +2726,7 @@ DynamicConfig PrintStatistics::placeholders()
     for (const std::string &key : {
         "print_time", "normal_print_time", "silent_print_time",
         "used_filament", "extruded_volume", "total_cost", "total_weight",
-        "total_toolchanges", "total_wipe_tower_cost", "total_wipe_tower_filament"})
+        "initial_tool", "total_toolchanges", "total_wipe_tower_cost", "total_wipe_tower_filament"})
         config.set_key_value(key, new ConfigOptionString(std::string("{") + key + "}"));
     return config;
 }
@@ -2297,7 +2741,7 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
         std::string new_stem = pp.process(path.stem().string(), 0, &cfg);
         final_path = (path.parent_path() / (new_stem + path.extension().string())).string();
     } catch (const std::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "Failed to apply the print statistics to the export file name: " << ex.what();
         final_path = path_in;
     }
     return final_path;
@@ -2329,6 +2773,8 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_LAYER_ID                  "layer_id"
 #define JSON_LAYER_SLICED_POLYGONS    "sliced_polygons"
 #define JSON_LAYER_SLLICED_BBOXES      "sliced_bboxes"
+#define JSON_LAYER_OVERHANG_POLYGONS    "overhang_polygons"
+#define JSON_LAYER_OVERHANG_BBOX       "overhang_bbox"
 
 #define JSON_SUPPORT_LAYER_ISLANDS                  "support_islands"
 #define JSON_SUPPORT_LAYER_FILLS                    "support_fills"
@@ -2503,7 +2949,7 @@ static bool convert_extrusion_to_json(json& entity_json, json& entity_paths_json
 
     path_type = path?JSON_EXTRUSION_TYPE_PATH:(multipath?JSON_EXTRUSION_TYPE_MULTIPATH:(loop?JSON_EXTRUSION_TYPE_LOOP:JSON_EXTRUSION_TYPE_COLLECTION));
     if (path_type.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":invalid extrusion path type Found") << std::endl;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":invalid extrusion path type Found");
         return false;
     }
 
@@ -2575,7 +3021,7 @@ static void to_json(json& j, const LayerRegion& layer_region) {
         json thinfills_entity_json, thinfill_entity_paths_json = json::array();
         bool ret = convert_extrusion_to_json(thinfills_entity_json, thinfill_entity_paths_json, extrusion_entity);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error found at print_z %1%") % layer_region.layer()->print_z << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error found at print_z %1%") % layer_region.layer()->print_z;
             continue;
         }
 
@@ -2770,7 +3216,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     if (path_type == JSON_EXTRUSION_TYPE_PATH) {
         ExtrusionPath* path = new ExtrusionPath();
         if (!path) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionPath") << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionPath");
             return false;
         }
         *path = entity_json[JSON_EXTRUSION_PATHS][0];
@@ -2779,7 +3225,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     else if (path_type == JSON_EXTRUSION_TYPE_MULTIPATH) {
         ExtrusionMultiPath* multipath = new ExtrusionMultiPath();
         if (!multipath) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionMultiPath") << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionMultiPath");
             return false;
         }
         int paths_count = entity_json[JSON_EXTRUSION_PATHS].size();
@@ -2794,7 +3240,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     else if (path_type == JSON_EXTRUSION_TYPE_LOOP) {
         ExtrusionLoop* loop = new ExtrusionLoop();
         if (!loop) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionLoop") << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionLoop");
             return false;
         }
         loop->set_loop_role(entity_json[JSON_EXTRUSION_LOOP_ROLE]);
@@ -2810,7 +3256,7 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
     else if (path_type == JSON_EXTRUSION_TYPE_COLLECTION) {
         ExtrusionEntityCollection* collection = new ExtrusionEntityCollection();
         if (!collection) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionEntityCollection") << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": oom when new ExtrusionEntityCollection");
             return false;
         }
         collection->no_sort = entity_json[JSON_EXTRUSION_NO_SORT];
@@ -2820,14 +3266,14 @@ static bool convert_extrusion_from_json(const json& entity_json, ExtrusionEntity
             const json& entity_item_json = entity_json[JSON_EXTRUSION_ENTITIES][entity_index];
             ret = convert_extrusion_from_json(entity_item_json, *collection);
             if (!ret) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": convert_extrusion_from_json failed") << std::endl;
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": convert_extrusion_from_json failed");
                 return false;
             }
         }
         entity_collection.entities.push_back(collection);
     }
     else {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unknown path type %1%")%path_type << std::endl;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unknown path type %1%")%path_type;
         return false;
     }
 
@@ -2863,9 +3309,9 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         const json& extrusion_entity_json =  j[JSON_LAYER_REGION_THIN_FILLS][JSON_EXTRUSION_ENTITIES][thinfills_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, layer_region.thin_fills);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error parsing thin_fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error parsing thin_fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing thin_fills at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
+            ::sprintf(error_buf, "Error while parsing thin_fills at layer %zd, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -2918,9 +3364,9 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         const json& extrusion_entity_json =  j[JSON_LAYER_REGION_PERIMETERS][JSON_EXTRUSION_ENTITIES][perimeters_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, layer_region.perimeters);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing perimeters found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing perimeters found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing perimeters at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
+            ::sprintf(error_buf, "Error while parsing perimeters at layer %zd, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -2933,9 +3379,9 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         const json& extrusion_entity_json =  j[JSON_LAYER_REGION_FILLS][JSON_EXTRUSION_ENTITIES][fills_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, layer_region.fills);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing fills at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
+            ::sprintf(error_buf, "Error while parsing fills at layer %zd, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -2964,6 +3410,19 @@ void extract_layer(const json& layer_json, Layer& layer) {
         bbox = layer_json[JSON_LAYER_SLLICED_BBOXES][bbox_index];
         layer.lslices_bboxes.push_back(std::move(bbox));
     }
+
+    //overhang_polygons
+    int overhang_polygons_count = layer_json[JSON_LAYER_OVERHANG_POLYGONS].size();
+    for (int polygon_index = 0; polygon_index < overhang_polygons_count; polygon_index++)
+    {
+        ExPolygon polygon;
+
+        polygon = layer_json[JSON_LAYER_OVERHANG_POLYGONS][polygon_index];
+        layer.loverhangs.push_back(std::move(polygon));
+    }
+
+    //overhang_box
+    layer.loverhangs_bbox = layer_json[JSON_LAYER_OVERHANG_BBOX];
 
     //layer_regions
     int layer_region_count = layer.region_count();
@@ -3001,9 +3460,9 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
         const json& extrusion_entity_json =  support_layer_json[JSON_SUPPORT_LAYER_FILLS][JSON_EXTRUSION_ENTITIES][support_fills_entities_index];
         bool ret = convert_extrusion_from_json(extrusion_entity_json, support_layer.support_fills);
         if (!ret) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at support_layer %1%, print_z %2%")%support_layer.id() %support_layer.print_z << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at support_layer %1%, print_z %2%")%support_layer.id() %support_layer.print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing fills at support_layer %d, print_z %f", support_layer.id(), support_layer.print_z);
+            ::sprintf(error_buf, "Error while parsing fills at support_layer %zd, print_z %f", support_layer.id(), support_layer.print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -3040,7 +3499,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     boost::filesystem::path directory_path(directory);
 
     auto convert_layer_to_json = [](json& layer_json, const Layer* layer) {
-        json slice_polygons_json = json::array(), slice_bboxs_json = json::array(), layer_regions_json = json::array();
+        json slice_polygons_json = json::array(), slice_bboxs_json = json::array(), overhang_polygons_json = json::array(), layer_regions_json = json::array();
         layer_json[JSON_LAYER_PRINT_Z] = layer->print_z;
         layer_json[JSON_LAYER_HEIGHT] = layer->height;
         layer_json[JSON_LAYER_SLICE_Z] = layer->slice_z;
@@ -3063,6 +3522,16 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         }
         layer_json[JSON_LAYER_SLLICED_BBOXES] = std::move(slice_bboxs_json);
 
+        //overhang_polygons
+        for (const ExPolygon& overhang_polygon : layer->loverhangs) {
+            json overhang_polygon_json = overhang_polygon;
+            overhang_polygons_json.push_back(std::move(overhang_polygon_json));
+        }
+        layer_json[JSON_LAYER_OVERHANG_POLYGONS] = std::move(overhang_polygons_json);
+
+        //overhang_box
+        layer_json[JSON_LAYER_OVERHANG_BBOX] = layer->loverhangs_bbox;
+
         for (const LayerRegion *layer_region : layer->regions()) {
             json region_json = *layer_region;
 
@@ -3077,8 +3546,15 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     if (fs::exists(directory_path)) {
         fs::remove_all(directory_path);
     }
-    if (!fs::create_directory(directory_path)) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory << std::endl;
+    try {
+        if (!fs::create_directory(directory_path)) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
+            return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
+        }
+    }
+    catch (...)
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("create directory %1% failed")%directory;
         return CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED;
     }
 
@@ -3088,7 +3564,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     for (PrintObject *obj : m_objects) {
         const ModelObject* model_obj = obj->model_object();
         if (obj->get_shared_object()) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("shared object %1%, skip directly")%model_obj->name << std::endl;
+            BOOST_LOG_TRIVIAL(info) << boost::format("shared object %1%, skip directly")%model_obj->name;
             continue;
         }
 
@@ -3097,7 +3573,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         size_t identify_id = (model_instance->loaded_id > 0)?model_instance->loaded_id: model_instance->id().id;
         std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name << std::endl;
+        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2% to %3%")%model_obj->name %identify_id %file_name;
 
         try {
             json root_json, layers_json = json::array(), support_layers_json = json::array(), first_layer_groups = json::array();
@@ -3249,10 +3725,10 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                 c << root_json.dump(0) << std::endl;
             c.close();*/
             count ++;
-            BOOST_LOG_TRIVIAL(info) << boost::format("will dump object %1%'s json to %2%.")%model_obj->name%file_name << std::endl;
+            BOOST_LOG_TRIVIAL(info) << boost::format("will dump object %1%'s json to %2%.")%model_obj->name%file_name;
         }
         catch(std::exception &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<file_name<<" got a generic exception, reason = " << err.what() << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<file_name<<" got a generic exception, reason = " << err.what();
             ret = CLI_EXPORT_CACHE_WRITE_FAILED;
         }
     }
@@ -3272,7 +3748,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                     c.close();
                 }
                 catch(std::exception &err) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<filename_vector[object_index]<<" got a generic exception, reason = " << err.what() << std::endl;
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<filename_vector[object_index]<<" got a generic exception, reason = " << err.what();
                     boost::unique_lock l(mutex);
                     ret = CLI_EXPORT_CACHE_WRITE_FAILED;
                 }
@@ -3280,7 +3756,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
         }
     );
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, saved %2%, ret=%3%")%m_objects.size() %count %ret << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, saved %2%, ret=%3%")%m_objects.size() %count %ret;
     return ret;
 }
 
@@ -3321,13 +3797,13 @@ int Print::load_cached_data(const std::string& directory)
         if (identify_id <= 0) {
             //for old 3mf
             identify_id = model_instance->id().id;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1%'s loaded_id is 0, need to use the instance_id %2%")%model_obj->name %identify_id << std::endl;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": object %1%'s loaded_id is 0, need to use the instance_id %2%")%model_obj->name %identify_id;
             //continue;
         }
         std::string file_name = directory +"/obj_"+std::to_string(identify_id)+".json";
 
         if (!fs::exists(file_name)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name << std::endl;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name;
             continue;
         }
         object_filenames.push_back({file_name, obj});
@@ -3346,7 +3822,7 @@ int Print::load_cached_data(const std::string& directory)
                     object_jsons[filename_index] = std::move(root_json);
                 }
                 catch(std::exception &err) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[filename_index].first<<" got a generic exception, reason = " << err.what() << std::endl;
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[filename_index].first<<" got a generic exception, reason = " << err.what();
                     boost::unique_lock l(mutex);
                     ret = CLI_IMPORT_CACHE_LOAD_FAILED;
                 }
@@ -3355,7 +3831,7 @@ int Print::load_cached_data(const std::string& directory)
     );
 
     if (ret) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": load json failed.") << std::endl;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": load json failed.");
         return ret;
     }
 
@@ -3376,7 +3852,7 @@ int Print::load_cached_data(const std::string& directory)
             firstlayer_group_count = root_json[JSON_FIRSTLAYER_GROUPS].size();
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(":will load %1%, identify_id %2%, layer_count %3%, support_layer_count %4%, firstlayer_group_count %5%")
-                %name %identify_id %layer_count %support_layer_count %firstlayer_group_count << std::endl;
+                %name %identify_id %layer_count %support_layer_count %firstlayer_group_count;
 
             Layer* previous_layer = NULL;
             //create layer and layer regions
@@ -3385,7 +3861,7 @@ int Print::load_cached_data(const std::string& directory)
                 json& layer_json = root_json[JSON_LAYERS][index];
                 Layer* new_layer = obj->add_layer(layer_json[JSON_LAYER_ID], layer_json[JSON_LAYER_HEIGHT], layer_json[JSON_LAYER_PRINT_Z], layer_json[JSON_LAYER_SLICE_Z]);
                 if (!new_layer) {
-                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":create_layer failed, out of memory") << std::endl;
+                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":create_layer failed, out of memory");
                     return CLI_OUT_OF_MEMORY;
                 }
                 if (previous_layer) {
@@ -3404,7 +3880,7 @@ int Print::load_cached_data(const std::string& directory)
 
                     if (!print_region){
                         BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":can not find print region of object %1%, layer %2%, print_z %3%, layer_region %4%")
-                            %name % index %new_layer->print_z %region_index << std::endl;
+                            %name % index %new_layer->print_z %region_index;
                         //delete new_layer;
                         return CLI_IMPORT_CACHE_DATA_CAN_NOT_USE;
                     }
@@ -3415,7 +3891,7 @@ int Print::load_cached_data(const std::string& directory)
             }
 
             //load the layer data parallel
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": load the layers in parallel") << std::endl;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": load the layers in parallel");
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, obj->layer_count()),
                 [&root_json, &obj](const tbb::blocked_range<size_t>& layer_range) {
@@ -3435,7 +3911,7 @@ int Print::load_cached_data(const std::string& directory)
                 json& layer_json = root_json[JSON_SUPPORT_LAYERS][index];
                 SupportLayer* new_support_layer = obj->add_support_layer(layer_json[JSON_LAYER_ID], layer_json[JSON_SUPPORT_LAYER_INTERFACE_ID], layer_json[JSON_LAYER_HEIGHT], layer_json[JSON_LAYER_PRINT_Z]);
                 if (!new_support_layer) {
-                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":add_support_layer failed, out of memory") << std::endl;
+                    BOOST_LOG_TRIVIAL(error) <<__FUNCTION__<< boost::format(":add_support_layer failed, out of memory");
                     return CLI_OUT_OF_MEMORY;
                 }
                 if (previous_support_layer) {
@@ -3445,7 +3921,7 @@ int Print::load_cached_data(const std::string& directory)
                 previous_support_layer = new_support_layer;
             }
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": finished load layers, start to load support_layers.") << std::endl;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": finished load layers, start to load support_layers.");
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, obj->support_layer_count()),
                 [&root_json, &obj](const tbb::blocked_range<size_t>& support_layer_range) {
@@ -3475,7 +3951,7 @@ int Print::load_cached_data(const std::string& directory)
                     }
                     else {
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": can not find volume_id %1% from object file %2% in firstlayer groups, volume_count %3%!")
-                            %obj_id.id %object_filenames[obj_index].first %volume_count << std::endl;
+                            %obj_id.id %object_filenames[obj_index].first %volume_count;
                         return CLI_IMPORT_CACHE_LOAD_FAILED;
                     }
                 }
@@ -3483,21 +3959,21 @@ int Print::load_cached_data(const std::string& directory)
             }
 
             count ++;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": load object %1% from %2% successfully.")%count%object_filenames[obj_index].first << std::endl;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": load object %1% from %2% successfully.")%count%object_filenames[obj_index].first;
         }
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<object_filenames[obj_index].first<<" got a nlohmann::detail::parse_error, reason = " << err.what();
             return CLI_IMPORT_CACHE_LOAD_FAILED;
         }
         catch(std::exception &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[obj_index].first<<" got a generic exception, reason = " << err.what() << std::endl;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[obj_index].first<<" got a generic exception, reason = " << err.what();
             ret = CLI_IMPORT_CACHE_LOAD_FAILED;
         }
     }
 
     object_jsons.clear();
     object_filenames.clear();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret;
     return ret;
 }
 
@@ -3509,6 +3985,14 @@ Polygon PrintInstance::get_convex_hull_2d() {
     Polygon poly = print_object->model_object()->convex_hull_2d(model_instance->get_matrix());
     poly.douglas_peucker(0.1);
     return poly;
+}
+
+//BBS: instance_shift is too large because of multi-plate, apply without plate offset.
+Point PrintInstance::shift_without_plate_offset() const
+{
+    const Print* print = print_object->print();
+    const Vec3d plate_offset = print->get_plate_origin();
+    return shift - Point(scaled(plate_offset.x()), scaled(plate_offset.y()));
 }
 
 } // namespace Slic3r

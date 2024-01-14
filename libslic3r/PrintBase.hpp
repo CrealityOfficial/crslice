@@ -19,6 +19,9 @@ namespace Slic3r {
 enum StringExceptionType {
     STRING_EXCEPT_NOT_DEFINED                   = 0,
     STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE   = 1,
+    STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP      = 2,
+    STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT = 3,
+    STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT = 4,
     STRING_EXCEPT_COUNT
 };
 
@@ -419,7 +422,7 @@ public:
     // After calling the apply() function, call set_task() to limit the task to be processed by process().
     virtual void            set_task(const TaskParams &params) {}
     // Perform the calculation. This is the only method that is to be called at a worker thread.
-    virtual void            process(bool use_cache = false) = 0;
+    virtual void            process(long long *time_cost_with_cache = nullptr, bool use_cache = false) = 0;
     virtual int             export_cached_data(const std::string& dir_path, bool with_space=false) { return 0;}
     virtual int            load_cached_data(const std::string& directory) { return 0;}
     // Clean up after process() finished, either with success, error or if canceled.
@@ -428,18 +431,18 @@ public:
 
     struct SlicingStatus {
         SlicingStatus(int percent, const std::string &text, unsigned int flags = 0, int warning_step = -1,
-            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
-            percent(percent), text(text), flags(flags), warning_step(warning_step), message_type(msg_type)
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification, PrintStateBase::WarningLevel warning_level = PrintStateBase::WarningLevel::NON_CRITICAL) :
+            percent(percent), text(text), flags(flags), warning_step(warning_step), message_type(msg_type), warning_level(warning_level)
         {
         }
         SlicingStatus(const PrintBase &print, int warning_step, const std::string& text,
-            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
-            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), text(text), warning_step(warning_step), message_type(msg_type)
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification, PrintStateBase::WarningLevel warning_level = PrintStateBase::WarningLevel::NON_CRITICAL) :
+            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), text(text), warning_step(warning_step), message_type(msg_type), warning_level(warning_level)
         {
         }
         SlicingStatus(const PrintObjectBase &print_object, int warning_step, const std::string& text,
-            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
-            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), text(text), warning_step(warning_step), message_type(msg_type)
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification, PrintStateBase::WarningLevel warning_level = PrintStateBase::WarningLevel::NON_CRITICAL) :
+            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), text(text), warning_step(warning_step), message_type(msg_type), warning_level(warning_level)
         {
         }
         int             percent { -1 };
@@ -463,6 +466,7 @@ public:
         int             warning_step { -1 };
 
         PrintStateBase::SlicingNotificationType  message_type {PrintStateBase::SlicingDefaultNotification};
+        PrintStateBase::WarningLevel  warning_level {PrintStateBase::WarningLevel::NON_CRITICAL};
     };
     typedef std::function<void(const SlicingStatus&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
@@ -529,7 +533,7 @@ protected:
     void 				   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level,
         const std::string &message, const PrintObjectBase* print_object = nullptr, PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification);
     //BBS: add api to update printobject's warnings
-	void                   status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */,
+	void                   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level,
 	    const std::string& message, PrintObjectBase &object, PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification);
 
     // If the background processing stop was requested, throw CanceledException.

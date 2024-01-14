@@ -451,7 +451,7 @@ public:
     std::vector<ObjectID> print_object_ids() const override;
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
     void                set_task(const TaskParams &params) override;
-    void                process(bool use_cache = false) override;
+    void                process(long long *time_cost_with_cache = nullptr, bool use_cache = false) override;
     void                finalize() override;
     // Returns true if an object step is done on all objects and there's at least one object.
     bool                is_step_done(SLAPrintObjectStep step) const;
@@ -461,6 +461,11 @@ public:
     const PrintObjects& objects() const { return m_objects; }
     // PrintObject by its ObjectID, to be used to uniquely bind slicing warnings to their source PrintObjects
     // in the notification center.
+    const SLAPrintObject* get_print_object_by_model_object_id(ObjectID object_id) const {
+        auto it = std::find_if(m_objects.begin(), m_objects.end(),
+            [object_id](const SLAPrintObject* obj) { return obj->model_object()->id() == object_id; });
+        return (it == m_objects.end()) ? nullptr : *it;
+    }
     const SLAPrintObject* get_object(ObjectID object_id) const {
         auto it = std::find_if(m_objects.begin(), m_objects.end(),
             [object_id](const SLAPrintObject *obj) { return obj->id() == object_id; });

@@ -8,8 +8,6 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <regex>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/erase.hpp>
@@ -45,7 +43,7 @@ namespace Slic3r {
 //static const std::string CONFIG_INHERITS_KEY = "inherits";
 //static const std::string CONFIG_INSTANT_KEY = "instantiation";
 
-// Escape \n, \r and backslash
+// Escape double quotes, \n, \r and backslash
 std::string escape_string_cstyle(const std::string &str)
 {
     // Allocate a buffer twice the input string length,
@@ -60,9 +58,9 @@ std::string escape_string_cstyle(const std::string &str)
         } else if (c == '\n') {
             (*outptr ++) = '\\';
             (*outptr ++) = 'n';
-        } else if (c == '\\') {
-            (*outptr ++) = '\\';
-            (*outptr ++) = '\\';
+        } else if (c == '\\' || c == '"') {
+            (*outptr++) = '\\';
+            (*outptr++) = c;
         } else
             (*outptr ++) = c;
     }
@@ -119,7 +117,7 @@ std::string escape_strings_cstyle(const std::vector<std::string> &strs)
     return std::string(out.data(), outptr - out.data());
 }
 
-// Unescape \n, \r and backslash
+// Unescape double quotes, \n, \r and backslash
 bool unescape_string_cstyle(const std::string &str, std::string &str_out)
 {
     std::vector<char> out(str.size(), 0);
@@ -656,22 +654,52 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
 {
     // Get stored option value.
     const ConfigOption *raw_opt = this->option(opt_key);
+    if (raw_opt == nullptr) {
+      std::stringstream ss;
+      ss << "You can't define an option that need " << opt_key << " without defining it!";
+      throw std::runtime_error(ss.str());
+    }
     assert(raw_opt != nullptr);
+
     if (raw_opt->type() == coFloat)
         return static_cast<const ConfigOptionFloat*>(raw_opt)->value;
+    if (raw_opt->type() == coInt)
+      return static_cast<const ConfigOptionInt *>(raw_opt)->value;
+    if (raw_opt->type() == coBool)
+      return static_cast<const ConfigOptionBool *>(raw_opt)->value ? 1 : 0;
+
+    const ConfigOptionPercent *cast_opt = nullptr;
     if (raw_opt->type() == coFloatOrPercent) {
-        // Get option definition.
-        const ConfigDef *def = this->def();
-        if (def == nullptr)
-            throw NoDefinitionException(opt_key);
-        const ConfigOptionDef *opt_def = def->get(opt_key);
-        assert(opt_def != nullptr);
-        // Compute absolute value over the absolute value of the base option.
-        //FIXME there are some ratio_over chains, which end with empty ratio_with.
-        // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-        return opt_def->ratio_over.empty() ? 0. :
-            static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
+        auto cofop = static_cast<const ConfigOptionFloatOrPercent*>(raw_opt);
+            if (cofop->value == 0 && boost::ends_with(opt_key, "_line_width")) {
+                return this->get_abs_value("line_width");
+            }
+            if (!cofop->percent)
+                return cofop->value;
+            cast_opt = cofop;
     }
+
+    if (raw_opt->type() == coPercent) {
+      cast_opt = static_cast<const ConfigOptionPercent *>(raw_opt);
+    }
+
+    // Get option definition.
+    const ConfigDef *def = this->def();
+    if (def == nullptr)
+        throw NoDefinitionException(opt_key);
+    const ConfigOptionDef *opt_def = def->get(opt_key);
+
+
+    assert(opt_def != nullptr);
+    if (opt_def->ratio_over == "")
+        return cast_opt->get_abs_value(1);
+    // Compute absolute value over the absolute value of the base option.
+    //FIXME there are some ratio_over chains, which end with empty ratio_with.
+    // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
+    return opt_def->ratio_over.empty() ? 0. :
+        static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
+    
+
     throw ConfigurationError("ConfigBase::get_abs_value(): Not a valid option type for get_abs_value()");
 }
 
@@ -734,7 +762,7 @@ ConfigSubstitutions ConfigBase::load(const std::string &file, ForwardCompatibili
         return this->load_from_json(file, compatibility_rule, key_values, reason);
     }
     else {
-        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "unsupported format for config file" << file;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "unsupported format for config file" << file;
         return ConfigSubstitutions();
         //return this->load_from_ini(file, compatibility_rule);
     }
@@ -756,13 +784,17 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
     std::list<std::string> different_settings_append;
     std::string new_support_style;
     bool is_project_settings = false;
+
+    CNumericLocalesSetter locales_setter;
+
     try {
         boost::nowide::ifstream ifs(file);
         ifs >> j;
+        ifs.close();
 
         const ConfigDef* config_def = this->def();
         if (config_def == nullptr) {
-            //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": no config defs!";
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": no config defs!";
             return -1;
         }
         //parse the json elements
@@ -866,7 +898,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                         }
                         else {
                             //should not happen
-                            //BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json array for " << it.key();
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json array for " << it.key();
                             valid = false;
                             break;
                         }
@@ -876,7 +908,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
                 else {
                     //should not happen
-                    //BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json type for " << it.key();
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" error, invalid json type for " << it.key();
                 }
             }
         }
@@ -939,17 +971,17 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
         return 0;
     }
     catch (const std::ifstream::failure &err)  {
-        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a ifstream error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a ifstream error, reason = " << err.what();
         reason = std::string("ifstreamError: ") + err.what();
         //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, e.what()));
     }
     catch(nlohmann::detail::parse_error &err) {
-        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
         reason = std::string("JsonParseError: ") + err.what();
         //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file, err.what()));
     }
     catch(std::exception &err) {
-        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a generic exception, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a generic exception, reason = " << err.what();
         reason = std::string("std::exception: ") + err.what();
     }
     return -1;
@@ -1186,14 +1218,14 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
 {
     // Read a 64k block from the end of the G-code.
 	boost::nowide::ifstream ifs(file);
-    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before parse_file %1%") % file.c_str();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  before parse_file %1%") % file.c_str();
     // Look for Slic3r or OrcaSlicer header.
     // Look for the header across the whole file as the G-code may have been extended at the start by a post-processing script or the user.
     //BBS
     bool has_delimiters = true;
     {
         //BBS
-        std::string bambuslicer_gcode_header = "; BambuStudio";
+        std::string bambuslicer_gcode_header = "; OrcaSlicer";
 
         std::string orcaslicer_gcode_header = std::string("; generated by ");
         orcaslicer_gcode_header += SLIC3R_APP_NAME;
@@ -1217,7 +1249,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
             std::string error_message = "Not a gcode file generated by ";
             error_message += SLIC3R_APP_FULL_NAME;
             error_message += ".";
-            //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << error_message;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << error_message;
             throw Slic3r::RuntimeError(error_message.c_str());
         }
     }
@@ -1286,11 +1318,11 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
     }
 
     if (key_value_pairs < 80) {
-        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs);
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs);
         throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", file, key_value_pairs));
     }
 
-    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  finished to parse_file %1%") % file.c_str();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  finished to parse_file %1%") % file.c_str();
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -1337,7 +1369,7 @@ void ConfigBase::save_to_json(const std::string &file, const std::string &name, 
     c << std::setw(4) << j << std::endl;
     c.close();
 
-    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
 }
 
 void ConfigBase::save(const std::string &file) const
@@ -1349,7 +1381,7 @@ void ConfigBase::save(const std::string &file) const
         c << opt_key << " = " << this->opt_serialize(opt_key) << std::endl;
     c.close();
 
-    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%file;
 }
 
 // Set all the nullable values to nils.

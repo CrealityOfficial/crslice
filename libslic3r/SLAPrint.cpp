@@ -11,7 +11,7 @@
 
 #include <tbb/parallel_for.h>
 #include <boost/filesystem/path.hpp>
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 // #define SLAPRINT_DO_BENCHMARK
 
@@ -686,7 +686,7 @@ bool SLAPrint::invalidate_step(SLAPrintStep step)
     return invalidated;
 }
 
-void SLAPrint::process(bool use_cache)
+void SLAPrint::process(long long *time_cost_with_cache, bool use_cache)
 {
     if (m_objects.empty())
         return;

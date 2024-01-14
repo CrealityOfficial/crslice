@@ -1,7 +1,7 @@
 #include <functional>
 #include <optional>
 
-#include <libslic3r/OpenVDBUtils.hpp>
+//#include <libslic3r/OpenVDBUtils.hpp>
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/TriangleMeshSlicer.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
@@ -10,7 +10,7 @@
 #include <libslic3r/QuadricEdgeCollapse.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
 
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/I18N.hpp>
@@ -24,8 +24,8 @@ namespace sla {
 
 struct Interior {
     indexed_triangle_set mesh;
-    openvdb::FloatGrid::Ptr gridptr;
-    mutable std::optional<openvdb::FloatGrid::ConstAccessor> accessor;
+    //openvdb::FloatGrid::Ptr gridptr;
+    //mutable std::optional<openvdb::FloatGrid::ConstAccessor> accessor;
 
     double closing_distance = 0.;
     double thickness = 0.;
@@ -37,8 +37,8 @@ struct Interior {
     void reset_accessor() const  // This resets the accessor and its cache
     // Not a thread safe call!
     {
-        if (gridptr)
-            accessor = gridptr->getConstAccessor();
+        //if (gridptr)
+        //    accessor = gridptr->getConstAccessor();
     }
 };
 
@@ -71,21 +71,21 @@ static InteriorPtr generate_interior_verbose(const TriangleMesh & mesh,
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(0, L("Hollowing"));
 
-    auto gridptr = mesh_to_grid(mesh.its, {}, voxel_scale, out_range, in_range);
-
-    assert(gridptr);
-
-    if (!gridptr) {
-        BOOST_LOG_TRIVIAL(error) << "Returned OpenVDB grid is NULL";
-        return {};
-    }
+    //auto gridptr = mesh_to_grid(mesh.its, {}, voxel_scale, out_range, in_range);
+    //
+    //assert(gridptr);
+    //
+    //if (!gridptr) {
+    //    BOOST_LOG_TRIVIAL(error) << "Returned OpenVDB grid is NULL";
+    //    return {};
+    //}
 
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(30, L("Hollowing"));
 
     double iso_surface = D;
     auto   narrowb = double(in_range);
-    gridptr = redistance_grid(*gridptr, -(offset + D), narrowb, narrowb);
+    //gridptr = redistance_grid(*gridptr, -(offset + D), narrowb, narrowb);
 
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(70, L("Hollowing"));
@@ -93,8 +93,8 @@ static InteriorPtr generate_interior_verbose(const TriangleMesh & mesh,
     double adaptivity = 0.;
     InteriorPtr interior = InteriorPtr{new Interior{}};
 
-    interior->mesh = grid_to_mesh(*gridptr, iso_surface, adaptivity);
-    interior->gridptr = gridptr;
+    //interior->mesh = grid_to_mesh(*gridptr, iso_surface, adaptivity);
+    //interior->gridptr = gridptr;
 
     if (ctl.stopcondition()) return {};
     else ctl.statuscb(100, L("Hollowing"));
@@ -313,8 +313,8 @@ void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
 {
     if (mesh.empty() || interior.mesh.empty()) return;
 
-    if (flags & hfRemoveInsideTriangles && interior.gridptr)
-        remove_inside_triangles(mesh, interior);
+    //if (flags & hfRemoveInsideTriangles && interior.gridptr)
+    //    remove_inside_triangles(mesh, interior);
 
     mesh.merge(TriangleMesh{interior.mesh});
 }
@@ -324,15 +324,16 @@ void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
 // the model surface.
 static double get_distance_raw(const Vec3f &p, const Interior &interior)
 {
-    assert(interior.gridptr);
-
-    if (!interior.accessor) interior.reset_accessor();
-
-    auto v       = (p * interior.voxel_scale).cast<double>();
-    auto grididx = interior.gridptr->transform().worldToIndexCellCentered(
-        {v.x(), v.y(), v.z()});
-
-    return interior.accessor->getValue(grididx) ;
+    return 0.0;
+    //assert(interior.gridptr);
+    //
+    //if (!interior.accessor) interior.reset_accessor();
+    //
+    //auto v       = (p * interior.voxel_scale).cast<double>();
+    //auto grididx = interior.gridptr->transform().worldToIndexCellCentered(
+    //    {v.x(), v.y(), v.z()});
+    //
+    //return interior.accessor->getValue(grididx) ;
 }
 
 struct TriangleBubble { Vec3f center; double R; };

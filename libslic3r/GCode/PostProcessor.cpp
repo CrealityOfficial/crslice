@@ -5,7 +5,7 @@
 #include "libslic3r/I18N.hpp"
 
 #include <boost/algorithm/string.hpp>
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
@@ -214,7 +214,7 @@ void gcode_add_line_number(const std::string& path, const DynamicPrintConfig& co
     while (std::getline(fs, gcode_line)) {
         char num_str[128];
         memset(num_str, 0, sizeof(num_str));
-        snprintf(num_str, sizeof(num_str), "%d", line_number);
+        snprintf(num_str, sizeof(num_str), "%zd", line_number);
         new_gcode += std::string("N") + num_str + " " + gcode_line + "\n";
         line_number++;
     }

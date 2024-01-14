@@ -1,3 +1,14 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Tomáš Mészáros @tamasmeszaros, Vojtěch Král @vojtechkral
+///|/ Copyright (c) SuperSlicer 2019 Remi Durand @supermerill
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2016 Mark Walker
+///|/
+///|/ ported from lib/Slic3r/Point.pm:
+///|/ Copyright (c) Prusa Research 2018 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Point_hpp_
 #define slic3r_Point_hpp_
 
@@ -55,6 +66,8 @@ using Pointfs        = std::vector<Vec2d>;
 using Vec2ds         = std::vector<Vec2d>;
 using Pointf3s       = std::vector<Vec3d>;
 
+using VecOfPoints    = std::vector<Points>;
+
 using Matrix2f       = Eigen::Matrix<float,  2, 2, Eigen::DontAlign>;
 using Matrix2d       = Eigen::Matrix<double, 2, 2, Eigen::DontAlign>;
 using Matrix3f       = Eigen::Matrix<float,  3, 3, Eigen::DontAlign>;
@@ -93,8 +106,13 @@ inline typename Derived::Scalar cross2(const Eigen::MatrixBase<Derived> &v1, con
     return v1.x() * v2.y() - v1.y() * v2.x();
 }
 
-template<typename T, int Options>
-inline Eigen::Matrix<T, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> &v) { return Eigen::Matrix<T, 2, 1, Eigen::DontAlign>(- v.y(), v.x()); }
+// 2D vector perpendicular to the argument.
+template<typename Derived>
+inline Eigen::Matrix<typename Derived::Scalar, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Derived> &v)
+{ 
+    static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) == 2, "perp(): parameter is not a 2D vector");
+    return { - v.y(), v.x() };
+}
 
 // Angle from v1 to v2, returning double atan2(y, x) normalized to <-PI, PI>.
 template <typename Derived, typename Derived2>
@@ -107,12 +125,17 @@ inline double angle(const Eigen::MatrixBase<Derived>& v1, const Eigen::MatrixBas
     return atan2(cross2(v1d, v2d), v1d.dot(v2d));
 }
 
+template<typename Derived>
+Eigen::Matrix<typename Derived::Scalar, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Derived> &ptN) {
+    static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) >= 3, "to_2d(): first parameter is not a 3D or higher dimensional vector");
+    return ptN.template head<2>();
+}
 
-template<class T, int N, int Options>
-Eigen::Matrix<T, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Eigen::Matrix<T, N, 1, Options>> &ptN) { return { ptN.x(), ptN.y() }; }
-
-template<class T, int Options>
-Eigen::Matrix<T, 3, 1, Eigen::DontAlign> to_3d(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> & pt, const T z) { return { pt.x(), pt.y(), z }; }
+template<typename Derived>
+inline Eigen::Matrix<typename Derived::Scalar, 3, 1, Eigen::DontAlign> to_3d(const Eigen::MatrixBase<Derived> &pt, const typename Derived::Scalar z) {
+    static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) == 2, "to_3d(): first parameter is not a 2D vector");
+    return { pt.x(), pt.y(), z };
+}
 
 inline Vec2d   unscale(coord_t x, coord_t y) { return Vec2d(unscale<double>(x), unscale<double>(y)); }
 inline Vec2d   unscale(const Vec2crd &pt) { return Vec2d(unscale<double>(pt.x()), unscale<double>(pt.y())); }
@@ -199,6 +222,8 @@ public:
     double ccw_angle(const Point &p1, const Point &p2) const;
     Point  projection_onto(const MultiPoint &poly) const;
     Point  projection_onto(const Line &line) const;
+
+    double distance_to(const Point &point) const { return (point - *this).cast<double>().norm(); }
 };
 
 inline bool operator<(const Point &l, const Point &r) 
@@ -253,8 +278,20 @@ inline Point lerp(const Point &a, const Point &b, double t)
     return ((1. - t) * a.cast<double>() + t * b.cast<double>()).cast<coord_t>();
 }
 
+// if IncludeBoundary, then a bounding box is defined even for a single point.
+// otherwise a bounding box is only defined if it has a positive area.
+template<bool IncludeBoundary = false>
 BoundingBox get_extents(const Points &pts);
-BoundingBox get_extents(const std::vector<Points> &pts);
+extern template BoundingBox get_extents<false>(const Points &pts);
+extern template BoundingBox get_extents<true>(const Points &pts);
+
+// if IncludeBoundary, then a bounding box is defined even for a single point.
+// otherwise a bounding box is only defined if it has a positive area.
+template<bool IncludeBoundary = false>
+BoundingBox get_extents(const VecOfPoints &pts);
+extern template BoundingBox get_extents<false>(const VecOfPoints &pts);
+extern template BoundingBox get_extents<true>(const VecOfPoints &pts);
+
 BoundingBoxf get_extents(const std::vector<Vec2d> &pts);
 
 // Test for duplicate points in a vector of points.
@@ -546,7 +583,7 @@ namespace boost { namespace polygon {
         using coordinate_type = coord_t;
     
         static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
-            return static_cast<coordinate_type>(point((orient == HORIZONTAL_) ? 0 : 1));
+            return static_cast<coordinate_type>(point((orient == HORIZONTAL) ? 0 : 1));
         }
     };
     
@@ -554,7 +591,7 @@ namespace boost { namespace polygon {
     struct point_mutable_traits<Slic3r::Point> {
         using coordinate_type = coord_t;
         static inline void set(Slic3r::Point& point, orientation_2d orient, coord_t value) {
-            point((orient == HORIZONTAL_) ? 0 : 1) = value;
+            point((orient == HORIZONTAL) ? 0 : 1) = value;
         }
         static inline Slic3r::Point construct(coord_t x_value, coord_t y_value) {
             return Slic3r::Point(x_value, y_value);
