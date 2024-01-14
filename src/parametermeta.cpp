@@ -119,8 +119,9 @@ namespace crslice2
 
     void parseMetasMap(MetasMap& datas)
     {
-        return parse_metas_map_impl(datas);
 #if 0
+        return parse_metas_map_impl(datas);
+#else
 #ifdef USE_BINARY_JSON
         rapidjson::Document baseDoc;
         baseDoc.Parse((const char*)base);
@@ -233,5 +234,10 @@ namespace crslice2
         }
 #endif
         return ver;
+    }
+
+    void exportParameterMeta()
+    {
+        export_metas_impl();
     }
 }

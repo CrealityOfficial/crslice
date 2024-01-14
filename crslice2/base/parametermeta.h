@@ -66,6 +66,8 @@ namespace crslice2
 	CRSLICE2_API void getMetaKeys(MetaGroup metaGroup, std::vector<std::string>& keys);
 
 	CRSLICE2_API std::string engineVersion();
+
+	CRSLICE2_API void exportParameterMeta();
 }
 
 #endif // CRCOMMON_PARAMETERMETA_1690769853657_H
