@@ -23,6 +23,14 @@
 #include "libslic3r/Print.hpp"
 #include "nlohmann/json.hpp"
 
+void save_nlohmann_json(const std::string& fileName, const nlohmann::json& j)
+{
+	boost::nowide::ofstream c;
+	c.open(fileName.c_str(), std::ios::out | std::ios::trunc);
+	c << std::setw(4) << j << std::endl;
+	c.close();
+}
+
 void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config)
 {
 	using namespace Slic3r;
@@ -466,5 +474,117 @@ void get_meta_keys_impl(crslice2::MetaGroup metaGroup, std::vector<std::string>&
 		{
 			keys.push_back(it->first);
 		}
+	}
+}
+
+void export_metas_impl()
+{
+	using namespace Slic3r;
+	using namespace nlohmann;
+	DynamicPrintConfig new_full_config;
+	const ConfigDef* _def = new_full_config.def();
+	{
+		json j;
+		json j_keys;
+
+		std::vector<std::string> keys;
+		//record all the key-values
+		for (const std::string& opt_key : _def->keys())
+		{
+			const ConfigOptionDef* optDef = _def->get(opt_key);
+			if (!optDef || (optDef->printer_technology == Slic3r::ptSLA))
+				continue;
+
+			json item;
+			item["label"] = optDef->label;
+			item["description"] = optDef->tooltip;
+			item["unit"] = optDef->sidetext;
+			std::string type = "coNone";
+
+			switch (optDef->type)
+			{
+			case coFloat:
+				type = "coFloat";
+				break;
+			case coFloats:
+				type = "coFloats";
+				break;
+			case coInt:
+				type = "coInt";
+				break;
+			case coInts:
+				type = "coInts";
+				break;
+			case coString:
+				type = "coString";
+				break;
+			case coStrings:
+				type = "coStrings";
+				break;
+			case coPercent:
+				type = "coPercent";
+				break;
+			case coPercents:
+				type = "coPercents";
+				break;
+			case coFloatOrPercent:
+				type = "coFloatOrPercent";
+				break;
+			case coFloatsOrPercents:
+				type = "coFloatsOrPercents";
+				break;
+			case coPoint:
+				type = "coPoint";
+				break;
+			case coPoints:
+				type = "coPoints";
+				break;
+			case coPoint3:
+				type = "coPoint3";
+				break;
+			case coBool:
+				type = "coBool";
+				break;
+			case coBools:
+				type = "coBools";
+				break;
+			case coEnum:
+				type = "coEnum";
+				break;
+			case coEnums:
+				type = "coEnums";
+				break;
+			};
+
+			item["type"] = type;
+			Slic3r::ConfigOption* option = optDef->create_default_option();
+			item["default_value"] = option->serialize();
+
+			if (optDef->enum_values.size() > 0)
+			{
+				size_t size = optDef->enum_values.size();
+				json options;
+				bool have = optDef->enum_labels.size() == optDef->enum_values.size();
+				for (size_t i = 0; i < size; ++i)
+				{
+					options[optDef->enum_values.at(i)] = have ? optDef->enum_labels.at(i) : optDef->enum_values.at(i);
+				}
+				item["options"] = options;
+			}
+
+			item["enabled"] = "true";
+			item["settable_per_mesh"] = "false";
+			item["settable_per_extruder"] = "false";
+			item["settable_per_meshgroup"] = "false";
+			item["settable_globally"] = "false";
+
+			j[opt_key] = item;
+			keys.push_back(opt_key);
+		}
+
+		j_keys["keys"] = json(keys);
+
+		save_nlohmann_json("fdm_orca.json", j);
+		save_nlohmann_json("keys_orca.json", j_keys);
 	}
 }
