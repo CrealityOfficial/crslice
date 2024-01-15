@@ -4228,30 +4228,6 @@
         "type": "coFloatOrPercent",
         "unit": "mm/s or %"
     },
-    "wipe_tower_no_sparse_layers": {
-        "default_value": "0",
-        "description": "",
-        "enabled": "true",
-        "label": "",
-        "settable_globally": "false",
-        "settable_per_extruder": "false",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "false",
-        "type": "coBool",
-        "unit": ""
-    },
-    "wipe_tower_rotation_angle": {
-        "default_value": "0",
-        "description": "",
-        "enabled": "true",
-        "label": "",
-        "settable_globally": "false",
-        "settable_per_extruder": "false",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "false",
-        "type": "coFloat",
-        "unit": ""
-    },
     "wipe_tower_x": {
         "default_value": "155",
         "description": "",
