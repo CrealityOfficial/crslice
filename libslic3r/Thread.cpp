@@ -15,9 +15,7 @@
 
 #include "Thread.hpp"
 #include "Utils.hpp"
-#ifdef _WIN32
 #include <locale.h>
-#endif
 
 
 namespace Slic3r {
