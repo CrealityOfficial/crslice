@@ -73,135 +73,135 @@
     },
     "filament_loading_speed_start":{
         "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "description": "Speed used at the very beginning of loading phase.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Loading speed at the start",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": "%"
+        "unit": "mm/s"
     },
     "filament_loading_speed":{
         "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "description": "Speed used for loading the filament on the wipe tower.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Loading speed",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": "%"
+        "unit": "mm/s"
     },
     "filament_unloading_speed_start":{
         "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "description": "Speed used for unloading the tip of the filament immediately after ramming.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Unloading speed at the start",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": "%"
+        "unit": "mm/s"
     },
     "filament_unloading_speed":{
-        "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "default_value": "90",
+        "description": "Speed used for unloading the filament on the wipe tower (does not affect  initial part of unloading just after ramming).",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Unloading speed",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
-        "unit": "%"
+        "type": "coFloats",
+        "unit": "mm/s"
     },
     "filament_load_time":{
         "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "description": "Time for the printer firmware (or the Multi Material Unit 2.0) to load a new filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Filament load time",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
-        "unit": "%"
+        "type": "mm/",
+        "unit": "s"
     },
     "filament_unload_time":{
-        "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "default_value": "0",
+        "description": "Time for the printer firmware (or the Multi Material Unit 2.0) to unload a filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Unloading speed at the start",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
-        "unit": "%"
+        "type": "coFloats",
+        "unit": "s"
     },
     "filament_toolchange_delay":{
-        "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "default_value": "0",
+        "description": "Time to wait after the filament is unloaded. May help to get reliable toolchanges with flexible materials that may need more time to shrink to original dimensions.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Delay after unloading",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
-        "unit": "%"
+        "type": "coFloats",
+        "unit": "s"
     },
     "filament_cooling_moves":{
-        "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "default_value": "4",
+        "description": "Filament is cooled by being moved back and forth in the cooling tubes. Specify desired number of these moves.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Number of cooling moves",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": "%"
+        "unit": ""
     },
     "filament_cooling_initial_speed":{
-        "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "default_value": "2.2",
+        "description": "Cooling moves are gradually accelerating beginning at this speed.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Speed of the first cooling move",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
-        "unit": "%"
+        "type": "coFloats",
+        "unit": "mm/s"
     },
     "filament_cooling_final_speed":{
-        "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "default_value": "3.4",
+        "description": "Cooling moves are gradually accelerating towards this speed.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Speed of the last cooling move",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
-        "unit": "%"
+        "type": "coFloats",
+        "unit": "mm/s"
     },
     "filament_ramming_parameters":{
-        "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "default_value": "120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0|0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6",
+        "description": "This string is edited by RammingDialog and contains ramming specific parameters.",
         "enabled": "true",
-        "label": "Fan speed of completed",
+        "label": "Ramming parameters",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
-        "unit": "%"
+        "type": "coStrings",
+        "unit": "mm/s"
     }
 }
   

@@ -75,6 +75,7 @@
         "filament_cooling_final_speed",
         "filament_ramming_parameters",
         "during_print_exhaust_fan_speed",
-        "complete_print_exhaust_fan_speed"
+        "complete_print_exhaust_fan_speed",
+        "independent_support_layer_height"
     ]
 }

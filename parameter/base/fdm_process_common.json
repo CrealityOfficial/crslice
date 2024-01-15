@@ -71,6 +71,22 @@
         "type": "coFloat",
         "unit": "°"
     },
+    "ironing_pattern":{
+        "default_value": "zig-zag",
+        "description": "The pattern that will be used when ironing",
+        "enabled": "true",
+        "options": {
+            "concentric": "Concentric",
+            "zig-zag": "Rectilinear"
+        },
+        "label": "Ironing Pattern",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
+        "unit": ""
+    },
     "initial_layer_min_bead_width":{
         "default_value": "85",
         "description": "The minimum wall width that should be used for the first layer is recommended to be set to the same size as the nozzle. This adjustment is expected to enhance adhesion.",
@@ -145,9 +161,9 @@
     },
     "overhang_reverse":{
         "default_value": "false",
-        "description": "Create additional perimeter paths over steep overhangs and areas where bridges cannot be anchored.",
+        "description": "Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhangs.\n\nThis setting can also help reduce part warping due to the reduction of stresses in the part walls.",
         "enabled": "true",
-        "label": "Extra perimeters on overhangs",
+        "label": "Reverse on odd",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
