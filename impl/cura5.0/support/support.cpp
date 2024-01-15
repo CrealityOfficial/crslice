@@ -1017,14 +1017,25 @@ void AreaSupport::generateOverhangAreasForMesh(SliceDataStorage& storage, SliceM
     }
 
     // Generate the actual areas and store them in the mesh.
-    cura52::parallel_for<size_t>(storage.application, 1,
-                               storage.print_layer_count,
-                               [&](const size_t layer_idx)
-                               {
-                                   std::pair<Polygons, Polygons> basic_and_full_overhang = computeBasicAndFullOverhang(storage, mesh, layer_idx);
-                                   mesh.overhang_areas[layer_idx] = basic_and_full_overhang.first; // Store the results.
-                                   mesh.full_overhang_areas[layer_idx] = basic_and_full_overhang.second;
-                               });
+#ifdef _DEBUG
+    for (size_t layer_idx=1; layer_idx< storage.print_layer_count; layer_idx++)
+    {
+		std::pair<Polygons, Polygons> basic_and_full_overhang = computeBasicAndFullOverhang(storage, mesh, layer_idx);
+		mesh.overhang_areas[layer_idx] = basic_and_full_overhang.first; // Store the results.
+		mesh.full_overhang_areas[layer_idx] = basic_and_full_overhang.second;
+    }
+#else 
+	cura52::parallel_for<size_t>(storage.application, 1,
+		storage.print_layer_count,
+		[&](const size_t layer_idx)
+		{
+			std::pair<Polygons, Polygons> basic_and_full_overhang = computeBasicAndFullOverhang(storage, mesh, layer_idx);
+			mesh.overhang_areas[layer_idx] = basic_and_full_overhang.first; // Store the results.
+			mesh.full_overhang_areas[layer_idx] = basic_and_full_overhang.second;
+		});
+#endif // _DEBUG
+    
+
 }
 
 /*
@@ -1510,8 +1521,22 @@ std::pair<Polygons, Polygons> AreaSupport::computeBasicAndFullOverhang(const Sli
         // Merge anti overhang into one polygon, otherwise overlapping polygons
         // will create opposite effect.
         Polygons merged_polygons = support_layer.anti_overhang.unionPolygons();
+        //basic_overhang = basic_overhang.difference(merged_polygons);
 
-        basic_overhang = basic_overhang.difference(merged_polygons);
+        for (ClipperLib::Paths::iterator it = merged_polygons.begin();it !=merged_polygons.end();it++)
+        {
+            Polygons anti_polygons;
+            anti_polygons.add(*it);
+            basic_overhang = basic_overhang.difference(anti_polygons);
+        }
+        for (int n=0;n<basic_overhang.paths.size();n++)
+        {
+			if (ClipperLib::Area(basic_overhang.paths[n]) / 1000000 < 5.0)
+			{
+                basic_overhang.paths.erase(basic_overhang.paths.begin()+n);
+                n--;
+			}
+        }
     }
 
     //     Polygons support_extension = basic_overhang.offset(max_dist_from_lower_layer);
