@@ -108,6 +108,7 @@
         "brim_object_gap",
         "brim_type",
         "brim_width",
+		"enable_prime_tower",
         "exclude_object"	
     ]
 }

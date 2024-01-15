@@ -36,7 +36,6 @@
         "elefant_foot_compensation",
         "enable_arc_fitting",
         "enable_overhang_speed",
-        "enable_prime_tower",
         "enable_support",
         "enforce_support_layers",
         "ensure_vertical_shell_thickness",
