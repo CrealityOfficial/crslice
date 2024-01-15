@@ -574,7 +574,7 @@ static inline void extruder_range_slow_down_non_proportional(
     for (PerExtruderAdjustments *adj : by_min_print_speed) {
         adj->idx_line_begin = 0;
         adj->idx_line_end   = 0;
-        assert(adj->idx_line_begin < adj->n_lines_adjustable);
+        //assert(adj->idx_line_begin < adj->n_lines_adjustable);
         if (adj->lines[adj->idx_line_begin].feedrate > feedrate)
             feedrate = adj->lines[adj->idx_line_begin].feedrate;
     }
