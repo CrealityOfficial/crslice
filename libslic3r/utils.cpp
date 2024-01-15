@@ -10,6 +10,7 @@
 #include "Platform.hpp"
 #include "Time.hpp"
 #include "libslic3r.h"
+#include "format.hpp"
 
 #ifdef __APPLE__
 #include "MacUtils.hpp"
@@ -41,15 +42,15 @@
 	#endif
 #endif
 
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/support/date_time.hpp>
+//#include <boost/log/core.hpp>
+//#include <boost/log/trivial.hpp>
+//#include <boost/log/expressions.hpp>
+//#include <boost/log/sinks/text_file_backend.hpp>
+//#include <boost/log/utility/setup/file.hpp>
+//#include <boost/log/utility/setup/common_attributes.hpp>
+//#include <boost/log/sources/severity_logger.hpp>
+//#include <boost/log/sources/record_ostream.hpp>
+//#include <boost/log/support/date_time.hpp>
 
 #include <boost/locale.hpp>
 
@@ -88,34 +89,34 @@
 
 namespace Slic3r {
 
-static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
+//static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
 
-static boost::log::trivial::severity_level level_to_boost(unsigned level)
-{
-    switch (level) {
-    // Report fatal errors only.
-    case 0: return boost::log::trivial::fatal;
-    // Report fatal errors and errors.
-    case 1: return boost::log::trivial::error;
-    // Report fatal errors, errors and warnings.
-    case 2: return boost::log::trivial::warning;
-    // Report all errors, warnings and infos.
-    case 3: return boost::log::trivial::info;
-    // Report all errors, warnings, infos and debugging.
-    case 4: return boost::log::trivial::debug;
-    // Report everyting including fine level tracing information.
-    default: return boost::log::trivial::trace;
-    }
-}
+//static boost::log::trivial::severity_level level_to_boost(unsigned level)
+//{
+//    switch (level) {
+//    // Report fatal errors only.
+//    case 0: return boost::log::trivial::fatal;
+//    // Report fatal errors and errors.
+//    case 1: return boost::log::trivial::error;
+//    // Report fatal errors, errors and warnings.
+//    case 2: return boost::log::trivial::warning;
+//    // Report all errors, warnings and infos.
+//    case 3: return boost::log::trivial::info;
+//    // Report all errors, warnings, infos and debugging.
+//    case 4: return boost::log::trivial::debug;
+//    // Report everyting including fine level tracing information.
+//    default: return boost::log::trivial::trace;
+//    }
+//}
 
 void set_logging_level(unsigned int level)
 {
-    logSeverity = level_to_boost(level);
-
-    boost::log::core::get()->set_filter
-    (
-        boost::log::trivial::severity >= logSeverity
-    );
+    //logSeverity = level_to_boost(level);
+	//
+    //boost::log::core::get()->set_filter
+    //(
+    //    boost::log::trivial::severity >= logSeverity
+    //);
 }
 
 unsigned int level_string_to_boost(std::string level)
@@ -146,18 +147,19 @@ std::string get_string_logging_level(unsigned level)
 
 unsigned get_logging_level()
 {
-    switch (logSeverity) {
-    case boost::log::trivial::fatal : return 0;
-    case boost::log::trivial::error : return 1;
-    case boost::log::trivial::warning : return 2;
-    case boost::log::trivial::info : return 3;
-    case boost::log::trivial::debug : return 4;
-    case boost::log::trivial::trace : return 5;
-    default: return 1;
-    }
+    //switch (logSeverity) {
+    //case boost::log::trivial::fatal : return 0;
+    //case boost::log::trivial::error : return 1;
+    //case boost::log::trivial::warning : return 2;
+    //case boost::log::trivial::info : return 3;
+    //case boost::log::trivial::debug : return 4;
+    //case boost::log::trivial::trace : return 5;
+    //default: return 1;
+    //}
+	return 1;
 }
 
-boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> g_log_sink;
+//boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> g_log_sink;
 
 // Force set_logging_level(<=error) after loading of the DLL.
 // This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
@@ -171,10 +173,10 @@ static struct RunOnInit {
 
 void trace(unsigned int level, const char *message)
 {
-    boost::log::trivial::severity_level severity = level_to_boost(level);
-
-    BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
-        (::boost::log::keywords::severity = severity)) << message;
+ //   boost::log::trivial::severity_level severity = level_to_boost(level);
+ //
+ //   BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
+ //       (::boost::log::keywords::severity = severity)) << message;
 }
 
 void disable_multi_threading()
@@ -290,11 +292,11 @@ std::string debug_out_path(const char *name, ...)
 	return std::string(SLIC3R_DEBUG_OUT_PATH_PREFIX) + std::string(buffer);
 }
 
-namespace logging = boost::log;
-namespace src = boost::log::sources;
-namespace expr = boost::log::expressions;
-namespace keywords = boost::log::keywords;
-namespace attrs = boost::log::attributes;
+//namespace logging = boost::log;
+//namespace src = boost::log::sources;
+//namespace expr = boost::log::expressions;
+//namespace keywords = boost::log::keywords;
+//namespace attrs = boost::log::attributes;
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
 #ifdef __APPLE__
@@ -312,19 +314,19 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 	}
 	auto full_path = (log_folder / file).make_preferred();
 
-	g_log_sink = boost::log::add_file_log(
-		keywords::file_name = full_path.string() + ".%N",
-		keywords::rotation_size = 100 * 1024 * 1024,
-		keywords::format =
-		(
-			expr::stream
-			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-			<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-			<< ":" << expr::smessage
-			)
-	);
-
-	logging::add_common_attributes();
+	//g_log_sink = boost::log::add_file_log(
+	//	keywords::file_name = full_path.string() + ".%N",
+	//	keywords::rotation_size = 100 * 1024 * 1024,
+	//	keywords::format =
+	//	(
+	//		expr::stream
+	//		<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+	//		<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
+	//		<< ":" << expr::smessage
+	//		)
+	//);
+	//
+	//logging::add_common_attributes();
 
 	set_logging_level(level);
 
@@ -333,8 +335,8 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 
 void flush_logs()
 {
-	if (g_log_sink)
-		g_log_sink->flush();
+	//if (g_log_sink)
+	//	g_log_sink->flush();
 
 	return;
 }
@@ -1069,8 +1071,9 @@ std::string decode_path(const char *src)
 
 std::string normalize_utf8_nfc(const char *src)
 {
-    static std::locale locale_utf8(boost::locale::generator().generate(""));
-    return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
+	return std::string(src);
+    //static std::locale locale_utf8(boost::locale::generator().generate(""));
+    //return boost::locale::normalize(src, boost::locale::norm_nfc, locale_utf8);
 }
 
 namespace PerlUtils {
@@ -1262,7 +1265,7 @@ std::string format_memsize_MB(size_t n)
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-    if (ignore_loglevel || logSeverity <= boost::log::trivial::info) {
+    if (ignore_loglevel /*|| logSeverity <= boost::log::trivial::info*/) {
 #ifdef WIN32
     #ifndef PROCESS_MEMORY_COUNTERS_EX
         // MingW32 doesn't have this struct in psapi.h

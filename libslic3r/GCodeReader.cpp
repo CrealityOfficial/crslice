@@ -10,7 +10,7 @@
 
 #include "LocalesUtils.hpp"
 
-#include <Shiny/Shiny.h>
+//#include <Shiny/Shiny.h>
 #include <fast_float/fast_float.h>
 
 namespace Slic3r {

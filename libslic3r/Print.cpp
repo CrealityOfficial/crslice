@@ -41,14 +41,19 @@
 #include "PrintConfig.hpp"
 #include "Model.hpp"
 #include <float.h>
+#include "format.hpp"
 
 #include <algorithm>
 #include <limits>
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
+#include <boost/nowide/fstream.hpp>
+
+//#include <boost/log/trivial.hpp>
 #include <boost/regex.hpp>
+#include <tbb/parallel_reduce.h>
+#include <tbb/parallel_for.h>
 
 //BBS: add json support
 #include "nlohmann/json.hpp"

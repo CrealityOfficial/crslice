@@ -5,9 +5,9 @@
 #include "Thumbnails.hpp"
 #include "../miniz_extension.hpp"
 
-#include <qoi/qoi.h>
-#include <jpeglib.h>
-#include <jerror.h>
+//#include <qoi/qoi.h>
+//#include <jpeglib.h>
+//#include <jerror.h>
 
 namespace Slic3r::GCodeThumbnails {
 
@@ -64,24 +64,24 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_jpg(const ThumbnailDat
     unsigned char* compressed_data_ptr = compressed_data.data();
     unsigned long compressed_data_size = data.pixels.size();
 
-    jpeg_error_mgr err;
-    jpeg_compress_struct info;
-    info.err = jpeg_std_error(&err);
-    jpeg_create_compress(&info);
-    jpeg_mem_dest(&info, &compressed_data_ptr, &compressed_data_size);
-
-    info.image_width = data.width;
-    info.image_height = data.height;
-    info.input_components = 4;
-    info.in_color_space = JCS_EXT_RGBA;
-
-    jpeg_set_defaults(&info);
-    jpeg_set_quality(&info, 85, TRUE);
-    jpeg_start_compress(&info, TRUE);
-
-    jpeg_write_scanlines(&info, rows_ptrs.data(), data.height);
-    jpeg_finish_compress(&info);
-    jpeg_destroy_compress(&info);
+    //jpeg_error_mgr err;
+    //jpeg_compress_struct info;
+    //info.err = jpeg_std_error(&err);
+    //jpeg_create_compress(&info);
+    //jpeg_mem_dest(&info, &compressed_data_ptr, &compressed_data_size);
+    //
+    //info.image_width = data.width;
+    //info.image_height = data.height;
+    //info.input_components = 4;
+    //info.in_color_space = JCS_EXT_RGBA;
+    //
+    //jpeg_set_defaults(&info);
+    //jpeg_set_quality(&info, 85, TRUE);
+    //jpeg_start_compress(&info, TRUE);
+    //
+    //jpeg_write_scanlines(&info, rows_ptrs.data(), data.height);
+    //jpeg_finish_compress(&info);
+    //jpeg_destroy_compress(&info);
 
     // FIXME -> Add error checking
 
@@ -94,11 +94,11 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_jpg(const ThumbnailDat
 
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail_qoi(const ThumbnailData &data)
 {
-    qoi_desc desc;
-    desc.width      = data.width;
-    desc.height     = data.height;
-    desc.channels   = 4;
-    desc.colorspace = QOI_SRGB;
+    //qoi_desc desc;
+    //desc.width      = data.width;
+    //desc.height     = data.height;
+    //desc.channels   = 4;
+    //desc.colorspace = QOI_SRGB;
 
     // Take vector of RGBA pixels and flip the image vertically
     std::vector<uint8_t> rgba_pixels(data.pixels.size() * 4);
@@ -108,7 +108,7 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_qoi(const ThumbnailDat
 
     auto out = std::make_unique<CompressedQOI>();
     int  size;
-    out->data = qoi_encode((const void*)rgba_pixels.data(), &desc, &size);
+    //out->data = qoi_encode((const void*)rgba_pixels.data(), &desc, &size);
     out->size = size;
     return out;
 }

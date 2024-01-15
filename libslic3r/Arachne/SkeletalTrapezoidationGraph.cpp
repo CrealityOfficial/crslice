@@ -4,7 +4,7 @@
 #include "SkeletalTrapezoidationGraph.hpp"
 #include <unordered_map>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include "utils/linearAlg2D.hpp"
 #include "../Line.hpp"

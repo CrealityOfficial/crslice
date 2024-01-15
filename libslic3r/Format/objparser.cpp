@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-
-#include <boost/log/trivial.hpp>
+#include "libslic3r/libslic3r.h"
+//#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 #include "objparser.hpp"

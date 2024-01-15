@@ -25,7 +25,7 @@ namespace pt = boost::property_tree;
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include "miniz_extension.hpp"
 

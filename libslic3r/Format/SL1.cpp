@@ -2,7 +2,7 @@
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/Time.hpp"
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 
 #include "libslic3r/Zipper.hpp"

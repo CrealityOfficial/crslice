@@ -26,8 +26,9 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/string_file.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
@@ -1091,7 +1092,7 @@ bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boole
     std::vector<TriangleMesh> new_meshes;
 
     const TriangleMesh &cut_mesh = cut_object->mesh();
-    MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
+    //MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
 
     this->clear_volumes();
     int i = 1;
@@ -2226,8 +2227,8 @@ ModelObjectPtrs ModelObject::segment(size_t instance, unsigned int max_extruders
             mesh.transform(instance_matrix * volume_matrix, true);
             volume->reset_mesh();
 
-            auto mesh_segments = MeshBoolean::cgal::segment(mesh, smoothing_alpha, segment_number);
-
+            //auto mesh_segments = MeshBoolean::cgal::segment(mesh, smoothing_alpha, segment_number);
+            std::vector<TriangleMesh> mesh_segments;
 
             // Reset volume transformation except for offset
             const Vec3d offset = volume->get_offset();

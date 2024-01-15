@@ -46,6 +46,9 @@
 #define PROFILE_BLOCK(name)
 #define CLIPPERUTILS_PROFILE_FUNC()
 #define CLIPPERUTILS_PROFILE_BLOCK(name)
+#define PROFILE_CLEAR()
+#define PROFILE_UPDATE()
+#define PROFILE_OUTPUT(name)
 #endif
 
 #define BOOST_LOG_TRIVIAL(x)  std::cout

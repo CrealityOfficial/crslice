@@ -1,4 +1,12 @@
 #include "orcaslicewrapper.h"
+#include <sstream>
+
+#include "crslice2/base/parametermeta.h"
+#include <boost/nowide/fstream.hpp>
+
+#include "crgroup.h"
+#include "crobject.h"
+#include "ccglobal/log.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/map.hpp>
@@ -14,27 +22,6 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
 #include "nlohmann/json.hpp"
-#include <boost/nowide/fstream.hpp>
-
-#include "crslice2/base/parametermeta.h"
-
-#include "crgroup.h"
-#include "crobject.h"
-#include "ccglobal/log.h"
-
-#include <sstream>
-
-namespace cereal
-{
-	// Let cereal know that there are load / save non-member functions declared for ModelObject*, ignore serialization of pointers triggering
-	// static assert, that cereal does not support serialization of raw pointers.
-	template <class Archive> struct specialize<Archive, Slic3r::Model*, cereal::specialization::non_member_load_save> {};
-	template <class Archive> struct specialize<Archive, Slic3r::ModelObject*, cereal::specialization::non_member_load_save> {};
-	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume*, cereal::specialization::non_member_load_save> {};
-	template <class Archive> struct specialize<Archive, Slic3r::ModelInstance*, cereal::specialization::non_member_load_save> {};
-	template <class Archive> struct specialize<Archive, Slic3r::ModelMaterial*, cereal::specialization::non_member_load_save> {};
-	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
-}
 
 void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config)
 {
@@ -290,13 +277,13 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 {
 	std::ifstream in(file, std::ios::in | std::ios::binary);
 
-	cereal::BinaryInputArchive iarchive(in);
-
 	bool is_bbl_printer = false;
 	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
 
+#if 1
+	cereal::BinaryInputArchive iarchive(in);
 	iarchive(is_bbl_printer);
 	iarchive(plate_origin);
 	size_t count;
@@ -342,7 +329,8 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 		}
 	}
 	iarchive >> config;
-	 
+#endif 
+
 #if 0
 	//in.seekg(0, std::ios::end);
 	//int len = in.tellg();

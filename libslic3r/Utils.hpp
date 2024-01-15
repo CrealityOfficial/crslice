@@ -11,12 +11,13 @@
 #include <functional>
 #include <type_traits>
 #include <system_error>
+#include <iomanip>
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/date_time.hpp>
-#include "boost/date_time/posix_time/ptime.hpp"
+//#include <boost/date_time.hpp>
+//#include "boost/date_time/posix_time/ptime.hpp"
 
 #include <openssl/md5.h>
 
@@ -592,11 +593,11 @@ inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs)
         return {};
 
     std::stringstream stream;
-    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
-    auto endTime = now + boost::posix_time::seconds(static_cast<int>(time_in_secs));
-    auto facet = new boost::posix_time::time_facet("%H:%M");//%Y-%m-%d %H:%M:%S
-    stream.imbue(std::locale(std::locale::classic(), facet));
-    stream << endTime;
+    //boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
+    //auto endTime = now + boost::posix_time::seconds(static_cast<int>(time_in_secs));
+    //auto facet = new boost::posix_time::time_facet("%H:%M");//%Y-%m-%d %H:%M:%S
+    //stream.imbue(std::locale(std::locale::classic(), facet));
+    //stream << endTime;
 
     return stream.str();
 }

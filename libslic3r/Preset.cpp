@@ -49,7 +49,7 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include "libslic3r.h"
 #include "Utils.hpp"

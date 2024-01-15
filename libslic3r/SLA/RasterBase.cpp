@@ -7,7 +7,7 @@
 #include <libslic3r/SLA/AGGRaster.hpp>
 
 // minz image write:
-#include <miniz.h>
+#include <miniz/miniz.h>
 
 namespace Slic3r { namespace sla {
 

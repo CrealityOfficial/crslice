@@ -23,6 +23,8 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/format.hpp>
 #include <string.h>
+#include <regex>
+
 //BBS: add json support
 #include "nlohmann/json.hpp"
 

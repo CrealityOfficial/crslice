@@ -20,7 +20,8 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
-#include <boost/log/trivial.hpp>
+#include <boost/lexical_cast.hpp>
+//#include <boost/log/trivial.hpp>
 
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.

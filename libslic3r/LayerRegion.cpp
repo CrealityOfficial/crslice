@@ -17,7 +17,7 @@
 #include <string>
 #include <map>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/algorithm/clamp.hpp>
 
 namespace Slic3r {

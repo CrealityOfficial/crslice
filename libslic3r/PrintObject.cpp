@@ -29,6 +29,7 @@
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
 #include "TreeSupport.hpp"
+#include "format.hpp"
 
 #include <float.h>
 #include <oneapi/tbb/blocked_range.h>
@@ -37,11 +38,11 @@
 #include <string_view>
 #include <utility>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
 
-#include <Shiny/Shiny.h>
+//#include <Shiny/Shiny.h>
 
 using namespace std::literals;
 

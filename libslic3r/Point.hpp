@@ -583,7 +583,7 @@ namespace boost { namespace polygon {
         using coordinate_type = coord_t;
     
         static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
-            return static_cast<coordinate_type>(point((orient == HORIZONTAL) ? 0 : 1));
+            return static_cast<coordinate_type>(point((orient == HORIZONTAL_) ? 0 : 1));
         }
     };
     
@@ -591,7 +591,7 @@ namespace boost { namespace polygon {
     struct point_mutable_traits<Slic3r::Point> {
         using coordinate_type = coord_t;
         static inline void set(Slic3r::Point& point, orientation_2d orient, coord_t value) {
-            point((orient == HORIZONTAL) ? 0 : 1) = value;
+            point((orient == HORIZONTAL_) ? 0 : 1) = value;
         }
         static inline Slic3r::Point construct(coord_t x_value, coord_t y_value) {
             return Slic3r::Point(x_value, y_value);

@@ -14,7 +14,7 @@
 #include <mutex>
 #include <utility>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
 

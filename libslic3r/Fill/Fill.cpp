@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <memory>
+#include <unordered_set>
 
 #include "../ClipperUtils.hpp"
 #include "../Geometry.hpp"

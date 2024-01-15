@@ -11,7 +11,7 @@
 
 #include <tbb/parallel_for.h>
 #include <boost/filesystem/path.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 // #define SLAPRINT_DO_BENCHMARK
 

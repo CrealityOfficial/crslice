@@ -34,8 +34,9 @@
 #include <stdio.h>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
 

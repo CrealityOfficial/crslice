@@ -11,7 +11,7 @@
 
 #include <cmath>
 #include <memory>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/container/static_vector.hpp>
 
 #include <tbb/parallel_for.h>

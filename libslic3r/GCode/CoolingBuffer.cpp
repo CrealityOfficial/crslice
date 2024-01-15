@@ -2,7 +2,7 @@
 #include "CoolingBuffer.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <float.h>
 #include <system_error>

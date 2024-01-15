@@ -19,7 +19,7 @@
 #include "SVG.hpp"
 
 #include "I18N.hpp"
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 //! macro used to mark string used at localization,
 //! return same string

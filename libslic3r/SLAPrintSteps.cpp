@@ -17,7 +17,7 @@
 
 #include <libslic3r/ClipperUtils.hpp>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
 

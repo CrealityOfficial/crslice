@@ -37,8 +37,9 @@ struct NfpPConfig {
         BOTTOM_RIGHT,
         TOP_LEFT,
         TOP_RIGHT,
-        DONT_ALIGN      //!> Warning: parts may end up outside the bin with the
+        DONT_ALIGN,     //!> Warning: parts may end up outside the bin with the
                         //! default object function.
+        USER_DEFINED
     };
 
     /// Which angles to try out for better results.
@@ -49,6 +50,8 @@ struct NfpPConfig {
 
     /// Where to start putting objects in the bin.
     Alignment starting_point;
+
+    TPoint<RawShape> best_object_pos;
 
     /**
      * @brief A function object representing the fitting function in the
@@ -553,6 +556,13 @@ public:
     inline void clearItems() {
         finalAlign(bin_);
         Base::clearItems();
+    }
+
+    //clearFunc: itm will be cleared if return ture
+    inline void clearItems(const std::function<bool(const Item &itm)> &clearFunc)
+    {
+        finalAlign(bin_);
+        Base::clearItems(clearFunc);
     }
 
     void preload(const ItemGroup& packeditems) {
@@ -1093,6 +1103,11 @@ private:
             cb = bbin.maxCorner();
             break;
         }
+        case Config::Alignment::USER_DEFINED: {
+            ci = bb.center();
+            cb = config_.best_object_pos;
+            break;
+        }
         default: ; // DONT_ALIGN
         }
 
@@ -1115,11 +1130,9 @@ private:
             return;
         { // find a best position inside NFP of fixed items (excluded regions), so the center of pile is cloest to bed center
             RawShape objs_convex_hull = sl::convexHull(objs);
-            for (const Item &item : config_.m_excluded_regions) { excludes.push_back(item.transformedShape()); }
             for (const Item &item : items_) {
                 if (item.isFixed()) {
-                    if (!(item.is_wipe_tower && !need_wipe_tower))
-                        excludes.push_back(item.transformedShape());
+        		    excludes.push_back(item.transformedShape());
                 }
             }
 

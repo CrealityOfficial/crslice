@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <type_traits>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/predef/other/endian.h>
 

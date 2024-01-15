@@ -25,7 +25,7 @@
 
 #include <vector>
 #include "libslic3r.h"
-//#include <boost/log/trivial.hpp>
+////#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 #include "stl.h"

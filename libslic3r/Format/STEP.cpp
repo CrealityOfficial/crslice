@@ -28,6 +28,10 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 
+#include <boost/nowide/fstream.hpp>
+#include <boost/nowide/cstdio.hpp>
+#include <tbb/parallel_for.h>
+
 const double STEP_TRANS_CHORD_ERROR = 0.003;
 const double STEP_TRANS_ANGLE_RES = 0.5;
 

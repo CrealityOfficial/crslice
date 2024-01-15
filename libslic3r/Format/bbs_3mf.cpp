@@ -28,16 +28,19 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/spirit/include/karma.hpp>
 #include <boost/spirit/include/qi_int.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <openssl/md5.h>
 
 namespace pt = boost::property_tree;
 
 #include <tbb/parallel_reduce.h>
+#include <tbb/parallel_for.h>
 
 #include <expat.h>
 #include <Eigen/Dense>

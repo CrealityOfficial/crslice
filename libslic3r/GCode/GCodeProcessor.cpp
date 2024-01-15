@@ -7,7 +7,7 @@
 #include "libslic3r/format.hpp"
 #include "GCodeProcessor.hpp"
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/nowide/fstream.hpp>

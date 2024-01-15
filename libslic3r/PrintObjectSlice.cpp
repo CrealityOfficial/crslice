@@ -7,7 +7,7 @@
 //BBS
 #include "ShortestPath.hpp"
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
 

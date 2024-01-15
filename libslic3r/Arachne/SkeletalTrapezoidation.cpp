@@ -9,7 +9,7 @@
 #include <sstream>
 #include <queue>
 #include <functional>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #include "utils/VoronoiUtils.hpp"
 

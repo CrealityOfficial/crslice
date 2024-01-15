@@ -10,7 +10,7 @@
 #include "OuterWallInsetBeadingStrategy.hpp"
 
 #include <limits>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 namespace Slic3r::Arachne
 {

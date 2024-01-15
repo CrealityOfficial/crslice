@@ -1,4 +1,5 @@
 #include "ArcFitter.hpp"
+#include "libslic3r/Polyline.hpp"
 
 #include <cmath>
 #include <cassert>

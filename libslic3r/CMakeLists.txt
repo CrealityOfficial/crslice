@@ -21,6 +21,12 @@ set(lisbslic3r_sources
     #pchheader.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
+    AABBMesh.hpp
+    AABBMesh.cpp
+    Algorithm/PathSorting.hpp
+    Algorithm/RegionExpansion.hpp
+    Algorithm/RegionExpansion.cpp
+    AnyPtr.hpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
@@ -31,6 +37,8 @@ set(lisbslic3r_sources
     Brim.hpp
     BuildVolume.cpp
     BuildVolume.hpp
+	ColorSpaceConvert.hpp
+	ColorSpaceConvert.cpp
     Circle.cpp
     Circle.hpp
     clipper.cpp
@@ -39,6 +47,7 @@ set(lisbslic3r_sources
     ClipperUtils.hpp
     Clipper2Utils.cpp
     Clipper2Utils.hpp
+    ClipperZUtils.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp
@@ -56,6 +65,8 @@ set(lisbslic3r_sources
     ExtrusionEntity.hpp
     ExtrusionEntityCollection.cpp
     ExtrusionEntityCollection.hpp
+    ExtrusionRole.cpp
+    ExtrusionRole.hpp
     ExtrusionSimulator.cpp
     ExtrusionSimulator.hpp
     FileParserError.hpp
@@ -93,6 +104,8 @@ set(lisbslic3r_sources
     Fill/FillRectilinear.hpp
     Flow.cpp
     Flow.hpp
+    FlushVolCalc.cpp
+    FlushVolCalc.hpp
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
@@ -120,8 +133,8 @@ set(lisbslic3r_sources
     GCode/FanMover.hpp
     GCode/PostProcessor.cpp
     GCode/PostProcessor.hpp
-#    GCode/PressureEqualizer.cpp
-#    GCode/PressureEqualizer.hpp
+    GCode/PressureEqualizer.cpp
+    GCode/PressureEqualizer.hpp
     GCode/PrintExtents.cpp
     GCode/PrintExtents.hpp
     GCode/RetractWhenCrossingPerimeters.cpp
@@ -134,6 +147,8 @@ set(lisbslic3r_sources
     GCode/ToolOrdering.hpp
     GCode/WipeTower.cpp
     GCode/WipeTower.hpp
+    GCode/WipeTower2.cpp
+    GCode/WipeTower2.hpp
     GCode/GCodeProcessor.cpp
     GCode/GCodeProcessor.hpp
     GCode/AvoidCrossingPerimeters.cpp
@@ -166,8 +181,6 @@ set(lisbslic3r_sources
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
     Int128.hpp
-    InternalBridgeDetector.cpp
-    InternalBridgeDetector.hpp
     KDTreeIndirect.hpp
     Layer.cpp
     Layer.hpp
@@ -253,6 +266,23 @@ set(lisbslic3r_sources
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
     SlicingAdaptive.hpp
+    Support/SupportCommon.cpp
+    Support/SupportCommon.hpp
+    Support/SupportDebug.cpp
+    Support/SupportDebug.hpp
+    Support/SupportLayer.hpp
+    # Support/SupportMaterial.cpp
+    # Support/SupportMaterial.hpp
+    Support/SupportParameters.cpp
+    Support/SupportParameters.hpp
+    Support/OrganicSupport.cpp
+    Support/OrganicSupport.hpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport.hpp
+    Support/TreeSupportCommon.cpp
+    Support/TreeSupportCommon.hpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeModelVolumes.hpp
     SupportMaterial.cpp
     SupportMaterial.hpp
     PrincipalComponents2D.cpp
@@ -384,7 +414,8 @@ set(lisbslic3r_sources
     Shape/TextShape.cpp
     calib.hpp
     calib.cpp
-	
+        GCode/Thumbnails.cpp
+        GCode/Thumbnails.hpp	
 	semver/semver.h
 	semver/semver.c
 	clipper/clipper_z.hpp
@@ -396,8 +427,15 @@ set(lisbslic3r_sources
     admesh/stl_io.cpp
     admesh/stlinit.cpp
     admesh/util.cpp
-	miniz.h
-	miniz.c
+	miniz/miniz.h
+	miniz/miniz.c
+	qoi.h
+	qoilib.c
+	
+	#MeshBoolean.cpp 
+	#MeshBoolean.hpp  
+	#TryCatchSignal.hpp
+    #TryCatchSignal.cpp
 )
 
 list(APPEND lisbslic3r_sources 
@@ -407,24 +445,25 @@ list(APPEND lisbslic3r_sources
 if (APPLE)
     list(APPEND lisbslic3r_sources
 			MacUtils.mm
+            Format/ModelIO.hpp
+            Format/ModelIO.mm
         )
 endif ()
 
 __cc_find(boost_static)
 __cc_find(eigen)
 __cc_find(admesh)
-__cc_find(tbb_static)
 __cc_find(clipper2)
 __cc_find(png_static)
 __cc_find(openssl)
 __cc_find(opencascade_static)
 __cc_find(nlopt_static)
 __cc_find(expat)
+__cc_find(cgal)
 
 __assert_target(clipper2)
 __assert_target(eigen)
 __assert_target(admesh)
-__assert_target(tbb_static)
 __assert_target(nlopt_static)
 __assert_target(expat)
 
@@ -441,13 +480,13 @@ if(WIN32)
 endif()
 
 list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thread
-			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess)
+			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess cgal)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 
-if(TARGET tbb_static)
+if(TARGET tbb)
 	list(APPEND DEFS USE_TBB)
-	list(APPEND ILIBS tbb_static)
+	list(APPEND ILIBS tbb tbbmalloc)
 endif()
 
 set(OLIBS TKernel

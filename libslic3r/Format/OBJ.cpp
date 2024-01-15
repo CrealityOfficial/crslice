@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'

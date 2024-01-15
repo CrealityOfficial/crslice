@@ -35,7 +35,7 @@
 #include <boost/algorithm/string/find.hpp>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
+//#include <boost/log/trivial.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 
 #include <boost/nowide/iostream.hpp>
@@ -62,7 +62,7 @@
     using slic3r_tbb_filtermode = tbb::filter;
 #endif
 
-#include <Shiny/Shiny.h>
+//#include <Shiny/Shiny.h>
 
 #include "miniz_extension.hpp"
 
