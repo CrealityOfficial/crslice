@@ -70,6 +70,138 @@
         "settable_per_meshgroup": "false",
         "type": "coInts",
         "unit": "%"
+    },
+    "filament_loading_speed_start":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_loading_speed":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_unloading_speed_start":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_unloading_speed":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_load_time":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_unload_time":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_toolchange_delay":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_cooling_moves":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_cooling_initial_speed":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_cooling_final_speed":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+    "filament_ramming_parameters":{
+        "default_value": "80",
+        "description": "Speed of exhuast fan after printing completes",
+        "enabled": "true",
+        "label": "Fan speed of completed",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
     }
 }
   

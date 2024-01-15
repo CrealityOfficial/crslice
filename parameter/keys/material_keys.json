@@ -27,8 +27,12 @@
         "filament_wipe_distance",
         "filament_z_hop",
         "filament_z_hop_types",
+        "chamber_temperature",
+        "activate_chamber_temp_control",
 		"additional_cooling_fan_speed",
 		"bed_temperature_difference",
+        "bed_temperature",
+        "bed_temperature_initial_layer",
 		"close_fan_the_first_x_layers",
 		"cool_plate_temp",
 		"cool_plate_temp_initial_layer",
@@ -58,6 +62,19 @@
 		"support_material_interface_fan_speed",
 		"temperature_vitrification",
 		"textured_plate_temp",
-		"textured_plate_temp_initial_layer"
+		"textured_plate_temp_initial_layer",
+        "filament_loading_speed_start",
+        "filament_loading_speed",
+        "filament_unloading_speed_start",
+        "filament_unloading_speed",
+        "filament_load_time",
+        "filament_unload_time",
+        "filament_toolchange_delay",
+        "filament_cooling_moves",
+        "filament_cooling_initial_speed",
+        "filament_cooling_final_speed",
+        "filament_ramming_parameters",
+        "during_print_exhaust_fan_speed",
+        "complete_print_exhaust_fan_speed"
     ]
 }
