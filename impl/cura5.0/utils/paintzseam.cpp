@@ -46,69 +46,28 @@ namespace cura52
 									{
 										continue;
 									}
-
-									coord_t minPPdis = std::numeric_limits<coord_t>::max();
-									int minPPidex=getDisPtoJunctions(aPoint.start, line.junctions, minPPdis);
-									if (minPPdis < 1000)//涂抹点到轮廓点的最短距离
+									paintPointResult result = getPtoJunctions_disAndidx(aPoint.start, line.junctions);
+									if (result.idx !=-1)
 									{
-										line.junctions[minPPidex].flag = _flag;
-										aPoint.flag = true;
-									}
-									else
-									{
-
-										int realsize = line.junctions[0] == line.junctions[line.junctions.size() - 1] ? line.junctions.size() - 1 : line.junctions.size();
-										int preIdx = (minPPidex + realsize - 1) % realsize;
-										int nextIdx = (minPPidex + 1) % realsize;
-
-										coord_t pre_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
-										coord_t next_dis = getDistFromSeg(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
-										if (pre_dis >= 1000 && next_dis >= 1000)//距离大于1000，则认为涂抹点和轮廓没有匹配上，跳过
+										if (result.type == PointType::add)
 										{
-											continue;
-										}
-
-										if (pre_dis < next_dis)
-										{
-											Point addPoint = getDisPtoSegment(aPoint.start, line.junctions[minPPidex].p, line.junctions[preIdx].p);
-											if (std::abs(addPoint.X - line.junctions[minPPidex].p.X) < 500 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y) < 500)
-											{
-												line.junctions[minPPidex].flag = _flag;
-												aPoint.flag = true;
-												continue;
-											}
-											ExtrusionJunction addEJ = line.junctions.at(preIdx);
-											addEJ.p = addPoint;
+											ExtrusionJunction addEJ = line.junctions.at(result.idx);
+											addEJ.p = result.aPoint;
 											addEJ.flag = _flag;
 											aPoint.flag = true;
-											if (minPPidex == 0)
-											{
-												minPPidex = preIdx + 1;
-											}
-											line.junctions.insert(line.junctions.begin() + minPPidex, addEJ);
+											line.junctions.insert(line.junctions.begin() + result.idx, addEJ);
 										}
 										else
 										{
-											Point addPoint = getDisPtoSegment(aPoint.start, line.junctions[minPPidex].p, line.junctions[nextIdx].p);
-											if (std::abs(addPoint.X - line.junctions[minPPidex].p.X) < 500 && std::abs(addPoint.Y - line.junctions[minPPidex].p.Y) < 500)
-											{
-												line.junctions[minPPidex].flag = _flag;
-												aPoint.flag = true;
-												continue;
-											}
-											ExtrusionJunction addEJ = line.junctions.at(nextIdx);
-											addEJ.p = addPoint;
-											addEJ.flag = _flag;
+											line.junctions[result.idx].flag = _flag;
 											aPoint.flag = true;
-											if (nextIdx == 0)
-											{
-												nextIdx = minPPidex + 1;
-											}
-											line.junctions.insert(line.junctions.begin() + nextIdx, addEJ);
 										}
-
 									}
 								}
+
+								//排除重复的点
+
+
 							}
 						}
 					}
@@ -165,7 +124,7 @@ namespace cura52
 									coord_t minPPdis = std::numeric_limits<coord_t>::max();
 									int minPPidex = -1;
 									Point shortest_point;
-									for (int n = 0; n < line.junctions.size() - 1; n++)
+									for (int n = 0; n < line.junctions.size(); n++)
 									{
 										if (line.junctions[n].flag == ExtrusionJunction::PAINT)
 										{
@@ -185,7 +144,7 @@ namespace cura52
 									float minAngle = M_PI;
 									float shortestAngle = M_PI;
 									int sharpCorner_idx = -1;
-									for (int n = 0; n < line.junctions.size() - 1; n++)
+									for (int n = 0; n < line.junctions.size(); n++)
 									{
 										if (line.junctions[n].flag== ExtrusionJunction::PAINT)
 										{
@@ -195,6 +154,10 @@ namespace cura52
 											int preIdx = (n + realsize - 1) % realsize;
 											int nextIdx = (n + 1) % realsize;
 											float pab = getAngleLeft(line.junctions[preIdx].p, line.junctions[n].p, line.junctions[nextIdx].p);
+											if (pab == 0.0)
+											{
+												continue;
+											}
 											if (minAngle >= pab)//最尖角
 											{
 												minAngle = pab;
@@ -207,7 +170,7 @@ namespace cura52
 										}
 									}
 
-									if ((std::abs(shortestAngle - minAngle) < (M_PI / 6) || minAngle > (M_PI * 3 / 4)) && minPPidex >= 0)
+									if ((std::abs(shortestAngle - minAngle) < (M_PI / 3) || minAngle > (M_PI * 3 / 4)) && minPPidex >= 0)
 									{
 										int realsize = line.junctions[0] == line.junctions[line.junctions.size() - 1] ? line.junctions.size() - 1 : line.junctions.size();
 										int preIdx = (minPPidex + realsize - 1) % realsize;
@@ -320,7 +283,6 @@ namespace cura52
 					}
 
 				}
-
 			}
 			PreZseamPoints = curZseamPoints;
 			curZseamPoints.clear();
@@ -357,17 +319,60 @@ namespace cura52
 			fpoint.X = x;
 			fpoint.Y = y;
 
-			if (pointOnSegment(fpoint, Segment_start, Segment_end))
+			//if (pointOnSegment(fpoint, Segment_start, Segment_end))
+			//{
+			//	return fpoint;
+			//}
+			AABB abox;
+			abox.include(Segment_start);
+			abox.include(Segment_end);
+			if (abox.contains(fpoint))
 			{
 				return fpoint;
 			}
-
-			if (vSize(Point(Segment_start.X - apoint.X, Segment_start.Y - apoint.Y)) < vSize(Point(Segment_end.X - apoint.X, Segment_end.Y - apoint.Y)))
+			else if (vSize(Point(Segment_start.X - apoint.X, Segment_start.Y - apoint.Y)) < vSize(Point(Segment_end.X - apoint.X, Segment_end.Y - apoint.Y)))
 			{
 				return Segment_start;
 			}
 			else
 			{
+				return Segment_end;
+			}
+		}
+	}
+
+	Point paintzseam::getDisPtoSegmentEX(Point& apoint, Point& Segment_start, Point& Segment_end, PointType& _type)
+	{
+		double A = Segment_end.Y - Segment_start.Y;     //y2-y1
+		double B = Segment_start.X - Segment_end.X;     //x1-x2;
+		double C = Segment_end.X * Segment_start.Y - Segment_start.X * Segment_end.Y;     //x2*y1-x1*y2
+		if (A * A + B * B < 1e-13) {
+			_type = PointType::pre;
+			return Segment_start;   //Segment_start与Segment_end重叠
+		}
+		else {
+			double x = (B * B * apoint.X - A * B * apoint.Y - A * C) / (A * A + B * B);
+			double y = (-A * B * apoint.X + A * A * apoint.Y - B * C) / (A * A + B * B);
+			Point fpoint = Point();
+			fpoint.X = x;
+			fpoint.Y = y;
+
+			AABB abox;
+			abox.include(Segment_start);
+			abox.include(Segment_end);
+			if (abox.contains(fpoint))
+			{
+				_type = PointType::add;
+				return fpoint;
+			}
+			else if (vSize(Point(Segment_start.X - apoint.X, Segment_start.Y - apoint.Y)) < vSize(Point(Segment_end.X - apoint.X, Segment_end.Y - apoint.Y)))
+			{
+				_type = PointType::pre;
+				return Segment_start;
+			}
+			else
+			{
+				_type = PointType::next;
 				return Segment_end;
 			}
 		}
@@ -398,20 +403,50 @@ namespace cura52
 		return angle;
 	}
 
-	int paintzseam::getDisPtoJunctions(Point& aPoint, std::vector<ExtrusionJunction>& junctions, coord_t& minPPdis)
+	paintPointResult paintzseam::getPtoJunctions_disAndidx(Point& p, std::vector<ExtrusionJunction>& junctions)
 	{
-		int minPPidex = -1;
-		int icount = junctions[0] == junctions[junctions.size() - 1] ? junctions.size() - 1 : junctions.size();
-		for (int n = 0; n < icount; n++)
+		paintPointResult result;
+
+		coord_t minDis = 500;
+		int minDis_idx = -1;
+		//求出点P距离轮廓最短的距离minDis和对应的轮廓线段索引minDis_idx
+		for (int n = 1; n < junctions.size(); n++)
 		{
-			coord_t ppdis = vSize(junctions[n].p - aPoint);
-			if (minPPdis > ppdis)
+			coord_t dis = getDistFromSeg(p, junctions[n - 1].p, junctions[n].p);
+			if (dis < minDis)
 			{
-				minPPdis = ppdis;
-				minPPidex = n;
+				minDis = dis;
+				minDis_idx = n;
 			}
 		}
-		return minPPidex;
+		if (junctions[junctions.size()-1].p != junctions[0].p)
+		{
+			coord_t dis = getDistFromSeg(p, junctions[junctions.size() - 1].p, junctions[0].p);
+			if (dis < minDis)
+			{
+				minDis = dis;
+				minDis_idx = 0;
+			}
+		}
+
+		if (minDis_idx != -1)
+		{
+			result.distance = minDis;
+			int preidx = (minDis_idx - 1 + junctions.size()) % junctions.size();
+			result.aPoint = getDisPtoSegmentEX(p, junctions[preidx].p, junctions[minDis_idx].p, result.type);
+			result.type == PointType::pre ? result.idx = preidx : result.idx = minDis_idx;
+		}
+
+		for (int n=0;n<junctions.size();n++)
+		{
+			if (std::abs(result.aPoint.X-junctions[n].p.X) <10 && std::abs(result.aPoint.Y - junctions[n].p.Y) < 10)
+			{
+				result.idx = n;
+				result.type =next;
+				break;
+			}
+		}
+		return result;
 	}
 
 	void paintzseam::processZSeam(MeshGroup* mesh_group, AngleDegrees& z_seam_min_angle_diff, AngleDegrees& z_seam_max_angle, coord_t& wall_line_width_0, coord_t& wall_line_count)

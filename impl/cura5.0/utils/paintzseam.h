@@ -3,13 +3,27 @@
 #include "communication/sliceDataStorage.h"
 namespace cura52
 {
+	enum PointType
+	{
+		pre,
+		next,
+		add
+	};
+
+	struct paintPointResult
+	{
+		Point aPoint;
+		int idx = -1;
+		double distance = -1;
+		PointType type;
+	};
+
 	class SliceDataStorage;
 	class MeshGroup;
 	class paintzseam
 	{
 	public:
 		paintzseam(SliceDataStorage* _storage, const size_t _total_layers);
-
 		void paint();
 		void intercept();
 
@@ -19,12 +33,13 @@ namespace cura52
 
 		coord_t getDistFromSeg(const Point& p, const Point& Seg_start, const Point& Seg_end);
 		Point getDisPtoSegment(Point& apoint, Point& Seg_start, Point& Seg_end);
+		Point getDisPtoSegmentEX(Point& apoint, Point& Segment_start, Point& Segment_end, PointType& _type);
 
 		bool pointOnSegment(Point p, Point Segment_start, Point Segment_end);
 
 		float getAngleLeft(const Point& a, const Point& b, const Point& c);
 
-		int getDisPtoJunctions(Point& p, std::vector<ExtrusionJunction>& junctions, coord_t& minPPdis);
+		paintPointResult getPtoJunctions_disAndidx(Point& p, std::vector<ExtrusionJunction>& junctions);
 
 	private:
 		SliceDataStorage* storage;
