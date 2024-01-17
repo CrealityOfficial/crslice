@@ -21,6 +21,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Preset.hpp"
 #include "nlohmann/json.hpp"
 
 void save_nlohmann_json(const std::string& fileName, const nlohmann::json& j)
@@ -477,6 +478,41 @@ void get_meta_keys_impl(crslice2::MetaGroup metaGroup, std::vector<std::string>&
 	}
 }
 
+void export_metas_keys()
+{
+	using namespace Slic3r;
+	using namespace nlohmann;
+
+	{
+		json j;
+		std::vector<std::string> keys = Preset::printer_options();
+		j["keys"] = json(keys);
+		save_nlohmann_json("machine_keys.json", j);
+	}
+
+	{
+		json j;
+		std::vector<std::string> keys = Preset::print_options();
+		j["keys"] = json(keys);
+		save_nlohmann_json("profile_keys.json", j);
+	}
+
+	{
+		json j;
+		std::vector<std::string> keys = Preset::filament_options();
+		j["keys"] = json(keys);
+		save_nlohmann_json("material_keys.json", j);
+	}
+
+	{
+		json j;
+		std::vector<std::string> keys = print_config_def.extruder_option_keys();
+		keys.insert(keys.end(), print_config_def.extruder_retract_keys().begin(), print_config_def.extruder_retract_keys().end());
+		j["keys"] = json(keys);
+		save_nlohmann_json("extruder_keys.json", j);
+	}
+}
+
 void export_metas_impl()
 {
 	using namespace Slic3r;
@@ -485,9 +521,7 @@ void export_metas_impl()
 	const ConfigDef* _def = new_full_config.def();
 	{
 		json j;
-		json j_keys;
 
-		std::vector<std::string> keys;
 		//record all the key-values
 		for (const std::string& opt_key : _def->keys())
 		{
@@ -579,12 +613,10 @@ void export_metas_impl()
 			item["settable_globally"] = "false";
 
 			j[opt_key] = item;
-			keys.push_back(opt_key);
 		}
 
-		j_keys["keys"] = json(keys);
-
 		save_nlohmann_json("fdm_orca.json", j);
-		save_nlohmann_json("keys_orca.json", j_keys);
 	}
+
+	export_metas_keys();
 }
