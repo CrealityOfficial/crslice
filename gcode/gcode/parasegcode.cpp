@@ -648,7 +648,13 @@ namespace gcode
         changeKey("total_layer_count", "layer_count", kvs);
         changeKey("printer_model", "machine_name", kvs);
         changeKey("model printing time", "print_time", kvs);
+        changeKey("estimated printing time (normal mode)", "print_time", kvs);
+        changeKey("total estimated time", "print_time", kvs);
         changeKey("filament_diameter", "material_diameter", kvs);
+        changeKey("filament used [mm]", "filament_used", kvs);
+        changeKey("filament used [g]", "filament_weight", kvs);
+        changeKey("filament cost", "gcode_filament_cost", kvs);
+
         //changeKey("layer_height", "layer_height", kvs);
         changeKey("line_width", "wall_line_width", kvs);
         changeKey("sparse_infill_pattern", "infill_pattern", kvs);
@@ -683,6 +689,48 @@ namespace gcode
                     iter->second = std::to_string(time);
                 }
             }
+        }
+
+        //filament used [mm] = 4386.68, 2941.27, 1378.17, 1562.97
+        iter = kvs.find("filament_used");
+        if (iter != kvs.end())
+        {
+            float filament_len = 0.0f;
+            std::vector<std::string> _kvs;
+            Stringsplit(iter->second, ',', _kvs);
+            for (auto& v : _kvs)
+            {
+                filament_len += std::atof(_kvs[0].c_str());
+            }
+            iter->second = std::to_string(filament_len);
+        }
+
+        //filament used [g] = 13.08, 8.77, 4.11, 4.66
+        iter = kvs.find("filament_weight");
+        if (iter != kvs.end())
+        {
+            float filament_len = 0.0f;
+            std::vector<std::string> _kvs;
+            Stringsplit(iter->second, ',', _kvs);
+            for (auto& v : _kvs)
+            {
+                filament_len += std::atof(_kvs[0].c_str());
+            }
+            iter->second = std::to_string(filament_len);
+        }
+
+        //filament cost = 0.26, 0.18, 0.08, 0.09;
+        iter = kvs.find("gcode_filament_cost");
+        if (iter != kvs.end())
+        {
+            float filament_len = 0.0f;
+            std::vector<std::string> _kvs;
+            Stringsplit(iter->second, ',', _kvs);
+            for (auto& v : _kvs)
+            {
+                filament_len += std::atof(_kvs[0].c_str());
+            }
+            iter->second = std::to_string(filament_len);
         }
 
         //; filament_diameter = 1.75,1.75
@@ -996,8 +1044,6 @@ namespace gcode
 
         changeKey("printer_model", "machine_name", kvs);
         changeKey("filament used [mm]", "filament_used", kvs);
-        changeKey("filament_diameter", "material_diameter", kvs);
-        
         changeKey("filament_diameter", "material_diameter", kvs);
 
         //4h 0m 41s -> 4*3600 + 0 + 41
@@ -2078,7 +2124,6 @@ namespace gcode
     void _setParam(const std::unordered_map<std::string, std::string>& kvs, gcode::GCodeParseInfo& pathParam)
     {
         pathParam.printTime = std::atof(getValue(kvs,"print_time").c_str());
-        pathParam.printTime = std::atof(getValue(kvs, "print_time").c_str());
         //float machine_height;
         //float machine_width;
         //float machine_depth;
@@ -2092,7 +2137,9 @@ namespace gcode
         pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
         pathParam.lineWidth = std::atof(getValue(kvs, "wall_line_width").c_str());
         pathParam.layerHeight = std::atof(getValue(kvs, "layer_height").c_str());
-        float filament_cost = std::atof(getValue(kvs, "filament_cost").c_str());
+        pathParam.cost = std::atof(getValue(kvs, "gcode_filament_cost").c_str());
+        pathParam.weight = std::atof(getValue(kvs, "filament_weight").c_str());
+        float filament_cost = std::atof(getValue(kvs, "gcode_filament_cost").c_str());
         pathParam.unitPrice = pathParam.materialLenth > 0.0f ? filament_cost / pathParam.materialLenth : 0.0f;
         pathParam.relativeExtrude = std::atoi(getValue(kvs, "relative_extrusion").c_str()) == 1 ? true: false;
 
