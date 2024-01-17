@@ -41,6 +41,7 @@
         "wipe_speed",
         "wipe_tower_no_sparse_layers",
         "wipe_tower_rotation_angle",
+        "prime_volume",
         "wipe_tower_x",
         "wipe_tower_y",
         "xy_contour_compensation",
