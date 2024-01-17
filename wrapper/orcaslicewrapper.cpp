@@ -289,6 +289,12 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
 	Slic3r::Calib_Params calibParams;
+	calibParams.end = 0.0;
+	calibParams.start = 0.0;
+	calibParams.step = 0.0;
+	calibParams.print_numbers = false;
+
+
 	convert_scene_2_orca(scene, model, config, calibParams);
 
 	slice_impl(model, config, false, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams);
