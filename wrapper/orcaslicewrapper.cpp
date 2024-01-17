@@ -1,12 +1,4 @@
 #include "orcaslicewrapper.h"
-#include <sstream>
-
-#include "crslice2/base/parametermeta.h"
-#include <boost/nowide/fstream.hpp>
-
-#include "crgroup.h"
-#include "crobject.h"
-#include "ccglobal/log.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/map.hpp>
@@ -23,6 +15,27 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Preset.hpp"
 #include "nlohmann/json.hpp"
+#include <boost/nowide/fstream.hpp>
+
+#include "crslice2/base/parametermeta.h"
+
+#include "crgroup.h"
+#include "crobject.h"
+#include "ccglobal/log.h"
+
+#include <sstream>
+
+namespace cereal
+{
+	// Let cereal know that there are load / save non-member functions declared for ModelObject*, ignore serialization of pointers triggering
+	// static assert, that cereal does not support serialization of raw pointers.
+	template <class Archive> struct specialize<Archive, Slic3r::Model*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelObject*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelInstance*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelMaterial*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
+}
 
 void save_nlohmann_json(const std::string& fileName, const nlohmann::json& j)
 {
@@ -277,6 +290,12 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
 	Slic3r::Calib_Params calibParams;
+	calibParams.end = 0.0;
+	calibParams.start = 0.0;
+	calibParams.step = 0.0;
+	calibParams.print_numbers = false;
+
+
 	convert_scene_2_orca(scene, model, config, calibParams);
 
 	slice_impl(model, config, false, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams);
