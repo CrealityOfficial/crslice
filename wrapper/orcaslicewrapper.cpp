@@ -540,6 +540,7 @@ void export_metas_impl()
 	const ConfigDef* _def = new_full_config.def();
 	{
 		json j;
+		std::vector<std::string> printer_keys = Preset::print_options();
 
 		//record all the key-values
 		for (const std::string& opt_key : _def->keys())
@@ -626,10 +627,13 @@ void export_metas_impl()
 			}
 
 			item["enabled"] = "true";
-			item["settable_per_mesh"] = "false";
-			item["settable_per_extruder"] = "false";
+			bool is_print_key = std::find(printer_keys.begin(), printer_keys.end(), opt_key) != printer_keys.end();
+
+			item["settable_per_mesh"] = is_print_key ? "true" : "false";
+			item["settable_per_extruder"] = is_print_key ? "true" : "false";
+			item["settable_globally"] = is_print_key ? "true" : "false";
+
 			item["settable_per_meshgroup"] = "false";
-			item["settable_globally"] = "false";
 
 			j[opt_key] = item;
 		}
