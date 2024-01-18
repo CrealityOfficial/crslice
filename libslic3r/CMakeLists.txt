@@ -484,9 +484,9 @@ list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thre
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 
-if(TARGET tbb)
+if(TARGET tbb_inner)
 	list(APPEND DEFS USE_TBB)
-	list(APPEND ILIBS tbb tbbmalloc)
+	list(APPEND ILIBS tbb_inner tbbmalloc)
 endif()
 
 set(OLIBS TKernel
