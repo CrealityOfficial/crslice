@@ -581,7 +581,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -591,7 +591,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -601,7 +601,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers except the initial one. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->full_label = L("Bed temperature");
     def->min = 0;
     def->max = 300;
@@ -611,7 +611,7 @@ void PrintConfigDef::init_fff_params()
     def->label      = L("Other layers");
     def->tooltip    = L("Bed temperature for layers except the initial one. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
+    def->sidetext   = L(".C");
     def->full_label = L("Bed temperature");
     def->min        = 0;
     def->max        = 300;
@@ -622,7 +622,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Cool Plate");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->min = 0;
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 35 });
@@ -632,7 +632,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->min = 0;
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
@@ -642,7 +642,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
@@ -651,7 +651,7 @@ void PrintConfigDef::init_fff_params()
     def->full_label = L("Initial layer bed temperature");
     def->tooltip    = L("Bed temperature of the initial layer. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
-    def->sidetext   = L("°C");
+    def->sidetext   = L(".C");
     def->min        = 0;
     def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
@@ -751,8 +751,8 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Strength");
     def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
         "automatically. Otherwise the provided angle will be used for external bridges. "
-        "Use 180°for zero angle.");
-    def->sidetext = L("°");
+        "Use 180.for zero angle.");
+    def->sidetext = L(".");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -1006,7 +1006,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("Maximum angle to let a brim ear appear. \nIf set to 0, no brim will be created. \nIf set to "
                      "~180, brim will be created on everything but straight sections.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 0;
     def->max = 180;
     def->mode = comAdvanced;
@@ -1719,7 +1719,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Infill direction");
     def->category = L("Strength");
     def->tooltip = L("Angle for sparse infill pattern, which controls the start or main direction of line");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 0;
     def->max = 360;
     def->mode = comAdvanced;
@@ -2038,7 +2038,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer nozzle temperature");
     def->tooltip = L("Nozzle temperature to print initial layer when using this filament");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 200 });
@@ -2449,7 +2449,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label    = L("Ironing angle");
     def->category = L("Quality");
     def->tooltip  = L("The angle ironing is done at. A negative number disables this function and uses the default method.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min      = -1;
     def->max      = 359;
     def->mode     = comAdvanced;
@@ -2848,9 +2848,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Make overhang printable maximum angle");
     def->category = L("Quality");
     def->tooltip = L("Maximum angle of overhangs to allow after making more steep overhangs printable."
-                     "90° will not change the model at all and allow any overhang, while 0 will "
+                     "90. will not change the model at all and allow any overhang, while 0 will "
                      "replace all overhangs with conical material.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
@@ -2861,7 +2861,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Quality");
     def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material."
                      "A value of 0 will fill all the holes in the model base.");
-    def->sidetext = L("mm²");
+    def->sidetext = L("mm2");
     def->mode = comAdvanced;
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(0.));
@@ -3280,7 +3280,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Minimum sparse infill threshold");
     def->category = L("Strength");
     def->tooltip = L("Sparse infill area which is smaller than threshold value is replaced by internal solid infill");
-    def->sidetext = L("mm²");
+    def->sidetext = L("mm2");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(15));
@@ -3346,7 +3346,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Temperature variation");
     //def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
     //               "Enables a full-height \"sacrificial\" skirt on which the nozzles are periodically wiped.");
-    def->sidetext = "∆°C";
+    def->sidetext = "∆.C";
     def->min = -max_temp;
     def->max = max_temp;
     //BBS
@@ -3486,7 +3486,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Pattern angle");
     def->category = L("Support");
     def->tooltip = L("Use this setting to rotate the support pattern on the horizontal plane.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 0;
     def->max = 359;
     def->mode = comAdvanced;
@@ -3763,7 +3763,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Threshold angle");
     def->category = L("Support");
     def->tooltip = L("Support will be generated for overhangs whose slope angle is below the threshold.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 1;
     def->max = 90;
     def->mode = comSimple;
@@ -3774,7 +3774,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 0;
     def->max = 60;
     def->mode = comAdvanced;
@@ -3785,7 +3785,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Support");
     def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
                      "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 0;
     def->max = 60;
     def->mode = comAdvanced;
@@ -3797,7 +3797,7 @@ def = this->add("filament_loading_speed", coFloats);
     // TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
     def->tooltip = L("The preferred angle of the branches, when they do not have to avoid the model. "
                      "Use a lower angle to make them more vertical and more stable. Use a higher angle for branches to merge faster.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 10;
     def->max = 85;
     def->mode = comAdvanced;
@@ -3895,7 +3895,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("The angle of the branches' diameter as they gradually become thicker towards the bottom. "
                      "An angle of 0 will cause the branches to have uniform thickness over their length. "
                      "A bit of an angle can increase stability of the organic support.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->min = 0;
     def->max = 15;
     def->mode = comAdvanced;
@@ -3940,7 +3940,7 @@ def = this->add("filament_loading_speed", coFloats);
                     "At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,"
                     "the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
                     );
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->full_label = L("Chamber temperature");
     def->min = 0;
     def->max = max_temp;
@@ -3949,7 +3949,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Nozzle temperature for layers after the initial one");
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->full_label = L("Nozzle temperature");
     def->min = 0;
     def->max = max_temp;
@@ -3958,7 +3958,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
     //def->tooltip = "";
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 190 });
@@ -3966,7 +3966,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("nozzle_temperature_range_high", coInts);
     def->label = L("Max");
     //def->tooltip = "";
-    def->sidetext = L("°C");
+    def->sidetext = L(".C");
     def->min = 0;
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
@@ -4142,7 +4142,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("wipe_tower_rotation_angle", coFloat);
     def->label = L("Wipe tower rotation angle");
     def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
@@ -4158,7 +4158,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Stabilization cone apex angle");
     def->tooltip = L("Angle at the apex of the cone that is used to stabilize the wipe tower. "
                      "Larger angle means wider base.");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->mode = comAdvanced;
     def->min = 0.;
     def->max = 90.;
@@ -4343,7 +4343,7 @@ def = this->add("filament_loading_speed", coFloats);
         " an angle greater than this setting will not have transitions and no walls will be "
         "printed in the center to fill the remaining space. Reducing this setting reduces "
         "the number and length of these center walls, but may leave gaps or overextrude");
-    def->sidetext = L("°");
+    def->sidetext = L(".");
     def->mode = comAdvanced;
     def->min = 1.;
     def->max = 59.;
