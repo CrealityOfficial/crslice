@@ -89,8 +89,12 @@ void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& mod
 	}
 
 	boost::nowide::ofstream c;
-	c.open("parameter.json", std::ios::out | std::ios::trunc);
-	c << std::setw(4) << j << std::endl;
+	c.open("cx_parameter.json", std::ios::out | std::ios::trunc);
+	if(c.is_open())
+		c << std::setw(4) << j << std::endl;
+	else {
+		LOGE("open cx_parameter.json error.");
+	}
 	c.close();
 }
 
