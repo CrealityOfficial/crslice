@@ -251,7 +251,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
 	const std::string& out, Slic3r::Calib_Params& _calibParams)
 {
-#if _DEBUG
+#if 1
 	save_parameter_2_json("", model, config);
 #endif
 
@@ -634,7 +634,7 @@ void export_metas_impl()
 			j[opt_key] = item;
 		}
 
-		save_nlohmann_json("fdm_orca.json", j);
+		save_nlohmann_json("fdm_machine_common.json", j);
 	}
 
 	export_metas_keys();

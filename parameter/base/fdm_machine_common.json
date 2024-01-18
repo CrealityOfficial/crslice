@@ -211,11 +211,11 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
-        "unit": "mm/s2 or %"
+        "unit": "mm/s² or %"
     },
     "bridge_angle": {
         "default_value": "0",
-        "description": "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for external bridges. Use 180 for zero angle.",
+        "description": "Bridging angle override. If left to zero, the bridging angle will be calculated automatically. Otherwise the provided angle will be used for external bridges. Use 180°for zero angle.",
         "enabled": "true",
         "label": "Bridge infill direction",
         "settable_globally": "false",
@@ -223,7 +223,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "*"
+        "unit": "°"
     },
     "bridge_density": {
         "default_value": "100%",
@@ -307,7 +307,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": ".C"
+        "unit": "°"
     },
     "brim_object_gap": {
         "default_value": "0",
@@ -363,7 +363,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "change_extrusion_role_gcode": {
         "default_value": "",
@@ -495,7 +495,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "cool_plate_temp_initial_layer": {
         "default_value": "35",
@@ -507,7 +507,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "cooling_tube_length": {
         "default_value": "5",
@@ -561,7 +561,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "default_filament_colour": {
         "default_value": "\"\"",
@@ -830,7 +830,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "eng_plate_temp_initial_layer": {
         "default_value": "45",
@@ -842,7 +842,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "ensure_vertical_shell_thickness": {
         "default_value": "1",
@@ -1106,7 +1106,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "g/cm3"
+        "unit": "g/cm³"
     },
     "filament_deretraction_speed": {
         "default_value": "0",
@@ -1226,7 +1226,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3/s"
+        "unit": "mm³/s"
     },
     "filament_minimal_purge_on_wipe_tower": {
         "default_value": "15",
@@ -1238,7 +1238,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "filament_multitool_ramming": {
         "default_value": "0",
@@ -1262,7 +1262,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3/s"
+        "unit": "mm³/s"
     },
     "filament_multitool_ramming_volume": {
         "default_value": "10",
@@ -1274,7 +1274,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "filament_notes": {
         "default_value": "\"\"",
@@ -1750,7 +1750,7 @@
     "fuzzy_skin_point_distance": {
         "default_value": "0.8",
         "description": "The average diatance between the random points introducded on each line segment",
-        "enabled": "eval(contex.value(\"fuzzy_skin\")!=\"none\")",
+        "enabled": "true",
         "label": "Fuzzy skin point distance",
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -1762,7 +1762,7 @@
     "fuzzy_skin_thickness": {
         "default_value": "0.3",
         "description": "The width within which to jitter. It's adversed to be below outer wall line width",
-        "enabled": "eval(contex.value(\"fuzzy_skin\")!=\"none\")",
+        "enabled": "true",
         "label": "Fuzzy skin thickness",
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -1815,6 +1815,7 @@
         "options": {
             "klipper": "Klipper",
             "marlin": "Marlin(legacy)",
+            "marlin2": "Marlin 2",
             "reprapfirmware": "RepRapFirmware"
         },
         "settable_globally": "false",
@@ -1916,7 +1917,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "hot_plate_temp_initial_layer": {
         "default_value": "45",
@@ -1928,7 +1929,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "independent_support_layer_height": {
         "default_value": "1",
@@ -2004,7 +2005,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "infill_jerk": {
         "default_value": "9",
@@ -2064,7 +2065,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "initial_layer_infill_speed": {
         "default_value": "60",
@@ -2160,7 +2161,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "inner_wall_jerk": {
         "default_value": "9",
@@ -2244,7 +2245,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
-        "unit": "mm/s2 or %"
+        "unit": "mm/s² or %"
     },
     "internal_solid_infill_line_width": {
         "default_value": "0",
@@ -2302,7 +2303,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": ".C"
+        "unit": "°"
     },
     "ironing_flow": {
         "default_value": "10%",
@@ -2444,7 +2445,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_extruding": {
         "default_value": "1500,1250",
@@ -2456,7 +2457,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_retracting": {
         "default_value": "1500,1250",
@@ -2468,7 +2469,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_travel": {
         "default_value": "0,0",
@@ -2480,7 +2481,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_x": {
         "default_value": "1000,1000",
@@ -2492,7 +2493,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_y": {
         "default_value": "1000,1000",
@@ -2504,7 +2505,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_z": {
         "default_value": "500,200",
@@ -2516,7 +2517,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_jerk_e": {
         "default_value": "2.5,2.5",
@@ -2688,7 +2689,7 @@
     },
     "make_overhang_printable_angle": {
         "default_value": "55",
-        "description": "Maximum angle of overhangs to allow after making more steep overhangs printable.90.C will not change the model at all and allow any overhang, while 0 will replace all overhangs with conical material.",
+        "description": "Maximum angle of overhangs to allow after making more steep overhangs printable.90° will not change the model at all and allow any overhang, while 0 will replace all overhangs with conical material.",
         "enabled": "true",
         "label": "Make overhang printable maximum angle",
         "settable_globally": "false",
@@ -2696,7 +2697,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": ".C"
+        "unit": "°"
     },
     "make_overhang_printable_hole_size": {
         "default_value": "0",
@@ -2708,7 +2709,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm2"
+        "unit": "mm²"
     },
     "manual_filament_change": {
         "default_value": "0",
@@ -2768,7 +2769,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm3/s2"
+        "unit": "mm³/s²"
     },
     "max_volumetric_extrusion_rate_slope_segment_length": {
         "default_value": "3",
@@ -2840,7 +2841,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm2"
+        "unit": "mm²"
     },
     "notes": {
         "default_value": "",
@@ -2888,7 +2889,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_temperature_initial_layer": {
         "default_value": "200",
@@ -2900,7 +2901,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_temperature_range_high": {
         "default_value": "240",
@@ -2912,7 +2913,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_temperature_range_low": {
         "default_value": "190",
@@ -2924,7 +2925,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_type": {
         "default_value": "undefine",
@@ -2954,7 +2955,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "only_one_wall_first_layer": {
         "default_value": "0",
@@ -3002,7 +3003,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "outer_wall_jerk": {
         "default_value": "9",
@@ -3262,7 +3263,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "print_compatible_printers": {
         "default_value": "",
@@ -4078,7 +4079,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
-        "unit": "mm/s2 or %"
+        "unit": "mm/s² or %"
     },
     "sparse_infill_density": {
         "default_value": "20%",
@@ -4193,7 +4194,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInt",
-        "unit": ".C"
+        "unit": "∆°C"
     },
     "start_end_points": {
         "default_value": "30x-3,54x245",
@@ -4229,7 +4230,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "support_base_pattern": {
         "default_value": "rectilinear",
@@ -4542,7 +4543,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInt",
-        "unit": "."
+        "unit": "°"
     },
     "support_top_z_distance": {
         "default_value": "0.2",
@@ -4608,7 +4609,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "textured_plate_temp_initial_layer": {
         "default_value": "45",
@@ -4620,7 +4621,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "thick_bridges": {
         "default_value": "0",
@@ -4762,7 +4763,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "top_surface_jerk": {
         "default_value": "9",
@@ -4832,7 +4833,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "travel_jerk": {
         "default_value": "12",
@@ -4892,7 +4893,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": ".C"
+        "unit": "°"
     },
     "tree_support_auto_brim": {
         "default_value": "1",
@@ -4916,7 +4917,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "tree_support_branch_angle_organic": {
         "default_value": "40",
@@ -4928,7 +4929,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "tree_support_branch_diameter": {
         "default_value": "5",
@@ -4952,7 +4953,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "tree_support_branch_diameter_double_wall": {
         "default_value": "3",
@@ -5179,7 +5180,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "wall_transition_filter_deviation": {
         "default_value": "25%",
@@ -5218,7 +5219,7 @@
         "unit": ""
     },
     "wipe_distance": {
-        "default_value": "2",
+        "default_value": "1",
         "description": "Discribe how long the nozzle will move along the last path when retracting",
         "enabled": "true",
         "label": "Wipe Distance",
@@ -5230,7 +5231,7 @@
         "unit": "mm"
     },
     "wipe_on_loops": {
-        "default_value": "1",
+        "default_value": "0",
         "description": "To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop.",
         "enabled": "true",
         "label": "Wipe on loops",
@@ -5275,7 +5276,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": ".C"
+        "unit": "°"
     },
     "wipe_tower_extra_spacing": {
         "default_value": "100%",
@@ -5323,7 +5324,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": ""
+        "unit": "°"
     },
     "wipe_tower_x": {
         "default_value": "155",
@@ -5424,36 +5425,7 @@
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coFloats",
-        "unit": "mm"
-    },
-    "thumbnails_format":{
-        "default_value": "png",
-        "description": "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, QOI for low memory firmware",
-        "enabled": "true",
-        "label": "Format of G-code thumbnails",
-        "options": {
-            "png": "PNG",
-            "jpeg": "JPEG"
-        },
-        "settable_globally": "false",
-        "settable_per_extruder": "false",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "false",
-        "type": "coEnums",
-        "unit": ""
-    },
-    "time_cost":{
-        "default_value": "0",
-        "description": "The printer cost per hour",
-        "enabled": "true",
-        "label": "Time Cost",
-        "settable_globally": "false",
-        "settable_per_extruder": "false",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": ""
+        "unit": "mm"
     }
-    
 }
