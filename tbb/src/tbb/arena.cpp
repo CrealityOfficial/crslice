@@ -18,7 +18,7 @@
 #include "governor.h"
 #include "arena.h"
 #include "itt_notify.h"
-#include "semaphore.h"
+#include "semaphore.hh"
 #include "waiters.h"
 #include "oneapi/tbb/detail/_task.h"
 #include "oneapi/tbb/info.h"

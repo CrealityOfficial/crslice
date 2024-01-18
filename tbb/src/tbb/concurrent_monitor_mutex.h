@@ -19,7 +19,7 @@
 
 #include "oneapi/tbb/detail/_utils.h"
 #include "oneapi/tbb/detail/_aligned_space.h"
-#include "semaphore.h"
+#include "semaphore.hh"
 
 #include <mutex>
 
