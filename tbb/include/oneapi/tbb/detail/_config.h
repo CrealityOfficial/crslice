@@ -347,11 +347,11 @@
 
 #if _MSC_VER
     #if !__TBB_NO_IMPLICIT_LINKAGE
-        #ifdef _DEBUG
-            #pragma comment(lib, "tbb12_debug.lib")
-        #else
-            #pragma comment(lib, "tbb12.lib")
-        #endif
+        //#ifdef _DEBUG
+        //    #pragma comment(lib, "tbb12_debug.lib")
+        //#else
+        //    #pragma comment(lib, "tbb12.lib")
+        //#endif
     #endif
 #endif
 

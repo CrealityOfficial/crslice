@@ -153,7 +153,7 @@ endif()
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(TBB_PC_NAME tbb_inner)
 else()
-    set(TBB_PC_NAME tbb32)
+    set(TBB_PC_NAME tbb_inner32)
 endif()
 
 set(_prefix_for_pc_file "${CMAKE_INSTALL_PREFIX}")
@@ -170,7 +170,7 @@ else()
     set(_includedir_for_pc_file "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 
-configure_file(${PROJECT_SOURCE_DIR}/integration/pkg-config/tbb_inner.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/integration/pkg-config/tbb.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
         COMPONENT devel)
