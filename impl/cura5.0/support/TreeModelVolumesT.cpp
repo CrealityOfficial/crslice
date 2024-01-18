@@ -900,6 +900,11 @@ namespace cura54
     // Ensures offsets are only done in sizes with a max step size per offset while adding the collision offset after each step, this ensures that areas cannot glitch through walls defined by the collision when offsetting to fast.
     cura52::Polygons TreeModelVolumesT::safeOffset(const cura52::Polygons& me, cura52::coord_t distance, ClipperLib::JoinType jt, cura52::coord_t max_safe_step_distance, const cura52::Polygons& collision) const
     {
+		if (max_safe_step_distance == 0)//wangwenbin 临时处理崩溃
+		{
+            distance >0? max_safe_step_distance = 1: max_safe_step_distance=-1;
+		}
+
         const size_t steps = std::abs(distance / std::max(min_offset_per_step_, std::abs(max_safe_step_distance)));
         assert(distance * max_safe_step_distance >= 0);
         cura52::Polygons ret = me;

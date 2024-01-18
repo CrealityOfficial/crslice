@@ -1522,20 +1522,12 @@ std::pair<Polygons, Polygons> AreaSupport::computeBasicAndFullOverhang(const Sli
         // will create opposite effect.
         Polygons merged_polygons = support_layer.anti_overhang.unionPolygons();
         //basic_overhang = basic_overhang.difference(merged_polygons);
-
         for (ClipperLib::Paths::iterator it = merged_polygons.begin();it !=merged_polygons.end();it++)
         {
             Polygons anti_polygons;
             anti_polygons.add(*it);
+            anti_polygons = anti_polygons.offset(200);
             basic_overhang = basic_overhang.difference(anti_polygons);
-        }
-        for (int n=0;n<basic_overhang.paths.size();n++)
-        {
-			if (ClipperLib::Area(basic_overhang.paths[n]) / 1000000 < 5.0)
-			{
-                basic_overhang.paths.erase(basic_overhang.paths.begin()+n);
-                n--;
-			}
         }
     }
 
