@@ -95,7 +95,7 @@ namespace crslice2
 	public:
 		virtual ~SceneCreator() {}
 
-		virtual CrScene* create(ccglobal::Tracer* tracer = nullptr) = 0;
+		virtual CrScene* createOrca(ccglobal::Tracer* tracer = nullptr) = 0;
 	};
 
 	typedef std::shared_ptr<crslice2::CrScene> CrScenePtr;
