@@ -76,6 +76,7 @@ namespace crslice2
 	{
 		m_settings.reset(new Settings());
 		machine_center_is_zero = false;
+		m_isBBLPrinter = false;
 	}
 
 	CrScene::~CrScene()

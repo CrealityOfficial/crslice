@@ -298,7 +298,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 	convert_scene_2_orca(scene, model, config, calibParams);
 
-	slice_impl(model, config, false, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams);
+	slice_impl(model, config, scene->m_isBBLPrinter, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)

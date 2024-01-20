@@ -88,6 +88,8 @@ namespace crslice2
 		std::string m_tempDirectory;
 		std::vector<std::string> m_Object_Exclude_FileName;
 		Calib_Params m_calibParams;
+
+		bool m_isBBLPrinter;
 	};
 
 	class SceneCreator
