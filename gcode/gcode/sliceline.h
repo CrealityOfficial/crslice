@@ -19,8 +19,8 @@ enum class SliceLineType
     MoveOnly = 12,
     Travel = 13,
     React = 14,
-	FlowTravel = 15,
-	AdvanceTravel = 16,
+	FlowTravel = 15, //Ironing
+	AdvanceTravel = 16,//other
 
     NumPrintFeatureTypes = 17 // this number MUST be the last one because other modules will
                               // use this symbol to get the total number of types, which can

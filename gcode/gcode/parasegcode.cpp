@@ -640,7 +640,11 @@ namespace gcode
                 else if (iter->second == "Prime tower")
                 {
                     iter->second = "PRIME-TOWER";
-                }     
+                }
+                else if (iter->second == "Ironing")
+                {
+                    iter->second = "Ironing";
+                }
             }
             return;
         }
@@ -1649,8 +1653,18 @@ namespace gcode
         }
     }
 
-    void _detect_height(std::unordered_map<std::string, std::string>& kvs,bool& haveLayerHeight, GcodeTracer* pathData)
+    void _detect_height(std::unordered_map<std::string, std::string>& kvs,bool& haveLayerHeight, GcodeTracer* pathData, const SliceLineType& curType)
     {
+        if (curType == SliceLineType::FlowTravel)
+        {
+            auto iter = kvs.find("HEIGHT");
+            if (iter != kvs.end())
+            {
+                kvs.erase(iter);
+            }
+            return;
+        }
+
         auto iter = kvs.find("layer_height");
         if (iter != kvs.end() && !haveLayerHeight)
         {
@@ -1707,7 +1721,16 @@ namespace gcode
                 curType = SliceLineType::PrimeTower;
                 lastType = curType;
             }
-
+            else if (iter->second == "Ironing")
+            {
+                curType = SliceLineType::FlowTravel;
+                lastType = curType;
+            }
+            else
+            {
+                //curType = SliceLineType::AdvanceTravel;
+                //lastType = curType;
+            }
 
             //pathData->setLayer(std::atoi(iter->second.c_str()));
             kvs.erase(iter);
@@ -1783,14 +1806,13 @@ namespace gcode
 
             if (command == "G0")
             {
+                for (auto& p : parameters)
+                {
+                    if (p.name == "F" || p.name == "f")
+                        pathData->setSpeed(p.double_value);
+                }
                 if (has_position_changed)
                 {
-                    for (auto& p : parameters)
-                    {
-                        if (p.name == "F" || p.name == "f")
-                            pathData->setSpeed(p.double_value);
-                    }
-
                     //trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
                     //    p_source_position_->get_current_position_ptr()->z);
                     //double e = p_source_position_->get_current_position_ptr()->get_current_extruder().e_relative;
@@ -1801,18 +1823,17 @@ namespace gcode
             }
             else if (command == "G1")
             {
+                for (auto& p : parameters)
+                {
+                    //if (p.name == "Z" || p.name == "z")
+                    //    pathData->setZ(p.double_value, p.double_value);         
+                    if (p.name == "F" || p.name == "f")
+                        pathData->setSpeed(p.double_value);
+                }
                 if (has_position_changed)
                 {
                     //trimesh::vec3 v1(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
                     //    p_source_position_->get_current_position_ptr()->z);
-
-                    for (auto& p : parameters)
-                    {
-                        //if (p.name == "Z" || p.name == "z")
-                        //    pathData->setZ(p.double_value, p.double_value);         
-                        if (p.name == "F" || p.name == "f")
-                            pathData->setSpeed(p.double_value);
-                    }
                     if (has_position_changed)
                     {
                         //trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
@@ -1916,7 +1937,7 @@ namespace gcode
             bool is_get_company = false;
             std::string gcode_layer_data = "";
             //while (std::getline(gcode_file, line))
-
+            bool isToolChange = false;
             char _line[1024] = { '\0' };
             while (!feof(gcode_file))
             {
@@ -1948,6 +1969,22 @@ namespace gcode
                 _paraseKvs(sliceCompany,box,kvs,true);
 
                 _detect_gcode_company(is_get_company, cmd.comment, sliceCompany);
+
+                //todo : avoid TOOLCHANGE
+                if (cmd.comment.find("CP TOOLCHANGE LOAD") != std::string::npos)
+                {
+                    isToolChange = true;
+                }
+                else if (cmd.comment.find("CP TOOLCHANGE WIPE") != std::string::npos
+                    || cmd.comment.find("TYPE") != std::string::npos
+                    || cmd.comment.find("HEIGHT") != std::string::npos
+                    || cmd.comment.find("LAYER_CHANGE") != std::string::npos)
+                {
+                    isToolChange = false;
+                }
+
+                if (isToolChange)
+                    continue;
 
                 auto iter = kvs.find("layer_count");
                 if (iter != kvs.end() && !haveLayerCount)
@@ -1991,7 +2028,7 @@ namespace gcode
                 }
 
                 //must have : layer height
-                _detect_height(kvs,haveLayerHeight, pathData);
+                _detect_height(kvs,haveLayerHeight, pathData, curType);
 
                 //must have : per layer
                 _detect_layer(kvs, gcode_layer_data, startLayer, curLayer, pathData);
