@@ -706,6 +706,7 @@ namespace gcode
             {
                 filament_len += std::atof(_kvs[0].c_str());
             }
+            filament_len /= 1000.f;
             iter->second = std::to_string(filament_len);
         }
 
