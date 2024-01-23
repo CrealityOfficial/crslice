@@ -520,6 +520,7 @@ public:
     //SoftFever plate name
     std::string get_plate_name() const { return m_plate_name; }
     void set_plate_name(const std::string& name) { m_plate_name = name; }
+    void set_callback(status_callback_type& _callback) { m_status_callback=_callback;}
 protected:
 	friend class PrintObjectBase;
     friend class BackgroundSlicingProcess;

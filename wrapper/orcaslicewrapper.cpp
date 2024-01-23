@@ -14,6 +14,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Preset.hpp"
+#include "libslic3r/PrintBase.hpp"
 #include "nlohmann/json.hpp"
 #include <boost/nowide/fstream.hpp>
 
@@ -249,14 +250,24 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
 	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
-	const std::string& out, Slic3r::Calib_Params& _calibParams)
+	const std::string& out, Slic3r::Calib_Params& _calibParams, ccglobal::Tracer* tracer)
 {
 #if 1
 	save_parameter_2_json("", model, config);
 #endif
 
+	Slic3r::PrintBase::status_callback_type callback = [&tracer](const Slic3r::PrintBase::SlicingStatus& _status) {
+			if (tracer)
+			{
+				tracer->progress((float)_status.percent*0.01);
+				tracer->message(_status.text.c_str());
+			}
+	};
+
 	Slic3r::GCodeProcessorResult result;
 	Slic3r::Print print;
+	print.set_callback(callback);
+
 	print.set_calib_params(_calibParams);
 	print.apply(model, config);
 	
@@ -298,7 +309,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 	convert_scene_2_orca(scene, model, config, calibParams);
 
-	slice_impl(model, config, scene->m_isBBLPrinter, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams);
+	slice_impl(model, config, scene->m_isBBLPrinter, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, tracer);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
@@ -375,7 +386,7 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	//}
 #endif
 	Slic3r::Calib_Params calibParams;
-	slice_impl(model, config, is_bbl_printer, plate_origin, out, calibParams);
+	slice_impl(model, config, is_bbl_printer, plate_origin, out, calibParams,nullptr);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)
