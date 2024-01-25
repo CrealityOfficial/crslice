@@ -245,6 +245,28 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		_calibParams.print_numbers = scene->m_calibParams.print_numbers;
 		_calibParams.mode = (Slic3r::CalibMode)scene->m_calibParams.mode;
 	}
+
+	//set multi plate param
+	//plates_custom_gcodes;
+	auto iter = scene->plates_custom_gcodes.begin();
+	while (iter != scene->plates_custom_gcodes.end())
+	{
+		Slic3r::CustomGCode::Info info;
+		info.mode = Slic3r::CustomGCode::Mode(iter->second.mode);
+		for (auto& item : iter->second.gcodes)
+		{
+			Slic3r::CustomGCode::Item _item;
+			_item.color = item.color;
+			_item.print_z = item.print_z;
+			_item.type = Slic3r::CustomGCode::Type(item.type);
+			_item.extruder = item.extruder;
+			_item.color = item.color;
+			_item.extra = item.extra;
+			info.gcodes.push_back(_item);
+		}
+		model.plates_custom_gcodes.emplace(iter->first, info);
+		iter++;
+	}
 }
 
 

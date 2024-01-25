@@ -26,6 +26,38 @@ namespace crslice2
 		CalibMode mode;
 	};
 
+	enum Plate_Mode
+	{
+		Undef,
+		SingleExtruder,
+		MultiAsSingle,
+		MultiExtruder
+	};
+
+	enum Plate_Type
+	{
+		ColorChange,
+		PausePrint,
+		ToolChange,
+		Template,
+		Custom,
+		Unknown,
+	};
+
+	struct Plate_Item
+	{
+		double      print_z;
+		Plate_Type        type;
+		int         extruder;
+		std::string color;
+		std::string extra;
+	};
+
+	struct plateInfo
+	{
+		Plate_Mode mode = Undef;
+		std::vector<Plate_Item> gcodes;
+	};
 
 	class CrGroup;
 	class CRSLICE2_API CrScene
@@ -88,6 +120,8 @@ namespace crslice2
 		std::string m_tempDirectory;
 		std::vector<std::string> m_Object_Exclude_FileName;
 		Calib_Params m_calibParams;
+
+		std::map<int, plateInfo> plates_custom_gcodes;
 
 		bool m_isBBLPrinter;
 	};
