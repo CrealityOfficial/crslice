@@ -15,6 +15,7 @@
 
 #include "Thread.hpp"
 #include "Utils.hpp"
+#include <locale.h>
 
 namespace Slic3r {
 
@@ -257,7 +258,7 @@ void name_tbb_thread_pool_threads_set_locale()
 		        // Set locales of the worker thread to "C".
 #ifdef _WIN32
 			    _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
-			    std::setlocale(LC_ALL, "C");
+			    setlocale(LC_ALL, "C");
 #else
 				// We are leaking some memory here, because the newlocale() produced memory will never be released.
 				// This is not a problem though, as there will be a maximum one worker thread created per physical thread.
