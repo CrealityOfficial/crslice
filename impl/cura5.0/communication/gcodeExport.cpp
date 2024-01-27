@@ -59,10 +59,12 @@ std::string transliterate(const std::string& text)
 GCodeExport::GCodeExport() 
     : output_stream(&std::cout)
 	, currentPosition(0, 0, MM2INT(20))
+    , lastPosition(currentPosition)
 	, layer_nr(0)
 	, relative_extrusion(false)
     , estimateCalculator(new TimeEstimateCalculator())
     , smoothSpeedAcc(new SmoothSpeedAcc())
+    , currentRollerDegrees(0)
 {
     *output_stream << std::fixed;
 
@@ -1318,21 +1320,40 @@ void GCodeExport::writeExtrusionG2G3(const Point3& p, const Point& center_offset
 }
 
 
+//float getAngelOfTwoVector(const Point& endP, const Point& startP)
+//{
+//	Point newP(startP.X + 1000, startP.Y);
+//	float theta = atan2(endP.X - startP.Y, endP.X - startP.X) - atan2(newP.Y - startP.Y, newP.X - startP.X);
+//	if (theta > M_PI)
+//		theta -= 2 * M_PI;
+//	if (theta < -M_PI)
+//		theta += 2 * M_PI;
+//
+//	theta = theta * 180.0 / M_PI;
+//	if (theta < 0)
+//	{
+//		theta = 360 + theta;
+//	}
+//	return theta;
+//}
+
 float getAngelOfTwoVector(const Point& endP, const Point& startP)
 {
-	Point newP(startP.X+1000,startP.Y);
-	float theta = atan2(endP.X - startP.Y, endP.X - startP.X) - atan2(newP.Y - startP.Y, newP.X - startP.X);
-	if (theta > M_PI)
-		theta -= 2 * M_PI;
-	if (theta < - M_PI)
-		theta += 2 * M_PI;
+	auto path_direction = startP - endP;
 
-	theta = theta * 180.0 / M_PI;
-	if (theta < 0)
-	{
-		theta = 360 + theta;
+	float path_length = vSize(path_direction);
+	Point roller_direction(0, -1);
+
+	auto theta = dot(roller_direction, path_direction) / path_length;
+	auto radians = acos(theta);
+	auto degrees = radians / M_PI * 180;
+
+	auto sum = cross(roller_direction, path_direction);
+	if (sum < 0) {
+		degrees = 180 + 180 - degrees;
 	}
-	return theta;
+
+	return degrees;
 }
 
 
@@ -1490,14 +1511,14 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
 
     const Point3 diff = Point3(x, y, z) - currentPosition;
     const double diff_length = diff.vSizeMM();
-	if (this->flavor == EGCodeFlavor::PLC)
-	{
-		float iDegree = getAngelOfTwoVector(Point(x,y), Point(currentPosition.x, currentPosition.y));
-		*output_stream << "G90 W" << iDegree << new_line;
+	//if (this->flavor == EGCodeFlavor::PLC)
+	//{
+	//	float iDegree = getAngelOfTwoVector(Point(x,y), Point(currentPosition.x, currentPosition.y));
+	//	*output_stream << "G90 W" << iDegree << new_line;
 
-        if (application->debugger())
-            application->debugger()->getNotPath();
-	}
+ //       if (application->debugger())
+ //           application->debugger()->getNotPath();
+	//}
 
     writeUnretractionAndPrime();
 
@@ -1535,8 +1556,35 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
         //if (max_speed_limit_to_height > 0)
         //    speed_e = std::min(speed_e, max_speed_limit_to_height);
     }
-    writeFXYZE(speed_e, x, y, z, new_e_value, feature);
+	if (this->flavor == EGCodeFlavor::PLC)
+	{
+		Point last(lastPosition.x, lastPosition.y), current(currentPosition.x, currentPosition.y), next(x, y);
+
+		auto velocity_rotated = 180 / 1; 
+		auto nextRollerDegrees = getAngelOfTwoVector(next, current);
+		auto diff_degrees = nextRollerDegrees - currentRollerDegrees;
+		auto time_rotated = diff_degrees / velocity_rotated; 
+
+		auto length = vSize(next - current); 
+		auto time = length / speed / 10;
+
+		if (time < time_rotated) {
+			writeFXYZEW(speed_e, x, y, z, new_e_value, nextRollerDegrees, feature);
+			return;
+		}
+
+		auto dir = next - current;
+		auto temp = current + dir * (time - time_rotated) / time;
+		writeFXYZEW(speed_e, temp.X, temp.Y, z, new_e_value, currentRollerDegrees, feature);
+
+		*output_stream << "G1";
+		writeFXYZEW(speed_e, x, y, z, new_e_value, nextRollerDegrees, feature);
+	}
+	else {
+		writeFXYZE(speed_e, x, y, z, new_e_value, feature);
+	}
 }
+
 void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, 
 									 const coord_t i, const coord_t j, double arc_length, 
 	                                 const Velocity& _speed, const double extrusion_mm3_per_mm, 
@@ -1637,6 +1685,53 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
     }
 
 	writeFXYZIJE(speed_e, x, y, z, i, j, new_e_value, feature);
+}
+
+void GCodeExport::writeFXYZEW(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const double w, const PrintFeatureType& feature)
+{
+	//double mass = e * (0.25 * 1.75 * 1.75 * 3.1415926) * (1.24 / 1000.0);
+	//if (mass > 1.73) { speed.operator double = 0.5*speed.operator double(); }
+
+	if (currentSpeed != speed)
+	{
+		*output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
+
+		if (application->debugger())
+			application->debugger()->setSpeed(PrecisionedDouble{ 1, speed * 60 }.value);
+
+		//lastSpeed = currentSpeed;
+		currentSpeed = speed;
+	}
+
+	Point gcode_pos = getGcodePos(x, y, current_extruder);
+	total_bounding_box.include(Point3(gcode_pos.X, gcode_pos.Y, z));
+
+	*output_stream << " X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y };
+	if (z != currentPosition.z)
+	{
+		*output_stream << " Z" << MMtoStream{ z };
+	}
+
+	if (e + current_e_offset != current_e_value)
+	{
+		const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
+		*output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
+		if (application->debugger())
+			application->debugger()->getPathData(trimesh::vec3(MMtoStream{ gcode_pos.X }.value, MMtoStream{ gcode_pos.Y }.value, z), PrecisionedDouble{ 5, output_e }.value, (int)feature);
+	}
+	else if (application->debugger())
+		application->debugger()->getPathData(trimesh::vec3(MMtoStream{ gcode_pos.X }.value, MMtoStream{ gcode_pos.Y }.value, z), -999, (int)feature);
+
+	*output_stream << " W" << w;
+
+	*output_stream << new_line;
+
+	currentRollerDegrees = w;
+	lastPosition = currentPosition;
+	currentPosition = Point3(x, y, z);
+	current_e_value = e;
+	//std::cout << "current_e_value = " << current_e_value << std::endl;
+	estimateCalculator->plan(TimeEstimateCalculator::Position(INT2MM(x), INT2MM(y), INT2MM(z), eToMm(e)), speed, feature);
 }
 
 void GCodeExport::writeFXYZE(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const PrintFeatureType& feature)

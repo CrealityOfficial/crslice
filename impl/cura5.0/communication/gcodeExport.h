@@ -167,6 +167,9 @@ namespace cura52
         Temperature build_volume_temperature;  //!< build volume temperature
         bool machine_heated_build_volume;  //!< does the machine have the ability to control/stabilize build-volume-temperature
         size_t m_preFixLen;
+
+        size_t currentRollerDegrees;
+        Point3 lastPosition;
     protected:
         /*!
          * Convert an E value to a value in mm (if it wasn't already in mm) for the current extruder.
@@ -460,6 +463,9 @@ namespace cura52
         void writeExtrusion(const coord_t x, const coord_t y, const coord_t z,
             const Velocity& speed, const double extrusion_mm3_per_mm,
             const PrintFeatureType& feature, const bool update_extrusion_offset = false);
+
+        void writeFXYZEW(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const double w, const PrintFeatureType& feature);
+
 
         void writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z,
             const coord_t i, const coord_t j, double arc_length,
