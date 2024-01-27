@@ -1560,13 +1560,13 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
 	{
 		Point last(lastPosition.x, lastPosition.y), current(currentPosition.x, currentPosition.y), next(x, y);
 
-		auto velocity_rotated = 180 / 1; 
-		auto nextRollerDegrees = getAngelOfTwoVector(next, current);
-		auto diff_degrees = nextRollerDegrees - currentRollerDegrees;
-		auto time_rotated = diff_degrees / velocity_rotated; 
+		float velocity_rotated = 180 / 1; 
+        float nextRollerDegrees = getAngelOfTwoVector(next, current);
+        float diff_degrees = nextRollerDegrees - currentRollerDegrees;
+        float time_rotated = diff_degrees / velocity_rotated;
 
-		auto length = vSize(next - current); 
-		auto time = length / speed / 10;
+        float length = vSize(next - current);
+        float time = length / speed / 10.f;
 
 		if (time < time_rotated) {
 			writeFXYZEW(speed_e, x, y, z, new_e_value, nextRollerDegrees, feature);
@@ -1574,7 +1574,9 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
 		}
 
 		auto dir = next - current;
-		auto temp = current + dir * (time - time_rotated) / time;
+        auto temp = current;
+        temp.X += time > 0.0f ? dir.X * (time - time_rotated) / time : 0.0f;
+        temp.Y += time > 0.0f ? dir.Y * (time - time_rotated) / time : 0.0f;
 		writeFXYZEW(speed_e, temp.X, temp.Y, z, new_e_value, currentRollerDegrees, feature);
 
 		*output_stream << "G1";
