@@ -1401,14 +1401,17 @@ namespace gcode
         //#006cff, #ffaaff, #ff0e00, #aaaa7f, #d87206, #43b7b0
         if (!colorList.empty())
         {
-            if (colorList.find(",") == std::string::npos)
+            if (colorList.find(",") != std::string::npos)
             {
-                return;
+                m_nozzleColorList = splitString(colorList, ",");
+                for (auto& color : m_nozzleColorList)
+                    color = str_trimmed(color);
             }
-            m_nozzleColorList = splitString(colorList,",");
-            for (auto& color : m_nozzleColorList)
+            else if (colorList.find(";") != std::string::npos)
             {
-                color = str_trimmed(color);
+                m_nozzleColorList = splitString(colorList, ";");
+                for (auto& color : m_nozzleColorList)
+                    color = str_trimmed(color);
             }
         }
     }

@@ -7,7 +7,7 @@
 
 namespace gcode
 {
-    	enum class GCodeVisualType
+    enum class GCodeVisualType
 	{
 		gvt_speed,
 		gvt_structure,
@@ -53,6 +53,10 @@ namespace gcode
 		bool adaptiveLayers;
 		std::string exportFormat;//QString exportFormat;
 		std::string	screenSize;//QString screenSize;
+		int total_filamentchanges;//change color count
+		std::vector<double> volumes_per_extruder;
+		std::vector<double> flush_per_filament;
+		std::vector<double> volumes_per_tower;
 
 		TimeParts timeParts;
 	
@@ -77,6 +81,7 @@ namespace gcode
 			exportFormat = "png";
 			screenSize = "Sermoon D3";
 			spiralMode = false;
+			total_filamentchanges = 0;
 
 			timeParts = TimeParts();
 			cost = 0.0f;
@@ -87,6 +92,10 @@ namespace gcode
 			xf4 = trimesh::fxform();
 			relativeExtrude = false;
 			adaptiveLayers = false;
+
+			volumes_per_extruder.clear();
+			flush_per_filament.clear();
+			volumes_per_tower.clear();
 		}
 	};
 
