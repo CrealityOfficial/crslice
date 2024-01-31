@@ -40,8 +40,7 @@ set(INCS ${CMAKE_CURRENT_SOURCE_DIR}
 set(DEFS BOOST_ALL_NO_LIB)
 set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_subdirectory(heatshrink)
-add_subdirectory(LibBGCode/binarize)
+add_subdirectory(LibBGCode)
 add_subdirectory(crnanosvg)
 add_subdirectory(semver)
 add_subdirectory(qhull)
