@@ -9,7 +9,7 @@
 
 #include "Arrange/Core/NFP/NFPArrangeItemTraits.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 namespace Slic3r { namespace arr2 {
 

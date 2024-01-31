@@ -8,7 +8,7 @@
 #include <numeric>
 #include <cstdlib>
 #include <boost/nowide/convert.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <ClipperUtils.hpp> // union_ex + for boldness(polygon extend(offset))
 #include "IntersectionPoints.hpp"
 

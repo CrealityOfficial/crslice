@@ -46,7 +46,7 @@
 #include <unordered_set>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <boost/regex.hpp>
 
 namespace Slic3r {

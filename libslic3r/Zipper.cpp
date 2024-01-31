@@ -7,7 +7,7 @@
 #include "Exception.hpp"
 #include "Zipper.hpp"
 #include "miniz_extension.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include "I18N.hpp"
 
 #if defined(_MSC_VER) &&  _MSC_VER <= 1800 || __cplusplus < 201103L

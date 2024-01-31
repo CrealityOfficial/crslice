@@ -19,7 +19,7 @@
 #include <libslic3r/Model.hpp>
 #include <libslic3r/TriangleMeshSlicer.hpp>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include <libnest2d/tools/benchmark.h>
 

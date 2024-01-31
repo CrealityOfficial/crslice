@@ -20,7 +20,7 @@
 #include "BoundingBox.hpp"
 #include "clipper/clipper.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 namespace Slic3r {
 

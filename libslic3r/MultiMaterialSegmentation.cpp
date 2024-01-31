@@ -15,7 +15,7 @@
 #include <cfloat>
 #include <unordered_set>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <tbb/parallel_for.h>
 #include <mutex>
 #include <boost/thread/lock_guard.hpp>

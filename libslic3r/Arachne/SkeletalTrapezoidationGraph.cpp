@@ -5,7 +5,7 @@
 
 #include <ankerl/unordered_dense.h>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include "utils/linearAlg2D.hpp"
 #include "../Line.hpp"

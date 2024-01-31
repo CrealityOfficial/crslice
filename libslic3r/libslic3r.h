@@ -14,9 +14,10 @@
 #ifndef _libslic3r_h_
 #define _libslic3r_h_
 
-//#include "libslic3r_version.h"
+#include "libslic3r_version.h"
 #define GCODEVIEWER_APP_NAME "PrusaSlicer G-code Viewer"
 #define GCODEVIEWER_APP_KEY  "PrusaSlicerGcodeViewer"
+
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <memory>
@@ -46,7 +47,25 @@
 #include "Technologies.hpp"
 #include "Semver.hpp"
 
-using coord_t = 
+// Profiling support using the Shiny intrusive profiler
+//#define CLIPPER_UTILS_PROFILE
+#if defined(SLIC3R_PROFILE) && defined(CLIPPER_UTILS_PROFILE)
+#include <Shiny/Shiny.h>
+#define CLIPPERUTILS_PROFILE_FUNC() PROFILE_FUNC()
+#define CLIPPERUTILS_PROFILE_BLOCK(name) PROFILE_BLOCK(name)
+#else
+#define PROFILE_FUNC()
+#define PROFILE_BLOCK(name)
+#define CLIPPERUTILS_PROFILE_FUNC()
+#define CLIPPERUTILS_PROFILE_BLOCK(name)
+#define PROFILE_CLEAR()
+#define PROFILE_UPDATE()
+#define PROFILE_OUTPUT(name)
+#endif
+
+#define BOOST_LOG_TRIVIAL(x)  std::cout
+
+using coord_t =
 #if 1
 // Saves around 32% RAM after slicing step, 6.7% after G-code export (tested on PrusaSlicer 2.2.0 final).
     int32_t;

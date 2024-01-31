@@ -10,7 +10,7 @@
 #include "libslic3r/I18N.hpp"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>

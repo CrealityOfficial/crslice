@@ -25,7 +25,7 @@
 #include "tbb/blocked_range2d.h"
 #include "tbb/parallel_reduce.h"
 #include <algorithm>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <cmath>
 #include <cstddef>
 #include <cstdio>

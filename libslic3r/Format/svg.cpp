@@ -12,7 +12,7 @@
 #include "../NSVGUtils.hpp"
 #include "../Emboss.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 namespace {
 std::string get_file_name(const std::string &file_path)

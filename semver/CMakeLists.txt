@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(semver)
 
-add_library(semver STATIC
+__add_real_target(semver lib SOURCE
     semver.c
     semver.h
+	FOLDER slice
 )
 
 #encoding_check(semver)

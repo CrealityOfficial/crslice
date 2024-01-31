@@ -7,7 +7,7 @@
 
 #include <random>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include "ArrangeTask.hpp"
 

@@ -498,10 +498,22 @@ set(SLIC3R_SOURCES
     Arachne/WallToolPaths.hpp
     Arachne/WallToolPaths.cpp
     StaticMap.hpp
+	
+	clipper/clipper_z.hpp
+	clipper/clipper_z.cpp
+	admesh/connect.cpp
+    admesh/normals.cpp
+    admesh/shared.cpp
+    admesh/stl.h
+    admesh/stl_io.cpp
+    admesh/stlinit.cpp
+    admesh/util.cpp
+	miniz/miniz.h
+	miniz/miniz.c
+	qoi/qoilib.c
 )
 
 list(APPEND lisbslic3r_sources 
-	#"${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h"
 	)
 if (APPLE)
@@ -541,8 +553,8 @@ if(WIN32)
     list(APPEND ILIBS Psapi.lib)
 endif()
 
-list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thread
-			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess cgal)
+list(APPEND ILIBS eigen clipper2 boost_filesystem boost_nowide boost_thread
+			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess cgal semver)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 
@@ -595,7 +607,7 @@ list(REVERSE OLIBS)  # for linux build
 list(APPEND ILIBS ${OLIBS})
 
 __add_real_target(libslic3r lib 
-	SOURCE ${lisbslic3r_sources} ${OpenVDBUtils_SOURCES}
+	SOURCE ${SLIC3R_SOURCES} ${OpenVDBUtils_SOURCES}
 	ILIB ${ILIBS}
 	INTERFACE ${INTERFACES}
 	INC ${INCS}

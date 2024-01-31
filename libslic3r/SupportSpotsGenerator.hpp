@@ -9,7 +9,7 @@
 #include "Line.hpp"
 #include "PrintBase.hpp"
 #include "PrintConfig.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <cstddef>
 #include <vector>
 

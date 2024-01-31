@@ -31,7 +31,7 @@
 #include "FillLightning.hpp"
 #include "FillEnsuring.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 // #define INFILL_DEBUG_OUTPUT
 

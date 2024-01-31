@@ -13,7 +13,7 @@
 #define slic3r_TriangleMesh_hpp_
 
 #include "libslic3r.h"
-#include "stl.h"
+#include "admesh/stl.h"
 #include <functional>
 #include <vector>
 #include "BoundingBox.hpp"

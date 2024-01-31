@@ -17,7 +17,7 @@
 
 #include <boost/variant.hpp>
 #include <boost/container/small_vector.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 namespace Slic3r { namespace sla {
 

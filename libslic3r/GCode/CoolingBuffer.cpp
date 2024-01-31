@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <iostream>
 #include <float.h>
 

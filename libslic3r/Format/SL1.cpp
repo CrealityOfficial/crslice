@@ -4,7 +4,7 @@
 ///|/
 #include "SL1.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <boost/filesystem.hpp>
 
 #include <sstream>

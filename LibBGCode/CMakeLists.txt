@@ -5,12 +5,14 @@ __add_real_target(heatshrink lib
 						heatshrink/heatshrink_encoder.c
 				INC ${HEAD_INCLUDES}
 				INTERFACE_DEF HEATSHRINK_DYNAMIC_ALLOC=0
+				FOLDER slice
 				)
 __add_real_target(heatshrink_dynalloc lib 
 				SOURCE heatshrink/heatshrink_decoder.c
 						heatshrink/heatshrink_encoder.c
 				INC ${HEAD_INCLUDES}
 				INTERFACE_DEF HEATSHRINK_DYNAMIC_ALLOC=1
+				FOLDER slice
 				)
 
 set(INCS ${CMAKE_CURRENT_SOURCE_DIR}/../
@@ -33,4 +35,5 @@ __add_real_target(libBGCode lib SOURCE ${SRCS}
 				INC ${INCS}
 				ILIB ${ILIBS}
 				INTERFACE ${INTERFACES}
+				FOLDER slice
 				)

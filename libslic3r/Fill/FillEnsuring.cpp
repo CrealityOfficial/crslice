@@ -20,7 +20,7 @@
 #include "libslic3r.h"
 
 #include <algorithm>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <functional>
 #include <string>
 #include <type_traits>

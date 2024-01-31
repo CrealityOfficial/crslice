@@ -63,7 +63,7 @@
 #include <unordered_set>
 #include <utility>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include <tbb/parallel_for.h>
 #include <vector>

@@ -35,7 +35,7 @@
 #include <string>
 #include <string_view>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include <tbb/parallel_for.h>
 

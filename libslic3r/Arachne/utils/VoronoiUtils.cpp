@@ -3,7 +3,7 @@
 
 #include <stack>
 #include <optional>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include "linearAlg2D.hpp"
 #include "VoronoiUtils.hpp"

@@ -2,6 +2,18 @@
 ///|/
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
+/// 
+#include <clipper/clipper_z.hpp>
+#include "clipper.hpp"
+#include "BoundingBox.hpp"
+#include "ClipperUtils.hpp"
+#include "MultiPoint.hpp"
+#include "Point.hpp"
+#include "Polygon.hpp"
+#include "Polyline.hpp"
+#include "libslic3r.h"
+#include "libslic3r_version.h"
+
 #include "ArrangeItem.hpp"
 
 #include "libslic3r/Arrange/Core/NFP/NFPConcave_Tesselate.hpp"

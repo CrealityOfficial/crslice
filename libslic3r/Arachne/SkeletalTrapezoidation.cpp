@@ -8,7 +8,7 @@
 #include <sstream>
 #include <queue>
 #include <functional>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include "utils/VoronoiUtils.hpp"
 

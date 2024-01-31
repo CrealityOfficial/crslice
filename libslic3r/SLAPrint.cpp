@@ -19,7 +19,7 @@
 
 #include <tbb/parallel_for.h>
 #include <boost/filesystem/path.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 // #define SLAPRINT_DO_BENCHMARK
 

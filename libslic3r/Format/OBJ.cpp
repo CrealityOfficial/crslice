@@ -15,7 +15,7 @@
 
 #include <string>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'

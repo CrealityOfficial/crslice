@@ -32,7 +32,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <boost/thread.hpp>
 
 #include <float.h>

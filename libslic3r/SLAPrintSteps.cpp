@@ -30,7 +30,8 @@
 #include <libslic3r/ClipperUtils.hpp>
 //#include <libslic3r/ShortEdgeCollapse.hpp>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
+#include <numeric>
 
 #include "I18N.hpp"
 

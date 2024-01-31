@@ -146,7 +146,7 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 	}
 
 	stl_get_size(&stl);
-	tmesh.from_stl(stl);
+	//tmesh.from_stl(stl);
 }
 
 void removeSpace(std::string& str)
@@ -184,7 +184,7 @@ Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::Con
 	return option;
 }
 
-void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config,Slic3r::Calib_Params& _calibParams)
+void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config)
 {
 	size_t numGroup = scene->m_groups.size();
 	assert(numGroup > 0);
@@ -239,11 +239,11 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 	if (scene->m_calibParams.mode != crslice2::CalibMode::Calib_None)
 	{
-		_calibParams.start = scene->m_calibParams.start;
-		_calibParams.end = scene->m_calibParams.end;
-		_calibParams.step = scene->m_calibParams.step;
-		_calibParams.print_numbers = scene->m_calibParams.print_numbers;
-		_calibParams.mode = (Slic3r::CalibMode)scene->m_calibParams.mode;
+		//_calibParams.start = scene->m_calibParams.start;
+		//_calibParams.end = scene->m_calibParams.end;
+		//_calibParams.step = scene->m_calibParams.step;
+		//_calibParams.print_numbers = scene->m_calibParams.print_numbers;
+		//_calibParams.mode = (Slic3r::CalibMode)scene->m_calibParams.mode;
 	}
 
 	//set multi plate param
@@ -264,7 +264,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 			_item.extra = item.extra;
 			info.gcodes.push_back(_item);
 		}
-		model.plates_custom_gcodes.emplace(iter->first, info);
+		//model.plates_custom_gcodes.emplace(iter->first, info);
 		iter++;
 	}
 }
@@ -272,7 +272,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
 	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
-	const std::string& out, Slic3r::Calib_Params& _calibParams, ccglobal::Tracer* tracer)
+	const std::string& out, ccglobal::Tracer* tracer)
 {
 #if 1
 	save_parameter_2_json("", model, config);
@@ -288,19 +288,16 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	Slic3r::GCodeProcessorResult result;
 	Slic3r::Print print;
-	print.set_callback(callback);
+	//print.set_callback(callback);
 
-	print.set_calib_params(_calibParams);
+	//print.set_calib_params(_calibParams);
 	print.apply(model, config);
 	
-	print.is_BBL_printer() = is_bbl_printer;
-	print.set_plate_origin(plate_origin);
-
-	Slic3r::StringObjectException warning;
-	//BBS: refine seq-print logic
-	Slic3r::Polygons polygons;
-	std::vector<std::pair<Slic3r::Polygon, float>> height_polygons;
-	print.validate(&warning, &polygons, &height_polygons);
+	//print.is_BBL_printer() = is_bbl_printer;
+	//print.set_plate_origin(plate_origin);
+	
+	std::vector<std::string> warnings;
+	print.validate(&warnings);
 
 	//BBS: reset the gcode before reload_print in slicing_completed event processing
 	//FIX the gcode rename failed issue
@@ -322,16 +319,16 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
-	Slic3r::Calib_Params calibParams;
-	calibParams.end = 0.0;
-	calibParams.start = 0.0;
-	calibParams.step = 0.0;
-	calibParams.print_numbers = false;
+	//Slic3r::Calib_Params calibParams;
+	//calibParams.end = 0.0;
+	//calibParams.start = 0.0;
+	//calibParams.step = 0.0;
+	//calibParams.print_numbers = false;
 
 
-	convert_scene_2_orca(scene, model, config, calibParams);
+	convert_scene_2_orca(scene, model, config);
 
-	slice_impl(model, config, scene->m_isBBLPrinter, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, tracer);
+	slice_impl(model, config, scene->m_isBBLPrinter, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, tracer);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
@@ -343,7 +340,7 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
 
-#if 1
+#if 0
 	cereal::BinaryInputArchive iarchive(in);
 	iarchive(is_bbl_printer);
 	iarchive(plate_origin);
@@ -407,8 +404,8 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	//	std::cout << serialization_key_ordinal << std::endl;
 	//}
 #endif
-	Slic3r::Calib_Params calibParams;
-	slice_impl(model, config, is_bbl_printer, plate_origin, out, calibParams,nullptr);
+	//Slic3r::Calib_Params calibParams;
+	slice_impl(model, config, is_bbl_printer, plate_origin, out, nullptr);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)
@@ -481,9 +478,9 @@ void parse_metas_map_impl(crslice2::MetasMap& datas)
 			case coEnum:
 				type = "coEnum";
 				break;
-			case coEnums:
-				type = "coEnums";
-				break;
+			//case coEnums:
+			//	type = "coEnums";
+			//	break;
 			};
 			
 			meta.type = type;
@@ -497,17 +494,17 @@ void parse_metas_map_impl(crslice2::MetasMap& datas)
 			//meta.settable_per_extruder = "false";
 			//meta.settable_per_meshgroup = "false";
 			//meta.settable_globally = "false";
-			if (optDef.enum_values.size() > 0)
-			{
-				size_t size = optDef.enum_values.size();
-				
-				bool have = optDef.enum_labels.size() == optDef.enum_values.size();
-				for (size_t i = 0; i < size; ++i)
-				{
-					meta.options.insert(crslice2::OptionValue(optDef.enum_values.at(i),
-						(have ? optDef.enum_labels.at(i) : optDef.enum_values.at(i))));
-				}
-			}
+			//if (optDef.enum_values.size() > 0)
+			//{
+			//	size_t size = optDef.enum_values.size();
+			//	
+			//	bool have = optDef.enum_labels.size() == optDef.enum_values.size();
+			//	for (size_t i = 0; i < size; ++i)
+			//	{
+			//		meta.options.insert(crslice2::OptionValue(optDef.enum_values.at(i),
+			//			(have ? optDef.enum_labels.at(i) : optDef.enum_values.at(i))));
+			//	}
+			//}
 			
 			datas.insert(crslice2::MetasMap::value_type(it->first, new crslice2::ParameterMeta(meta)));
 		}
@@ -638,24 +635,24 @@ void export_metas_impl()
 			case coEnum:
 				type = "coEnum";
 				break;
-			case coEnums:
-				type = "coEnums";
-				break;
+			//case coEnums:
+			//	type = "coEnums";
+			//	break;
 			};
 
 			item["type"] = type;
 			Slic3r::ConfigOption* option = optDef->create_default_option();
 			item["default_value"] = option->serialize();
 
-			if (optDef->enum_values.size() > 0)
+			if (optDef->enum_def->enums().size() > 0)
 			{
-				size_t size = optDef->enum_values.size();
+				size_t size = optDef->enum_def->enums().size();
 				json options;
-				bool have = optDef->enum_labels.size() == optDef->enum_values.size();
-				for (size_t i = 0; i < size; ++i)
-				{
-					options[optDef->enum_values.at(i)] = have ? optDef->enum_labels.at(i) : optDef->enum_values.at(i);
-				}
+				//bool have = optDef->enum_labels.size() == optDef->enum_values.size();
+				//for (size_t i = 0; i < size; ++i)
+				//{
+				//	options[optDef->enum_values.at(i)] = have ? optDef->enum_labels.at(i) : optDef->enum_values.at(i);
+				//}
 				item["options"] = options;
 			}
 

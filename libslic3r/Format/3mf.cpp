@@ -31,7 +31,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/spirit/include/karma.hpp>
 #include <boost/spirit/include/qi_int.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include <boost/property_tree/xml_parser.hpp>
 namespace pt = boost::property_tree;

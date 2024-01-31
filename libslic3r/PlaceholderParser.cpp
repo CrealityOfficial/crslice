@@ -2121,6 +2121,7 @@ namespace client
                             [px::bind(&MyContext::vector_variable_assign_array, _r1, _a, _1, _2)]
                 );
   
+#if 0 //zenggui
             new_variable_statement =
                 (kw["local"][_a = false] | kw["global"][_a = true]) > identifier[px::bind(&MyContext::new_old_variable, _r1, _a, _1, _b)] > lit('=') >
                 (       // Consumes also '(' conditional_expression ')', that means enclosing an expression into braces makes it a single value vector initializer.
@@ -2135,6 +2136,7 @@ namespace client
                     |  (kw["repeat"] > "(" > additive_expression(_r1) > "," > conditional_expression(_r1) > ")")
                             [px::bind(&MyContext::vector_variable_new_from_array, _r1, _a, _b, _1, _2)]
                 );
+#endif
             initializer_list = lit('(') >
                 (   lit(')') |
                     (   conditional_expression(_r1)[px::bind(&MyContext::initializer_list_append, _val, _1)] >

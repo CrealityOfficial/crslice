@@ -40,6 +40,8 @@ struct RectangleOverfitPackingContext : public DefaultPackingContext<ArrItem>
     {
         // Here, the post alignment can be safely done. No throwing
         // functions are called!
+
+#if 0 //zenggui
         if (fixed_items_range(*this).empty()) {
             auto itms = packed_items_range(*this);
             auto pilebb = bounding_box(itms);
@@ -48,6 +50,7 @@ struct RectangleOverfitPackingContext : public DefaultPackingContext<ArrItem>
                 translate(itm, post_alignment_fn(limits, pilebb));
             }
         }
+#endif
     }
 
     ~RectangleOverfitPackingContext() { align_pile(); }

@@ -39,9 +39,11 @@
 	#endif
 #endif
 
+#if 0 //zenggui
 #include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <boost/log/expressions.hpp>
+#endif
 
 #include <boost/locale.hpp>
 
@@ -80,6 +82,7 @@
 
 namespace Slic3r {
 
+#if 0 //zenggui
 static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
 
 static boost::log::trivial::severity_level level_to_boost(unsigned level)
@@ -100,27 +103,30 @@ static boost::log::trivial::severity_level level_to_boost(unsigned level)
     }
 }
 
+#endif 
+
 void set_logging_level(unsigned int level)
 {
-    logSeverity = level_to_boost(level);
-
-    boost::log::core::get()->set_filter
-    (
-        boost::log::trivial::severity >= logSeverity
-    );
+    //logSeverity = level_to_boost(level);
+	//
+    //boost::log::core::get()->set_filter
+    //(
+    //    boost::log::trivial::severity >= logSeverity
+    //);
 }
 
 unsigned get_logging_level()
 {
-    switch (logSeverity) {
-    case boost::log::trivial::fatal : return 0;
-    case boost::log::trivial::error : return 1;
-    case boost::log::trivial::warning : return 2;
-    case boost::log::trivial::info : return 3;
-    case boost::log::trivial::debug : return 4;
-    case boost::log::trivial::trace : return 5;
-    default: return 1;
-    }
+    //switch (logSeverity) {
+    //case boost::log::trivial::fatal : return 0;
+    //case boost::log::trivial::error : return 1;
+    //case boost::log::trivial::warning : return 2;
+    //case boost::log::trivial::info : return 3;
+    //case boost::log::trivial::debug : return 4;
+    //case boost::log::trivial::trace : return 5;
+    //default: return 1;
+    //}
+	return 0;
 }
 
 // Force set_logging_level(<=error) after loading of the DLL.
@@ -1090,7 +1096,7 @@ std::string format_memsize_MB(size_t n)
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-    if (ignore_loglevel || logSeverity <= boost::log::trivial::info) {
+    if (ignore_loglevel /*|| logSeverity <= boost::log::trivial::info*/) {
 #ifdef WIN32
     #ifndef PROCESS_MEMORY_COUNTERS_EX
         // MingW32 doesn't have this struct in psapi.h

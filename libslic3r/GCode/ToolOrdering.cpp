@@ -19,7 +19,7 @@
 #include <cassert>
 #include <limits>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include <libslic3r.h>
 

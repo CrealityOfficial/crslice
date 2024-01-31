@@ -3,7 +3,7 @@
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
 #include "Timer.hpp"
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 using namespace std::chrono;
 

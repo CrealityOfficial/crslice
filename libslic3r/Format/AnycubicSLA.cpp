@@ -14,7 +14,7 @@
 #include <fstream>
 
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 
 #define TAG_INTRO "ANYCUBIC\0\0\0\0"

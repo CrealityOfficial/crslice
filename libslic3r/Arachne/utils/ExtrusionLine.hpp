@@ -11,7 +11,7 @@
 #include "../../BoundingBox.hpp"
 #include "../../ExtrusionEntity.hpp"
 #include "../../Flow.hpp"
-#include "../../../clipper/clipper_z.hpp"
+#include "clipper/clipper_z.hpp"
 
 namespace Slic3r {
 struct ThickPolyline;

@@ -15,7 +15,7 @@
 #include "SVG.hpp"
 #include "Utils.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 //#define ARACHNE_STITCH_PATCH_DEBUG
 

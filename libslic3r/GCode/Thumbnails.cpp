@@ -7,8 +7,10 @@
 #include "../format.hpp"
 
 #include <qoi/qoi.h>
+#if 0 //zenggui
 #include <jpeglib.h>
 #include <jerror.h>
+#endif
 
 #include <boost/algorithm/string.hpp>
 #include <string>
@@ -44,6 +46,7 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_png(const ThumbnailDat
 
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail_jpg(const ThumbnailData& data)
 {
+#if 0 //zenggui
     // Take vector of RGBA pixels and flip the image vertically
     std::vector<unsigned char> rgba_pixels(data.pixels.size());
     const unsigned int row_size = data.width * 4;
@@ -88,6 +91,9 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_jpg(const ThumbnailDat
     out->size = size_t(compressed_data_size);
     ::memcpy(out->data, (const void*)compressed_data.data(), out->size);
     return out;
+#else
+    return nullptr;
+#endif
 }
 
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail_qoi(const ThumbnailData &data)

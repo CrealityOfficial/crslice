@@ -33,7 +33,7 @@
 
 #include <numeric>
 #include <random>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <boost/container/small_vector.hpp>
 
 namespace Slic3r { namespace Geometry { namespace ArcWelder {

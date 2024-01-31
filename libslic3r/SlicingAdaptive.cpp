@@ -7,7 +7,7 @@
 #include "TriangleMesh.hpp"
 #include "SlicingAdaptive.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <cfloat>
 
 // Based on the work of Florens Waserfall (@platch on github)

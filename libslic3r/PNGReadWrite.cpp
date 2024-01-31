@@ -12,7 +12,7 @@
 #include <cstdio>
 #include <png.h>
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 #include <boost/nowide/cstdio.hpp>
 
 namespace Slic3r { namespace png {

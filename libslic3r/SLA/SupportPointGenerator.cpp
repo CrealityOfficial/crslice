@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <random>
+#include <numeric>
 
 namespace Slic3r {
 namespace sla {

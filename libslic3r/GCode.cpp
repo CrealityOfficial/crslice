@@ -58,7 +58,7 @@
 #include <boost/algorithm/string/find.hpp>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/cstdio.hpp>

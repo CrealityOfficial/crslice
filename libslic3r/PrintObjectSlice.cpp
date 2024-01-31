@@ -10,7 +10,7 @@
 #include "Print.hpp"
 #include "ShortestPath.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "libslic3r.h"
 
 #include <tbb/parallel_for.h>
 
