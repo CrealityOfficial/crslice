@@ -2777,8 +2777,8 @@ namespace gcode
             double s = M_PI * sqr(filament_radius) > 0.0f? M_PI * sqr(filament_radius) : 1.0f;
             float used_filament = f.second / s * 0.001;
             float weight = f.second * filament_density * 0.001;
-            pathParam.volumes_per_extruder.push_back(used_filament);
-            pathParam.volumes_per_extruder.push_back(weight);
+            pathParam.volumes_per_extruder.push_back(std::pair(f.first,used_filament));
+            pathParam.volumes_per_extruder.push_back(std::pair(f.first, weight));
         }
         for (auto& f : gcodeProcessor.m_used_filaments.flush_per_filament)
         {
@@ -2789,8 +2789,8 @@ namespace gcode
             double s = M_PI * sqr(filament_radius) > 0.0f ? M_PI * sqr(filament_radius) : 1.0f;
             float used_filament = f.second / s * 0.001;
             float weight = f.second * filament_density * 0.001;
-            pathParam.flush_per_filament.push_back(used_filament);
-            pathParam.flush_per_filament.push_back(weight);
+            pathParam.flush_per_filament.push_back(std::pair(f.first, used_filament));
+            pathParam.flush_per_filament.push_back(std::pair(f.first, weight));
         }
         for (auto& f : gcodeProcessor.m_used_filaments.volumes_per_tower)
         {
@@ -2801,8 +2801,8 @@ namespace gcode
             double s = M_PI * sqr(filament_radius) > 0.0f ? M_PI * sqr(filament_radius) : 1.0f;
             float used_filament = f.second / s;
             float weight = f.second * filament_density * 0.001;
-            pathParam.volumes_per_tower.push_back(used_filament);
-            pathParam.volumes_per_tower.push_back(weight);
+            pathParam.volumes_per_tower.push_back(std::pair(f.first, used_filament));
+            pathParam.volumes_per_tower.push_back(std::pair(f.first, weight));
         }
         //pathParam.material_densitys;
     }

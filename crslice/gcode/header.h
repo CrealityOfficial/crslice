@@ -54,9 +54,9 @@ namespace gcode
 		std::string exportFormat;//QString exportFormat;
 		std::string	screenSize;//QString screenSize;
 		int total_filamentchanges;//change color count
-		std::vector<double> volumes_per_extruder;
-		std::vector<double> flush_per_filament;
-		std::vector<double> volumes_per_tower;
+		std::vector<std::pair<int,double>> volumes_per_extruder;
+		std::vector<std::pair<int, double>> flush_per_filament;
+		std::vector<std::pair<int, double>> volumes_per_tower;
 
 		TimeParts timeParts;
 	
