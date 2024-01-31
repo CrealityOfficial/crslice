@@ -14,7 +14,10 @@
 #include "PrincipalComponents2D.hpp"
 #include "libslic3r.h"
 #include "ExPolygon.hpp"
+#include <cmath>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace Slic3r {
 
@@ -55,16 +58,15 @@ private:
     void initialize();
 
     struct BridgeDirection {
-        BridgeDirection(double a = -1.) : angle(a), coverage(0.), max_length(0.), archored_percent(0.){}
+        BridgeDirection(double a = -1.) : angle(a), coverage(0.), max_length(0.) {}
         // the best direction is the one causing most lines to be bridged (thus most coverage)
         bool operator<(const BridgeDirection &other) const {
             // Initial sort by coverage only - comparator must obey strict weak ordering
-            return this->coverage > other.coverage;//this->archored_percent > other.archored_percent;
+            return this->coverage > other.coverage;
         };
         double angle;
         double coverage;
         double max_length;
-        double archored_percent;
     };
 
     // Get possible briging direction candidates.

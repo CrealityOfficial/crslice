@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2022 Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Lukáš Matěna @lukasmatena
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "TriangleSelector.hpp"
 #include "Model.hpp"
 
@@ -242,67 +246,35 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
     // It is necessary to compare the internal radius in m_cursor! radius is in
     // world coords and does not change after scaling.
     if (m_old_cursor_radius_sqr != m_cursor->radius_sqr) {
-        // BBS: improve details for large cursor radius
-        TriangleSelector::HeightRange* hr_cursor = dynamic_cast<TriangleSelector::HeightRange*>(m_cursor.get());
-        if (hr_cursor == nullptr) {
-            set_edge_limit(std::min(std::sqrt(m_cursor->radius_sqr) / 5.f, 0.05f));
-            m_old_cursor_radius_sqr = m_cursor->radius_sqr;
-        }
-        else {
-            set_edge_limit(0.1);
-            m_old_cursor_radius_sqr = 0.1;
-        }
+        set_edge_limit(std::sqrt(m_cursor->radius_sqr) / 5.f);
+        m_old_cursor_radius_sqr = m_cursor->radius_sqr;
     }
 
-    const float highlight_angle_limit = -cos(Geometry::deg2rad(highlight_by_angle_deg));
+    const float highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
+    Vec3f       vec_down              = (trafo_no_translate.inverse() * -Vec3d::UnitZ()).normalized().cast<float>();
 
-    // BBS
-    std::vector<int> start_facets;
-    HeightRange* hr_cursor = dynamic_cast<HeightRange*>(m_cursor.get());
-    if (hr_cursor) {
-        for (int facet_id = 0; facet_id < m_orig_size_indices; facet_id++) {
-            const Triangle& tr = m_triangles[facet_id];
-            if (m_cursor->is_edge_inside_cursor(tr, m_vertices)) {
-                start_facets.push_back(facet_id);
-            }
-        }
-    }
-    else {
-        start_facets.push_back(facet_start);
-    }
-
+    // Now start with the facet the pointer points to and check all adjacent facets.
+    std::vector<int> facets_to_check;
+    facets_to_check.reserve(16);
+    facets_to_check.emplace_back(facet_start);
     // Keep track of facets of the original mesh we already processed.
     std::vector<bool> visited(m_orig_size_indices, false);
-
-    for (int i = 0; i < start_facets.size(); i++) {
-        int start_facet_id = start_facets[i];
-        if (visited[start_facet_id])
-            continue;
-
-        // Now start with the facet the pointer points to and check all adjacent facets.
-        std::vector<int> facets_to_check;
-        facets_to_check.reserve(16);
-        facets_to_check.emplace_back(start_facet_id);
-
-        // Breadth-first search around the hit point. facets_to_check may grow significantly large.
-        // Head of the bread-first facets_to_check FIFO.
-        int facet_idx = 0;
-        while (facet_idx < int(facets_to_check.size())) {
-            int          facet = facets_to_check[facet_idx];
-            const Vec3f& facet_normal = m_face_normals[m_triangles[facet].source_triangle];
-            Matrix3f     normal_matrix = static_cast<Matrix3f>(trafo_no_translate.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
-            float        world_normal_z = (normal_matrix* facet_normal).normalized().z();
-            if (!visited[facet] && (highlight_by_angle_deg == 0.f || world_normal_z < highlight_angle_limit)) {
-                if (select_triangle(facet, new_state, triangle_splitting)) {
-                    // add neighboring facets to list to be processed later
-                    for (int neighbor_idx : m_neighbors[facet])
-                        if (neighbor_idx >= 0 && m_cursor->is_facet_visible(neighbor_idx, m_face_normals))
-                            facets_to_check.push_back(neighbor_idx);
-                }
+    // Breadth-first search around the hit point. facets_to_check may grow significantly large.
+    // Head of the bread-first facets_to_check FIFO.
+    int facet_idx = 0;
+    while (facet_idx < int(facets_to_check.size())) {
+        int          facet        = facets_to_check[facet_idx];
+        const Vec3f &facet_normal = m_face_normals[m_triangles[facet].source_triangle];
+        if (!visited[facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(facet_normal) >= highlight_angle_limit)) {
+            if (select_triangle(facet, new_state, triangle_splitting)) {
+                // add neighboring facets to list to be processed later
+                for (int neighbor_idx : m_neighbors[facet])
+                    if (neighbor_idx >= 0 && m_cursor->is_facet_visible(neighbor_idx, m_face_normals))
+                        facets_to_check.push_back(neighbor_idx);
             }
-            visited[facet] = true;
-            ++facet_idx;
         }
+        visited[facet] = true;
+        ++facet_idx;
     }
 }
 
@@ -332,7 +304,8 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_st
     facet_queue.push(facet_start);
 
     const double facet_angle_limit     = cos(Geometry::deg2rad(seed_fill_angle)) - EPSILON;
-    const float  highlight_angle_limit = -cos(Geometry::deg2rad(highlight_by_angle_deg));
+    const float  highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
+    Vec3f        vec_down              = (trafo_no_translate.inverse() * -Vec3d::UnitZ()).normalized().cast<float>();
 
     // Depth-first traversal of neighbors of the face hit by the ray thrown from the mouse cursor.
     while (!facet_queue.empty()) {
@@ -340,9 +313,7 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_st
         facet_queue.pop();
 
         const Vec3f &facet_normal = m_face_normals[m_triangles[current_facet].source_triangle];
-        Matrix3f     normal_matrix  = static_cast<Matrix3f>(trafo_no_translate.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
-        float        world_normal_z = (normal_matrix * facet_normal).normalized().z();
-        if (!visited[current_facet] && (highlight_by_angle_deg == 0.f || world_normal_z < highlight_angle_limit)) {
+        if (!visited[current_facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(facet_normal) >= highlight_angle_limit)) {
             if (m_triangles[current_facet].is_split()) {
                 for (int split_triangle_idx = 0; split_triangle_idx <= m_triangles[current_facet].number_of_split_sides(); ++split_triangle_idx) {
                     assert(split_triangle_idx < int(m_triangles[current_facet].children.size()));
@@ -404,7 +375,7 @@ std::pair<std::vector<Vec3i>, std::vector<Vec3i>> TriangleSelector::precompute_a
 {
     std::vector<Vec3i> neighbors(m_triangles.size(), Vec3i(-1, -1, -1));
     std::vector<Vec3i> neighbors_propagated(m_triangles.size(), Vec3i(-1, -1, -1));
-    for (int facet_idx = 0; facet_idx < this->m_orig_size_indices; ++facet_idx) {
+    for (int facet_idx = 0; facet_idx < m_orig_size_indices; ++facet_idx) {
         neighbors[facet_idx]            = m_neighbors[facet_idx];
         neighbors_propagated[facet_idx] = neighbors[facet_idx];
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors[facet_idx]));
@@ -475,8 +446,7 @@ void TriangleSelector::append_touching_edges(int itriangle, int vertexi, int ver
         process_subtriangle(touching.second, Partition::Second);
 }
 
-// BBS: add seed_fill_angle parameter
-void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, const ClippingPlane &clp, float seed_fill_angle, bool propagate, bool force_reselection)
+void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_start, const ClippingPlane &clp, bool propagate, bool force_reselection)
 {
     int start_facet_idx = select_unsplit_triangle(hit, facet_start);
     assert(start_facet_idx != -1);
@@ -492,9 +462,6 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
         m_triangles[start_facet_idx].select_by_seed_fill();
         return;
     }
-
-    // seed_fill_angle < 0.f to disable edge detection
-    const double facet_angle_limit = (seed_fill_angle < 0.f ? -1.f : cos(Geometry::deg2rad(seed_fill_angle))) - EPSILON;
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
@@ -528,11 +495,6 @@ void TriangleSelector::bucket_fill_select_triangles(const Vec3f& hit, int facet_
             std::vector<int> touching_triangles = get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
             for(const int tr_idx : touching_triangles) {
                 if (tr_idx < 0 || visited[tr_idx] || m_triangles[tr_idx].get_state() != start_facet_state || is_facet_clipped(tr_idx, clp))
-                    continue;
-
-                const Vec3f& n1 = m_face_normals[m_triangles[tr_idx].source_triangle];
-                const Vec3f& n2 = m_face_normals[m_triangles[current_facet].source_triangle];
-                if (seed_fill_angle >= -EPSILON && std::clamp(n1.dot(n2), 0.f, 1.f) < facet_angle_limit)
                     continue;
 
                 assert(!m_triangles[tr_idx].is_split());
@@ -1093,37 +1055,6 @@ bool TriangleSelector::Circle::is_edge_inside_cursor(const Triangle &tr, const s
     return false;
 }
 
-// BBS
-bool TriangleSelector::HeightRange::is_pointer_in_triangle(const Vec3f& p1_, const Vec3f& p2_, const Vec3f& p3_) const
-{
-    return false;
-}
-
-bool TriangleSelector::HeightRange::is_mesh_point_inside(const Vec3f& point) const
-{
-    // just use 40% edge limit as tolerance
-    const float tolerance = 0.02;
-    const Vec3f transformed_point = trafo * point;
-    float top_z = m_z_world + m_height + tolerance;
-    float bot_z = m_z_world - tolerance;
-
-    return transformed_point.z() > bot_z && transformed_point.z() < top_z;
-}
-
-bool TriangleSelector::HeightRange::is_edge_inside_cursor(const Triangle& tr, const std::vector<Vertex>& vertices) const
-{
-    float top_z = m_z_world + m_height + EPSILON;
-    float bot_z = m_z_world - EPSILON;
-    std::array<Vec3f, 3> pts;
-    for (int i = 0; i < 3; ++i) {
-        pts[i] = vertices[tr.verts_idxs[i]].v;
-        pts[i] = this->trafo * pts[i];
-    }
-
-    return !((pts[0].z() < bot_z && pts[1].z() < bot_z && pts[2].z() < bot_z) ||
-             (pts[0].z() > top_z && pts[1].z() > top_z && pts[2].z() > top_z));
-}
-
 // Recursively remove all subtriangles.
 void TriangleSelector::undivide_triangle(int facet_idx)
 {
@@ -1255,8 +1186,8 @@ void TriangleSelector::garbage_collect()
     m_free_vertices_head = -1;
 }
 
-TriangleSelector::TriangleSelector(const TriangleMesh& mesh, float edge_limit)
-    : m_mesh{mesh}, m_neighbors(its_face_neighbors(mesh.its)), m_face_normals(its_face_normals(mesh.its)), m_edge_limit(edge_limit)
+TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
+    : m_mesh{mesh}, m_neighbors(its_face_neighbors(mesh.its)), m_face_normals(its_face_normals(mesh.its))
 {
     reset();
 }
@@ -1278,6 +1209,7 @@ void TriangleSelector::reset()
     }
     m_orig_size_vertices = int(m_vertices.size());
     m_orig_size_indices  = int(m_triangles.size());
+
 }
 
 void TriangleSelector::set_edge_limit(float edge_limit)
@@ -1424,33 +1356,6 @@ indexed_triangle_set TriangleSelector::get_facets(EnforcerBlockerType state) con
     return out;
 }
 
-// BBS
-void TriangleSelector::get_facets(std::vector<indexed_triangle_set>& facets_per_type) const
-{
-    facets_per_type.clear();
-
-    for (int type = (int)EnforcerBlockerType::NONE; type <= (int)EnforcerBlockerType::ExtruderMax; type++) {
-        facets_per_type.emplace_back();
-        indexed_triangle_set& its = facets_per_type.back();
-        std::vector<int> vertex_map(m_vertices.size(), -1);
-
-        for (const Triangle& tr : m_triangles) {
-            if (tr.valid() && !tr.is_split() && tr.get_state() == (EnforcerBlockerType)type) {
-                stl_triangle_vertex_indices indices;
-                for (int i = 0; i < 3; ++i) {
-                    int j = tr.verts_idxs[i];
-                    if (vertex_map[j] == -1) {
-                        vertex_map[j] = int(its.vertices.size());
-                        its.vertices.emplace_back(m_vertices[j].v);
-                    }
-                    indices[i] = vertex_map[j];
-                }
-                its.indices.emplace_back(indices);
-            }
-        }
-    }
-}
-
 indexed_triangle_set TriangleSelector::get_facets_strict(EnforcerBlockerType state) const
 {
     indexed_triangle_set out;
@@ -1579,7 +1484,7 @@ void TriangleSelector::get_facets_split_by_tjoints(const Vec3i &vertices, const 
 
 std::vector<Vec2i> TriangleSelector::get_seed_fill_contour() const {
     std::vector<Vec2i> edges_out;
-    for (int facet_idx = 0; facet_idx < this->m_orig_size_indices; ++facet_idx) {
+    for (int facet_idx = 0; facet_idx < m_orig_size_indices; ++facet_idx) {
         const Vec3i neighbors = m_neighbors[facet_idx];
         assert(this->verify_triangle_neighbors(m_triangles[facet_idx], neighbors));
         this->get_seed_fill_contour_recursive(facet_idx, neighbors, neighbors, edges_out);
@@ -1699,7 +1604,7 @@ std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> TriangleSelector:
     return out.data;
 }
 
-void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, bool needs_reset, EnforcerBlockerType max_ebt)
+void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> &data, bool needs_reset)
 {
     if (needs_reset)
         reset(); // dump any current state
@@ -1741,11 +1646,6 @@ void TriangleSelector::deserialize(const std::pair<std::vector<std::pair<int, in
             bool is_split = num_of_children != 0;
             // Only valid if not is_split. Value of the second nibble was subtracted by 3, so it is added back.
             auto state = is_split ? EnforcerBlockerType::NONE : EnforcerBlockerType((code & 0b1100) == 0b1100 ? next_nibble() + 3 : code >> 2);
-
-            // BBS
-            if (state > max_ebt)
-                state = EnforcerBlockerType::NONE;
-
             // Only valid if is_split.
             int special_side = code >> 2;
 

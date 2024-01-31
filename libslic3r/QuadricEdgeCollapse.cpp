@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2021 - 2022 Pavel Mikuš @Godrak, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, Lukáš Matěna @lukasmatena
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "QuadricEdgeCollapse.hpp"
 #include <tuple>
 #include <optional>
@@ -184,7 +188,7 @@ void Slic3r::its_quadric_edge_collapse(
     throw_on_cancel();
     status_fn(status_init_size);
 
-    //its_store_triangle(its, "triangle.obj", 1182);
+    //its_store_triangle_to_obj(its, "triangle.obj", 1182);
     //store_surround("triangle_surround1.obj", 1182, 1, its, v_infos, e_infos);
 
     // convert from triangle index to mutable priority queue index
@@ -595,8 +599,7 @@ bool QuadricEdgeCollapse::is_flipped(const Vec3f &               new_vertex,
                                      const EdgeInfos &           e_infos,
                                      const indexed_triangle_set &its)
 {
-    static const float thr_pos = 1.0f - std::numeric_limits<float>::epsilon();
-    static const float thr_neg = -thr_pos;
+    static const float triangle_beauty_threshold = 1.0f - std::numeric_limits<float>::epsilon();
     static const float dot_thr = 0.2f; // Value from simplify mesh cca 80 DEG
 
     // for each vertex triangles
@@ -615,7 +618,16 @@ bool QuadricEdgeCollapse::is_flipped(const Vec3f &               new_vertex,
         d2.normalize();
 
         float dot = d1.dot(d2);
-        if (dot > thr_pos || dot < thr_neg) return true;
+        if (dot > triangle_beauty_threshold || dot < -triangle_beauty_threshold) { // OK, the new triangle is suspiciously ugly, but it can still be better than the original
+            const Vec3f &v_orig = its.vertices[t[(e_info.edge) % 3]];
+            Vec3f d1_orig = vf - v_orig;
+            d1_orig.normalize();
+            Vec3f d2_orig = vs - v_orig;
+            d2_orig.normalize();
+            if (std::fabs(d1_orig.dot(d2_orig)) < std::fabs(dot)) { // original was not that ugly, so return flipped
+                return true;
+            } // else original triangle was worse than the new, so don't discard the new yet
+        }
         // IMPROVE: propagate new normal
         Vec3f n = d1.cross(d2);
         n.normalize(); 
@@ -896,7 +908,7 @@ void QuadricEdgeCollapse::store_surround(const char *obj_filename,
     std::vector<size_t> trs;
     trs.reserve(triangles.size());
     for (size_t ti : triangles) trs.push_back(ti);
-    its_store_triangles(its, obj_filename, trs);
+    its_store_triangles_to_obj(its, obj_filename, trs);
     // its_write_obj(its,"original.obj");
 }
 

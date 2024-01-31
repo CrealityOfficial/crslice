@@ -1,3 +1,9 @@
+///|/ Copyright (c) Prusa Research 2016 - 2021 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2014 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2015 Maksim Derbasov @ntfshard
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "BridgeDetector.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
@@ -122,7 +128,6 @@ bool BridgeDetector::detect_angle(double bridge_direction_override)
         double max_length = 0;
         {
             Lines clipped_lines = intersection_ln(lines, clip_area);
-            size_t archored_line_num = 0;
             for (size_t i = 0; i < clipped_lines.size(); ++i) {
                 const Line &line = clipped_lines[i];
                 if (expolygons_contain(this->_anchor_regions, line.a) && expolygons_contain(this->_anchor_regions, line.b)) {
@@ -130,12 +135,8 @@ bool BridgeDetector::detect_angle(double bridge_direction_override)
                     double len = line.length();
                     total_length += len;
                     max_length = std::max(max_length, len);
-                    archored_line_num++;
                 }
-            }
-            if (clipped_lines.size() > 0 && archored_line_num > 0) {
-                candidates[i_angle].archored_percent = (double)archored_line_num / (double)clipped_lines.size();
-            }
+            }        
         }
         if (total_length == 0.)
             continue;
@@ -160,7 +161,6 @@ bool BridgeDetector::detect_angle(double bridge_direction_override)
     // if any other direction is within extrusion width of coverage, prefer it if shorter
     // TODO: There are two options here - within width of the angle with most coverage, or within width of the currently perferred?
     size_t i_best = 0;
-//    for (size_t i = 1; i < candidates.size() && abs(candidates[i_best].archored_percent - candidates[i].archored_percent) < EPSILON; ++ i)
     for (size_t i = 1; i < candidates.size() && candidates[i_best].coverage - candidates[i].coverage < this->spacing; ++ i)
         if (candidates[i].max_length < candidates[i_best].max_length)
             i_best = i;

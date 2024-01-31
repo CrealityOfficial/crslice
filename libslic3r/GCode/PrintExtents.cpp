@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2017 - 2022 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena
+///|/ Copyright (c) 2019 Thomas Moore
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 // Calculate extents of the extrusions assigned to Print / PrintObject.
 // The extents are used for assessing collisions of the print with the priming towers,
 // to decide whether to pause the print after the priming towers are extruded
@@ -30,7 +35,7 @@ static inline BoundingBox extrusion_polyline_extents(const Polyline &polyline, c
 
 static inline BoundingBoxf extrusionentity_extents(const ExtrusionPath &extrusion_path)
 {
-    BoundingBox bbox = extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width)));
+    BoundingBox bbox = extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width())));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
         bboxf.min = unscale(bbox.min);
@@ -44,7 +49,7 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionLoop &extrusio
 {
     BoundingBox bbox;
     for (const ExtrusionPath &extrusion_path : extrusion_loop.paths)
-        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width))));
+        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width()))));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
         bboxf.min = unscale(bbox.min);
@@ -58,7 +63,7 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionMultiPath &ext
 {
     BoundingBox bbox;
     for (const ExtrusionPath &extrusion_path : extrusion_multi_path.paths)
-        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width))));
+        bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, coord_t(scale_(0.5 * extrusion_path.width()))));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
         bboxf.min = unscale(bbox.min);
@@ -100,8 +105,8 @@ static BoundingBoxf extrusionentity_extents(const ExtrusionEntity *extrusion_ent
 
 BoundingBoxf get_print_extrusions_extents(const Print &print)
 {
-    //BBS: usage of m_brim are deleted, the bbx of skrit is always larger than that of brim 
-    BoundingBoxf bbox(extrusionentity_extents(print.skirt()));
+    BoundingBoxf bbox(extrusionentity_extents(print.brim()));
+    bbox.merge(extrusionentity_extents(print.skirt()));
     return bbox;
 }
 
@@ -113,8 +118,8 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
             break;
         BoundingBoxf bbox_this;
         for (const LayerRegion *layerm : layer->regions()) {
-            bbox_this.merge(extrusionentity_extents(layerm->perimeters));
-            for (const ExtrusionEntity *ee : layerm->fills.entities)
+            bbox_this.merge(extrusionentity_extents(layerm->perimeters()));
+            for (const ExtrusionEntity *ee : layerm->fills())
                 // fill represents infill extrusions of a single island.
                 bbox_this.merge(extrusionentity_extents(*dynamic_cast<const ExtrusionEntityCollection*>(ee)));
         }
@@ -137,12 +142,8 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
 {
     // Wipe tower extrusions are saved as if the tower was at the origin with no rotation
     // We need to get position and angle of the wipe tower to transform them to actual position.
-    int plate_idx = print.get_plate_index();
-    Vec3d plate_origin = print.get_plate_origin();
-    double wipe_tower_x = print.config().wipe_tower_x.get_at(plate_idx) + plate_origin(0);
-    double wipe_tower_y = print.config().wipe_tower_y.get_at(plate_idx) + plate_origin(1);
     Transform2d trafo =
-        Eigen::Translation2d(wipe_tower_x, wipe_tower_y) *
+        Eigen::Translation2d(print.config().wipe_tower_x.value, print.config().wipe_tower_y.value) *
         Eigen::Rotation2Dd(Geometry::deg2rad(print.config().wipe_tower_rotation_angle.value));
 
     BoundingBoxf bbox;

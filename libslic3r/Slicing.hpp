@@ -1,4 +1,4 @@
-///|/ Copyright (c) Prusa Research 2016 - 2023 Vojt¨§ch Bubn¨ªk @bubnikv, Luk¨¢? Mat¨§na @lukasmatena, David Koc¨ªk @kocikdav, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Vojt¨§ch Kr¨¢l @vojtechkral
+///|/ Copyright (c) Prusa Research 2016 - 2023 VojtÄ›ch BubnÃ­k @bubnikv, LukÃ¡Å¡ MatÄ›na @lukasmatena, David KocÃ­k @kocikdav, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, VojtÄ›ch KrÃ¡l @vojtechkral
 ///|/
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
@@ -120,14 +120,10 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
             sp1.first_print_layer_height            == sp2.first_print_layer_height             &&
             sp1.first_object_layer_height           == sp2.first_object_layer_height            &&
             sp1.first_object_layer_bridging         == sp2.first_object_layer_bridging          &&
-            // BBS: following  are not required for equal layer height.
-            // Since the z-gap diff may be multiple of layer height.
-#if 0
             sp1.soluble_interface                   == sp2.soluble_interface                    &&
             sp1.gap_raft_object                     == sp2.gap_raft_object                      &&
             sp1.gap_object_support                  == sp2.gap_object_support                   &&
             sp1.gap_support_object                  == sp2.gap_support_object                   &&
-#endif
             sp1.raft_base_top_z                     == sp2.raft_base_top_z                      &&
             sp1.raft_interface_top_z                == sp2.raft_interface_top_z                 &&
             sp1.raft_contact_top_z                  == sp2.raft_contact_top_z                   &&

@@ -1,8 +1,12 @@
+///|/ Copyright (c) Prusa Research 2019 - 2020 Tomáš Mészáros @tamasmeszaros
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef MINIZ_EXTENSION_HPP
 #define MINIZ_EXTENSION_HPP
 
 #include <string>
-#include <miniz/miniz.h>
+#include <miniz.h>
 
 namespace Slic3r {
 

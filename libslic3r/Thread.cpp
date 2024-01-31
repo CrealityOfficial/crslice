@@ -1,9 +1,16 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Lukáš Matěna @lukasmatena, Roman Beránek @zavorka
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifdef _WIN32
 	#include <windows.h>
 	#include <boost/nowide/convert.hpp>
 #else
 	// any posix system
 	#include <pthread.h>
+	#ifdef __APPLE__
+		#include <pthread/qos.h>
+	#endif // __APPLE__
 #endif
 
 #include <atomic>
@@ -15,7 +22,7 @@
 
 #include "Thread.hpp"
 #include "Utils.hpp"
-#include <locale.h>
+#include "LocalesUtils.hpp"
 
 namespace Slic3r {
 
@@ -208,6 +215,12 @@ bool is_main_thread_active()
 	return get_main_thread_id() == boost::this_thread::get_id();
 }
 
+static thread_local ThreadData s_thread_data;
+ThreadData& thread_data()
+{
+	return s_thread_data;
+}
+
 // Spawn (n - 1) worker threads on Intel TBB thread pool and name them by an index and a system thread ID.
 // Also it sets locale of the worker threads to "C" for the G-code generator to produce "." as a decimal separator.
 void name_tbb_thread_pool_threads_set_locale()
@@ -223,7 +236,7 @@ void name_tbb_thread_pool_threads_set_locale()
 	const size_t nthreads_hw = tbb::this_task_arena::max_concurrency();
 	size_t       nthreads    = nthreads_hw;
 
-#ifdef SLIC3R_PROFILE
+#if 0
 	// Shiny profiler is not thread safe, thus disable parallelization.
 	disable_multi_threading();
 	nthreads = 1;
@@ -255,23 +268,33 @@ void name_tbb_thread_pool_threads_set_locale()
 				std::ostringstream name;
 		        name << "slic3r_tbb_" << range.begin();
 		        set_current_thread_name(name.str().c_str());
-		        // Set locales of the worker thread to "C".
-#ifdef _WIN32
-			    _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
-			    setlocale(LC_ALL, "C");
-#else
-				// We are leaking some memory here, because the newlocale() produced memory will never be released.
-				// This is not a problem though, as there will be a maximum one worker thread created per physical thread.
-				uselocale(newlocale(
-#ifdef __APPLE__
-					LC_ALL_MASK
-#else // some Unix / Linux / BSD
-					LC_ALL
-#endif
-					, "C", nullptr));
-#endif
+                // Set locales of the worker thread to "C".
+                set_c_locales();
     		}
         });
+}
+
+void set_current_thread_qos()
+{
+#ifdef __APPLE__
+	// OSX specific: Set Quality of Service to "user initiated", so that the threads will be scheduled to high performance
+	// cores if available.
+	// With QOS_CLASS_USER_INITIATED the worker threads drop priority once slicer loses user focus.
+	pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
+#endif // __APPLE__
+}
+
+void ThreadData::tbb_worker_thread_set_c_locales()
+{
+//    static std::atomic<int> cnt = 0;
+//    std::cout << "TBBLocalesSetter Entering " << cnt ++ << " ID " << std::this_thread::get_id() << "\n";
+    if (! m_tbb_worker_thread_c_locales_set) {
+        // Set locales of the worker thread to "C".
+        set_c_locales();
+        // OSX specific: Elevate QOS on Apple Silicon.
+        set_current_thread_qos();
+        m_tbb_worker_thread_c_locales_set = true;
+    }
 }
 
 }

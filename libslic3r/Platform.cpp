@@ -1,6 +1,10 @@
+///|/ Copyright (c) Prusa Research 2021 - 2022 Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "Platform.hpp"
-#include "libslic3r/libslic3r.h"
-//#include <boost/log/trivial.hpp>
+
+#include <boost/log/trivial.hpp>
 #include <boost/filesystem/operations.hpp>
 
 #if defined(__APPLE__)

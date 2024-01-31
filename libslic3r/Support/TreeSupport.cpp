@@ -34,9 +34,8 @@
 #include <stdio.h>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
 
@@ -82,7 +81,7 @@ static inline void validate_range(const MultiPoint &mp)
     validate_range(mp.points);
 }
 
-static inline void validate_range(const Polygons &polygons) 
+[[maybe_unused]] static inline void validate_range(const Polygons &polygons) 
 {
     for (const Polygon &p : polygons)
         validate_range(p);
@@ -106,6 +105,7 @@ static inline void validate_range(const LineInformations &lines)
         validate_range(l);
 }
 
+/*
 static inline void check_self_intersections(const Polygons &polygons, const std::string_view message)
 {
 #ifdef TREE_SUPPORT_SHOW_ERRORS_WIN32
@@ -113,6 +113,7 @@ static inline void check_self_intersections(const Polygons &polygons, const std:
         ::MessageBoxA(nullptr, (std::string("TreeSupport infill self intersections: ") + std::string(message)).c_str(), "Bug detected!", MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONWARNING);
 #endif // TREE_SUPPORT_SHOW_ERRORS_WIN32
 }
+*/
 static inline void check_self_intersections(const ExPolygon &expoly, const std::string_view message)
 {
 #ifdef TREE_SUPPORT_SHOW_ERRORS_WIN32
@@ -128,7 +129,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     for (size_t object_id : print_object_ids) {
         const PrintObject       &print_object  = *print.get_object(object_id);
         const PrintObjectConfig &object_config = print_object.config();
-        if (object_config.support_top_z_distance < EPSILON)
+        if (object_config.support_material_contact_distance < EPSILON)
             // || min_feature_size < scaled<coord_t>(0.1) that is the minimum line width
             TreeSupportSettings::soluble = true;
     }
@@ -143,8 +144,8 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
         const PrintObjectConfig &object_config = print_object.config();
 #endif // NDEBUG
         // Support must be enabled and set to Tree style.
-        //assert(object_config.support_material || object_config.support_material_enforce_layers > 0);
-        //assert(object_config.support_material_style == smsTree || object_config.support_material_style == smsOrganic);
+        assert(object_config.support_material || object_config.support_material_enforce_layers > 0);
+        assert(object_config.support_material_style == smsTree || object_config.support_material_style == smsOrganic);
 
         bool found_existing_group = false;
         TreeSupportSettings next_settings{ TreeSupportMeshGroupSettings{ print_object }, print_object.slicing_parameters() };
@@ -203,18 +204,18 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
 
     const PrintConfig       &print_config           = print_object.print()->config();
     const PrintObjectConfig &config                 = print_object.config();
-    const bool               support_auto           = config.enable_support.value && is_auto(config.support_type.value);
-    const int                support_enforce_layers = config.enforce_support_layers.value;
+    const bool               support_auto           = config.support_material.value && config.support_material_auto.value;
+    const int                support_enforce_layers = config.support_material_enforce_layers.value;
     std::vector<Polygons>    enforcers_layers{ print_object.slice_support_enforcers() };
     std::vector<Polygons>    blockers_layers{ print_object.slice_support_blockers() };
     print_object.project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers_layers);
     print_object.project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers_layers);
-    const int                support_threshold      = config.support_threshold_angle.value;
+    const int                support_threshold      = config.support_material_threshold.value;
     const bool               support_threshold_auto = support_threshold == 0;
     // +1 makes the threshold inclusive
     double                   tan_threshold          = support_threshold_auto ? 0. : tan(M_PI * double(support_threshold + 1) / 180.);
     //FIXME this is a fudge constant!
-    auto                     enforcer_overhang_offset = scaled<double>(config.tree_support_tip_diameter.value);
+    auto                     enforcer_overhang_offset = scaled<double>(config.support_tree_tip_diameter.value);
 
     size_t num_overhang_layers = support_auto ? num_object_layers : std::min(num_object_layers, std::max(size_t(support_enforce_layers), enforcers_layers.size()));
     tbb::parallel_for(tbb::blocked_range<LayerIndex>(1, num_overhang_layers),
@@ -250,13 +251,9 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                     raw_overhangs = overhangs;
                     raw_overhangs_calculated = true;
                 }
-                if (! (enforced_layer || blockers_layers.empty() || blockers_layers[layer_id].empty())) {
-                    Polygons &blocker = blockers_layers[layer_id];
-                    // Arthur: union_ is a must because after mirroring, the blocker polygons are in left-hand coordinates, ie clockwise,
-                    // which are not valid polygons, and will be removed by offset. union_ can make these polygons right.
-                    overhangs = diff(overhangs, offset(union_(blocker), scale_(g_config_tree_support_collision_resolution)), ApplySafetyOffset::Yes);
-                }
-                if (config.bridge_no_support) {
+                if (! (enforced_layer || blockers_layers.empty() || blockers_layers[layer_id].empty()))
+                    overhangs = diff(overhangs, blockers_layers[layer_id], ApplySafetyOffset::Yes);
+                if (config.dont_support_bridges) {
                     for (const LayerRegion *layerm : current_layer.regions())
                         remove_bridges_from_contacts(print_config, lower_layer, *layerm, 
                             float(layerm->flow(frExternalPerimeter).scaled_width()), overhangs);
@@ -3535,14 +3532,12 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
             auto t_place = std::chrono::high_resolution_clock::now();
 
             // ### draw these points as circles
-
-            if (print_object.config().support_style.value != smsOrganic &&
-                // Orca: use organic as default
-                print_object.config().support_style.value != smsDefault)
+            
+            if (print_object.config().support_material_style == smsTree)
                 draw_areas(*print.get_object(processing.second.front()), volumes, config, overhangs, move_bounds, 
                     bottom_contacts, top_contacts, intermediate_layers, layer_storage, throw_on_cancel);
             else {
-                //assert(print_object.config().support_material_style == smsOrganic);
+                assert(print_object.config().support_material_style == smsOrganic);
                 organic_draw_branches(
                     *print.get_object(processing.second.front()), volumes, config, move_bounds, 
                     bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage, 

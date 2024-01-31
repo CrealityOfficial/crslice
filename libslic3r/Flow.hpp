@@ -1,10 +1,19 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2014 - 2015 Alessandro Ranellucci @alranel
+///|/
+///|/ ported from lib/Slic3r/Flow.pm:
+///|/ Copyright (c) Prusa Research 2022 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2012 - 2014 Alessandro Ranellucci @alranel
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Flow_hpp_
 #define slic3r_Flow_hpp_
 
 #include "libslic3r.h"
 #include "Config.hpp"
 #include "Exception.hpp"
-#include "ExtrusionEntity.hpp"
+#include "ExtrusionRole.hpp"
 
 namespace Slic3r {
 
@@ -21,7 +30,6 @@ enum FlowRole {
     frTopSolidInfill,
     frSupportMaterial,
     frSupportMaterialInterface,
-    frSupportTransition,  // BBS
 };
 
 class FlowError : public Slic3r::InvalidArgument
@@ -65,7 +73,6 @@ public:
     float   height()          const { return m_height; }
     // Spacing between the extrusion centerlines.
     float   spacing()         const { return m_spacing; }
-    void    set_spacing(float spacing) { m_spacing = spacing; }
     coord_t scaled_spacing()  const { return coord_t(scale_(m_spacing)); }
     // Nozzle diameter. 
     float   nozzle_diameter() const { return m_nozzle_diameter; }
@@ -132,8 +139,7 @@ private:
     bool        m_bridge { false };
 };
 
-extern Flow support_material_flow(const PrintObject* object, float layer_height = 0.f);
-extern Flow support_transition_flow(const PrintObject *object); //BBS
+extern Flow support_material_flow(const PrintObject *object, float layer_height = 0.f);
 extern Flow support_material_1st_layer_flow(const PrintObject *object, float layer_height = 0.f);
 extern Flow support_material_interface_flow(const PrintObject *object, float layer_height = 0.f);
 

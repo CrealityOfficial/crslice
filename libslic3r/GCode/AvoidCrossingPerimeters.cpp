@@ -491,7 +491,7 @@ static float get_perimeter_spacing(const Layer &layer)
     size_t regions_count     = 0;
     float  perimeter_spacing = 0.f;
     for (const LayerRegion *layer_region : layer.regions())
-        if (layer_region != nullptr && ! layer_region->slices.empty()) {
+        if (layer_region != nullptr && ! layer_region->slices().empty()) {
             perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
             ++regions_count;
         }
@@ -512,7 +512,7 @@ static float get_perimeter_spacing_external(const Layer &layer)
     for (const PrintObject *object : layer.object()->print()->objects())
         if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
             for (const LayerRegion *layer_region : l->regions())
-                if (layer_region != nullptr && ! layer_region->slices.empty()) {
+                if (layer_region != nullptr && ! layer_region->slices().empty()) {
                     perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
                     ++ regions_count;
                 }
@@ -531,7 +531,7 @@ static float get_external_perimeter_width(const Layer &layer)
     size_t regions_count     = 0;
     float  perimeter_width   = 0.f;
     for (const LayerRegion *layer_region : layer.regions())
-        if (layer_region != nullptr && ! layer_region->slices.empty()) {
+        if (layer_region != nullptr && ! layer_region->slices().empty()) {
             perimeter_width += float(layer_region->flow(frExternalPerimeter).scaled_width());
             ++regions_count;
         }
@@ -734,7 +734,7 @@ static bool any_expolygon_contains(const ExPolygons &ex_polygons, const std::vec
     return false;
 }
 
-static bool need_wipe(const GCode          &gcodegen,
+static bool need_wipe(const GCodeGenerator           &gcodegen,
                       const ExPolygons               &lslices_offset,
                       const std::vector<BoundingBox> &lslices_offset_bboxes,
                       const EdgeGrid::Grid           &grid_lslices_offset,
@@ -742,7 +742,7 @@ static bool need_wipe(const GCode          &gcodegen,
                       const Polyline                 &result_travel,
                       const size_t                    intersection_count)
 {
-    bool z_lift_enabled = gcodegen.config().z_hop.get_at(gcodegen.writer().extruder()->id()) > 0.;
+    bool z_lift_enabled = gcodegen.config().travel_max_lift.get_at(gcodegen.writer().extruder()->id()) > 0.;
     bool wipe_needed    = false;
 
     // If the original unmodified path doesn't have any intersection with boundary, then it is entirely inside the object otherwise is entirely
@@ -1063,7 +1063,7 @@ static ExPolygons get_boundary(const Layer &layer)
     ExPolygons  boundary          = union_ex(inner_offset(layer.lslices, 1.5 * perimeter_spacing));
     if(support_layer) {
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
-        append(boundary, inner_offset(support_layer->support_islands, 1.5 * perimeter_spacing));
+        append(boundary, inner_offset(support_layer->support_islands.expolygons, 1.5 * perimeter_spacing));
 #endif
         auto *layer_below = layer.object()->get_first_layer_bellow_printz(layer.print_z, EPSILON);
         if (layer_below)
@@ -1074,14 +1074,14 @@ static ExPolygons get_boundary(const Layer &layer)
     // Collect all top layers that will not be crossed.
     size_t      polygons_count    = 0;
     for (const LayerRegion *layer_region : layer.regions())
-        for (const Surface &surface : layer_region->fill_surfaces.surfaces)
+        for (const Surface &surface : layer_region->fill_surfaces())
             if (surface.is_top()) ++polygons_count;
 
     if (polygons_count > 0) {
         ExPolygons top_layer_polygons;
         top_layer_polygons.reserve(polygons_count);
         for (const LayerRegion *layer_region : layer.regions())
-            for (const Surface &surface : layer_region->fill_surfaces.surfaces)
+            for (const Surface &surface : layer_region->fill_surfaces())
                 if (surface.is_top()) top_layer_polygons.emplace_back(surface.expolygon);
 
         top_layer_polygons = union_ex(top_layer_polygons);
@@ -1116,7 +1116,7 @@ static Polygons get_boundary_external(const Layer &layer)
                 for (const ExPolygon &island : layer_below->lslices)
                     append(holes_per_obj, island.holes);
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
-            append(supports_per_obj, support_layer->support_islands);
+            append(supports_per_obj, support_layer->support_islands.expolygons);
 #endif
         }
 
@@ -1171,7 +1171,7 @@ static void init_boundary(AvoidCrossingPerimeters::Boundary *boundary, Polygons 
 }
 
 // Plan travel, which avoids perimeter crossings by following the boundaries of the layer.
-Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled)
+Polyline AvoidCrossingPerimeters::travel_to(const GCodeGenerator &gcodegen, const Point &point, bool *could_be_wipe_disabled)
 {
     // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
     // Otherwise perform the path planning in the coordinate system of the active object.
@@ -1217,7 +1217,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         travel_intersection_count = 0;
     }
 
-    const ConfigOptionFloatOrPercent &opt_max_detour             = gcodegen.config().max_travel_detour_distance;
+    const ConfigOptionFloatOrPercent &opt_max_detour             = gcodegen.config().avoid_crossing_perimeters_max_detour;
     bool                              max_detour_length_exceeded = false;
     if (opt_max_detour.value > 0) {
         double direct_length     = travel.length();
@@ -1474,7 +1474,7 @@ static size_t avoid_perimeters(const AvoidCrossingPerimeters::Boundary &boundary
 }
 
 // Plan travel, which avoids perimeter crossings by following the boundaries of the layer.
-Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &point, bool *could_be_wipe_disabled)
+Polyline AvoidCrossingPerimeters::travel_to(const GCodeGenerator &gcodegen, const Point &point, bool *could_be_wipe_disabled)
 {
     // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
     // Otherwise perform the path planning in the coordinate system of the active object.
@@ -1501,7 +1501,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     }
 
     Line travel(start, end);
-    double max_detour_length scale_(gcodegen.config().max_travel_detour_distance);
+    double max_detour_length scale_(gcodegen.config().avoid_crossing_perimeters_max_detour);
     if (max_detour_length > 0 && (result_pl.length() - travel.length()) > max_detour_length)
         result_pl = {start, end};
 

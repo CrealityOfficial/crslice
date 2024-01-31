@@ -247,8 +247,6 @@ public:
      */
     const std::optional<Point>& getLastGroundingLocation() const { return m_last_grounding_location; }
 
-    void draw_tree(SVG& svg) { for (auto& child : m_children) { svg.draw(Line(m_p, child->getLocation()), "yellow"); child->draw_tree(svg); } }
-
 protected:
     /*!
      * Convert the tree into polylines

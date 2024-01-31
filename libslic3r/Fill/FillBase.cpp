@@ -18,7 +18,6 @@
 #include "../PrintConfig.hpp"
 #include "../Surface.hpp"
 #include "../libslic3r.h"
-#include "../VariableWidth.hpp"
 
 #include "FillBase.hpp"
 #include "FillConcentric.hpp"
@@ -30,17 +29,13 @@
 #include "FillRectilinear.hpp"
 #include "FillAdaptive.hpp"
 #include "FillLightning.hpp"
-// BBS: new infill pattern header
-#include "FillConcentricInternal.hpp"
+#include "FillEnsuring.hpp"
+
+#include <boost/log/trivial.hpp>
 
 // #define INFILL_DEBUG_OUTPUT
 
 namespace Slic3r {
-
-//BBS: 0% of sparse_infill_line_width, no anchor at the start of sparse infill
-float Fill::infill_anchor = 400;
-//BBS: 20mm
-float Fill::infill_anchor_max = 20;
 
 Fill* Fill::new_from_type(const InfillPattern type)
 {
@@ -52,6 +47,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipRectilinear:         return new FillRectilinear();
     case ipAlignedRectilinear:  return new FillAlignedRectilinear();
     case ipMonotonic:           return new FillMonotonic();
+    case ipMonotonicLines:      return new FillMonotonicLines();
     case ipLine:                return new FillLine();
     case ipGrid:                return new FillGrid();
     case ipTriangles:           return new FillTriangles();
@@ -64,10 +60,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipSupportCubic:        return new FillAdaptive::Filler();
     case ipSupportBase:         return new FillSupportBase();
     case ipLightning:           return new FillLightning::Filler();
-    // BBS: for internal solid infill only
-    case ipConcentricInternal:  return new FillConcentricInternal();
-    // BBS: for bottom and top surface only
-    case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
+    case ipEnsuring:            return new FillEnsuring();
     default: throw Slic3r::InvalidArgument("unknown type");
     }
 }
@@ -103,77 +96,20 @@ Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)
     Slic3r::ExPolygons expp = offset_ex(surface->expolygon, float(scale_(this->overlap - 0.5 * this->spacing)));
     // Create the infills for each of the regions.
     Polylines polylines_out;
-    for (size_t i = 0; i < expp.size(); ++ i)
-        _fill_surface_single(
-            params,
-            surface->thickness_layers,
-            _infill_direction(surface),
-            std::move(expp[i]),
-            polylines_out);
+    for (ExPolygon &expoly : expp)
+        _fill_surface_single(params, surface->thickness_layers, _infill_direction(surface), std::move(expoly), polylines_out);
     return polylines_out;
 }
 
-ThickPolylines Fill::fill_surface_arachne(const Surface* surface, const FillParams& params)
+ThickPolylines Fill::fill_surface_arachne(const Surface *surface, const FillParams &params)
 {
     // Perform offset.
     Slic3r::ExPolygons expp = offset_ex(surface->expolygon, float(scale_(this->overlap - 0.5 * this->spacing)));
     // Create the infills for each of the regions.
     ThickPolylines thick_polylines_out;
-    for (ExPolygon& expoly : expp)
+    for (ExPolygon &expoly : expp)
         _fill_surface_single(params, surface->thickness_layers, _infill_direction(surface), std::move(expoly), thick_polylines_out);
     return thick_polylines_out;
-}
-
-// BBS: this method is used to fill the ExtrusionEntityCollection. It call fill_surface by default
-void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
-{
-    Polylines polylines;
-    ThickPolylines thick_polylines;
-    try {
-        if (params.use_arachne)
-            thick_polylines = this->fill_surface_arachne(surface, params);
-        else
-            polylines = this->fill_surface(surface, params);
-    }
-    catch (InfillFailedException&) {}
-
-    if (!polylines.empty() || !thick_polylines.empty()) {
-        // calculate actual flow from spacing (which might have been adjusted by the infill
-        // pattern generator)
-        double flow_mm3_per_mm = params.flow.mm3_per_mm();
-        double flow_width = params.flow.width();
-        if (params.using_internal_flow) {
-            // if we used the internal flow we're not doing a solid infill
-            // so we can safely ignore the slight variation that might have
-            // been applied to f->spacing
-        }
-        else {
-            Flow new_flow = params.flow.with_spacing(this->spacing);
-            flow_mm3_per_mm = new_flow.mm3_per_mm();
-            flow_width = new_flow.width();
-        }
-        // Save into layer.
-        ExtrusionEntityCollection* eec = nullptr;
-        out.push_back(eec = new ExtrusionEntityCollection());
-        // Only concentric fills are not sorted.
-        eec->no_sort = this->no_sort();
-        size_t idx   = eec->entities.size();
-        if (params.use_arachne) {
-            Flow new_flow = params.flow.with_spacing(float(this->spacing));
-            variable_width(thick_polylines, params.extrusion_role, new_flow, eec->entities);
-            thick_polylines.clear();
-        }
-        else {
-            extrusion_entities_append_paths(
-                eec->entities, std::move(polylines),
-                params.extrusion_role,
-                flow_mm3_per_mm, float(flow_width), params.flow.height());
-        }
-        if (!params.can_reverse) {
-            for (size_t i = idx; i < eec->entities.size(); i++)
-                eec->entities[i]->set_reverse();
-        }
-    }
 }
 
 // Calculate a new spacing to fill width with possibly integer number of lines,
@@ -207,8 +143,8 @@ std::pair<float, Point> Fill::_infill_direction(const Surface *surface) const
     float out_angle = this->angle;
 
 	if (out_angle == FLT_MAX) {
-		//FIXME Vojtech: Add a warning?
-        printf("Using undefined infill angle\n");
+        assert(false);
+        BOOST_LOG_TRIVIAL(error) << "Using undefined infill angle";
         out_angle = 0.f;
     }
 
@@ -1606,13 +1542,11 @@ void Fill::connect_infill(Polylines &&infill_ordered, const std::vector<const Po
         double                       arc_length;
     };
     std::vector<Arc> arches;
-    if (!params.dont_sort) {
-        arches.reserve(graph.map_infill_end_point_to_boundary.size());
-        for (ContourIntersectionPoint& cp : graph.map_infill_end_point_to_boundary)
-            if (cp.contour_idx != boundary_idx_unconnected && cp.next_on_contour != &cp && cp.could_connect_next())
-                arches.push_back({ &cp, path_length_along_contour_ccw(&cp, cp.next_on_contour, graph.boundary_params[cp.contour_idx].back()) });
-        std::sort(arches.begin(), arches.end(), [](const auto& l, const auto& r) { return l.arc_length < r.arc_length; });
-    }
+    arches.reserve(graph.map_infill_end_point_to_boundary.size());
+    for (ContourIntersectionPoint &cp : graph.map_infill_end_point_to_boundary)
+        if (cp.contour_idx != boundary_idx_unconnected && cp.next_on_contour != &cp && cp.could_connect_next())
+            arches.push_back({ &cp, path_length_along_contour_ccw(&cp, cp.next_on_contour, graph.boundary_params[cp.contour_idx].back()) });
+    std::sort(arches.begin(), arches.end(), [](const auto &l, const auto &r) { return l.arc_length < r.arc_length; });
 
     //FIXME improve the Traveling Salesman problem with 2-opt and 3-opt local optimization.
     for (Arc &arc : arches)

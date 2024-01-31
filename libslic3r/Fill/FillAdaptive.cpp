@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2022 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "../ClipperUtils.hpp"
 #include "../ExPolygon.hpp"
 #include "../Surface.hpp"
@@ -298,15 +302,15 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
     double                     default_infill_extrusion_width = Flow::auto_extrusion_width(FlowRole::frInfill, float(max_nozzle_diameter));
     for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
         const PrintRegionConfig &config                 = print_object.printing_region(region_id).config();
-        bool                     nonempty               = config.sparse_infill_density > 0;
-        bool                     has_adaptive_infill    = nonempty && config.sparse_infill_pattern == ipAdaptiveCubic;
-        bool                     has_support_infill     = nonempty && config.sparse_infill_pattern == ipSupportCubic;
-        double                   sparse_infill_line_width = config.sparse_infill_line_width.get_abs_value(max_nozzle_diameter);
+        bool                     nonempty               = config.fill_density > 0;
+        bool                     has_adaptive_infill    = nonempty && config.fill_pattern == ipAdaptiveCubic;
+        bool                     has_support_infill     = nonempty && config.fill_pattern == ipSupportCubic;
+        double                   infill_extrusion_width = config.infill_extrusion_width.percent ? default_infill_extrusion_width * 0.01 * config.infill_extrusion_width : config.infill_extrusion_width;
         region_fill_data.push_back(RegionFillData({
             has_adaptive_infill ? Tristate::Maybe : Tristate::No,
             has_support_infill ? Tristate::Maybe : Tristate::No,
-            config.sparse_infill_density,
-            sparse_infill_line_width != 0. ? sparse_infill_line_width : default_infill_extrusion_width
+            config.fill_density,
+            infill_extrusion_width != 0. ? infill_extrusion_width : default_infill_extrusion_width
         }));
         build_octree |= has_adaptive_infill || has_support_infill;
     }
@@ -316,9 +320,9 @@ std::pair<double, double> adaptive_fill_line_spacing(const PrintObject &print_ob
         for (const Layer *layer : print_object.layers())
             for (size_t region_id = 0; region_id < layer->regions().size(); ++ region_id) {
                 RegionFillData &rd = region_fill_data[region_id];
-                if (rd.has_adaptive_infill == Tristate::Maybe && ! layer->regions()[region_id]->fill_surfaces.empty())
+                if (rd.has_adaptive_infill == Tristate::Maybe && ! layer->regions()[region_id]->fill_surfaces().empty())
                     rd.has_adaptive_infill = Tristate::Yes;
-                if (rd.has_support_infill == Tristate::Maybe && ! layer->regions()[region_id]->fill_surfaces.empty())
+                if (rd.has_support_infill == Tristate::Maybe && ! layer->regions()[region_id]->fill_surfaces().empty())
                     rd.has_support_infill = Tristate::Yes;
             }
 

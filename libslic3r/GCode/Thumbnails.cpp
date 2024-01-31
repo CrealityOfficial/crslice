@@ -4,16 +4,20 @@
 ///|/
 #include "Thumbnails.hpp"
 #include "../miniz_extension.hpp"
+#include "../format.hpp"
 
-//#include <qoi/qoi.h>
-//#include <jpeglib.h>
-//#include <jerror.h>
+#include <qoi/qoi.h>
+#include <jpeglib.h>
+#include <jerror.h>
+
+#include <boost/algorithm/string.hpp>
+#include <string>
 
 namespace Slic3r::GCodeThumbnails {
 
 using namespace std::literals;
 
-struct CompressedPNG : CompressedImageBuffer
+struct CompressedPNG : CompressedImageBuffer 
 {
     ~CompressedPNG() override { if (data) mz_free(data); }
     std::string_view tag() const override { return "thumbnail"sv; }
@@ -25,16 +29,10 @@ struct CompressedJPG : CompressedImageBuffer
     std::string_view tag() const override { return "thumbnail_JPG"sv; }
 };
 
-struct CompressedQOI : CompressedImageBuffer
+struct CompressedQOI : CompressedImageBuffer 
 {
     ~CompressedQOI() override { free(data); }
     std::string_view tag() const override { return "thumbnail_QOI"sv; }
-};
-
-struct CompressedBIQU : CompressedImageBuffer
-{
-    ~CompressedBIQU() override { free(data); }
-    std::string_view tag() const override { return "thumbnail_BIQU"sv; }
 };
 
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail_png(const ThumbnailData &data)
@@ -64,24 +62,24 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_jpg(const ThumbnailDat
     unsigned char* compressed_data_ptr = compressed_data.data();
     unsigned long compressed_data_size = data.pixels.size();
 
-    //jpeg_error_mgr err;
-    //jpeg_compress_struct info;
-    //info.err = jpeg_std_error(&err);
-    //jpeg_create_compress(&info);
-    //jpeg_mem_dest(&info, &compressed_data_ptr, &compressed_data_size);
-    //
-    //info.image_width = data.width;
-    //info.image_height = data.height;
-    //info.input_components = 4;
-    //info.in_color_space = JCS_EXT_RGBA;
-    //
-    //jpeg_set_defaults(&info);
-    //jpeg_set_quality(&info, 85, TRUE);
-    //jpeg_start_compress(&info, TRUE);
-    //
-    //jpeg_write_scanlines(&info, rows_ptrs.data(), data.height);
-    //jpeg_finish_compress(&info);
-    //jpeg_destroy_compress(&info);
+    jpeg_error_mgr err;
+    jpeg_compress_struct info;
+    info.err = jpeg_std_error(&err);
+    jpeg_create_compress(&info);
+    jpeg_mem_dest(&info, &compressed_data_ptr, &compressed_data_size);
+
+    info.image_width = data.width;
+    info.image_height = data.height;
+    info.input_components = 4;
+    info.in_color_space = JCS_EXT_RGBA;
+
+    jpeg_set_defaults(&info);
+    jpeg_set_quality(&info, 85, TRUE);
+    jpeg_start_compress(&info, TRUE);
+
+    jpeg_write_scanlines(&info, rows_ptrs.data(), data.height);
+    jpeg_finish_compress(&info);
+    jpeg_destroy_compress(&info);
 
     // FIXME -> Add error checking
 
@@ -94,103 +92,113 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_jpg(const ThumbnailDat
 
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail_qoi(const ThumbnailData &data)
 {
-    //qoi_desc desc;
-    //desc.width      = data.width;
-    //desc.height     = data.height;
-    //desc.channels   = 4;
-    //desc.colorspace = QOI_SRGB;
+    qoi_desc desc;
+    desc.width      = data.width;
+    desc.height     = data.height;
+    desc.channels   = 4;
+    desc.colorspace = QOI_SRGB;
 
     // Take vector of RGBA pixels and flip the image vertically
     std::vector<uint8_t> rgba_pixels(data.pixels.size() * 4);
     size_t row_size = data.width * 4;
     for (size_t y = 0; y < data.height; ++ y)
         memcpy(rgba_pixels.data() + (data.height - y - 1) * row_size, data.pixels.data() + y * row_size, row_size);
-
+    
     auto out = std::make_unique<CompressedQOI>();
     int  size;
-    //out->data = qoi_encode((const void*)rgba_pixels.data(), &desc, &size);
+    out->data = qoi_encode((const void*)rgba_pixels.data(), &desc, &size);
     out->size = size;
     return out;
-}
-
-std::unique_ptr<CompressedImageBuffer> compress_thumbnail_btt_tft(const ThumbnailData &data) {
-
-    // Take vector of RGBA pixels and flip the image vertically
-    std::vector<unsigned char> rgba_pixels(data.pixels.size());
-    const unsigned int row_size = data.width * 4;
-    for (unsigned int y = 0; y < data.height; ++y) {
-        ::memcpy(rgba_pixels.data() + (data.height - y - 1) * row_size, data.pixels.data() + y * row_size, row_size);
-    }
-
-    auto out = std::make_unique<CompressedBIQU>();
-
-    // get the output size of the data
-    // add 4 bytes to the row_size to account for end of line (\r\n)
-    // add 1 byte for the 0 of the c_str
-    out->size = data.height * (row_size + 4) + 1;
-    out->data = malloc(out->size);
-
-    std::stringstream out_data;
-    typedef struct {unsigned char r, g, b, a;} pixel;
-    pixel px;
-    for (int ypos = 0; ypos < data.height; ypos++) {
-        std::stringstream line;
-        line << ";";
-        for (int xpos = 0; xpos < row_size; xpos+=4) {
-            px.r = rgba_pixels[ypos * row_size + xpos];
-            px.g = rgba_pixels[ypos * row_size + xpos + 1];
-            px.b = rgba_pixels[ypos * row_size + xpos + 2];
-            px.a = rgba_pixels[ypos * row_size + xpos + 3];
-
-            // calculate values for RGB with alpha
-            const uint8_t rv = ((px.a * px.r) / 255);
-            const uint8_t gv = ((px.a * px.g) / 255);
-            const uint8_t bv = ((px.a * px.b) / 255);
-
-            // convert the RGB values to RGB565 hex that is right justified (same algorithm BTT firmware uses)
-            auto color_565 = rjust(get_hex(((rv >> 3) << 11) | ((gv >> 2) << 5) | (bv >> 3)), 4, '0');
-
-            //BTT original converter specifies these values should be '0000'
-            if (color_565 == "0020" || color_565 == "0841" || color_565 == "0861")
-                color_565 = "0000";
-            //add the color to the line
-            line << color_565;
-        }
-        // output line and end line (\r\n is important. BTT firmware requires it)
-        out_data << line.str() << "\r\n";
-        line.clear();
-    }
-    ::memcpy(out->data, (const void*) out_data.str().c_str(), out->size);
-    return out;
-}
-
-std::string get_hex(const unsigned int input) {
-    std::stringstream stream;
-    stream << std::hex << input;
-    return stream.str();
-}
-
-std::string rjust(std::string input, unsigned int width, char fill_char) {
-    std::stringstream stream;
-    stream.fill(fill_char);
-    stream.width(width);
-    stream << input;
-    return stream.str();
 }
 
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &data, GCodeThumbnailsFormat format)
 {
     switch (format) {
-    case GCodeThumbnailsFormat::PNG:
-    default:
-        return compress_thumbnail_png(data);
-    case GCodeThumbnailsFormat::JPG:
-        return compress_thumbnail_jpg(data);
-    case GCodeThumbnailsFormat::QOI:
-        return compress_thumbnail_qoi(data);
-    case GCodeThumbnailsFormat::BTT_TFT:
-        return compress_thumbnail_btt_tft(data);
+        case GCodeThumbnailsFormat::PNG:
+        default:
+            return compress_thumbnail_png(data);
+        case GCodeThumbnailsFormat::JPG:
+            return compress_thumbnail_jpg(data);
+        case GCodeThumbnailsFormat::QOI:
+            return compress_thumbnail_qoi(data);
     }
+}
+
+std::pair<GCodeThumbnailDefinitionsList, ThumbnailErrors> make_and_check_thumbnail_list(const std::string& thumbnails_string, const std::string_view def_ext /*= "PNG"sv*/)
+{
+    if (thumbnails_string.empty())
+        return {};
+
+    std::istringstream is(thumbnails_string);
+    std::string point_str;
+
+    ThumbnailErrors errors;
+
+    // generate thumbnails data to process it
+
+    GCodeThumbnailDefinitionsList thumbnails_list;
+    while (std::getline(is, point_str, ',')) {
+        Vec2d point(Vec2d::Zero());
+        GCodeThumbnailsFormat format;
+        std::istringstream iss(point_str);
+        std::string coord_str;
+        if (std::getline(iss, coord_str, 'x') && !coord_str.empty()) {
+            std::istringstream(coord_str) >> point(0);
+            if (std::getline(iss, coord_str, '/') && !coord_str.empty()) {
+                std::istringstream(coord_str) >> point(1);
+
+                if (0 < point(0) && point(0) < 1000 && 0 < point(1) && point(1) < 1000) {
+                    std::string ext_str;
+                    std::getline(iss, ext_str, '/');
+
+                    if (ext_str.empty())
+                        ext_str = def_ext.empty() ? "PNG"sv : def_ext;
+
+                    // check validity of extention
+                    boost::to_upper(ext_str);
+                    if (!ConfigOptionEnum<GCodeThumbnailsFormat>::from_string(ext_str, format)) {
+                        format = GCodeThumbnailsFormat::PNG;
+                        errors = enum_bitmask(errors | ThumbnailError::InvalidExt);
+                    }
+
+                    thumbnails_list.emplace_back(std::make_pair(format, point));
+                }
+                else
+                    errors = enum_bitmask(errors | ThumbnailError::OutOfRange);
+                continue;
+            }
+        }
+        errors = enum_bitmask(errors | ThumbnailError::InvalidVal);
+    }
+
+    return std::make_pair(std::move(thumbnails_list), errors);
+}
+
+std::pair<GCodeThumbnailDefinitionsList, ThumbnailErrors> make_and_check_thumbnail_list(const ConfigBase& config)
+{
+    // ??? Unit tests or command line slicing may not define "thumbnails" or "thumbnails_format".
+    // ??? If "thumbnails_format" is not defined, export to PNG.
+
+    // generate thumbnails data to process it
+
+    if (const auto thumbnails_value = config.option<ConfigOptionString>("thumbnails"))
+        return make_and_check_thumbnail_list(thumbnails_value->value);
+
+    return {};
+}
+
+std::string get_error_string(const ThumbnailErrors& errors)
+{
+    std::string error_str;
+
+    if (errors.has(ThumbnailError::InvalidVal))
+        error_str += "\n - " + format("Invalid input format. Expected vector of dimensions in the following format: \"%1%\"", "XxY/EXT, XxY/EXT, ...");
+    if (errors.has(ThumbnailError::OutOfRange))
+        error_str += "\n - Input value is out of range";
+    if (errors.has(ThumbnailError::InvalidExt))
+        error_str += "\n - Some extension in the input is invalid";
+
+    return error_str;
 }
 
 } // namespace Slic3r::GCodeThumbnails

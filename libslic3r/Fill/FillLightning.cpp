@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2021 - 2023 Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "../Print.hpp"
 #include "../ShortestPath.hpp"
 
@@ -26,9 +30,9 @@ void GeneratorDeleter::operator()(Generator *p) {
     delete p;
 }
 
-GeneratorPtr build_generator(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
+GeneratorPtr build_generator(const PrintObject &print_object, const coordf_t fill_density, const std::function<void()> &throw_on_cancel_callback)
 {
-    return GeneratorPtr(new Generator(print_object, throw_on_cancel_callback));
+    return GeneratorPtr(new Generator(print_object, fill_density, throw_on_cancel_callback));
 }
 
 } // namespace Slic3r::FillAdaptive

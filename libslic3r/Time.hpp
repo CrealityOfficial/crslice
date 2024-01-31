@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 Tomáš Mészáros @tamasmeszaros
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Utils_Time_hpp_
 #define slic3r_Utils_Time_hpp_
 
@@ -30,10 +34,6 @@ inline std::string utc_timestamp(time_t t)
 inline std::string utc_timestamp()
 {
     return utc_timestamp(get_current_time_utc());
-}
-
-inline std::string local_timestamp(TimeFormat fmt = TimeFormat::gcode) {
-     return time2str(get_current_time_utc(), TimeZone::local, fmt);
 }
 
 // String to time_t function. Returns time_t(-1) if fails to parse the input.

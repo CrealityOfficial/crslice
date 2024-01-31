@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2018 Colin Gilgenbach @hexane360
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "PostProcessor.hpp"
 
 #include "libslic3r/Utils.hpp"
@@ -5,22 +10,20 @@
 #include "libslic3r/I18N.hpp"
 
 #include <boost/algorithm/string.hpp>
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 
-// BBS
-#include <iostream>
-#include <fstream>
-
 #ifdef WIN32
 
 // The standard Windows includes.
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <Windows.h>
 #include <shellapi.h>
 
@@ -157,7 +160,7 @@ static int run_script(const std::string &script, const std::string &gcode, std::
 {
     // Try to obtain user's default shell
     const char *shell = ::getenv("SHELL");
-    if (shell == nullptr) { shell = "sh"; }
+    if (shell == nullptr) { shell = "/bin/sh"; }
 
     // Quote and escape the gcode path argument
     std::string command { script };
@@ -188,42 +191,6 @@ static int run_script(const std::string &script, const std::string &gcode, std::
 #endif
 
 namespace Slic3r {
-
-//! macro used to mark string used at localization,
-//! return same string
-#define L(s) (s)
-#define _(s) Slic3r::I18N::translate(s)
-
-// BBS
-void gcode_add_line_number(const std::string& path, const DynamicPrintConfig& config)
-{
-    const ConfigOptionBool* opt = config.opt<ConfigOptionBool>("gcode_add_line_number");
-    if (!opt->getBool())
-        return;
-
-    auto gcode_file = boost::filesystem::path(path);
-    if (!boost::filesystem::exists(gcode_file))
-        return;
-
-    std::fstream fs;
-    std::string new_gcode;
-    fs.open(gcode_file.c_str(), std::fstream::in | std::fstream::out);
-
-    size_t line_number = 1;
-    std::string gcode_line;
-    while (std::getline(fs, gcode_line)) {
-        char num_str[128];
-        memset(num_str, 0, sizeof(num_str));
-        snprintf(num_str, sizeof(num_str), "%zd", line_number);
-        new_gcode += std::string("N") + num_str + " " + gcode_line + "\n";
-        line_number++;
-    }
-
-    fs.clear();
-    fs.seekp(0, std::ios_base::beg);
-    fs.write(new_gcode.c_str(), new_gcode.length());
-    fs.close();
-}
 
 // Run post processing script / scripts if defined.
 // Returns true if a post-processing script was executed.
@@ -320,10 +287,10 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
                     throw Slic3r::RuntimeError(msg);
                 }
                 if (! boost::filesystem::exists(gcode_file)) {
-                    const std::string msg = (boost::format(_(L(
+                    const std::string msg = (boost::format(_u8L(
                         "Post-processing script %1% failed.\n\n"
                         "The post-processing script is expected to change the G-code file %2% in place, but the G-code file was deleted and likely saved under a new name.\n"
-                        "Please adjust the post-processing script to change the G-code in place and consult the manual on how to optionally rename the post-processed G-code file.\n")))
+                        "Please adjust the post-processing script to change the G-code in place and consult the manual on how to optionally rename the post-processed G-code file.\n"))
                         % script % path).str();
                     BOOST_LOG_TRIVIAL(error) << msg;
                     throw Slic3r::RuntimeError(msg);

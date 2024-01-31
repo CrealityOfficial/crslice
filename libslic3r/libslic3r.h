@@ -1,11 +1,22 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Tomáš Mészáros @tamasmeszaros, Vojtěch Bubník @bubnikv, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, Enrico Turri @enricoturri1966, Vojtěch Král @vojtechkral
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2016 Miro Hrončok @hroncok
+///|/ Copyright (c) 2014 Kamil Kwolek
+///|/
+///|/ ported from xs/src/libslic3r/libslic3r.h:
+///|/ Copyright (c) Prusa Research 2016 - 2019 Vojtěch Král @vojtechkral, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2016 Miro Hrončok @hroncok
+///|/ Copyright (c) 2014 Kamil Kwolek
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef _libslic3r_h_
 #define _libslic3r_h_
 
-#include "libslic3r_version.h"
-#define SLIC3R_APP_FULL_NAME "Orca Slicer"
-#define GCODEVIEWER_APP_NAME "OrcaSlicer G-code Viewer"
-#define GCODEVIEWER_APP_KEY  "OrcaSlicerGcodeViewer"
-#define GCODEVIEWER_BUILD_ID std::string("OrcaSlicer G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-RC")
+//#include "libslic3r_version.h"
+#define GCODEVIEWER_APP_NAME "PrusaSlicer G-code Viewer"
+#define GCODEVIEWER_APP_KEY  "PrusaSlicerGcodeViewer"
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <memory>
@@ -35,29 +46,13 @@
 #include "Technologies.hpp"
 #include "Semver.hpp"
 
-// Profiling support using the Shiny intrusive profiler
-//#define CLIPPER_UTILS_PROFILE
-#if defined(SLIC3R_PROFILE) && defined(CLIPPER_UTILS_PROFILE)
-#include <Shiny/Shiny.h>
-#define CLIPPERUTILS_PROFILE_FUNC() PROFILE_FUNC()
-#define CLIPPERUTILS_PROFILE_BLOCK(name) PROFILE_BLOCK(name)
-#else
-#define PROFILE_FUNC()
-#define PROFILE_BLOCK(name)
-#define CLIPPERUTILS_PROFILE_FUNC()
-#define CLIPPERUTILS_PROFILE_BLOCK(name)
-#define PROFILE_CLEAR()
-#define PROFILE_UPDATE()
-#define PROFILE_OUTPUT(name)
-#endif
-
-#define BOOST_LOG_TRIVIAL(x)  std::cout
+using coord_t = 
 #if 1
 // Saves around 32% RAM after slicing step, 6.7% after G-code export (tested on PrusaSlicer 2.2.0 final).
-using coord_t = int32_t;
+    int32_t;
 #else
-//FIXME At least FillRectilinear2 and std::boost Voronoi require coord_t to be 32bit.
-typedef int64_t coord_t;
+    //FIXME At least FillRectilinear2 and std::boost Voronoi require coord_t to be 32bit.
+    int64_t;
 #endif
 
 using coordf_t = double;
@@ -73,30 +68,18 @@ static constexpr double EPSILON = 1e-4;
 // int32_t fits an interval of (-2147.48mm, +2147.48mm)
 // with int64_t we don't have to worry anymore about the size of the int.
 static constexpr double SCALING_FACTOR = 0.000001;
-// for creating circles (for brim_ear)
-#define POLY_SIDES 24
 static constexpr double PI = 3.141592653589793238;
 // When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam.
-// SoftFever: replaced by seam_gap now
-// static constexpr double LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER = 0.15;
-static constexpr double RESOLUTION = 0.0125;
-#define                 SCALED_RESOLUTION (RESOLUTION / SCALING_FACTOR)
-static constexpr double SPARSE_INFILL_RESOLUTION = 0.04;
-#define                 SCALED_SPARSE_INFILL_RESOLUTION (SPARSE_INFILL_RESOLUTION / SCALING_FACTOR)
-
-static constexpr double SUPPORT_RESOLUTION = 0.05;
-#define                 SCALED_SUPPORT_RESOLUTION (SUPPORT_RESOLUTION / SCALING_FACTOR)
+static constexpr double LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER = 0.15;
 // Maximum perimeter length for the loop to apply the small perimeter speed. 
-#define                 SMALL_PERIMETER_LENGTH(LENGTH)  (((LENGTH) / SCALING_FACTOR) * 2 * PI)
+#define                 SMALL_PERIMETER_LENGTH  ((6.5 / SCALING_FACTOR) * 2 * PI)
 static constexpr double INSET_OVERLAP_TOLERANCE = 0.4;
 // 3mm ring around the top / bottom / bridging areas.
 //FIXME This is quite a lot.
-static constexpr double EXTERNAL_INFILL_MARGIN = 3;
-static constexpr double BRIDGE_INFILL_MARGIN = 1;
+static constexpr double EXTERNAL_INFILL_MARGIN = 3.;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
-#define unscale_(val) ((val) * SCALING_FACTOR)
 
 #define SCALED_EPSILON scale_(EPSILON)
 
@@ -104,13 +87,8 @@ static constexpr double BRIDGE_INFILL_MARGIN = 1;
 #define UNUSED(x) (void)(x)
 #endif /* UNUSED */
 
-//BBS: some global const config which user can not change, but developer can
-static constexpr bool g_config_support_sharp_tails = true;
-static constexpr bool g_config_remove_small_overhangs = true;
-static constexpr float g_config_tree_support_collision_resolution = 0.2;
-
 // Write slices as SVG images into out directory during the 2D processing of the slices.
-//#define SLIC3R_DEBUG_SLICE_PROCESSING
+// #define SLIC3R_DEBUG_SLICE_PROCESSING
 
 namespace Slic3r {
 
@@ -118,11 +96,11 @@ extern Semver SEMVER;
 
 // On MSVC, std::deque degenerates to a list of pointers, which defeats its purpose of reducing allocator load and memory fragmentation.
 template<class T, class Allocator = std::allocator<T>>
-using deque =
+using deque = 
 #ifdef _WIN32
     // Use boost implementation, which allocates blocks of 512 bytes instead of blocks of 8 bytes.
     boost::container::deque<T, Allocator>;
-#else  // _WIN32
+#else // _WIN32
     std::deque<T, Allocator>;
 #endif // _WIN32
 
@@ -135,36 +113,34 @@ enum Axis {
 	Z,
 	E,
 	F,
-    //BBS: add I, J, P axis
-    I,
-    J,
-    P,
 	NUM_AXES,
 	// For the GCodeReader to mark a parsed axis, which is not in "XYZEF", it was parsed correctly.
 	UNKNOWN_AXIS = NUM_AXES,
 	NUM_AXES_WITH_UNKNOWN,
 };
 
-template <typename T>
-inline void append(std::vector<T>& dest, const std::vector<T>& src)
+template <typename T, typename Alloc, typename Alloc2>
+inline void append(std::vector<T, Alloc> &dest, const std::vector<T, Alloc2> &src)
 {
     if (dest.empty())
-        dest = src;
+        dest = src; // copy
     else
         dest.insert(dest.end(), src.begin(), src.end());
 }
 
-template <typename T>
-inline void append(std::vector<T>& dest, std::vector<T>&& src)
+template <typename T, typename Alloc>
+inline void append(std::vector<T, Alloc> &dest, std::vector<T, Alloc> &&src)
 {
     if (dest.empty())
         dest = std::move(src);
     else {
-        dest.reserve(dest.size() + src.size());
-        std::move(std::begin(src), std::end(src), std::back_inserter(dest));
+        dest.insert(dest.end(),
+            std::make_move_iterator(src.begin()),
+            std::make_move_iterator(src.end()));
+        // Release memory of the source contour now.
+        src.clear();
+        src.shrink_to_fit();
     }
-    src.clear();
-    src.shrink_to_fit();
 }
 
 template<class T, class... Args> // Arbitrary allocator can be used
@@ -180,8 +156,8 @@ void clear_and_shrink(std::vector<T, Args...>& vec)
 template <typename T>
 inline void append_reversed(std::vector<T>& dest, const std::vector<T>& src)
 {
-    if (dest.empty())
-        dest = src;
+    if (dest.empty()) 
+        dest = {src.rbegin(), src.rend()};
     else
         dest.insert(dest.end(), src.rbegin(), src.rend());
 }
@@ -191,11 +167,13 @@ template <typename T>
 inline void append_reversed(std::vector<T>& dest, std::vector<T>&& src)
 {
     if (dest.empty())
-        dest = std::move(src);
-    else {
-        dest.reserve(dest.size() + src.size());
-        std::move(std::rbegin(src), std::rend(src), std::back_inserter(dest));
-    }
+        dest = {std::make_move_iterator(src.rbegin),
+                std::make_move_iterator(src.rend)};
+    else
+        dest.insert(dest.end(), 
+            std::make_move_iterator(src.rbegin()),
+            std::make_move_iterator(src.rend()));
+    // Release memory of the source contour now.
     src.clear();
     src.shrink_to_fit();
 }
@@ -295,12 +273,6 @@ constexpr inline T sqr(T x)
     return x * x;
 }
 
-template<typename Number> constexpr 
-inline bool is_zero(Number value)
-{
-    return std::fabs(double(value)) < 1e-6;
-}
-
 template <typename T, typename Number>
 constexpr inline T lerp(const T& a, const T& b, Number t)
 {
@@ -362,7 +334,8 @@ template<class T, class I, class... Args> // Arbitrary allocator can be used
 IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
 {
     std::vector<T, Args...> ret;
-    if (capacity > I(0)) ret.reserve(size_t(capacity));
+    if (capacity > I(0))
+        ret.reserve(size_t(capacity));
 
     return ret;
 }
@@ -370,6 +343,18 @@ IntegerOnly<I, std::vector<T, Args...>> reserve_vector(I capacity)
 // Borrowed from C++20
 template<class T>
 using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
+
+namespace detail_strip_ref_wrappers {
+template<class T> struct StripCVRef_ { using type = remove_cvref_t<T>; };
+template<class T> struct StripCVRef_<std::reference_wrapper<T>>
+{
+    using type = std::remove_cv_t<T>;
+};
+} // namespace detail
+
+// Removes reference wrappers as well
+template<class T> using  StripCVRef =
+    typename detail_strip_ref_wrappers::StripCVRef_<remove_cvref_t<T>>::type;
 
 // A very simple range concept implementation with iterator-like objects.
 // This should be replaced by std::ranges::subrange (C++20)
@@ -399,10 +384,52 @@ template<class Cont> auto range(Cont &&cont)
     return Range{std::begin(cont), std::end(cont)};
 }
 
+template<class Cont> auto crange(Cont &&cont)
+{
+    return Range{std::cbegin(cont), std::cend(cont)};
+}
+
+template<class IntType = int, class = IntegerOnly<IntType, void>>
+class IntIterator {
+    IntType m_val;
+public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using difference_type   = std::ptrdiff_t;
+    using value_type        = IntType;
+    using pointer           = IntType*;  // or also value_type*
+    using reference         = IntType&;  // or also value_type&
+
+    IntIterator(IntType v): m_val{v} {}
+
+    IntIterator & operator++() { ++m_val; return *this; }
+    IntIterator operator++(int) { auto cpy = *this; ++m_val; return cpy; }
+    IntIterator & operator--() { --m_val; return *this; }
+    IntIterator operator--(int) { auto cpy = *this; --m_val; return cpy; }
+
+    IntType operator*() const { return m_val; }
+    IntType operator->() const { return m_val; }
+
+    bool operator==(const IntIterator& other) const
+    {
+        return m_val == other.m_val;
+    }
+
+    bool operator!=(const IntIterator& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+template<class IntType, class = IntegerOnly<IntType>>
+auto range(IntType from, IntType to)
+{
+    return Range{IntIterator{from}, IntIterator{to}};
+}
+
 template<class T, class = FloatingOnly<T>>
 constexpr T NaN = std::numeric_limits<T>::quiet_NaN();
 
-constexpr float  NaNf = NaN<float>;
+constexpr float NaNf = NaN<float>;
 constexpr double NaNd = NaN<double>;
 
 // Rounding up.
@@ -426,6 +453,32 @@ inline IntegerOnly<I, I> fast_round_up(double a)
 
 template<class T> using SamePair = std::pair<T, T>;
 
+// Helper to be used in static_assert.
+template<class T> struct always_false { enum { value = false }; };
+
+// Map a generic function to each argument following the mapping function
+template<class Fn, class...Args>
+Fn for_each_argument(Fn &&fn, Args&&...args)
+{
+    // see https://www.fluentcpp.com/2019/03/05/for_each_arg-applying-a-function-to-each-argument-of-a-function-in-cpp/
+    (fn(std::forward<Args>(args)),...);
+
+    return fn;
+}
+
+// Call fn on each element of the input tuple tup.
+template<class Fn, class Tup>
+Fn for_each_in_tuple(Fn fn, Tup &&tup)
+{
+    auto mpfn = [&fn](auto&...pack) {
+        for_each_argument(fn, pack...);
+    };
+
+    std::apply(mpfn, tup);
+
+    return fn;
+}
+
 } // namespace Slic3r
 
-#endif
+#endif // _libslic3r_h_

@@ -1,3 +1,12 @@
+///|/ Copyright (c) Prusa Research 2016 - 2022 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena
+///|/
+///|/ ported from lib/Slic3r/Fill/Concentric.pm:
+///|/ Copyright (c) Prusa Research 2016 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2012 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "../ClipperUtils.hpp"
 #include "../ShortestPath.hpp"
 #include "../Surface.hpp"
@@ -6,9 +15,9 @@
 
 namespace Slic3r {
 
-class InfillPolylineClipper : public InfillPolylineOutput {
+class InfillPolylineClipper : public FillPlanePath::InfillPolylineOutput {
 public:
-    InfillPolylineClipper(const BoundingBox bbox, const double scale_out) : InfillPolylineOutput(scale_out), m_bbox(bbox) {}
+    InfillPolylineClipper(const BoundingBox bbox, const double scale_out) : FillPlanePath::InfillPolylineOutput(scale_out), m_bbox(bbox) {}
 
     void            add_point(const Vec2d &pt);
     Points&&        result() { return std::move(m_out); }

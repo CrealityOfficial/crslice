@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2022 - 2023 Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "../ClipperUtils.hpp"
 #include "../Layer.hpp"
 #include "../Polyline.hpp"
@@ -15,7 +19,7 @@ bool RetractWhenCrossingPerimeters::travel_inside_internal_regions(const Layer &
         m_aabbtree_internal_islands.clear();
         // Collect expolygons of internal slices.
         for (const LayerRegion *layerm : layer.regions())
-            for (const Surface &surface : layerm->get_slices().surfaces)
+            for (const Surface &surface : layerm->slices().surfaces)
                 if (surface.is_internal())
                     m_internal_islands.emplace_back(&surface.expolygon);
         // Calculate bounding boxes of internal slices.

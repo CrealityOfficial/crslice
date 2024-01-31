@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2021 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 // Polygon offsetting using Voronoi diagram prodiced by boost::polygon.
 
 #include "Geometry.hpp"
@@ -782,9 +786,6 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
 
     for (const VD::edge_type &edge : vd.edges())
         if (edge.vertex1() == nullptr) {
-            if (edge.vertex0() == nullptr)
-                continue;
-
             // Infinite Voronoi edge separating two Point sites or a Point site and a Segment site.
             // Infinite edge is always outside and it references at least one valid vertex.
             assert(edge.is_infinite());
@@ -891,9 +892,6 @@ void annotate_inside_outside(VD &vd, const Lines &lines)
     for (const VD::edge_type &edge : vd.edges()) {
         assert((edge_category(edge) == EdgeCategory::Unknown) == (edge_category(edge.twin()) == EdgeCategory::Unknown));
         if (edge_category(edge) == EdgeCategory::Unknown) {
-            if (!edge.is_finite())
-                continue;
-
             assert(edge.is_finite());
             const VD::cell_type &cell   = *edge.cell();
             const VD::cell_type &cell2  = *edge.twin()->cell();

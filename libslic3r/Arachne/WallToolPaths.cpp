@@ -2,7 +2,6 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include <algorithm> //For std::partition_copy and std::min_element.
-#include <unordered_set>
 
 #include "WallToolPaths.hpp"
 
@@ -16,44 +15,16 @@
 #include "SVG.hpp"
 #include "Utils.hpp"
 
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 //#define ARACHNE_STITCH_PATCH_DEBUG
 
 namespace Slic3r::Arachne
 {
 
-WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config)
-{
-    WallToolPathsParams input_params;
-    {
-        const double min_nozzle_diameter = *std::min_element(print_config.nozzle_diameter.values.begin(), print_config.nozzle_diameter.values.end());
-        if (const auto &min_feature_size_opt = print_object_config.min_feature_size)
-            input_params.min_feature_size = min_feature_size_opt.value * 0.01 * min_nozzle_diameter;
-
-        if (layer_id == 0) {
-            if (const auto &initial_layer_min_bead_width_opt = print_object_config.initial_layer_min_bead_width)
-                input_params.min_bead_width = initial_layer_min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
-        } else {
-            if (const auto &min_bead_width_opt = print_object_config.min_bead_width)
-                input_params.min_bead_width = min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
-        }
-
-        if (const auto &wall_transition_filter_deviation_opt = print_object_config.wall_transition_filter_deviation)
-            input_params.wall_transition_filter_deviation = wall_transition_filter_deviation_opt.value * 0.01 * min_nozzle_diameter;
-
-        if (const auto &wall_transition_length_opt = print_object_config.wall_transition_length)
-            input_params.wall_transition_length = wall_transition_length_opt.value * 0.01 * min_nozzle_diameter;
-
-        input_params.wall_transition_angle   = print_object_config.wall_transition_angle.value;
-        input_params.wall_distribution_count = print_object_config.wall_distribution_count.value;
-    }
-
-    return input_params;
-}
-
 WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0, const coord_t bead_width_x,
-                             const size_t inset_count, const coord_t wall_0_inset, const coordf_t layer_height, const WallToolPathsParams &params)
+                             const size_t inset_count, const coord_t wall_0_inset, const coordf_t layer_height,
+                             const PrintObjectConfig &print_object_config, const PrintConfig &print_config)
     : outline(outline)
     , bead_width_0(bead_width_0)
     , bead_width_x(bead_width_x)
@@ -61,13 +32,28 @@ WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0
     , wall_0_inset(wall_0_inset)
     , layer_height(layer_height)
     , print_thin_walls(Slic3r::Arachne::fill_outline_gaps)
-    , min_feature_size(scaled<coord_t>(params.min_feature_size))
-    , min_bead_width(scaled<coord_t>(params.min_bead_width))
+    , min_feature_size(scaled<coord_t>(print_object_config.min_feature_size.value))
+    , min_bead_width(scaled<coord_t>(print_object_config.min_bead_width.value))
     , small_area_length(static_cast<double>(bead_width_0) / 2.)
-    , wall_transition_filter_deviation(scaled<coord_t>(params.wall_transition_filter_deviation))
+    , wall_transition_filter_deviation(scaled<coord_t>(print_object_config.wall_transition_filter_deviation.value))
+    , wall_transition_length(scaled<coord_t>(print_object_config.wall_transition_length.value))
     , toolpaths_generated(false)
-    , m_params(params)
+    , print_object_config(print_object_config)
 {
+    assert(!print_config.nozzle_diameter.empty());
+    this->min_nozzle_diameter = float(*std::min_element(print_config.nozzle_diameter.values.begin(), print_config.nozzle_diameter.values.end()));
+
+    if (const auto &min_feature_size_opt = print_object_config.min_feature_size; min_feature_size_opt.percent)
+        this->min_feature_size = scaled<coord_t>(min_feature_size_opt.value * 0.01 * this->min_nozzle_diameter);
+
+    if (const auto &min_bead_width_opt = print_object_config.min_bead_width; min_bead_width_opt.percent)
+        this->min_bead_width = scaled<coord_t>(min_bead_width_opt.value * 0.01 * this->min_nozzle_diameter);
+
+    if (const auto &wall_transition_filter_deviation_opt = print_object_config.wall_transition_filter_deviation; wall_transition_filter_deviation_opt.percent)
+        this->wall_transition_filter_deviation = scaled<coord_t>(wall_transition_filter_deviation_opt.value * 0.01 * this->min_nozzle_diameter);
+
+    if (const auto &wall_transition_length_opt = print_object_config.wall_transition_length; wall_transition_length_opt.percent)
+        this->wall_transition_length = scaled<coord_t>(wall_transition_length_opt.value * 0.01 * this->min_nozzle_diameter);
 }
 
 void simplify(Polygon &thiss, const int64_t smallest_line_segment_squared, const int64_t allowed_error_distance_squared)
@@ -246,7 +232,7 @@ std::unique_ptr<LocToLineGrid>                                               cre
 void fixSelfIntersections(const coord_t epsilon, Polygons &thiss)
 {
     if (epsilon < 1) {
-        ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss));
+        ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss), ClipperLib::pftEvenOdd);
         return;
     }
 
@@ -287,7 +273,7 @@ void fixSelfIntersections(const coord_t epsilon, Polygons &thiss)
         }
     }
 
-    ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss));
+    ClipperLib::SimplifyPolygons(ClipperUtils::PolygonsProvider(thiss), ClipperLib::pftEvenOdd);
 }
 
 /*!
@@ -354,7 +340,7 @@ void removeSmallAreas(Polygons &thiss, const double min_area_size, const bool re
         }
     } else {
         // For each polygon, computes the signed area, move small outlines at the end of the vector and keep pointer on small holes
-        std::vector<Polygon> small_holes;
+        Polygons small_holes;
         for (auto it = thiss.begin(); it < new_end;) {
             if (double area = ClipperLib::Area(to_path(*it)); fabs(area) < min_area_size) {
                 if (area >= 0) {
@@ -469,7 +455,7 @@ const std::vector<VariableWidthLines> &WallToolPaths::generate()
     const coord_t smallest_segment = Slic3r::Arachne::meshfix_maximum_resolution;
     const coord_t allowed_distance = Slic3r::Arachne::meshfix_maximum_deviation;
     const coord_t epsilon_offset = (allowed_distance / 2) - 1;
-    const double  transitioning_angle = Geometry::deg2rad(m_params.wall_transition_angle);
+    const double  transitioning_angle = Geometry::deg2rad(this->print_object_config.wall_transition_angle.value);
     constexpr coord_t discretization_step_size = scaled<coord_t>(0.8);
 
     // Simplify outline for boost::voronoi consumption. Absolutely no self intersections or near-self intersections allowed:
@@ -498,12 +484,10 @@ const std::vector<VariableWidthLines> &WallToolPaths::generate()
     const float external_perimeter_extrusion_width = Flow::rounded_rectangle_extrusion_width_from_spacing(unscale<float>(bead_width_0), float(this->layer_height));
     const float perimeter_extrusion_width          = Flow::rounded_rectangle_extrusion_width_from_spacing(unscale<float>(bead_width_x), float(this->layer_height));
 
-    const coord_t wall_transition_length = scaled<coord_t>(this->m_params.wall_transition_length);
-	
-	const double wall_split_middle_threshold = std::clamp(2. * unscaled<double>(this->min_bead_width) / external_perimeter_extrusion_width - 1., 0.01, 0.99); // For an uneven nr. of lines: When to split the middle wall into two.
+    const double wall_split_middle_threshold = std::clamp(2. * unscaled<double>(this->min_bead_width) / external_perimeter_extrusion_width - 1., 0.01, 0.99); // For an uneven nr. of lines: When to split the middle wall into two.
     const double wall_add_middle_threshold   = std::clamp(unscaled<double>(this->min_bead_width) / perimeter_extrusion_width, 0.01, 0.99); // For an even nr. of lines: When to add a new middle in between the innermost two walls.
-    
-    const int wall_distribution_count = this->m_params.wall_distribution_count;
+
+    const int wall_distribution_count = this->print_object_config.wall_distribution_count.value;
     const size_t max_bead_count = (inset_count < std::numeric_limits<coord_t>::max() / 2) ? 2 * inset_count : std::numeric_limits<coord_t>::max();
     const auto beading_strat = BeadingStrategyFactory::makeStrategy
         (
@@ -782,9 +766,9 @@ bool WallToolPaths::removeEmptyToolPaths(std::vector<VariableWidthLines> &toolpa
      *
      * \param outer_to_inner Whether the wall polygons with a lower inset_idx should go before those with a higher one.
  */
-std::unordered_set<std::pair<const ExtrusionLine *, const ExtrusionLine *>, boost::hash<std::pair<const ExtrusionLine *, const ExtrusionLine *>>> WallToolPaths::getRegionOrder(const std::vector<ExtrusionLine *> &input, const bool outer_to_inner)
+WallToolPaths::ExtrusionLineSet WallToolPaths::getRegionOrder(const std::vector<ExtrusionLine *> &input, const bool outer_to_inner)
 {
-    std::unordered_set<std::pair<const ExtrusionLine *, const ExtrusionLine *>, boost::hash<std::pair<const ExtrusionLine *, const ExtrusionLine *>>> order_requirements;
+    ExtrusionLineSet order_requirements;
 
     // We build a grid where we map toolpath vertex locations to toolpaths,
     // so that we can easily find which two toolpaths are next to each other,

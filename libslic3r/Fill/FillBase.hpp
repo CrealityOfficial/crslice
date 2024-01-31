@@ -1,3 +1,12 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Vojtěch Král @vojtechkral
+///|/ Copyright (c) SuperSlicer 2019 Remi Durand @supermerill
+///|/
+///|/ ported from lib/Slic3r/Fill/Base.pm:
+///|/ Copyright (c) Prusa Research 2016 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2014 Alessandro Ranellucci @alranel
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_FillBase_hpp_
 #define slic3r_FillBase_hpp_
 
@@ -14,11 +23,7 @@
 #include "../Exception.hpp"
 #include "../Utils.hpp"
 #include "../ExPolygon.hpp"
-//BBS: necessary header for new function
 #include "../PrintConfig.hpp"
-#include "../Flow.hpp"
-#include "../ExtrusionEntity.hpp"
-#include "../ExtrusionEntityCollection.hpp"
 
 namespace Slic3r {
 
@@ -64,19 +69,9 @@ struct FillParams
     bool        complete 		{ false };
 
     // For Concentric infill, to switch between Classic and Arachne.
-    bool        use_arachne{ false };
+    bool        use_arachne     { false };
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
-
-    // BBS
-    Flow            flow;
-    ExtrusionRole   extrusion_role{ ExtrusionRole(0) };
-    bool            using_internal_flow{ false };
-    //BBS: only used for new top surface pattern
-    float           no_extrusion_overlap{ 0.0 };
-    const           PrintRegionConfig* config{ nullptr };
-    bool            dont_sort{ false }; // do not sort the lines, just simply connect them
-    bool            can_reverse{true};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
@@ -109,12 +104,6 @@ public:
     const PrintConfig       *print_config        = nullptr;
     const PrintObjectConfig *print_object_config = nullptr;
 
-    // BBS: all no overlap expolygons in same layer
-    ExPolygons  no_overlap_expolygons;
-
-    static float infill_anchor;
-    static float infill_anchor_max;
-
 public:
     virtual ~Fill() {}
     virtual Fill* clone() const = 0;
@@ -133,11 +122,7 @@ public:
 
     // Perform the fill.
     virtual Polylines fill_surface(const Surface *surface, const FillParams &params);
-    virtual ThickPolylines fill_surface_arachne(const Surface* surface, const FillParams& params);
-
-    // BBS: this method is used to fill the ExtrusionEntityCollection.
-    // It call fill_surface by default
-    virtual void fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out);
+    virtual ThickPolylines fill_surface_arachne(const Surface *surface, const FillParams &params);
 
 protected:
     Fill() :
@@ -156,24 +141,24 @@ protected:
 
     // The expolygon may be modified by the method to avoid a copy.
     virtual void    _fill_surface_single(
-        const FillParams                & /* params */, 
+        const FillParams                & /* params */,
         unsigned int                      /* thickness_layers */,
-        const std::pair<float, Point>   & /* direction */, 
+        const std::pair<float, Point>   & /* direction */,
         ExPolygon                         /* expolygon */,
-        Polylines                       & /* polylines_out */) {};
+        Polylines                       & /* polylines_out */) {}
 
     // Used for concentric infill to generate ThickPolylines using Arachne.
-    virtual void _fill_surface_single(const FillParams& params,
-        unsigned int                   thickness_layers,
-        const std::pair<float, Point>& direction,
-        ExPolygon                      expolygon,
-        ThickPolylines& thick_polylines_out) {}
+    virtual void _fill_surface_single(const FillParams              &params,
+                                      unsigned int                   thickness_layers,
+                                      const std::pair<float, Point> &direction,
+                                      ExPolygon                      expolygon,
+                                      ThickPolylines                &thick_polylines_out) {}
 
     virtual float _layer_angle(size_t idx) const { return (idx & 1) ? float(M_PI/2.) : 0; }
 
-    virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
 
 public:
+    virtual std::pair<float, Point> _infill_direction(const Surface *surface) const;
     static void connect_infill(Polylines &&infill_ordered, const ExPolygon &boundary, Polylines &polylines_out, const double spacing, const FillParams &params);
     static void connect_infill(Polylines &&infill_ordered, const Polygons &boundary, const BoundingBox& bbox, Polylines &polylines_out, const double spacing, const FillParams &params);
     static void connect_infill(Polylines &&infill_ordered, const std::vector<const Polygon*> &boundary, const BoundingBox &bbox, Polylines &polylines_out, double spacing, const FillParams &params);

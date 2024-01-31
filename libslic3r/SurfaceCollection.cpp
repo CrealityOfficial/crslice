@@ -1,3 +1,9 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2013 - 2015 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "SurfaceCollection.hpp"
 #include "BoundingBox.hpp"
 #include "SVG.hpp"
@@ -22,23 +28,23 @@ void SurfaceCollection::simplify(double tolerance)
 }
 
 /* group surfaces by common properties */
-void SurfaceCollection::group(std::vector<SurfacesPtr> *retval)
+void SurfaceCollection::group(std::vector<SurfacesPtr> *retval) const
 {
-    for (Surfaces::iterator it = this->surfaces.begin(); it != this->surfaces.end(); ++it) {
+    for (const Surface &surface : this->surfaces) {
         // find a group with the same properties
-        SurfacesPtr* group = NULL;
+        SurfacesPtr *group = nullptr;
         for (std::vector<SurfacesPtr>::iterator git = retval->begin(); git != retval->end(); ++git)
-            if (! git->empty() && surfaces_could_merge(*git->front(), *it)) {
+            if (! git->empty() && surfaces_could_merge(*git->front(), surface)) {
                 group = &*git;
                 break;
             }
         // if no group with these properties exists, add one
-        if (group == NULL) {
+        if (group == nullptr) {
             retval->resize(retval->size() + 1);
             group = &retval->back();
         }
         // append surface to group
-        group->push_back(&*it);
+        group->push_back(&surface);
     }
 }
 
@@ -60,7 +66,7 @@ SurfacesPtr SurfaceCollection::filter_by_types(std::initializer_list<SurfaceType
     return ss;
 }
 
-void SurfaceCollection::filter_by_type(SurfaceType type, Polygons* polygons) const
+void SurfaceCollection::filter_by_type(SurfaceType type, Polygons *polygons) const
 {
     for (const Surface &surface : this->surfaces)
         if (surface.surface_type == type)

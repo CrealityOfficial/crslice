@@ -31,6 +31,14 @@ const Point& Polyline::leftmost_point() const
     return *p;
 }
 
+double Polyline::length() const
+{
+    double l = 0;
+    for (size_t i = 1; i < this->points.size(); ++ i)
+        l += (this->points[i] - this->points[i - 1]).cast<double>().norm();
+    return l;
+}
+
 Lines Polyline::lines() const
 {
     Lines lines;
@@ -43,63 +51,21 @@ Lines Polyline::lines() const
     return lines;
 }
 
-void Polyline::reverse()
-{
-    //BBS: reverse points
-    MultiPoint::reverse();
-    //BBS: reverse the fitting_result
-    if (!this->fitting_result.empty()) {
-        for (size_t i = 0; i < this->fitting_result.size(); i++) {
-            std::swap(fitting_result[i].start_point_index, fitting_result[i].end_point_index);
-            fitting_result[i].start_point_index = MultiPoint::size() - 1 - fitting_result[i].start_point_index;
-            fitting_result[i].end_point_index = MultiPoint::size() - 1 - fitting_result[i].end_point_index;
-            if (fitting_result[i].is_arc_move())
-                fitting_result[i].reverse_arc_path();
-        }
-        std::reverse(this->fitting_result.begin(), this->fitting_result.end());
-    }
-}
-
 // removes the given distance from the end of the polyline
 void Polyline::clip_end(double distance)
 {
-    bool last_point_inserted = false;
-    size_t remove_after_index = MultiPoint::size();
     while (distance > 0) {
         Vec2d  last_point = this->last_point().cast<double>();
         this->points.pop_back();
-        remove_after_index--;
-        if (this->points.empty()) {
-            this->fitting_result.clear();
-            return;
-        }
+        if (this->points.empty())
+            break;
         Vec2d  v    = this->last_point().cast<double>() - last_point;
         double lsqr = v.squaredNorm();
         if (lsqr > distance * distance) {
             this->points.emplace_back((last_point + v * (distance / sqrt(lsqr))).cast<coord_t>());
-            last_point_inserted = true;
-            break;
+            return;
         }
         distance -= sqrt(lsqr);
-    }
-
-    //BBS: don't need to clip fitting result if it's empty
-    if (fitting_result.empty())
-        return;
-    while (!fitting_result.empty() && fitting_result.back().start_point_index >= remove_after_index)
-        fitting_result.pop_back();
-    if (!fitting_result.empty()) {
-        //BBS: last remaining segment is arc move, then clip the arc at last point
-        if (fitting_result.back().path_type == EMovePathType::Arc_move_ccw
-            || fitting_result.back().path_type == EMovePathType::Arc_move_cw) {
-            if (fitting_result.back().arc_data.clip_end(this->last_point()))
-                //BBS: succeed to clip arc, then update the last point
-                this->points.back() = fitting_result.back().arc_data.end_point;
-            else
-                //BBS: Failed to clip arc, then back to linear move
-                fitting_result.back().path_type = EMovePathType::Linear_move;
-        }
-        fitting_result.back().end_point_index = this->points.size() - 1;
     }
 }
 
@@ -114,17 +80,16 @@ void Polyline::clip_start(double distance)
 
 void Polyline::extend_end(double distance)
 {
-    //BBS: append a new last point by extending the last segment by the specified length
+    // relocate last point by extending the last segment by the specified length
     Vec2d v = (this->points.back() - *(this->points.end() - 2)).cast<double>().normalized();
-    Point new_last_point = this->points.back() + (v * distance).cast<coord_t>();
-    this->append(new_last_point);
+    this->points.back() += (v * distance).cast<coord_t>();
 }
 
 void Polyline::extend_start(double distance)
 {
-    this->reverse();
-    this->extend_end(distance);
-    this->reverse();
+    // relocate first point by extending the first segment by the specified length
+    Vec2d v = (this->points.front() - this->points[1]).cast<double>().normalized();
+    this->points.front() += (v * distance).cast<coord_t>();
 }
 
 /* this method returns a collection of points picked on the polygon contour
@@ -157,55 +122,7 @@ Points Polyline::equally_spaced_points(double distance) const
 
 void Polyline::simplify(double tolerance)
 {
-    this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
-    this->fitting_result.clear();
-}
-
-void Polyline::simplify_by_fitting_arc(double tolerance)
-{
-    //BBS: do arc fit first, then use DP simplify to handle the straight part to reduce point.
-    ArcFitter::do_arc_fitting_and_simplify(this->points, this->fitting_result, tolerance);
-}
-
-Polylines Polyline::equally_spaced_lines(double distance) const
-{
-    Polylines lines;
-    Polyline line;
-    line.append(this->first_point());
-    double len = 0;
-
-    for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
-        Vec2d  p1 = line.points.back().cast<double>();
-        Vec2d  v = it->cast<double>() - p1;
-        double segment_length = v.norm();
-        len += segment_length;
-        if (len < distance)
-            continue;
-        if (len == distance) {
-            line.append(*it);
-            lines.emplace_back(line);
-            
-            line.clear();
-            line.append(*it);
-            len = 0;
-            continue;
-        }
-        double take = distance;  // how much we take of this segment
-        line.append((p1 + v * (take / v.norm())).cast<coord_t>());
-        lines.emplace_back(line);
-
-        line.clear();
-        line.append(lines.back().last_point());
-        --it;
-        len = -take;
-    }
-    // add the last reminder
-    if (line.size() == 1) {
-        line.append(this->last_point());
-        if(line.first_point()!=line.last_point())
-            lines.emplace_back(line);
-    }
-    return lines;
+    this->points = MultiPoint::douglas_peucker(this->points, tolerance);
 }
 
 #if 0
@@ -232,83 +149,42 @@ template void Polyline::simplify_by_visibility<ExPolygon>(const ExPolygon &area)
 template void Polyline::simplify_by_visibility<ExPolygonCollection>(const ExPolygonCollection &area);
 #endif
 
-void Polyline::split_at(Point &point, Polyline* p1, Polyline* p2) const
+void Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
 {
-    if (this->points.empty()) return;
-
-    //0 judge whether the point is on the polyline
-    int index = this->find_point(point);
-    if (index != -1) {
-        //BBS: the spilit point is on the polyline, then easy
-        split_at_index(index, p1, p2);
-        point = p1->is_valid()? p1->last_point(): p2->first_point();
+    if (this->size() < 2) {
+        *p1 = *this;
+        p2->clear();
         return;
     }
-    
-    //1 find the line to split at
-    size_t line_idx = 0;
-    Point p = this->first_point();
-    double min = (p - point).cast<double>().norm();
-    Lines lines = this->lines();
-    for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
-        Point p_tmp = point.projection_onto(*line);
-        if ((p_tmp - point).cast<double>().norm() < min) {
-	        p = p_tmp;
-	        min = (p - point).cast<double>().norm();
-	        line_idx = line - lines.begin();
-        }
-    }
 
-    //2 judge whether the cloest point is one vertex of polyline.
-    //  and spilit the polyline at different index
-    index = this->find_point(p);
-    if (index != -1)
-    {
-        this->split_at_index(index, p1, p2);
-        p1->append(point);
-        p2->append_before(point);
-    } else {
-        Polyline temp;
-        this->split_at_index(line_idx, p1, &temp);
-        p1->append(point);
-        this->split_at_index(line_idx + 1, &temp, p2);
-        p2->append_before(point);
-    }
-}
-
-
-bool Polyline::split_at_index(const size_t index, Polyline* p1, Polyline* p2) const
-{
-    if (index > this->size() - 1)
-        return false;
-
-    if (index == 0) {
-        p1->clear();
-        p1->append(this->first_point());
+    if (this->points.front() == point) {
+        //FIXME why is p1 NOT empty as in the case above?
+        *p1 = { point };
         *p2 = *this;
-    } else if (index == this->size() - 1) {
-        p2->clear();
-        p2->append(this->last_point());
-        *p1 = *this;
-    } else {
-        //BBS: spilit first part
-        p1->clear();
-        p1->points.reserve(index + 1);
-        p1->points.insert(p1->begin(), this->begin(), this->begin() + index + 1);
-        Point new_endpoint;
-        if (this->split_fitting_result_before_index(index, new_endpoint, p1->fitting_result))
-            p1->points.back() = new_endpoint;
-
-        p2->clear();
-        p2->points.reserve(this->size() - index);
-        p2->points.insert(p2->begin(), this->begin() + index, this->end());
-        Point new_startpoint;
-        if (this->split_fitting_result_after_index(index, new_startpoint, p2->fitting_result))
-            p2->points.front() = new_startpoint;
+        return;
     }
-    return true;
-}
 
+    auto  min_dist2    = std::numeric_limits<double>::max();
+    auto  min_point_it = this->points.cbegin();
+    Point prev         = this->points.front();
+    for (auto it = this->points.cbegin() + 1; it != this->points.cend(); ++ it) {
+        Point proj;
+        if (double d2 = line_alg::distance_to_squared(Line(prev, *it), point, &proj); d2 < min_dist2) {
+	        min_dist2    = d2;
+	        min_point_it = it;
+        }
+        prev = *it;
+    }
+
+    p1->points.assign(this->points.cbegin(), min_point_it);
+    if (p1->points.back() != point)
+        p1->points.emplace_back(point);
+    
+    p2->points = { point };
+    if (*min_point_it == point)
+        ++ min_point_it;
+    p2->points.insert(p2->points.end(), min_point_it, this->points.cend());
+}
 
 bool Polyline::is_straight() const
 {
@@ -320,165 +196,6 @@ bool Polyline::is_straight() const
         if (! line.parallel_to(dir))
             return false;
     return true;
-}
-
-void Polyline::append(const Polyline &src)
-{
-    if (!src.is_valid()) return;
-
-    if (this->points.empty()) {
-        this->points = src.points;
-        this->fitting_result = src.fitting_result;
-    } else {
-        //BBS: append the first point to create connection first, update the fitting date as well
-        this->append(src.points[0]);
-        //BBS: append a polyline which has fitting data to a polyline without fitting data.
-        //Then create a fake fitting data first, so that we can keep the fitting data in last polyline
-        if (this->fitting_result.empty() &&
-            !src.fitting_result.empty()) {
-            this->fitting_result.emplace_back(PathFittingData{ 0, this->points.size() - 1, EMovePathType::Linear_move, ArcSegment() });
-        }
-        //BBS: then append the remain points
-        MultiPoint::append(src.points.begin() + 1, src.points.end());
-        //BBS: finally append the fitting data
-        append_fitting_result_after_append_polyline(src);
-    }
-}
-
-void Polyline::append(Polyline &&src)
-{
-    if (!src.is_valid()) return;
-
-    if (this->points.empty()) {
-        this->points = std::move(src.points);
-        this->fitting_result = std::move(src.fitting_result);
-    } else {
-        //BBS: append the first point to create connection first, update the fitting date as well
-        this->append(src.points[0]);
-        //BBS: append a polyline which has fitting data to a polyline without fitting data.
-        //Then create a fake fitting data first, so that we can keep the fitting data in last polyline
-        if (this->fitting_result.empty() &&
-            !src.fitting_result.empty()) {
-            this->fitting_result.emplace_back(PathFittingData{ 0, this->points.size() - 1, EMovePathType::Linear_move, ArcSegment() });
-        }
-        //BBS: then append the remain points
-        MultiPoint::append(src.points.begin() + 1, src.points.end());
-        //BBS: finally append the fitting data
-        append_fitting_result_after_append_polyline(src);
-        src.points.clear();
-        src.fitting_result.clear();
-    }
-}
-
-void Polyline::append_fitting_result_after_append_points() {
-    if (!fitting_result.empty()) {
-        if (fitting_result.back().is_linear_move()) {
-            fitting_result.back().end_point_index = this->points.size() - 1;
-        } else {
-            size_t new_start = fitting_result.back().end_point_index;
-            size_t new_end = this->points.size() - 1;
-            if (new_start != new_end)
-                fitting_result.emplace_back(PathFittingData{ new_start, new_end, EMovePathType::Linear_move, ArcSegment() });
-        }
-    }
-}
-
-void Polyline::append_fitting_result_after_append_polyline(const Polyline& src)
-{
-    if (!this->fitting_result.empty()) {
-        //BBS: offset and save the fitting_result from src polyline
-        if (!src.fitting_result.empty()) {
-            size_t old_size = this->fitting_result.size();
-            size_t index_offset = this->fitting_result.back().end_point_index;
-            this->fitting_result.insert(this->fitting_result.end(), src.fitting_result.begin(), src.fitting_result.end());
-            for (size_t i = old_size; i < this->fitting_result.size(); i++) {
-                this->fitting_result[i].start_point_index += index_offset;
-                this->fitting_result[i].end_point_index += index_offset;
-            }
-        } else {
-            //BBS: the append polyline has no fitting data, then append as linear move directly
-            size_t new_start = this->fitting_result.back().end_point_index;
-            size_t new_end = this->size() - 1;
-            if (new_start != new_end)
-                this->fitting_result.emplace_back(PathFittingData{ new_start, new_end, EMovePathType::Linear_move, ArcSegment() });
-        }
-    }
-}
-
-void Polyline::reset_to_linear_move()
-{
-    this->fitting_result.clear();
-    fitting_result.emplace_back(PathFittingData{ 0, points.size() - 1, EMovePathType::Linear_move, ArcSegment() });
-    this->fitting_result.shrink_to_fit();
-}
-
-bool Polyline::split_fitting_result_before_index(const size_t index, Point& new_endpoint, std::vector<PathFittingData>& data) const
-{
-    data.clear();
-    new_endpoint = this->points[index];
-    if (!this->fitting_result.empty()) {
-        //BBS: max size
-        data.reserve(this->fitting_result.size());
-        //BBS: save fitting result before index
-        for (size_t i = 0; i < this->fitting_result.size(); i++)
-        {
-            if (this->fitting_result[i].start_point_index < index)
-                data.push_back(this->fitting_result[i]);
-            else
-                break;
-        }
-
-        if (!data.empty()) {
-            //BBS: need to clip the arc and generate new end point
-            if (data.back().is_arc_move() && data.back().end_point_index > index) {
-                if (!data.back().arc_data.clip_end(this->points[index]))
-                    //BBS: failed to clip arc, then return to be linear move
-                    data.back().path_type = EMovePathType::Linear_move;
-                else
-                    //BBS: succeed to clip arc, then update and return the new end point
-                    new_endpoint = data.back().arc_data.end_point;
-            }
-            data.back().end_point_index = index;
-        }
-        data.shrink_to_fit();
-        return true;
-    }
-    return false;
-}
-bool Polyline::split_fitting_result_after_index(const size_t index, Point& new_startpoint, std::vector<PathFittingData>& data) const
-{
-    data.clear();
-    new_startpoint = this->points[index];
-    if (!this->fitting_result.empty()) {
-        data.reserve(this->fitting_result.size());
-        for (size_t i = 0; i < this->fitting_result.size(); i++) {
-            if (this->fitting_result[i].end_point_index > index)
-                data.push_back(this->fitting_result[i]);
-        }
-        if (!data.empty()) {
-            for (size_t i = 0; i < data.size(); i++) {
-                if (i != 0) {
-                    data[i].start_point_index -= index;
-                    data[i].end_point_index -= index;
-                } else {
-                    data[i].end_point_index -= index;
-                    //BBS: need to clip the arc and generate new start point
-                    if (data.front().is_arc_move() && data.front().start_point_index < index) {
-                        if (!data.front().arc_data.clip_start(this->points[index]))
-                            //BBS: failed to clip arc, then return to be linear move
-                            data.front().path_type = EMovePathType::Linear_move;
-                        else
-                            //BBS: succeed to clip arc, then update and return the new start point
-                            new_startpoint = data.front().arc_data.start_point;
-                    }
-                    data[i].start_point_index = 0;
-                }
-            }
-        }
-        data.shrink_to_fit();
-        return true;
-    }
-    return false;
 }
 
 BoundingBox get_extents(const Polyline &polyline)
@@ -497,10 +214,37 @@ BoundingBox get_extents(const Polylines &polylines)
     return bb;
 }
 
+// Return True when erase some otherwise False.
+bool remove_same_neighbor(Polyline &polyline) {
+    Points &points = polyline.points;
+    if (points.empty())
+        return false;
+    auto last = std::unique(points.begin(), points.end());
+
+    // no duplicits
+    if (last == points.end())
+        return false;
+
+    points.erase(last, points.end());
+    return true;
+}
+
+bool remove_same_neighbor(Polylines &polylines){
+    if (polylines.empty())
+        return false;
+    bool exist = false;
+    for (Polyline &polyline : polylines)
+        exist |= remove_same_neighbor(polyline);
+    // remove empty polylines
+    polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [](const Polyline &p) { return p.points.size() <= 1; }), polylines.end());
+    return exist;
+}
+
+
 const Point& leftmost_point(const Polylines &polylines)
 {
     if (polylines.empty())
-        throw Slic3r::InvalidArgument("leftmost_point() called on empty PolylineCollection");
+        throw Slic3r::InvalidArgument("leftmost_point() called on empty Polylines");
     Polylines::const_iterator it = polylines.begin();
     const Point *p = &it->leftmost_point();
     for (++ it; it != polylines.end(); ++it) {
@@ -530,17 +274,17 @@ bool remove_degenerate(Polylines &polylines)
 
 std::pair<int, Point> foot_pt(const Points &polyline, const Point &pt)
 {
-    if (polyline.size() < 2) return std::make_pair(-1, Point(0, 0));
+    if (polyline.size() < 2)
+        return std::make_pair(-1, Point(0, 0));
 
-    auto  d2_min = std::numeric_limits<double>::max();
+    auto  d2_min  = std::numeric_limits<double>::max();
     Point foot_pt_min;
-    Point prev    = polyline.front();
-    auto  it      = polyline.begin();
+    Point prev = polyline.front();
+    auto  it = polyline.begin();
     auto  it_proj = polyline.begin();
-    for (++it; it != polyline.end(); ++it) {
-        Point  foot_pt = pt.projection_onto(Line(prev, *it));
-        double d2      = (foot_pt - pt).cast<double>().squaredNorm();
-        if (d2 < d2_min) {
+    for (++ it; it != polyline.end(); ++ it) {
+        Point foot_pt;
+        if (double d2 = line_alg::distance_to_squared(Line(prev, *it), pt, &foot_pt); d2 < d2_min) {
             d2_min      = d2;
             foot_pt_min = foot_pt;
             it_proj     = it;
@@ -561,6 +305,39 @@ ThickLines ThickPolyline::thicklines() const
     return lines;
 }
 
+// Removes the given distance from the end of the ThickPolyline
+void ThickPolyline::clip_end(double distance)
+{
+    if (! this->empty()) {
+        assert(this->width.size() == (this->points.size() - 1) * 2);
+        while (distance > 0) {
+            Vec2d last_point = this->last_point().cast<double>();
+            this->points.pop_back();
+            if (this->points.empty()) {
+                assert(this->width.empty());
+                break;
+            }
+            coordf_t last_width = this->width.back();
+            this->width.pop_back();
+
+            Vec2d    vec            = this->last_point().cast<double>() - last_point;
+            coordf_t width_diff     = this->width.back() - last_width;
+            double   vec_length_sqr = vec.squaredNorm();
+            if (vec_length_sqr > distance * distance) {
+                double t = (distance / std::sqrt(vec_length_sqr));
+                this->points.emplace_back((last_point + vec * t).cast<coord_t>());
+                this->width.emplace_back(last_width + width_diff * t);
+                assert(this->width.size() == (this->points.size() - 1) * 2);
+                return;
+            } else
+                this->width.pop_back();
+
+            distance -= std::sqrt(vec_length_sqr);
+        }
+    }
+    assert(this->points.empty() ? this->width.empty() : this->width.size() == (this->points.size() - 1) * 2);
+}
+
 void ThickPolyline::start_at_index(int index)
 {
     assert(index >= 0 && index < this->points.size());
@@ -572,6 +349,14 @@ void ThickPolyline::start_at_index(int index)
         std::rotate(this->width.begin(), this->width.begin() + 2 * index, this->width.end());
         this->points.emplace_back(this->points.front());
     }
+}
+
+double Polyline3::length() const
+{
+    double l = 0;
+    for (size_t i = 1; i < this->points.size(); ++ i)
+        l += (this->points[i] - this->points[i - 1]).cast<double>().norm();
+    return l;
 }
 
 Lines3 Polyline3::lines() const

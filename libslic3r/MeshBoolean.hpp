@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef libslic3r_MeshBoolean_hpp_
 #define libslic3r_MeshBoolean_hpp_
 
@@ -29,8 +33,6 @@ struct CGALMeshDeleter { void operator()(CGALMesh *ptr); };
 using CGALMeshPtr = std::unique_ptr<CGALMesh, CGALMeshDeleter>;
 
 CGALMeshPtr clone(const CGALMesh &m);
-
-void save_CGALMesh(const std::string& fname, const CGALMesh& cgal_mesh);
 
 CGALMeshPtr triangle_mesh_to_cgal(
     const std::vector<stl_vertex> &V,
@@ -64,34 +66,10 @@ void intersect(CGALMesh &A, CGALMesh &B);
 bool does_self_intersect(const TriangleMesh &mesh);
 bool does_self_intersect(const CGALMesh &mesh);
 
-//BBS
-std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alpha = 0.5, int segment_number = 5);
-TriangleMesh merge(std::vector<TriangleMesh> meshes);
-
 bool does_bound_a_volume(const CGALMesh &mesh);
 bool empty(const CGALMesh &mesh);
+
 }
-
-namespace mcut {
-struct McutMesh;
-struct McutMeshDeleter
-{
-    void operator()(McutMesh *ptr);
-};
-using McutMeshPtr = std::unique_ptr<McutMesh, McutMeshDeleter>;
-bool empty(const McutMesh &mesh);
-
-McutMeshPtr  triangle_mesh_to_mcut(const indexed_triangle_set &M);
-TriangleMesh mcut_to_triangle_mesh(const McutMesh &mcutmesh);
-
-// do boolean and save result to srcMesh
-void do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
-
-std::vector<TriangleMesh> make_boolean(const McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts);
-
-// do boolean and convert result to TriangleMesh
-void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts);
-} // namespace mcut
 
 } // namespace MeshBoolean
 } // namespace Slic3r

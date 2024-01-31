@@ -86,10 +86,6 @@ private:
     bool                            m_retracted;
     bool                            m_use_relative_e_distances;
 
-	// Maximum segment length to split a long segment if the initial and the final flow rate differ.
-	// Smaller value means a smoother transition between two different flow rates.
-    float                           m_max_segment_length;
-
     // Indicate if extrude set speed block was opened using the tag ";_EXTRUDE_SET_SPEED"
     // or not (not opened, or it was closed using the tag ";_EXTRUDE_END").
     bool                            opened_extrude_set_speed_block = false;
@@ -189,12 +185,11 @@ private:
 #endif
 
     bool process_line(const char *line, const char *line_end, GCodeLine &buf);
-    long advance_segment_beyond_small_gap(long idx_cur_pos);
     void output_gcode_line(size_t line_idx);
 
     // Go back from the current circular_buffer_pos and lower the feedtrate to decrease the slope of the extrusion rate changes.
     // Then go forward and adjust the feedrate to decrease the slope of the extrusion rate changes.
-    void adjust_volumetric_rate(size_t first_line_idx, size_t last_line_idx);
+    void adjust_volumetric_rate();
 
     // Push the text to the end of the output_buffer.
     inline void push_to_output(GCodeG1Formatter &formatter);

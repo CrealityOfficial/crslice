@@ -1,10 +1,18 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef GUI_THREAD_HPP
 #define GUI_THREAD_HPP
 
 #include <utility>
 #include <string>
 #include <thread>
+#include <random>
 #include <boost/thread.hpp>
+
+#include <tbb/task_scheduler_observer.h>
+#include <tbb/enumerable_thread_specific.h>
 
 namespace Slic3r {
 
@@ -33,6 +41,10 @@ boost::thread::id get_main_thread_id();
 // Checks whether the main (UI) thread is active.
 bool is_main_thread_active();
 
+// OSX specific: Set Quality of Service to "user initiated", so that the threads will be scheduled to high performance
+// cores if available.
+void set_current_thread_qos();
+
 // Returns nullopt if not supported.
 // Not supported by OSX.
 // Naming threads is only supported on newer Windows 10.
@@ -59,6 +71,42 @@ template<class Fn> inline boost::thread create_thread(Fn &&fn)
     boost::thread::attributes attrs;
     return create_thread(attrs, std::forward<Fn>(fn));    
 }
+
+class ThreadData {
+public:
+    std::mt19937&   random_generator() {
+        if (! m_random_generator_initialized) {
+            std::random_device rd;
+            m_random_generator.seed(rd());
+            m_random_generator_initialized = true;
+        }
+        return m_random_generator;
+    }
+
+    void            tbb_worker_thread_set_c_locales();
+
+private:
+    std::mt19937    m_random_generator;
+    bool            m_random_generator_initialized { false };
+    bool            m_tbb_worker_thread_c_locales_set { false };
+};
+
+ThreadData& thread_data();
+
+// For unknown reasons and in sporadic cases when GCode export is processing, some participating thread
+// in tbb::parallel_pipeline has not set locales to "C", probably because this thread is newly spawned.
+// So in this class method on_scheduler_entry is called for every thread before it starts participating
+// in tbb::parallel_pipeline to ensure that locales are set correctly
+//
+// For tbb::parallel_pipeline, it seems that on_scheduler_entry is called for every layer and every filter.
+// We ensure using thread-local storage that locales will be set to "C" just once for any participating thread.
+class TBBLocalesSetter : public tbb::task_scheduler_observer
+{
+public:
+    TBBLocalesSetter() { this->observe(true); }
+    ~TBBLocalesSetter() override { this->observe(false); };
+    void on_scheduler_entry(bool /* is_worker */) override { thread_data().tbb_worker_thread_set_c_locales(); }
+};
 
 }
 

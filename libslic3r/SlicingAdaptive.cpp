@@ -1,9 +1,13 @@
+///|/ Copyright (c) Prusa Research 2016 - 2021 Vojtěch Bubník @bubnikv, David Kocík @kocikdav, Enrico Turri @enricoturri1966
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r.h"
 #include "Model.hpp"
 #include "TriangleMesh.hpp"
 #include "SlicingAdaptive.hpp"
 
-//#include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 #include <cfloat>
 
 // Based on the work of Florens Waserfall (@platch on github)
