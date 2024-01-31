@@ -1,0 +1,42 @@
+
+#ifndef BGCODE_CONVERT_EXPORT_H
+#define BGCODE_CONVERT_EXPORT_H
+
+#ifdef BGCODE_CONVERT_STATIC_DEFINE
+#  define BGCODE_CONVERT_EXPORT
+#  define BGCODE_CONVERT_NO_EXPORT
+#else
+#  ifndef BGCODE_CONVERT_EXPORT
+#    ifdef bgcode_convert_EXPORTS
+        /* We are building this library */
+#      define BGCODE_CONVERT_EXPORT 
+#    else
+        /* We are using this library */
+#      define BGCODE_CONVERT_EXPORT 
+#    endif
+#  endif
+
+#  ifndef BGCODE_CONVERT_NO_EXPORT
+#    define BGCODE_CONVERT_NO_EXPORT 
+#  endif
+#endif
+
+#ifndef BGCODE_CONVERT_DEPRECATED
+#  define BGCODE_CONVERT_DEPRECATED __declspec(deprecated)
+#endif
+
+#ifndef BGCODE_CONVERT_DEPRECATED_EXPORT
+#  define BGCODE_CONVERT_DEPRECATED_EXPORT BGCODE_CONVERT_EXPORT BGCODE_CONVERT_DEPRECATED
+#endif
+
+#ifndef BGCODE_CONVERT_DEPRECATED_NO_EXPORT
+#  define BGCODE_CONVERT_DEPRECATED_NO_EXPORT BGCODE_CONVERT_NO_EXPORT BGCODE_CONVERT_DEPRECATED
+#endif
+
+#if 0 /* DEFINE_NO_DEPRECATED */
+#  ifndef BGCODE_CONVERT_NO_DEPRECATED
+#    define BGCODE_CONVERT_NO_DEPRECATED
+#  endif
+#endif
+
+#endif /* BGCODE_CONVERT_EXPORT_H */
