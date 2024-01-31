@@ -1,8 +1,8 @@
 #ifndef BGCODE_BINARIZE_HPP
 #define BGCODE_BINARIZE_HPP
 
-#include "binarize/export.h"
-#include "core/core.hpp"
+#include "LibBGCode/binarize/export.h"
+#include "LibBGCode/core/core.hpp"
 
 namespace bgcode { namespace binarize {
 

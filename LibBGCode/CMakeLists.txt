@@ -25,6 +25,7 @@ set(SRCS
     binarize/binarize.hpp
     binarize/meatpack.cpp
     binarize/meatpack.hpp
+	binarize/export.h
 	)
 	
 set(ILIBS heatshrink heatshrink_dynalloc zlib_static)

@@ -1,7 +1,7 @@
 #ifndef BGCODE_CORE_HPP
 #define BGCODE_CORE_HPP
 
-#include "core/export.h"
+#include "LibBGCode/core/export.h"
 
 #include <cstdio>
 #include <cstdint>
