@@ -355,8 +355,8 @@ set(SRCS
     Support/SupportDebug.cpp
     Support/SupportDebug.hpp
     Support/SupportLayer.hpp
-    # Support/SupportMaterial.cpp
-    # Support/SupportMaterial.hpp
+    Support/SupportMaterial.cpp
+    Support/SupportMaterial.hpp
     Support/SupportParameters.cpp
     Support/SupportParameters.hpp
     Support/OrganicSupport.cpp
@@ -414,7 +414,7 @@ set(SRCS
     Optimize/Optimizer.hpp
     Optimize/NLoptOptimizer.hpp
     Optimize/BruteforceOptimizer.hpp
-    #${OpenVDBUtils_SOURCES}
+    ${OpenVDBUtils_SOURCES}
     SLA/Pad.hpp
     SLA/Pad.cpp
     SLA/SupportTreeBuilder.hpp
@@ -510,6 +510,19 @@ set(SRCS
 	miniz/miniz.h
 	miniz/miniz.c
 	qoi/qoilib.c
+	
+    CutSurface.hpp
+	CutSurface.cpp
+    Geometry/VoronoiUtilsCgal.hpp
+	Geometry/VoronoiUtilsCgal.cpp
+    IntersectionPoints.hpp
+	IntersectionPoints.cpp
+    #MeshBoolean.hpp
+	#MeshBoolean.cpp
+    TryCatchSignal.hpp
+	TryCatchSignal.cpp
+    Triangulation.hpp
+	Triangulation.cpp
 )
 
 list(APPEND SRCS 
@@ -553,7 +566,7 @@ if(WIN32)
 endif()
 
 list(APPEND ILIBS eigen clipper2 boost_filesystem boost_nowide boost_thread
-			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess cgal semver)
+			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess cgal semver libBGCode)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 

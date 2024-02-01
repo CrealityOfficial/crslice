@@ -26,7 +26,7 @@
 
 #include <cmath>
 #include <memory>
-#include <boost/log/trivial.hpp>
+#include "libslic3r/libslic3r.h"
 #include <boost/container/static_vector.hpp>
 
 #include <tbb/parallel_for.h>
