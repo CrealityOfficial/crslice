@@ -19,7 +19,7 @@ endif()
 #slic3r_remap_configs(LibBGCode::bgcode_binarize RelWithDebInfo Release)
 #slic3r_remap_configs(LibBGCode::bgcode_convert RelWithDebInfo Release)
 
-set(SLIC3R_SOURCES
+set(SRCS
     #pchheader.cpp
     #pchheader.hpp
     AStar.hpp
@@ -215,7 +215,6 @@ set(SLIC3R_SOURCES
     Layer.hpp
     LayerRegion.cpp
     libslic3r.h
-    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     Line.cpp
     Line.hpp
     BlacklistedLibraryCheck.cpp
@@ -513,11 +512,11 @@ set(SLIC3R_SOURCES
 	qoi/qoilib.c
 )
 
-list(APPEND lisbslic3r_sources 
+list(APPEND SRCS 
 	"${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h"
 	)
 if (APPLE)
-    list(APPEND lisbslic3r_sources
+    list(APPEND SRCS
 			MacUtils.mm
             Format/ModelIO.hpp
             Format/ModelIO.mm
@@ -607,15 +606,16 @@ list(REVERSE OLIBS)  # for linux build
 list(APPEND ILIBS ${OLIBS})
 
 __add_real_target(libslic3r lib 
-	SOURCE ${SLIC3R_SOURCES} ${OpenVDBUtils_SOURCES}
+	SOURCE ${SRCS} ${OpenVDBUtils_SOURCES}
 	ILIB ${ILIBS}
 	INTERFACE ${INTERFACES}
 	INC ${INCS}
 	DEF ${DEFS}
 	FOLDER slice
+	SOURCE_FOLDER
 	)
 	
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
+#source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRCS})
 #encoding_check(libslic3r)
 
 
