@@ -271,7 +271,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
-	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
+	bool is_bbl_printer,int plate_index, const Slic3r::Vec3d& plate_origin,
 	const std::string& out, Slic3r::Calib_Params& _calibParams, ccglobal::Tracer* tracer)
 {
 #if 1
@@ -295,6 +295,8 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	
 	print.is_BBL_printer() = is_bbl_printer;
 	print.set_plate_origin(plate_origin);
+
+	print.set_plate_index(plate_index);
 
 	Slic3r::StringObjectException warning;
 	//BBS: refine seq-print logic
@@ -331,7 +333,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 	convert_scene_2_orca(scene, model, config, calibParams);
 
-	slice_impl(model, config, scene->m_isBBLPrinter, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, tracer);
+	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, tracer);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
@@ -339,6 +341,7 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	std::ifstream in(file, std::ios::in | std::ios::binary);
 
 	bool is_bbl_printer = false;
+	int plate_index = 0;
 	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
@@ -408,7 +411,7 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	//}
 #endif
 	Slic3r::Calib_Params calibParams;
-	slice_impl(model, config, is_bbl_printer, plate_origin, out, calibParams,nullptr);
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, calibParams,nullptr);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)

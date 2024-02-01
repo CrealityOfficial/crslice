@@ -124,6 +124,7 @@ namespace crslice2
 		std::map<int, plateInfo> plates_custom_gcodes;
 
 		bool m_isBBLPrinter;
+		int m_plate_index;
 	};
 
 	class SceneCreator
