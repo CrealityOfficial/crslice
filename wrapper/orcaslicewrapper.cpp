@@ -195,6 +195,11 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
 	}
 
+	//for (const std::pair<std::string, std::string> pair : scene->m_extruders[0]->settings)
+	//{
+	//	config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
+	//}
+
 	for (crslice2::CrGroup* aCrgroup : scene->m_groups)
 	{
 		Slic3r::ModelObject* currentObject = model.add_object();
