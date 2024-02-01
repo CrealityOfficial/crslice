@@ -667,6 +667,14 @@ void export_metas_impl()
 			item["settable_globally"] = is_print_key ? "true" : "false";
 
 			item["settable_per_meshgroup"] = "false";
+			if (optDef->min != INT_MIN)
+			{
+				item["minimum_value"] = std::to_string(optDef->min);
+			}
+			if (optDef->max != INT_MAX)
+			{
+				item["maximum_value"] = std::to_string(optDef->max);
+			}
 
 			j[opt_key] = item;
 		}
