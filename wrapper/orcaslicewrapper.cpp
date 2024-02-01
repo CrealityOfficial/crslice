@@ -644,15 +644,17 @@ void export_metas_impl()
 			Slic3r::ConfigOption* option = optDef->create_default_option();
 			item["default_value"] = option->serialize();
 
-			if (optDef->enum_def->enums().size() > 0)
+			if (optDef->enum_def && optDef->enum_def->has_values())
 			{
-				size_t size = optDef->enum_def->enums().size();
+				const std::vector<std::string>& labels = optDef->enum_def->labels();
+				const std::vector<std::string>& vs = optDef->enum_def->values();
 				json options;
-				//bool have = optDef->enum_labels.size() == optDef->enum_values.size();
-				//for (size_t i = 0; i < size; ++i)
-				//{
-				//	options[optDef->enum_values.at(i)] = have ? optDef->enum_labels.at(i) : optDef->enum_values.at(i);
-				//}
+				bool have = labels.size() == vs.size();
+				size_t size = vs.size();
+				for (size_t i = 0; i < size; ++i)
+				{
+					options[vs.at(i)] = have ? labels.at(i) : vs.at(i);
+				}
 				item["options"] = options;
 			}
 
