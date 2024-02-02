@@ -217,7 +217,7 @@ namespace crslice2
 
     std::string engineVersion()
     {
-        std::string ver = "orca-1.8.0";
+        std::string ver = "prusa-1.7.1";
 
 #ifdef USE_BINARY_JSON
         rapidjson::Document baseDoc;

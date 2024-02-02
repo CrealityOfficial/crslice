@@ -121,32 +121,7 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 		indexedTriangleSet.indices.at(i) = faceIndex;
 	}
 
-	stl_file stl;
-	stl.stats.type = inmemory;
-	// count facets and allocate memory
-	stl.stats.number_of_facets = uint32_t(indexedTriangleSet.indices.size());
-	stl.stats.original_num_facets = int(stl.stats.number_of_facets);
-	stl_allocate(&stl);
-
-#pragma omp parallel for
-	for (int i = 0; i < (int)stl.stats.number_of_facets; ++i) {
-		stl_facet facet;
-		facet.vertex[0] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](0))];
-		facet.vertex[1] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](1))];
-		facet.vertex[2] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](2))];
-		facet.extra[0] = 0;
-		facet.extra[1] = 0;
-
-		stl_normal normal;
-		stl_calculate_normal(normal, &facet);
-		stl_normalize_vector(normal);
-		facet.normal = normal;
-
-		stl.facet_start[i] = facet;
-	}
-
-	stl_get_size(&stl);
-	//tmesh.from_stl(stl);
+	tmesh = Slic3r::TriangleMesh(indexedTriangleSet);
 }
 
 void removeSpace(std::string& str)
