@@ -133,6 +133,7 @@ namespace gcode
 
         EMoveType eMoveType{ EMoveType ::Noop};
         bool haveStartCmd{ false };
+        bool have_start_print{ false };
 
         int m_extruder_id{0};
         int m_last_extruder_id;
@@ -2264,8 +2265,35 @@ namespace gcode
         }
     }
 
+    void getDefineTEMP(const std::string& comment, GCodeProcessor& pathParam, GcodeTracer* pathData)
+    {
+        if (comment.find("START_PRINT") != std::string::npos)
+        {
+            std::vector<std::string> _kvs;
+            Stringsplit(comment, ' ', _kvs);
+            for (std::string& str : _kvs)
+            {
+                if (str.find("EXTRUDER_TEMP") != std::string::npos)
+                {
+                    std::vector<std::string> kvs;
+                    Stringsplit(str, '=', kvs);
+                    if (kvs.size()>1)
+                    {
+                        pathData->setTEMP(atoi(kvs[1].c_str()));
+                        pathParam.have_start_print = true;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     void process_gcode_line(parsed_command& cmd, GCodeProcessor& pathParam, GcodeTracer* pathData)
     {
+        //START_PRINT EXTRUDER_TEMP=220 BED_TEMP=60
+        if (!cmd.gcode.empty() && !pathParam.have_start_print)
+            getDefineTEMP(cmd.gcode, pathParam,pathData);
+
         if (cmd.command.length() >=1 ) {
             switch (cmd.command[0])
             {
