@@ -753,53 +753,52 @@ namespace gcode
             kvs.insert(std::make_pair("TIME_ELAPSED", "0"));
            
             changeKey("FEATURE", "TYPE", kvs);
-            auto iter = kvs.find("TYPE");
-            if (iter != kvs.end())
-            {
-                if (iter->second == "Outer wall"
-                    || iter->second == "Overhang wall"
-                    || iter->second == "Bridge")
-                {
-                    iter->second = "WALL-OUTER";
-                }
-                else if (iter->second == "Inner wall")
-                {
-                    iter->second = "WALL-INNER";
-                }
-                else if (iter->second == "Bottom surface"
-                    || iter->second == "Top surface"
-                    || iter->second == "Top solid infill"
-                    || iter->second == "Bottom solid infill")
-                {
-                    iter->second = "SKIN";
-                }
-                else if (iter->second == "Support"
-                    || iter->second == "Support interface"
-                    || iter->second == "Support transition")
-                {
-                    iter->second = "SUPPORT";
-                }
-                else if (iter->second == "Skirt"
-                    || iter->second == "Brim")
-                {
-                    iter->second = "SKIRT";
-                }
-                else if (iter->second == "Internal solid infill"
-                    || iter->second == "Gap infill"
-                    || iter->second == "Bridge infill"
-                    || iter->second == "Sparse infill")
-                {
-                    iter->second = "FILL";
-                }
-                else if (iter->second == "Prime tower")
-                {
-                    iter->second = "PRIME-TOWER";
-                }
-                else if (iter->second == "Ironing")
-                {
-                    iter->second = "Ironing";
-                }
-            }
+            //if (iter != kvs.end())
+            //{
+            //    if (iter->second == "Outer wall"
+            //        || iter->second == "Overhang wall"
+            //        || iter->second == "Bridge")
+            //    {
+            //        iter->second = "WALL-OUTER";
+            //    }
+            //    else if (iter->second == "Inner wall")
+            //    {
+            //        iter->second = "WALL-INNER";
+            //    }
+            //    else if (iter->second == "Bottom surface"
+            //        || iter->second == "Top surface"
+            //        || iter->second == "Top solid infill"
+            //        || iter->second == "Bottom solid infill")
+            //    {
+            //        iter->second = "SKIN";
+            //    }
+            //    else if (iter->second == "Support"
+            //        || iter->second == "Support interface"
+            //        || iter->second == "Support transition")
+            //    {
+            //        iter->second = "SUPPORT";
+            //    }
+            //    else if (iter->second == "Skirt"
+            //        || iter->second == "Brim")
+            //    {
+            //        iter->second = "SKIRT";
+            //    }
+            //    else if (iter->second == "Internal solid infill"
+            //        || iter->second == "Gap infill"
+            //        || iter->second == "Bridge infill"
+            //        || iter->second == "Sparse infill")
+            //    {
+            //        iter->second = "FILL";
+            //    }
+            //    else if (iter->second == "Prime tower")
+            //    {
+            //        iter->second = "PRIME-TOWER";
+            //    }
+            //    else if (iter->second == "Ironing")
+            //    {
+            //        iter->second = "Ironing";
+            //    }
+            //}
 
             changeKey("filament_diameter", "material_diameter", kvs);
             changeKey("filament_density", "material_density", kvs);
@@ -1963,6 +1962,99 @@ namespace gcode
                 //curType = SliceLineType::AdvanceTravel;
                 //lastType = curType;
             }
+
+            std::string& role = iter->second;
+            if (role == ("Inner wall"))
+            {
+                curType = SliceLineType::erPerimeter;
+                lastType = curType;
+            }
+            else if (role == ("Outer wall"))
+            {
+                curType = SliceLineType::erExternalPerimeter;
+                lastType = curType;
+            }
+            else if (role == ("Overhang wall"))
+            {
+                curType = SliceLineType::erOverhangPerimeter;
+                lastType = curType;
+            }
+            else if (role == ("Sparse infill"))
+            {
+                curType = SliceLineType::erInternalInfill;
+                lastType = curType;
+            }
+            else if (role == ("Internal solid infill"))
+            {
+                curType = SliceLineType::erSolidInfill;
+                lastType = curType;
+            }
+            else if (role == ("Top surface"))
+            {
+                curType = SliceLineType::erTopSolidInfill;
+                lastType = curType;
+            }
+            else if (role == ("Bottom surface"))
+            {
+                curType = SliceLineType::erBottomSurface;
+                lastType = curType;
+            }
+            else if (role == ("Ironing"))
+            {
+                curType = SliceLineType::erIroning;
+                lastType = curType;
+            }
+            else if (role == ("Bridge"))
+            {
+                curType = SliceLineType::erBridgeInfill;
+                lastType = curType;
+            }
+            else if (role == ("Gap infill"))
+            {
+                curType = SliceLineType::erGapFill;
+                lastType = curType;
+            }
+            else if (role == ("Skirt"))
+            {
+                curType = SliceLineType::erSkirt;
+                lastType = curType;
+            }
+            else if (role == ("Brim"))
+            {
+                curType = SliceLineType::erBrim;
+                lastType = curType;
+            }
+            else if (role == ("Support"))
+            {
+                curType = SliceLineType::erSupportMaterial;
+                lastType = curType;
+            }
+            else if (role == ("Support interface"))
+            {
+                curType = SliceLineType::erSupportMaterialInterface;
+                lastType = curType;
+            }
+            else if (role == ("Support transition"))
+            {
+                curType = SliceLineType::erSupportTransition;
+                lastType = curType;
+            }
+            else if (role == ("Prime tower"))
+            {
+                curType = SliceLineType::erWipeTower;
+                lastType = curType;
+            }
+            else if (role == ("Custom"))
+            {
+                curType = SliceLineType::erCustom;
+                lastType = curType;
+            }
+            else if (role == ("Multiple"))
+            {
+                curType = SliceLineType::erMixed;
+                lastType = curType;
+            }
+
 
             //pathData->setLayer(std::atoi(iter->second.c_str()));
             kvs.erase(iter);

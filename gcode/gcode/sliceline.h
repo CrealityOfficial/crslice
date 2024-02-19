@@ -22,9 +22,84 @@ enum class SliceLineType
 	FlowTravel = 15, //Ironing
 	AdvanceTravel = 16,//other
 
-    NumPrintFeatureTypes = 17 // this number MUST be the last one because other modules will
+    NumPrintFeatureTypes = 17, // this number MUST be the last one because other modules will
                               // use this symbol to get the total number of types, which can
                               // be used to create an array or so
+
+    erPerimeter = 20,
+    erExternalPerimeter = 1,
+    erOverhangPerimeter,
+    erInternalInfill,
+    erSolidInfill,
+    erTopSolidInfill,
+    erBottomSurface,
+    erIroning,
+    erBridgeInfill,
+    erGapFill,
+    erSkirt,
+    erBrim,
+    erSupportMaterial,
+    erSupportMaterialInterface,
+    erSupportTransition,
+    erWipeTower,
+    erCustom,
+    erMixed,
+
+    Noop = 40,
+    Retract = 14,
+    Unretract = 42,
+    Seam,
+    Tool_change,
+    Color_change,
+    Pause_Print,
+    Custom_GCode,
+    //Travel = 13,
+    Wipe = 49,
+    Extrude
+
+
+};
+
+// Each ExtrusionRole value identifies a distinct set of { extruder, speed }
+enum ExtrusionRole : uint8_t {
+    erNone,
+    erPerimeter,
+    erExternalPerimeter,
+    erOverhangPerimeter,
+    erInternalInfill,
+    erSolidInfill,
+    erTopSolidInfill,
+    erBottomSurface,
+    erIroning,
+    erBridgeInfill,
+    erInternalBridgeInfill,
+    erGapFill,
+    erSkirt,
+    erBrim,
+    erSupportMaterial,
+    erSupportMaterialInterface,
+    erSupportTransition,
+    erWipeTower,
+    erCustom,
+    // Extrusion role for a collection with multiple extrusion roles.
+    erMixed,
+    erCount
+};
+
+enum class EMoveType : unsigned char
+{
+    Noop,
+    Retract,
+    Unretract,
+    Seam,
+    Tool_change,
+    Color_change,
+    Pause_Print,
+    Custom_GCode,
+    Travel,
+    Wipe,
+    Extrude,
+    Count
 };
 
 #endif // _GCODE_NULLSPACE_SLICELINE_1590032412412_H

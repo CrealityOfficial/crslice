@@ -59,6 +59,10 @@ namespace gcode
 		std::vector<std::pair<int, double>> volumes_per_tower;
 
 		TimeParts timeParts;
+
+		std::vector<std::pair<int, float>> roles_time;
+		//std::vector<std::pair<int,float>> moves_time;
+		std::vector<std::pair<int, float>> layers_time;
 	
 		int beltType;  // 1 creality print belt  2 creality slicer belt
 		float beltOffset;
