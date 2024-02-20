@@ -55,6 +55,13 @@ namespace crslice2
 		std::string extra;
 	};
 
+	struct ThumbnailData
+	{
+		unsigned int width;
+		unsigned int height;
+		std::vector<unsigned char> pixels;
+	};
+
 	struct plateInfo
 	{
 		Plate_Mode mode = Undef;
@@ -122,6 +129,8 @@ namespace crslice2
 		std::string m_tempDirectory;
 		std::vector<std::string> m_Object_Exclude_FileName;
 		Calib_Params m_calibParams;
+
+		std::vector<ThumbnailData> thumbnailDatas;
 
 		std::map<int, plateInfo> plates_custom_gcodes;
 

@@ -1929,6 +1929,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
       // as configuration key / value pairs to be parsable by older versions of
       // PrusaSlicer G-code viewer.
     {
+        //add Thumbnails
+        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
+            GCodeThumbnails::export_thumbnails_to_file(
+                thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+                m_gcode_thumbnail_format,
+                [&file](const char* sz) { file.write(sz); },
+                [&print]() { print.throw_if_canceled(); });
+    }
+
       if (is_bbl_printers) {
         file.write("; CONFIG_BLOCK_START\n");
         std::string full_config;
@@ -1944,16 +1953,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             "; first_layer_temperature = %d\n",
             print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
-      } else {
-        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
-          GCodeThumbnails::export_thumbnails_to_file(
-              thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-              m_gcode_thumbnail_format,
-              [&file](const char *sz) { file.write(sz); },
-              [&print]() { print.throw_if_canceled(); });
       }
-    }
-
 
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();

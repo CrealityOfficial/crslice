@@ -20,6 +20,8 @@
 
 #include "crslice2/base/parametermeta.h"
 
+#include "GCode/ThumbnailData.hpp"
+
 #include "crgroup.h"
 #include "crobject.h"
 #include "ccglobal/log.h"
@@ -184,7 +186,7 @@ Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::Con
 	return option;
 }
 
-void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config,Slic3r::Calib_Params& _calibParams)
+void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config,Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList& thumbnailData)
 {
 	size_t numGroup = scene->m_groups.size();
 	assert(numGroup > 0);
@@ -251,6 +253,16 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		_calibParams.mode = (Slic3r::CalibMode)scene->m_calibParams.mode;
 	}
 
+	//thumbnailData
+	for (auto& thunm : scene->thumbnailDatas)
+	{
+		Slic3r::ThumbnailData data;
+		data.height = thunm.height;
+		data.width = thunm.width;
+		data.pixels = thunm.pixels;
+		thumbnailData.push_back(data);
+	}
+
 	//set multi plate param
 	//plates_custom_gcodes;
 	auto iter = scene->plates_custom_gcodes.begin();
@@ -277,7 +289,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
 	bool is_bbl_printer,int plate_index, const Slic3r::Vec3d& plate_origin,
-	const std::string& out, Slic3r::Calib_Params& _calibParams, ccglobal::Tracer* tracer)
+	const std::string& out, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
 {
 #if 1
 	save_parameter_2_json("", model, config);
@@ -318,7 +330,9 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	print.process();
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...") % __LINE__;
 
-	print.export_gcode(out, &result, nullptr);
+	auto g_Minus = [&](const Slic3r::ThumbnailsParams&) { return thumbnailDatas; };
+	Slic3r::ThumbnailsGeneratorCallback thumbnail_cb = g_Minus;
+	print.export_gcode(out, &result, thumbnail_cb);
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 
@@ -336,9 +350,11 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	calibParams.print_numbers = false;
 
 
-	convert_scene_2_orca(scene, model, config, calibParams);
+	Slic3r::ThumbnailsList thumbnailData;
 
-	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, tracer);
+	convert_scene_2_orca(scene, model, config, calibParams, thumbnailData);
+
+	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, thumbnailData, tracer);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
@@ -416,7 +432,8 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	//}
 #endif
 	Slic3r::Calib_Params calibParams;
-	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, calibParams,nullptr);
+	Slic3r::ThumbnailsList thumbnailDatas;
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, calibParams, thumbnailDatas,nullptr);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)
