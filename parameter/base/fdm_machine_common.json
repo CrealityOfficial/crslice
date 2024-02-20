@@ -6,7 +6,7 @@
         "label": "Enable accel_to_decel",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -20,7 +20,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coPercent",
         "unit": "%%"
@@ -217,7 +217,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
         "unit": "mm/s2 or %"
@@ -270,7 +270,7 @@
         "label": "Don't support bridges",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -593,7 +593,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s2"
@@ -630,7 +630,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -771,7 +771,7 @@
         "label": "Arc fitting",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -831,7 +831,7 @@
         "label": "Enable",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -2026,7 +2026,7 @@
         "label": "Independent support layer height",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -2046,7 +2046,7 @@
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
         "unit": "mm or %"
@@ -2066,7 +2066,7 @@
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
         "unit": "mm or %"
@@ -2078,7 +2078,7 @@
         "label": "Infill combination",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -2105,7 +2105,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -2154,7 +2154,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s2"
@@ -2167,7 +2167,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -2180,7 +2180,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -2194,7 +2194,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
         "unit": "mm or %"
@@ -2220,7 +2220,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm"
@@ -2233,7 +2233,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -2246,7 +2246,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
         "unit": "mm/s or %"
@@ -2259,7 +2259,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s2"
@@ -2272,7 +2272,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -2351,7 +2351,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
         "unit": "mm/s2 or %"
@@ -2914,7 +2914,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm3/s2"
@@ -2993,7 +2993,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm2"
@@ -3167,7 +3167,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s2"
@@ -3180,7 +3180,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -3430,7 +3430,7 @@
         "minimum_value": "2",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm"
@@ -3809,7 +3809,7 @@
         "label": "Avoid crossing wall",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -3833,7 +3833,7 @@
         "label": "Reduce infill retraction",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -3860,7 +3860,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm"
@@ -4116,7 +4116,7 @@
         "maximum_value": "10000",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInt",
         "unit": "layers"
@@ -4130,7 +4130,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInt",
         "unit": ""
@@ -4289,7 +4289,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
         "unit": "mm/s2 or %"
@@ -4303,7 +4303,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coPercent",
         "unit": "%"
@@ -4361,7 +4361,7 @@
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coEnum",
         "unit": ""
@@ -4386,7 +4386,7 @@
         "label": "Spiral vase",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -5012,7 +5012,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s2"
@@ -5025,7 +5025,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -5087,7 +5087,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s2"
@@ -5100,7 +5100,7 @@
         "minimum_value": "1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
@@ -5289,7 +5289,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": ""
@@ -5554,7 +5554,7 @@
         "label": "Maximal bridging distance",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm"
@@ -5568,7 +5568,7 @@
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "."
@@ -5582,7 +5582,7 @@
         "minimum_value": "100",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coPercent",
         "unit": "%"
@@ -5607,7 +5607,7 @@
         "label": "No sparse layers (EXPERIMENTAL)",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -5619,7 +5619,7 @@
         "label": "Wipe tower rotation angle",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "."
