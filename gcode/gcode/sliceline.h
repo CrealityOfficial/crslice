@@ -28,7 +28,7 @@ enum class SliceLineType
 
     erPerimeter = 20,
     erExternalPerimeter = 1,
-    erOverhangPerimeter,
+    erOverhangPerimeter = 21,
     erInternalInfill,
     erSolidInfill,
     erTopSolidInfill,
@@ -59,47 +59,4 @@ enum class SliceLineType
 
 
 };
-
-// Each ExtrusionRole value identifies a distinct set of { extruder, speed }
-enum ExtrusionRole : uint8_t {
-    erNone,
-    erPerimeter,
-    erExternalPerimeter,
-    erOverhangPerimeter,
-    erInternalInfill,
-    erSolidInfill,
-    erTopSolidInfill,
-    erBottomSurface,
-    erIroning,
-    erBridgeInfill,
-    erInternalBridgeInfill,
-    erGapFill,
-    erSkirt,
-    erBrim,
-    erSupportMaterial,
-    erSupportMaterialInterface,
-    erSupportTransition,
-    erWipeTower,
-    erCustom,
-    // Extrusion role for a collection with multiple extrusion roles.
-    erMixed,
-    erCount
-};
-
-enum class EMoveType : unsigned char
-{
-    Noop,
-    Retract,
-    Unretract,
-    Seam,
-    Tool_change,
-    Color_change,
-    Pause_Print,
-    Custom_GCode,
-    Travel,
-    Wipe,
-    Extrude,
-    Count
-};
-
 #endif // _GCODE_NULLSPACE_SLICELINE_1590032412412_H
