@@ -131,7 +131,7 @@ namespace gcode
 		std::vector<int> m_retractions;
 
 		std::vector<std::string> m_nozzleColorList;
-
+		gcode::GCodeParseInfo& getParam();
 		void getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode = false);
 		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true,bool fromGcode = false);
 		void setParam(gcode::GCodeParseInfo& pathParam);

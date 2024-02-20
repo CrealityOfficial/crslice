@@ -1420,6 +1420,11 @@ namespace gcode
         parseInfo = pathParam;
     }
 
+    gcode::GCodeParseInfo& GCodeStruct::getParam()
+    {
+        return parseInfo;
+    }
+
     void GCodeStruct::setLayer(int layer){
         tempBaseInfo.layerNumbers.push_back(layer);
 
