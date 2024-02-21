@@ -72,6 +72,9 @@ namespace crslice2
                 _pair.second = layers_times[i];
                 times.back().push_back(_pair);
             }
+
+            times.push_back(std::vector<std::pair<int, float>>());
+            times.back().push_back(std::pair<int, float>(0, time));
         }
         catch (const std::exception& ex)
         {
