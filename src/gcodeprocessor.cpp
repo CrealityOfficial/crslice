@@ -3,23 +3,24 @@
 
 namespace crslice2
 {
-    void deal_moves_times(const std::vector<std::pair<Slic3r::EMoveType, float>>& moves_times, std::vector<std::vector<std::pair<int, float>>>& times)
+    void deal_roles_times(const std::vector<std::pair<Slic3r::ExtrusionRole, float>>& moves_times, std::vector<std::vector<std::pair<int, float>>>& times)
     {
         for (auto& custom_gcode_time : moves_times)
         {
             std::pair<int, float> _pair;
             _pair.first = (int)custom_gcode_time.first;
 
-            if (_pair.first >1 )
-            {
-                _pair.first += 18;
-            }
+            if(_pair.first == 2)
+                _pair.first = 1;
+            else if (_pair.first >0 )
+                _pair.first += 19;
+
             _pair.second = custom_gcode_time.second;
             times.back().push_back(_pair);
         }
     }
 
-    void deal_roles_times(const std::vector<std::pair<Slic3r::ExtrusionRole, float>>& roles_times, std::vector<std::vector<std::pair<int, float>>>& times)
+    void deal_moves_times(const std::vector<std::pair<Slic3r::EMoveType, float>>& roles_times, std::vector<std::vector<std::pair<int, float>>>& times)
     {
         for (auto& custom_gcode_time : roles_times)
         {
