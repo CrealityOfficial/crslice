@@ -28,7 +28,7 @@ enum class SliceLineType
 
     erPerimeter = 20,
     erExternalPerimeter = 1,
-    erOverhangPerimeter = 21,
+    erOverhangPerimeter = 22,
     erInternalInfill,
     erSolidInfill,
     erTopSolidInfill,
