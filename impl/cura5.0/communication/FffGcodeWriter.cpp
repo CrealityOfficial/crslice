@@ -615,29 +615,6 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
 			}
 		}
 
-        if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
-        {
-			Temperature max_bed_temperature;
-			for (const ExtruderTrain& _train : application->extruders())
-			{
-				Temperature current_bed_temperature = _train.settings.get<double>("material_bed_temperature_layer_0");
-				if (max_bed_temperature < current_bed_temperature)
-				{
-					max_bed_temperature = current_bed_temperature;
-				}
-			}
-
-            //const Temperature bed_temp = train.settings.get<Temperature>("material_bed_temperature_layer_0");
-            //if (mesh_group == scene.mesh_groups.begin() // Always write bed temperature for first mesh group.
-            //    || bed_temp != train.settings.get<Temperature>("material_bed_temperature")) // Don't write bed temperature if identical to temperature of previous group.
-            //{
-                if (max_bed_temperature != 0)
-                {
-                    gcode.writeBedTemperatureCommand(max_bed_temperature, train.settings.get<bool>("material_bed_temp_wait"));
-                }
-            //}
-        }
-
         if (train.settings.get<bool>("material_print_temp_prepend"))
         {
             for (unsigned extruder_nr = 0; extruder_nr < num_extruders; extruder_nr++)
@@ -678,6 +655,29 @@ void FffGcodeWriter::processInitialLayerTemperature(const SliceDataStorage& stor
                 }
             }
         }
+
+		if (train.settings.get<bool>("material_bed_temp_prepend") && train.settings.get<bool>("machine_heated_bed"))
+		{
+			Temperature max_bed_temperature;
+			for (const ExtruderTrain& _train : application->extruders())
+			{
+				Temperature current_bed_temperature = _train.settings.get<double>("material_bed_temperature_layer_0");
+				if (max_bed_temperature < current_bed_temperature)
+				{
+					max_bed_temperature = current_bed_temperature;
+				}
+			}
+
+			//const Temperature bed_temp = train.settings.get<Temperature>("material_bed_temperature_layer_0");
+			//if (mesh_group == scene.mesh_groups.begin() // Always write bed temperature for first mesh group.
+			//    || bed_temp != train.settings.get<Temperature>("material_bed_temperature")) // Don't write bed temperature if identical to temperature of previous group.
+			//{
+			if (max_bed_temperature != 0)
+			{
+				gcode.writeBedTemperatureCommand(max_bed_temperature, train.settings.get<bool>("material_bed_temp_wait"));
+			}
+			//}
+		}
     }
 }
 
