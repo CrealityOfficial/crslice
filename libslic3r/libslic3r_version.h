@@ -1,7 +1,8 @@
 #ifndef __SLIC3R_VERSION_H
 #define __SLIC3R_VERSION_H
 
-#define SLIC3R_APP_NAME "OrcaSlicer"
+//#define SLIC3R_APP_NAME "OrcaSlicer"
+#define SLIC3R_APP_NAME "Creality_Print"
 #define SLIC3R_APP_KEY "OrcaSlicer"
 #define SLIC3R_VERSION "01.07.07.89"
 #define SoftFever_VERSION "1.8.1"
