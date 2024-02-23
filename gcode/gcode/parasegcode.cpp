@@ -2066,17 +2066,18 @@ namespace gcode
         if (!is_get_company)
         {
             is_get_company = true;
-            if (comment.find("Creality") != std::string::npos)
+            if (comment.find("BambuStudio") != std::string::npos || comment.find("OrcaSlicer") != std::string::npos
+                ||  comment.find("Creality_Print") != std::string::npos)
+            {
+                sliceCompany = SliceCompany::bambu;
+            }
+            else if (comment.find("Creality") != std::string::npos)
             {
                 sliceCompany = SliceCompany::creality;
             }
             else if (comment.find("PrusaSlicer") != std::string::npos )
             {
                 sliceCompany = SliceCompany::prusa;
-            }
-            else if (comment.find("BambuStudio") != std::string::npos || comment.find("OrcaSlicer") != std::string::npos)
-            {
-                sliceCompany = SliceCompany::bambu;
             }
             else if (comment.find("Cura_SteamEngine") != std::string::npos)
             {
@@ -2752,8 +2753,8 @@ namespace gcode
 
             if (!gcode_layer_data.empty())
             {
-                pathData->set_data_gcodelayer(curLayer, gcode_layer_data);
-                //pathData->setLayer(curLayer);
+                pathData->set_data_gcodelayer(curLayer-1, gcode_layer_data);
+                pathData->setLayer(curLayer);
             }
 
             kvs.insert(std::make_pair("box_max_x", std::to_string(gcodeProcessor.box.size().x)));
