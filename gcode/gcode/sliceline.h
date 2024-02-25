@@ -55,8 +55,9 @@ enum class SliceLineType
     Custom_GCode,
     //Travel = 13,
     Wipe = 49,
-    Extrude
-
+    Extrude,
+    erInternalBridgeInfill,
+    erCount
 
 };
 #endif // _GCODE_NULLSPACE_SLICELINE_1590032412412_H
