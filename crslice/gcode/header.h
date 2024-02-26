@@ -21,6 +21,13 @@ namespace gcode
 		gvt_num,
 	};
 
+	enum class GProducer
+	{
+		Unknown,
+		OrcaSlicer,
+		Cura
+	};
+
 	struct TimeParts {
 		float OuterWall{0.0f};
 		float InnerWall{ 0.0f };
@@ -57,6 +64,7 @@ namespace gcode
 		std::vector<std::pair<int,double>> volumes_per_extruder;
 		std::vector<std::pair<int, double>> flush_per_filament;
 		std::vector<std::pair<int, double>> volumes_per_tower;
+		GProducer producer;
 
 		TimeParts timeParts;
 
@@ -73,6 +81,7 @@ namespace gcode
 	
 		GCodeParseInfo()
 		{
+			producer = GProducer::Cura;
 			machine_height = 250.0f;
 			machine_width = 220.0f;
 			machine_depth = 220.0f;

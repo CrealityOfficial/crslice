@@ -2849,6 +2849,11 @@ namespace gcode
         std::unordered_map<std::string, std::string>& kvs = gcodeProcessor.kvs;
 
         GCodeParseInfo& pathParam = gcodeProcessor.gcodeParaseInfo;
+
+        if (gcodeProcessor.sliceCompany == SliceCompany::bambu)
+        {
+            pathParam.producer = GProducer::OrcaSlicer;
+        }
         pathParam.printTime = std::atof(getValue(kvs,"print_time").c_str());
         //float machine_height;
         //float machine_width;
