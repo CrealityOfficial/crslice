@@ -72,6 +72,10 @@ namespace crslice2
                 role = static_cast<int>(SliceLineType::erSolidInfill);;
                 funPushTimes(role, custom_gcode_time.second, times);
                 break;
+            case Slic3r::ExtrusionRole::erTopSolidInfill:
+                role = static_cast<int>(SliceLineType::erTopSolidInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
             case Slic3r::ExtrusionRole::erBottomSurface:
                 role = static_cast<int>(SliceLineType::erBottomSurface);;
                 funPushTimes(role, custom_gcode_time.second, times);
