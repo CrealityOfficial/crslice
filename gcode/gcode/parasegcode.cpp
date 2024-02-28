@@ -1732,7 +1732,7 @@ namespace gcode
         changeKey("bed_temperature", "material_bed_temperature", kvs);
     }
 
-    void _paraseKvs(GCodeProcessor& gcodeProcessor,trimesh::box3& box,bool _layer = false)
+    void _paraseKvs(GCodeProcessor& gcodeProcessor,trimesh::box3& box, SliceLineType& curType,bool _layer = false)
     {
         std::unordered_map<std::string, std::string>& kvs = gcodeProcessor.kvs;
         SliceCompany& sliceCompany = gcodeProcessor.sliceCompany;
@@ -1823,6 +1823,7 @@ namespace gcode
         iter1 = kvs.find("WIPE_START");
         if (iter1 != kvs.end())
         {
+            curType = SliceLineType::Wipe;
             gcodeProcessor.m_wiping = true;
             kvs.erase(iter1);
         }
@@ -2124,6 +2125,14 @@ namespace gcode
             {
                 curType = SliceLineType::React;
             }
+            else if (curType == SliceLineType::Unretract)
+            {
+
+            }
+            else if (curType == SliceLineType::Wipe)
+            {
+                lastType = curType;
+            }
             else
             {
                 curType = lastType;
@@ -2207,6 +2216,11 @@ namespace gcode
             //}
             else
                 pathData->getNotPath();
+
+            if (curType == SliceLineType::Unretract)
+            {
+                curType = lastType;
+            }
         }
         else
             pathData->getNotPath();
@@ -2295,7 +2309,7 @@ namespace gcode
         pathData->getNotPath();
     }
 
-    void process_G1(GCodeProcessor& pathParam)
+    void process_G1(GCodeProcessor& pathParam,SliceLineType& curType)
     {
         float filament_diameter = 1.75f;
         if (!pathParam.filament_diameters.empty()
@@ -2311,18 +2325,32 @@ namespace gcode
         auto move_type = [&]() {
             EMoveType type = EMoveType::Noop;
 
-            if (pathParam.m_wiping)
+            if (pathParam.m_wiping) {
                 type = EMoveType::Wipe;
+                curType = SliceLineType::Wipe;
+            }
             else if (pathParam.current_e < 0.0f)
-                type = (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f) ? EMoveType::Travel : EMoveType::Retract;
+            {
+                type = (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f) ? EMoveType::Travel : EMoveType::Retract;           
+                curType = type == EMoveType::Travel ? SliceLineType::Travel : SliceLineType::Retract;
+            }
             else if (pathParam.current_e > 0.0f) {
                 if (pathParam.current_v.x == 0.0f && pathParam.current_v.y == 0.0f)
+                {
                     type = (pathParam.current_v.z == 0.0f) ? EMoveType::Unretract : EMoveType::Travel;
+                    curType = type == EMoveType::Unretract ? SliceLineType::Unretract : SliceLineType::Travel;
+                }
                 else if (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f)
+                {
                     type = EMoveType::Extrude;
+                    curType = SliceLineType::Extrude;
+                }
             }
             else if (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f)
+            {
                 type = EMoveType::Travel;
+                curType = SliceLineType::Travel;
+            }
 
             return type;
         };
@@ -2381,7 +2409,7 @@ namespace gcode
         }
     }
 
-    void process_gcode_line(parsed_command& cmd, GCodeProcessor& pathParam, GcodeTracer* pathData)
+    void process_gcode_line(parsed_command& cmd, GCodeProcessor& pathParam, SliceLineType& curType, GcodeTracer* pathData)
     {
         //START_PRINT EXTRUDER_TEMP=220 BED_TEMP=60
         if (!cmd.gcode.empty() && !pathParam.have_start_print)
@@ -2400,7 +2428,7 @@ namespace gcode
                     case '1': //{ process_G1(pathParam); break; }  // Move
                     case '2':
                     case '3': //{ process_G2_G3(line); break; }  // Move
-                    { process_G1(pathParam); break; }
+                    { process_G1(pathParam, curType); break; }
                     //BBS
                     //case 4: { process_G4(line); break; }  // Delay
                     default: break;
@@ -2645,7 +2673,7 @@ namespace gcode
                 gcode_comment_processor* gcode_comment_processor = p_source_position_->get_gcode_comment_processor();
 
                 getKvs(cmd.comment, sliceCompany, kvs);
-                _paraseKvs(gcodeProcessor, gcodeProcessor.box,true);
+                _paraseKvs(gcodeProcessor, gcodeProcessor.box, curType,true);
 
                 _detect_gcode_company(is_get_company, cmd.comment, sliceCompany);
 
@@ -2715,7 +2743,7 @@ namespace gcode
                         _v.z = p.double_value;
                 }  
                 gcodeProcessor.current_v = _v;
-                process_gcode_line(cmd, gcodeProcessor, pathData);
+                process_gcode_line(cmd, gcodeProcessor, curType,pathData);
 
                 //path
                 if (startLayer)
@@ -2965,7 +2993,8 @@ namespace gcode
         _paraseGcodeAndPreview(gCodeFile, gcodeProcessor, pathData, tracer);
 
         //解析成通用参数
-        _paraseKvs(gcodeProcessor, box);
+        SliceLineType sliceLineType;
+        _paraseKvs(gcodeProcessor, box, sliceLineType);
 
         //设置参数
         _setParam(gcodeProcessor);
