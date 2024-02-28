@@ -260,6 +260,9 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		data.height = thunm.height;
 		data.width = thunm.width;
 		data.pixels = thunm.pixels;
+		data.pos_s = thunm.pos_s; //for cr_png
+		data.pos_e = thunm.pos_e; //for cr_png
+		data.pos_h = thunm.pos_h; //for cr_png
 		thumbnailData.push_back(data);
 	}
 

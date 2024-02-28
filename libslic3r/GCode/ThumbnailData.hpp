@@ -14,6 +14,9 @@ struct ThumbnailData
 {
     unsigned int width;
     unsigned int height;
+    unsigned int pos_s; //for cr_png
+    unsigned int pos_e; //for cr_png
+    unsigned int pos_h; //for cr_png
     std::vector<unsigned char> pixels;
 
     ThumbnailData() { reset(); }

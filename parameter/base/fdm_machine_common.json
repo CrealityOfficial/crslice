@@ -4914,7 +4914,8 @@
             "BTT TFT": "BTT TFT",
             "JPG": "JPG",
             "PNG": "PNG",
-            "QOI": "QOI"
+            "QOI": "QOI",
+			"CR_PNG": "CR_PNG"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",

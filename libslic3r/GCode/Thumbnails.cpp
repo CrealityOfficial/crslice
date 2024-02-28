@@ -19,6 +19,12 @@ struct CompressedPNG : CompressedImageBuffer
     std::string_view tag() const override { return "thumbnail"sv; }
 };
 
+struct CompressedCRPNG : CompressedImageBuffer
+{
+    ~CompressedCRPNG() override { if (data) mz_free(data); }
+    std::string_view tag() const override { return "png"sv; }
+};
+
 struct CompressedJPG : CompressedImageBuffer
 {
     ~CompressedJPG() override { free(data); }
@@ -40,6 +46,13 @@ struct CompressedBIQU : CompressedImageBuffer
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail_png(const ThumbnailData &data)
 {
     auto out = std::make_unique<CompressedPNG>();
+    out->data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &out->size, MZ_DEFAULT_LEVEL, 1);
+    return out;
+}
+
+std::unique_ptr<CompressedImageBuffer> compress_thumbnail_crpng(const ThumbnailData& data)
+{
+    auto out = std::make_unique<CompressedCRPNG>();
     out->data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &out->size, MZ_DEFAULT_LEVEL, 1);
     return out;
 }
@@ -190,6 +203,8 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &d
         return compress_thumbnail_qoi(data);
     case GCodeThumbnailsFormat::BTT_TFT:
         return compress_thumbnail_btt_tft(data);
+    case GCodeThumbnailsFormat::CR_PNG:
+        return compress_thumbnail_crpng(data);
     }
 }
 
