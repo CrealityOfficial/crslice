@@ -1896,7 +1896,17 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         bool         has_wipe_tower = false;
         std::vector<const PrintInstance*> 					print_object_instances_ordering;
         std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
-        std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
+
+        std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print;
+
+        try {
+            layers_to_print = GCode::collect_layers_to_print(*this);
+        }
+        catch (const Slic3r::SlicingErrors& e) {
+            throw e;
+        }
+         
+
         std::vector<unsigned int> printExtruders;
         if (this->config().print_sequence == PrintSequence::ByObject) {
             // Order object instances for sequential print.

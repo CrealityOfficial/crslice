@@ -206,6 +206,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	{
 		Slic3r::ModelObject* currentObject = model.add_object();
 		currentObject->add_instance();
+		currentObject->name = aCrgroup->m_objects[0].m_objectName;
 
 		//currentObject->config.assign_config(config);
 		for (const std::pair<std::string, std::string> pair : aCrgroup->m_settings->settings)
@@ -301,7 +302,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	Slic3r::PrintBase::status_callback_type callback = [&tracer](const Slic3r::PrintBase::SlicingStatus& _status) {
 			if (tracer)
 			{
-				tracer->progress((float)_status.percent*0.01);
+				tracer->progress((float)_status.percent * 0.01);
 				tracer->message(_status.text.c_str());
 			}
 	};
@@ -330,7 +331,31 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	result.reset();
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process") % __LINE__;
-	print.process();
+
+	try {
+		print.process();
+	}
+	catch (const Slic3r::SlicingError& e1)
+	{
+		tracer->failed(e1.what());
+		return;
+	}
+	catch (const Slic3r::SlicingErrors& e2) {
+		size_t objectId = e2.errors_[0].objectId();
+		Slic3r::ObjectID model_object_id(objectId);
+		std::string modelObjectName = "";
+		const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
+		if (nullptr != mo)
+		{
+			modelObjectName = mo->name;
+		}
+
+		std::string failStr = std::string(e2.errors_[0].what()) + "@" + modelObjectName;
+
+		tracer->failed(failStr.c_str());
+		return;
+	}
+	
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...") % __LINE__;
 
 	auto g_Minus = [&](const Slic3r::ThumbnailsParams&) { return thumbnailDatas; };

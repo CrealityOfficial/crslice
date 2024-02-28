@@ -39,7 +39,8 @@ namespace crslice2
 	void CrGroup::setObjectMeshPaint(int objectID, TriMeshPtr mesh
 		, const std::vector<std::string>& colors2Facets
 		, const std::vector<std::string>& seam2Facets
-		, const std::vector<std::string>& support2Facets)
+		, const std::vector<std::string>& support2Facets
+		, const std::string& objectName)
 	{
 		if (objectID < 0 || objectID >= (int)m_objects.size())
 		{
@@ -53,6 +54,7 @@ namespace crslice2
 		object.m_colors2Facets = colors2Facets;
 		object.m_seam2Facets = seam2Facets;
 		object.m_support2Facets = support2Facets;
+		object.m_objectName = objectName;
 	}
 
 	void CrGroup::setObjectSettings(int objectID, SettingsPtr settings)
