@@ -731,6 +731,7 @@ namespace Slic3r {
         void initialize(const std::string& filename);
         void process_buffer(const std::string& buffer);
         void finalize(bool post_process);
+        float layer_time();
 
         float get_time(PrintEstimatedStatistics::ETimeMode mode) const;
         float get_prepare_time(PrintEstimatedStatistics::ETimeMode mode) const;

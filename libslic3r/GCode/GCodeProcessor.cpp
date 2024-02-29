@@ -325,7 +325,7 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
     if (!enabled || blocks.size() < 2)
         return;
 
-    assert(keep_last_n_blocks <= blocks.size());
+    //assert(keep_last_n_blocks <= blocks.size());
 
     // forward_pass
     for (size_t i = 0; i + 1 < blocks.size(); ++i) {
@@ -338,7 +338,7 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
 
     recalculate_trapezoids(blocks);
 
-    size_t n_blocks_process = blocks.size() - keep_last_n_blocks;
+    size_t n_blocks_process = blocks.size() /*- keep_last_n_blocks*/;
     for (size_t i = 0; i < n_blocks_process; ++i) {
         const TimeBlock& block = blocks[i];
         float block_time = block.time();
@@ -1489,6 +1489,25 @@ void GCodeProcessor::process_buffer(const std::string &buffer)
         this->process_gcode_line(line, false);
     });
 }
+
+float GCodeProcessor::layer_time()
+{
+    float layerTime = 0.0;
+    for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i)
+    {
+        TimeMachine& machine = m_time_processor.machines[i];
+        machine.calculate_time(TimeProcessor::Planner::queue_size);
+        if (!machine.layers_time.empty())
+        {
+			float currentTime = machine.layers_time[machine.layers_time.size()-1];
+			if (currentTime > layerTime)
+			{
+				layerTime = currentTime;
+			}
+        }
+    }
+    return layerTime;
+};
 
 void GCodeProcessor::finalize(bool post_process)
 {
@@ -3097,8 +3116,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         blocks.push_back(block);
 
-        if (blocks.size() > TimeProcessor::Planner::refresh_threshold)
-            machine.calculate_time(TimeProcessor::Planner::queue_size);
+		//if (blocks.size() > TimeProcessor::Planner::refresh_threshold)
+		//	machine.calculate_time(TimeProcessor::Planner::queue_size);
     }
 
     if (m_seams_detector.is_active()) {

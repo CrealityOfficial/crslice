@@ -2687,7 +2687,11 @@ void GCode::process_layers(
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
-        [&output_stream](std::string s) { output_stream.write(s); }
+        [&output_stream,&processor = this->m_processor](std::string s) {
+            output_stream.write(s);
+			float layerTime = processor.layer_time();
+			std::string strLayerTime = ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
+			output_stream.write(strLayerTime); }
     );
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
