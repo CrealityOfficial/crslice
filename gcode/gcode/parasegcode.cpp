@@ -2871,6 +2871,136 @@ namespace gcode
         kvs.swap(Newkvs);
     }
 
+    void deal_roles_times(const std::vector<std::pair<int, float>>& moves_times, std::vector<std::pair<int, float>>& times)
+    {
+        for (auto& custom_gcode_time : moves_times)
+        {
+            auto funPushTimes = [](int role, float time, std::vector<std::pair<int, float>>& times) {
+                std::pair<int, float> _pair;
+                _pair.first = role;
+                _pair.second = time;
+                times.push_back(_pair);
+            };
+            int role = 1;
+            switch (custom_gcode_time.first)
+            {
+            case 1://Slic3r::ExtrusionRole::erPerimeter:
+                role = static_cast<int>(SliceLineType::erPerimeter);
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 2://Slic3r::ExtrusionRole::erExternalPerimeter:
+                role = static_cast<int>(SliceLineType::erExternalPerimeter);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 3://Slic3r::ExtrusionRole::erOverhangPerimeter:
+                role = static_cast<int>(SliceLineType::erOverhangPerimeter);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 4://Slic3r::ExtrusionRole::erInternalInfill:
+                role = static_cast<int>(SliceLineType::erInternalInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 5://Slic3r::ExtrusionRole::erSolidInfill:
+                role = static_cast<int>(SliceLineType::erSolidInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 6://Slic3r::ExtrusionRole::erTopSolidInfill:
+                role = static_cast<int>(SliceLineType::erTopSolidInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 7://Slic3r::ExtrusionRole::erBottomSurface:
+                role = static_cast<int>(SliceLineType::erBottomSurface);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 8://Slic3r::ExtrusionRole::erIroning:
+                role = static_cast<int>(SliceLineType::erIroning);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 9://Slic3r::ExtrusionRole::erBridgeInfill:
+                role = static_cast<int>(SliceLineType::erBridgeInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 10://Slic3r::ExtrusionRole::erInternalBridgeInfill:
+                role = static_cast<int>(SliceLineType::erInternalBridgeInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 11://Slic3r::ExtrusionRole::erGapFill:
+                role = static_cast<int>(SliceLineType::erGapFill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 12://Slic3r::ExtrusionRole::erSkirt:
+                role = static_cast<int>(SliceLineType::erSkirt);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 13://Slic3r::ExtrusionRole::erBrim:
+                role = static_cast<int>(SliceLineType::erBrim);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 14://Slic3r::ExtrusionRole::erSupportMaterial:
+                role = static_cast<int>(SliceLineType::erSupportMaterial);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 15://Slic3r::ExtrusionRole::erSupportMaterialInterface:
+                role = static_cast<int>(SliceLineType::erSupportMaterialInterface);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 16://Slic3r::ExtrusionRole::erSupportTransition:
+                role = static_cast<int>(SliceLineType::erSupportTransition);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 17://Slic3r::ExtrusionRole::erWipeTower:
+                role = static_cast<int>(SliceLineType::erWipeTower);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 18://Slic3r::ExtrusionRole::erCustom:
+                role = static_cast<int>(SliceLineType::erCustom);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 19://Slic3r::ExtrusionRole::erMixed:
+                role = static_cast<int>(SliceLineType::erMixed);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 20://Slic3r::ExtrusionRole::erCount:
+                role = static_cast<int>(SliceLineType::erCount);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            default:
+                break;
+            }
+            //if(_pair.first == 2)
+            //    _pair.first = 1;
+            //else if (_pair.first >0 )
+            //    _pair.first += 19;
+
+
+
+        }
+    }
+
+    void deal_moves_times(const std::vector<std::pair<int, float>>& roles_times, std::vector<std::pair<int, float>>& times)
+    {
+        for (auto& custom_gcode_time : roles_times)
+        {
+            std::pair<int, float> _pair;
+            _pair.first = (int)custom_gcode_time.first;
+
+            if (_pair.first == 1)
+            {
+                _pair.first = 14;
+            }
+            else if (_pair.first == 8)
+            {
+                _pair.first = 13;
+            }
+            else
+            {
+                _pair.first += 40;
+            }
+            _pair.second = custom_gcode_time.second;
+            times.push_back(_pair);
+        }
+    }
+
     //…Ë÷√≤Œ ˝
     void _setParam(GCodeProcessor& gcodeProcessor)
     {
@@ -2959,6 +3089,65 @@ namespace gcode
             pathParam.volumes_per_tower.push_back(std::pair(f.first, weight));
         }
         //pathParam.material_densitys;
+
+
+        //; type_times_1 =  1,5.778656; 2,5.746951; 8,20.648708; 10,399.188141;
+        //; type_times_2 =  0,20.648708; 1,150.658997; 2,86.188622; 4,142.359619; 5,16.140944; 7,6.060084; 10,9.247404; 18,1.099889; 
+        std::string moves_times = getValue(kvs, "type_times_1");
+        std::string roles_times = getValue(kvs, "type_times_2");
+        std::string model_time = getValue(kvs, "type_times_3");
+
+        std::vector<std::pair<int, float>> roles_times_pair;
+        std::vector<std::pair<int, float>> moves_times_pair;
+
+        std::vector<std::string> _moves_times;
+        Stringsplit(moves_times,';', _moves_times);
+        for (auto move_time : _moves_times)
+        {
+            if (!move_time.empty())
+            {
+                std::vector<std::string> _moves_time;
+                Stringsplit(move_time, ',', _moves_time);
+                if (_moves_time.size() > 1)
+                {
+                    std::pair<int, float> _pair;
+                    moves_times_pair.push_back(std::pair(std::atoi(_moves_time[0].c_str()), std::atof(_moves_time[1].c_str())));
+                }
+            }
+        }
+        if (!moves_times_pair.empty())
+        {
+            pathParam.have_roles_time = true;
+            deal_moves_times(moves_times_pair, pathParam.roles_time);
+        }
+
+        std::vector<std::string> _roles_times;
+        Stringsplit(roles_times, ';', _roles_times);
+        for (auto roles_time : _roles_times)
+        {
+            if (!roles_time.empty())
+            {
+                std::vector<std::string> _roles_time;
+                Stringsplit(roles_time, ',', _roles_time);
+                if (_roles_time.size() > 1)
+                {
+                    std::pair<int, float> _pair;
+                    roles_times_pair.push_back(std::pair(std::atoi(_roles_time[0].c_str()), std::atof(_roles_time[1].c_str())));
+                }
+            }
+        }
+        if (!roles_times_pair.empty())
+        {
+            pathParam.have_roles_time = true;
+            deal_roles_times(roles_times_pair, pathParam.roles_time);
+        }
+
+        if (!model_time.empty())
+        {
+            pathParam.have_roles_time = true;
+            pathParam.printTime = std::atof(model_time.c_str());
+        }
+
     }
 
     void paraseGcode(const std::string& gCodeFile, std::vector<std::vector<SliceLine3D>>& m_sliceLayers, trimesh::box3& box, std::unordered_map<std::string, std::string>& kvs, ccglobal::Tracer* tracer)
