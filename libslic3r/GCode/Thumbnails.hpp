@@ -35,7 +35,8 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                                       const std::vector<Vec2d>    &sizes,
                                       GCodeThumbnailsFormat        format,
                                       WriteToOutput                output,
-                                      ThrowIfCanceledCallback      throw_if_canceled)
+                                      ThrowIfCanceledCallback      throw_if_canceled,
+                                      int                          layer_count = 0)
 {
     // Write thumbnails using base64 encoding
     if (thumbnail_cb != nullptr) {
@@ -61,7 +62,7 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
 
                         if (format == GCodeThumbnailsFormat::CR_PNG)
                         {
-                            output((boost::format("\n;\n; %s begin %d*%d %d %d %d %d\n") % compressed->tag() % data.width % data.height % encoded.size() % data.pos_s % data.pos_e % data.pos_h)
+                            output((boost::format("\n;\n; %s begin %d*%d %d %d %d %d\n") % compressed->tag() % data.width % data.height % encoded.size() % data.pos_s % data.pos_e % layer_count)
                                 .str()
                                 .c_str());
                         }

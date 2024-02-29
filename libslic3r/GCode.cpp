@@ -1941,7 +1941,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
                 m_gcode_thumbnail_format,
                 [&file](const char* sz) { file.write(sz); },
-                [&print]() { print.throw_if_canceled(); });
+                [&print]() { print.throw_if_canceled(); }, m_layer_count);
     }
 
       if (is_bbl_printers) {
