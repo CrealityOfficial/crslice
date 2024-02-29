@@ -68,6 +68,7 @@ namespace gcode
 
 		TimeParts timeParts;
 
+		bool have_roles_time;
 		std::vector<std::pair<int, float>> roles_time;
 		//std::vector<std::pair<int,float>> moves_time;
 		std::vector<std::pair<int, float>> layers_time;
@@ -105,6 +106,7 @@ namespace gcode
 			xf4 = trimesh::fxform();
 			relativeExtrude = false;
 			adaptiveLayers = false;
+			have_roles_time = false;
 
 			volumes_per_extruder.clear();
 			flush_per_filament.clear();

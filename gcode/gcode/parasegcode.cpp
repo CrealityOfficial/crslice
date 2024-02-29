@@ -1732,7 +1732,7 @@ namespace gcode
         changeKey("bed_temperature", "material_bed_temperature", kvs);
     }
 
-    void _paraseKvs(GCodeProcessor& gcodeProcessor,trimesh::box3& box,bool _layer = false)
+    void _paraseKvs(GCodeProcessor& gcodeProcessor,trimesh::box3& box, SliceLineType& curType,bool _layer = false)
     {
         std::unordered_map<std::string, std::string>& kvs = gcodeProcessor.kvs;
         SliceCompany& sliceCompany = gcodeProcessor.sliceCompany;
@@ -1823,6 +1823,7 @@ namespace gcode
         iter1 = kvs.find("WIPE_START");
         if (iter1 != kvs.end())
         {
+            curType = SliceLineType::Wipe;
             gcodeProcessor.m_wiping = true;
             kvs.erase(iter1);
         }
@@ -2124,6 +2125,14 @@ namespace gcode
             {
                 curType = SliceLineType::React;
             }
+            else if (curType == SliceLineType::Unretract)
+            {
+
+            }
+            else if (curType == SliceLineType::Wipe)
+            {
+                lastType = curType;
+            }
             else
             {
                 curType = lastType;
@@ -2207,6 +2216,11 @@ namespace gcode
             //}
             else
                 pathData->getNotPath();
+
+            if (curType == SliceLineType::Unretract)
+            {
+                curType = lastType;
+            }
         }
         else
             pathData->getNotPath();
@@ -2295,7 +2309,7 @@ namespace gcode
         pathData->getNotPath();
     }
 
-    void process_G1(GCodeProcessor& pathParam)
+    void process_G1(GCodeProcessor& pathParam,SliceLineType& curType)
     {
         float filament_diameter = 1.75f;
         if (!pathParam.filament_diameters.empty()
@@ -2311,18 +2325,32 @@ namespace gcode
         auto move_type = [&]() {
             EMoveType type = EMoveType::Noop;
 
-            if (pathParam.m_wiping)
+            if (pathParam.m_wiping) {
                 type = EMoveType::Wipe;
+                curType = SliceLineType::Wipe;
+            }
             else if (pathParam.current_e < 0.0f)
-                type = (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f) ? EMoveType::Travel : EMoveType::Retract;
+            {
+                type = (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f) ? EMoveType::Travel : EMoveType::Retract;           
+                curType = type == EMoveType::Travel ? SliceLineType::Travel : SliceLineType::Retract;
+            }
             else if (pathParam.current_e > 0.0f) {
                 if (pathParam.current_v.x == 0.0f && pathParam.current_v.y == 0.0f)
+                {
                     type = (pathParam.current_v.z == 0.0f) ? EMoveType::Unretract : EMoveType::Travel;
+                    curType = type == EMoveType::Unretract ? SliceLineType::Unretract : SliceLineType::Travel;
+                }
                 else if (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f)
+                {
                     type = EMoveType::Extrude;
+                    curType = SliceLineType::Extrude;
+                }
             }
             else if (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f)
+            {
                 type = EMoveType::Travel;
+                curType = SliceLineType::Travel;
+            }
 
             return type;
         };
@@ -2381,7 +2409,7 @@ namespace gcode
         }
     }
 
-    void process_gcode_line(parsed_command& cmd, GCodeProcessor& pathParam, GcodeTracer* pathData)
+    void process_gcode_line(parsed_command& cmd, GCodeProcessor& pathParam, SliceLineType& curType, GcodeTracer* pathData)
     {
         //START_PRINT EXTRUDER_TEMP=220 BED_TEMP=60
         if (!cmd.gcode.empty() && !pathParam.have_start_print)
@@ -2400,7 +2428,7 @@ namespace gcode
                     case '1': //{ process_G1(pathParam); break; }  // Move
                     case '2':
                     case '3': //{ process_G2_G3(line); break; }  // Move
-                    { process_G1(pathParam); break; }
+                    { process_G1(pathParam, curType); break; }
                     //BBS
                     //case 4: { process_G4(line); break; }  // Delay
                     default: break;
@@ -2645,7 +2673,7 @@ namespace gcode
                 gcode_comment_processor* gcode_comment_processor = p_source_position_->get_gcode_comment_processor();
 
                 getKvs(cmd.comment, sliceCompany, kvs);
-                _paraseKvs(gcodeProcessor, gcodeProcessor.box,true);
+                _paraseKvs(gcodeProcessor, gcodeProcessor.box, curType,true);
 
                 _detect_gcode_company(is_get_company, cmd.comment, sliceCompany);
 
@@ -2715,7 +2743,7 @@ namespace gcode
                         _v.z = p.double_value;
                 }  
                 gcodeProcessor.current_v = _v;
-                process_gcode_line(cmd, gcodeProcessor, pathData);
+                process_gcode_line(cmd, gcodeProcessor, curType,pathData);
 
                 //path
                 if (startLayer)
@@ -2843,6 +2871,136 @@ namespace gcode
         kvs.swap(Newkvs);
     }
 
+    void deal_roles_times(const std::vector<std::pair<int, float>>& moves_times, std::vector<std::pair<int, float>>& times)
+    {
+        for (auto& custom_gcode_time : moves_times)
+        {
+            auto funPushTimes = [](int role, float time, std::vector<std::pair<int, float>>& times) {
+                std::pair<int, float> _pair;
+                _pair.first = role;
+                _pair.second = time;
+                times.push_back(_pair);
+            };
+            int role = 1;
+            switch (custom_gcode_time.first)
+            {
+            case 1://Slic3r::ExtrusionRole::erPerimeter:
+                role = static_cast<int>(SliceLineType::erPerimeter);
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 2://Slic3r::ExtrusionRole::erExternalPerimeter:
+                role = static_cast<int>(SliceLineType::erExternalPerimeter);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 3://Slic3r::ExtrusionRole::erOverhangPerimeter:
+                role = static_cast<int>(SliceLineType::erOverhangPerimeter);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 4://Slic3r::ExtrusionRole::erInternalInfill:
+                role = static_cast<int>(SliceLineType::erInternalInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 5://Slic3r::ExtrusionRole::erSolidInfill:
+                role = static_cast<int>(SliceLineType::erSolidInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 6://Slic3r::ExtrusionRole::erTopSolidInfill:
+                role = static_cast<int>(SliceLineType::erTopSolidInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 7://Slic3r::ExtrusionRole::erBottomSurface:
+                role = static_cast<int>(SliceLineType::erBottomSurface);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 8://Slic3r::ExtrusionRole::erIroning:
+                role = static_cast<int>(SliceLineType::erIroning);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 9://Slic3r::ExtrusionRole::erBridgeInfill:
+                role = static_cast<int>(SliceLineType::erBridgeInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 10://Slic3r::ExtrusionRole::erInternalBridgeInfill:
+                role = static_cast<int>(SliceLineType::erInternalBridgeInfill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 11://Slic3r::ExtrusionRole::erGapFill:
+                role = static_cast<int>(SliceLineType::erGapFill);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 12://Slic3r::ExtrusionRole::erSkirt:
+                role = static_cast<int>(SliceLineType::erSkirt);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 13://Slic3r::ExtrusionRole::erBrim:
+                role = static_cast<int>(SliceLineType::erBrim);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 14://Slic3r::ExtrusionRole::erSupportMaterial:
+                role = static_cast<int>(SliceLineType::erSupportMaterial);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 15://Slic3r::ExtrusionRole::erSupportMaterialInterface:
+                role = static_cast<int>(SliceLineType::erSupportMaterialInterface);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 16://Slic3r::ExtrusionRole::erSupportTransition:
+                role = static_cast<int>(SliceLineType::erSupportTransition);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 17://Slic3r::ExtrusionRole::erWipeTower:
+                role = static_cast<int>(SliceLineType::erWipeTower);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 18://Slic3r::ExtrusionRole::erCustom:
+                role = static_cast<int>(SliceLineType::erCustom);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 19://Slic3r::ExtrusionRole::erMixed:
+                role = static_cast<int>(SliceLineType::erMixed);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            case 20://Slic3r::ExtrusionRole::erCount:
+                role = static_cast<int>(SliceLineType::erCount);;
+                funPushTimes(role, custom_gcode_time.second, times);
+                break;
+            default:
+                break;
+            }
+            //if(_pair.first == 2)
+            //    _pair.first = 1;
+            //else if (_pair.first >0 )
+            //    _pair.first += 19;
+
+
+
+        }
+    }
+
+    void deal_moves_times(const std::vector<std::pair<int, float>>& roles_times, std::vector<std::pair<int, float>>& times)
+    {
+        for (auto& custom_gcode_time : roles_times)
+        {
+            std::pair<int, float> _pair;
+            _pair.first = (int)custom_gcode_time.first;
+
+            if (_pair.first == 1)
+            {
+                _pair.first = 14;
+            }
+            else if (_pair.first == 8)
+            {
+                _pair.first = 13;
+            }
+            else
+            {
+                _pair.first += 40;
+            }
+            _pair.second = custom_gcode_time.second;
+            times.push_back(_pair);
+        }
+    }
+
     //设置参数
     void _setParam(GCodeProcessor& gcodeProcessor)
     {
@@ -2931,6 +3089,65 @@ namespace gcode
             pathParam.volumes_per_tower.push_back(std::pair(f.first, weight));
         }
         //pathParam.material_densitys;
+
+
+        //; type_times_1 =  1,5.778656; 2,5.746951; 8,20.648708; 10,399.188141;
+        //; type_times_2 =  0,20.648708; 1,150.658997; 2,86.188622; 4,142.359619; 5,16.140944; 7,6.060084; 10,9.247404; 18,1.099889; 
+        std::string moves_times = getValue(kvs, "type_times_1");
+        std::string roles_times = getValue(kvs, "type_times_2");
+        std::string model_time = getValue(kvs, "type_times_3");
+
+        std::vector<std::pair<int, float>> roles_times_pair;
+        std::vector<std::pair<int, float>> moves_times_pair;
+
+        std::vector<std::string> _moves_times;
+        Stringsplit(moves_times,';', _moves_times);
+        for (auto move_time : _moves_times)
+        {
+            if (!move_time.empty())
+            {
+                std::vector<std::string> _moves_time;
+                Stringsplit(move_time, ',', _moves_time);
+                if (_moves_time.size() > 1)
+                {
+                    std::pair<int, float> _pair;
+                    moves_times_pair.push_back(std::pair(std::atoi(_moves_time[0].c_str()), std::atof(_moves_time[1].c_str())));
+                }
+            }
+        }
+        if (!moves_times_pair.empty())
+        {
+            pathParam.have_roles_time = true;
+            deal_moves_times(moves_times_pair, pathParam.roles_time);
+        }
+
+        std::vector<std::string> _roles_times;
+        Stringsplit(roles_times, ';', _roles_times);
+        for (auto roles_time : _roles_times)
+        {
+            if (!roles_time.empty())
+            {
+                std::vector<std::string> _roles_time;
+                Stringsplit(roles_time, ',', _roles_time);
+                if (_roles_time.size() > 1)
+                {
+                    std::pair<int, float> _pair;
+                    roles_times_pair.push_back(std::pair(std::atoi(_roles_time[0].c_str()), std::atof(_roles_time[1].c_str())));
+                }
+            }
+        }
+        if (!roles_times_pair.empty())
+        {
+            pathParam.have_roles_time = true;
+            deal_roles_times(roles_times_pair, pathParam.roles_time);
+        }
+
+        if (!model_time.empty())
+        {
+            pathParam.have_roles_time = true;
+            pathParam.printTime = std::atof(model_time.c_str());
+        }
+
     }
 
     void paraseGcode(const std::string& gCodeFile, std::vector<std::vector<SliceLine3D>>& m_sliceLayers, trimesh::box3& box, std::unordered_map<std::string, std::string>& kvs, ccglobal::Tracer* tracer)
@@ -2965,7 +3182,8 @@ namespace gcode
         _paraseGcodeAndPreview(gCodeFile, gcodeProcessor, pathData, tracer);
 
         //解析成通用参数
-        _paraseKvs(gcodeProcessor, box);
+        SliceLineType sliceLineType;
+        _paraseKvs(gcodeProcessor, box, sliceLineType);
 
         //设置参数
         _setParam(gcodeProcessor);
