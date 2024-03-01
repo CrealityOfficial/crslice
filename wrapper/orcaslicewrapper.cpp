@@ -337,23 +337,11 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	}
 	catch (const Slic3r::SlicingError& e1)
 	{
-		tracer->failed(e1.what());
-		return;
+		return _handle_slice_exception(print, e1.objectId(), e1.what(), tracer);
 	}
 	catch (const Slic3r::SlicingErrors& e2) {
-		size_t objectId = e2.errors_[0].objectId();
-		Slic3r::ObjectID model_object_id(objectId);
-		std::string modelObjectName = "";
-		const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
-		if (nullptr != mo)
-		{
-			modelObjectName = mo->name;
-		}
 
-		std::string failStr = std::string(e2.errors_[0].what()) + "@" + modelObjectName;
-
-		tracer->failed(failStr.c_str());
-		return;
+		return  _handle_slice_exception(print, e2.errors_[0].objectId(), e2.errors_[0].what(), tracer);
 	}
 	
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...") % __LINE__;
@@ -736,4 +724,20 @@ void export_metas_impl()
 	}
 
 	export_metas_keys();
+}
+
+
+void _handle_slice_exception(const Slic3r::Print& print, size_t objectId, const char* failMsg, ccglobal::Tracer* tracer)
+{
+	Slic3r::ObjectID model_object_id(objectId);
+	std::string modelObjectName = "";
+	const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
+	if (nullptr != mo)
+	{
+		modelObjectName = mo->name;
+	}
+
+	std::string failStr = std::string(failMsg) + "@" + modelObjectName;
+
+	tracer->failed(failStr.c_str());
 }
