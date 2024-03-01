@@ -40,7 +40,7 @@ namespace cereal
 	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
 }
 
-void save_nlohmann_json(const std::string& fileName, const nlohmann::json& j)
+void save_nlohmann_json(const std::string& fileName, const nlohmann::ordered_json& j)
 {
 	boost::nowide::ofstream c;
 	c.open(fileName.c_str(), std::ios::out | std::ios::trunc);
@@ -625,7 +625,7 @@ void export_metas_impl()
 	DynamicPrintConfig new_full_config;
 	const ConfigDef* _def = new_full_config.def();
 	{
-		json j;
+		ordered_json j;
 		std::vector<std::string> printer_keys = Preset::print_options();
 
 		//record all the key-values
@@ -635,10 +635,13 @@ void export_metas_impl()
 			if (!optDef || (optDef->printer_technology == Slic3r::ptSLA))
 				continue;
 
-			json item;
-			item["label"] = optDef->label;
+			ordered_json item;
+			Slic3r::ConfigOption* option = optDef->create_default_option();
+			item["default_value"] = option->serialize();
 			item["description"] = optDef->tooltip;
-			item["unit"] = optDef->sidetext;
+			item["enabled"] = "true";
+			item["label"] = optDef->label;
+
 			std::string type = "coNone";
 
 			switch (optDef->type)
@@ -696,14 +699,11 @@ void export_metas_impl()
 				break;
 			};
 
-			item["type"] = type;
-			Slic3r::ConfigOption* option = optDef->create_default_option();
-			item["default_value"] = option->serialize();
 
 			if (optDef->enum_values.size() > 0)
 			{
 				size_t size = optDef->enum_values.size();
-				json options;
+				ordered_json options;
 				bool have = optDef->enum_labels.size() == optDef->enum_values.size();
 				for (size_t i = 0; i < size; ++i)
 				{
@@ -712,23 +712,23 @@ void export_metas_impl()
 				item["options"] = options;
 			}
 
-			item["enabled"] = "true";
 			bool is_print_key = std::find(printer_keys.begin(), printer_keys.end(), opt_key) != printer_keys.end();
 
-			item["settable_per_mesh"] = is_print_key ? "true" : "false";
-			item["settable_per_extruder"] = is_print_key ? "true" : "false";
-			item["settable_globally"] = is_print_key ? "true" : "false";
-
-			item["settable_per_meshgroup"] = "false";
-			if (optDef->min != INT_MIN)
-			{
-				item["minimum_value"] = std::to_string(optDef->min);
-			}
 			if (optDef->max != INT_MAX)
 			{
 				item["maximum_value"] = std::to_string(optDef->max);
 			}
+			if (optDef->min != INT_MIN)
+			{
+				item["minimum_value"] = std::to_string(optDef->min);
+			}
+			item["settable_globally"] = is_print_key ? "true" : "false";
+			item["settable_per_extruder"] = is_print_key ? "true" : "false";
+			item["settable_per_mesh"] = is_print_key ? "true" : "false";
+			item["settable_per_meshgroup"] = "false";
 
+			item["type"] = type;
+			item["unit"] = optDef->sidetext;
 			j[opt_key] = item;
 		}
 

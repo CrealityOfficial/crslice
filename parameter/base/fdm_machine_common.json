@@ -193,14 +193,14 @@
         "enabled": "true",
         "label": "Bottom surface pattern",
         "options": {
-            "alignedrectilinear": "Aligned Rectilinear",
-            "archimedeanchords": "Archimedean Chords",
             "concentric": "Concentric",
-            "hilbertcurve": "Hilbert Curve",
+            "zig-zag": "Rectilinear",
             "monotonic": "Monotonic",
             "monotonicline": "Monotonic line",
-            "octagramspiral": "Octagram Spiral",
-            "zig-zag": "Rectilinear"
+            "alignedrectilinear": "Aligned Rectilinear",
+            "hilbertcurve": "Hilbert Curve",
+            "archimedeanchords": "Archimedean Chords",
+            "octagramspiral": "Octagram Spiral"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -349,10 +349,10 @@
         "options": {
             "auto_brim": "Auto",
             "brim_ears": "Mouse ear",
+            "outer_only": "Outer brim only",
             "inner_only": "Inner brim only",
-            "no_brim": "No-brim",
             "outer_and_inner": "Outer and inner brim",
-            "outer_only": "Outer brim only"
+            "no_brim": "No-brim"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -714,8 +714,8 @@
         "label": "Draft shield",
         "options": {
             "disabled": "Disabled",
-            "enabled": "Enabled",
-            "limited": "Limited"
+            "limited": "Limited",
+            "enabled": "Enabled"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -1414,8 +1414,8 @@
         "label": "On surfaces",
         "options": {
             "All Surfaces": "All Surfaces",
-            "Bottom Only": "Bottom Only",
             "Top Only": "Top Only",
+            "Bottom Only": "Bottom Only",
             "Top and Bottom": "Top and Bottom"
         },
         "settable_globally": "false",
@@ -1553,25 +1553,25 @@
         "enabled": "true",
         "label": "Type",
         "options": {
+            "PLA": "PLA",
             "ABS": "ABS",
             "ASA": "ASA",
-            "HIPS": "HIPS",
+            "PETG": "PETG",
+            "TPU": "TPU",
+            "PC": "PC",
             "PA": "PA",
             "PA-CF": "PA-CF",
             "PA6-CF": "PA6-CF",
-            "PC": "PC",
-            "PET-CF": "PET-CF",
-            "PETG": "PETG",
-            "PETG-CF": "PETG-CF",
-            "PLA": "PLA",
-            "PLA-AERO": "PLA-AERO",
             "PLA-CF": "PLA-CF",
-            "PPA-CF": "PPA-CF",
-            "PPA-GF": "PPA-GF",
+            "PET-CF": "PET-CF",
+            "PETG-CF": "PETG-CF",
+            "PVA": "PVA",
+            "HIPS": "HIPS",
+            "PLA-AERO": "PLA-AERO",
             "PPS": "PPS",
             "PPS-CF": "PPS-CF",
-            "PVA": "PVA",
-            "TPU": "TPU"
+            "PPA-CF": "PPA-CF",
+            "PPA-GF": "PPA-GF"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -1815,10 +1815,10 @@
         "enabled": "true",
         "label": "Fuzzy Skin",
         "options": {
-            "all": "Contour and hole",
-            "allwalls": "All walls",
+            "none": "None",
             "external": "Contour",
-            "none": "None"
+            "all": "Contour and hole",
+            "allwalls": "All walls"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -1898,10 +1898,10 @@
         "enabled": "true",
         "label": "G-code flavor",
         "options": {
-            "klipper": "Klipper",
             "marlin": "Marlin(legacy)",
-            "marlin2": "Marlin 2",
-            "reprapfirmware": "RepRapFirmware"
+            "klipper": "Klipper",
+            "reprapfirmware": "RepRapFirmware",
+            "marlin2": "Marlin 2"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -1976,14 +1976,14 @@
         "enabled": "true",
         "label": "Host Type",
         "options": {
-            "astrobox": "AstroBox",
+            "prusalink": "PrusaLink",
+            "prusaconnect": "PrusaConnect",
+            "octoprint": "Octo/Klipper",
             "duet": "Duet",
             "flashair": "FlashAir",
-            "mks": "MKS",
-            "octoprint": "Octo/Klipper",
-            "prusaconnect": "PrusaConnect",
-            "prusalink": "PrusaLink",
-            "repetier": "Repetier"
+            "astrobox": "AstroBox",
+            "repetier": "Repetier",
+            "mks": "MKS"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -2039,10 +2039,10 @@
         "options": {
             "0": "0 (no open anchors)",
             "1": "1 mm",
-            "10": "10 mm",
-            "1000": "1000 (unlimited)",
             "2": "2 mm",
-            "5": "5 mm"
+            "5": "5 mm",
+            "10": "10 mm",
+            "1000": "1000 (unlimited)"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -2059,10 +2059,10 @@
         "options": {
             "0": "0 (Simple connect)",
             "1": "1 mm",
-            "10": "10 mm",
-            "1000": "1000 (unlimited)",
             "2": "2 mm",
-            "5": "5 mm"
+            "5": "5 mm",
+            "10": "10 mm",
+            "1000": "1000 (unlimited)"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -2376,14 +2376,14 @@
         "enabled": "true",
         "label": "Internal solid infill pattern",
         "options": {
-            "alignedrectilinear": "Aligned Rectilinear",
-            "archimedeanchords": "Archimedean Chords",
             "concentric": "Concentric",
-            "hilbertcurve": "Hilbert Curve",
+            "zig-zag": "Rectilinear",
             "monotonic": "Monotonic",
             "monotonicline": "Monotonic line",
-            "octagramspiral": "Octagram Spiral",
-            "zig-zag": "Rectilinear"
+            "alignedrectilinear": "Aligned Rectilinear",
+            "hilbertcurve": "Hilbert Curve",
+            "archimedeanchords": "Archimedean Chords",
+            "octagramspiral": "Octagram Spiral"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -2483,9 +2483,9 @@
         "label": "Ironing Type",
         "options": {
             "no ironing": "No ironing",
-            "solid": "All solid layer",
             "top": "Top surfaces",
-            "topmost": "Topmost surface"
+            "topmost": "Topmost surface",
+            "solid": "All solid layer"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -3099,10 +3099,10 @@
         "enabled": "true",
         "label": "Nozzle type",
         "options": {
-            "brass": "Brass",
+            "undefine": "Undefine",
             "hardened_steel": "Hardened steel",
             "stainless_steel": "Stainless steel",
-            "undefine": "Undefine"
+            "brass": "Brass"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -3594,11 +3594,11 @@
         "enabled": "true",
         "label": "Printer structure",
         "options": {
+            "undefine": "Undefine",
             "corexy": "CoreXY",
-            "delta": "Delta",
-            "hbot": "Hbot",
             "i3": "I3",
-            "undefine": "Undefine"
+            "hbot": "Hbot",
+            "delta": "Delta"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -3920,8 +3920,8 @@
         "label": "On surfaces",
         "options": {
             "All Surfaces": "All Surfaces",
-            "Bottom Only": "Bottom Only",
             "Top Only": "Top Only",
+            "Bottom Only": "Bottom Only",
             "Top and Bottom": "Top and Bottom"
         },
         "settable_globally": "false",
@@ -4046,9 +4046,9 @@
         "enabled": "true",
         "label": "Seam position",
         "options": {
+            "nearest": "Nearest",
             "aligned": "Aligned",
             "back": "Back",
-            "nearest": "Nearest",
             "random": "Random"
         },
         "settable_globally": "true",
@@ -4167,9 +4167,9 @@
         "enabled": "true",
         "label": "Slicing Mode",
         "options": {
-            "close_holes": "Close holes",
+            "regular": "Regular",
             "even_odd": "Even-odd",
-            "regular": "Regular"
+            "close_holes": "Close holes"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4341,23 +4341,23 @@
         "enabled": "true",
         "label": "Sparse infill pattern",
         "options": {
-            "3dhoneycomb": "3D Honeycomb",
+            "concentric": "Concentric",
+            "zig-zag": "Rectilinear",
+            "grid": "Grid",
+            "line": "Line",
+            "cubic": "Cubic",
+            "triangles": "Triangles",
+            "tri-hexagon": "Tri-hexagon",
+            "gyroid": "Gyroid",
+            "honeycomb": "Honeycomb",
             "adaptivecubic": "Adaptive Cubic",
             "alignedrectilinear": "Aligned Rectilinear",
-            "archimedeanchords": "Archimedean Chords",
-            "concentric": "Concentric",
-            "cubic": "Cubic",
-            "grid": "Grid",
-            "gyroid": "Gyroid",
+            "3dhoneycomb": "3D Honeycomb",
             "hilbertcurve": "Hilbert Curve",
-            "honeycomb": "Honeycomb",
-            "lightning": "Lightning",
-            "line": "Line",
+            "archimedeanchords": "Archimedean Chords",
             "octagramspiral": "Octagram Spiral",
             "supportcubic": "Support Cubic",
-            "tri-hexagon": "Tri-hexagon",
-            "triangles": "Triangles",
-            "zig-zag": "Rectilinear"
+            "lightning": "Lightning"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4462,11 +4462,11 @@
         "label": "Base pattern",
         "options": {
             "default": "Default",
-            "hollow": "Hollow",
+            "rectilinear": "Rectilinear",
+            "rectilinear-grid": "Rectilinear grid",
             "honeycomb": "Honeycomb",
             "lightning": "Lightning",
-            "rectilinear": "Rectilinear",
-            "rectilinear-grid": "Rectilinear grid"
+            "hollow": "Hollow"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4568,7 +4568,6 @@
         "description": "",
         "enabled": "true",
         "label": "Bottom interface layers",
-        "minimum_value": "-1",
         "options": {
             "-1": "-1",
             "0": "0",
@@ -4576,6 +4575,7 @@
             "2": "2",
             "3": "3"
         },
+        "minimum_value": "-1",
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
@@ -4615,10 +4615,10 @@
         "label": "Interface pattern",
         "options": {
             "auto": "Default",
-            "concentric": "Concentric",
-            "grid": "Grid",
             "rectilinear": "Rectilinear",
-            "rectilinear_interlaced": "Rectilinear Interlaced"
+            "concentric": "Concentric",
+            "rectilinear_interlaced": "Rectilinear Interlaced",
+            "grid": "Grid"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4658,13 +4658,13 @@
         "description": "Number of top interface layers",
         "enabled": "true",
         "label": "Top interface layers",
-        "minimum_value": "0",
         "options": {
             "0": "0",
             "1": "1",
             "2": "2",
             "3": "3"
         },
+        "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
@@ -4759,11 +4759,11 @@
         "options": {
             "default": "Default",
             "grid": "Grid",
-            "organic": "Organic",
             "snug": "Snug",
-            "tree_hybrid": "Tree Hybrid",
             "tree_slim": "Tree Slim",
-            "tree_strong": "Tree Strong"
+            "tree_strong": "Tree Strong",
+            "tree_hybrid": "Tree Hybrid",
+            "organic": "Organic"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4806,8 +4806,8 @@
         "label": "Type",
         "options": {
             "normal(auto)": "normal(auto)",
-            "normal(manual)": "normal(manual)",
             "tree(auto)": "tree(auto)",
+            "normal(manual)": "normal(manual)",
             "tree(manual)": "tree(manual)"
         },
         "settable_globally": "true",
@@ -4911,10 +4911,10 @@
         "enabled": "true",
         "label": "Format of G-code thumbnails",
         "options": {
-            "BTT TFT": "BTT TFT",
-            "JPG": "JPG",
             "PNG": "PNG",
+            "JPG": "JPG",
             "QOI": "QOI",
+            "BTT TFT": "BTT TFT",
 			"CR_PNG": "CR_PNG"
         },
         "settable_globally": "false",
@@ -5051,14 +5051,14 @@
         "enabled": "true",
         "label": "Top surface pattern",
         "options": {
-            "alignedrectilinear": "Aligned Rectilinear",
-            "archimedeanchords": "Archimedean Chords",
             "concentric": "Concentric",
-            "hilbertcurve": "Hilbert Curve",
+            "zig-zag": "Rectilinear",
             "monotonic": "Monotonic",
             "monotonicline": "Monotonic line",
-            "octagramspiral": "Octagram Spiral",
-            "zig-zag": "Rectilinear"
+            "alignedrectilinear": "Aligned Rectilinear",
+            "hilbertcurve": "Hilbert Curve",
+            "archimedeanchords": "Archimedean Chords",
+            "octagramspiral": "Octagram Spiral"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -5415,8 +5415,8 @@
         "enabled": "true",
         "label": "Wall generator",
         "options": {
-            "arachne": "Arachne",
-            "classic": "Classic"
+            "classic": "Classic",
+            "arachne": "Arachne"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -5431,11 +5431,11 @@
         "enabled": "true",
         "label": "Order of inner wall/outer wall/infil",
         "options": {
+            "inner wall/outer wall/infill": "inner/outer/infill",
+            "outer wall/inner wall/infill": "outer/inner/infill",
             "infill/inner wall/outer wall": "infill/inner/outer",
             "infill/outer wall/inner wall": "infill/outer/inner",
-            "inner wall/outer wall/infill": "inner/outer/infill",
-            "inner-outer-inner wall/infill": "inner-outer-inner/infill",
-            "outer wall/inner wall/infill": "outer/inner/infill"
+            "inner-outer-inner wall/infill": "inner-outer-inner/infill"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
