@@ -557,7 +557,7 @@ void parse_metas_map_impl(crslice2::MetasMap& datas)
 				bool have = optDef.enum_labels.size() == optDef.enum_values.size();
 				for (size_t i = 0; i < size; ++i)
 				{
-					meta.options.insert(crslice2::OptionValue(optDef.enum_values.at(i),
+					meta.options.push_back(crslice2::OptionValue(optDef.enum_values.at(i),
 						(have ? optDef.enum_labels.at(i) : optDef.enum_values.at(i))));
 				}
 			}

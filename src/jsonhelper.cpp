@@ -127,14 +127,14 @@ namespace crslice2
                 std::string name = child->name.GetString();
                 std::string values = child->value.GetString();
 
-                meta.options.insert(OptionValue(name, values));
+                meta.options.push_back(OptionValue(name, values));
             }
         }
         if (meta.type == "optional_extruder" || meta.type == "extruder")
         {
-            meta.options.insert(OptionValue(std::string("-1"), std::string("Not overridden")));
-            meta.options.insert(OptionValue(std::string("0"), std::string("Extruder 1")));
-            meta.options.insert(OptionValue(std::string("1"), std::string("Extruder 2")));
+            meta.options.push_back(OptionValue(std::string("-1"), std::string("Not overridden")));
+            meta.options.push_back(OptionValue(std::string("0"), std::string("Extruder 1")));
+            meta.options.push_back(OptionValue(std::string("1"), std::string("Extruder 2")));
         }
     }
 

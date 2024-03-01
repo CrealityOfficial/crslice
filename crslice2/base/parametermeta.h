@@ -27,7 +27,7 @@ namespace crslice2
 
 		std::string settable_per_mesh;
 
-		std::unordered_map<std::string, std::string> options;
+		std::vector<std::pair<std::string, std::string> > options;
 	};
 
 	typedef std::unordered_map<std::string, std::string>::value_type OptionValue;
