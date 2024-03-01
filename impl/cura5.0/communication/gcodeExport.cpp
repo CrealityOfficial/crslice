@@ -2226,7 +2226,7 @@ void GCodeExport::setExtruderFanNumber(int extruder)
 
 void GCodeExport::writeCdsFanCommand(double cds_speed)
 {
-    if (std::abs(current_cds_fan_speed - cds_speed) < 0.1 || cds_speed < 0.0)
+    if (!application->extruderSettings(0).get<bool>("cool_cds_fan_enable") || std::abs(current_cds_fan_speed - cds_speed) < 0.1 || cds_speed < 0.0 )
     {
         return;
     }
