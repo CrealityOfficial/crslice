@@ -1512,58 +1512,61 @@ namespace gcode
             }
         }
 
-        changeKey("defaultSpeed", "speed_print", kvs);
-        float defaultSpeed = 0.0f;
-        iter3 = kvs.find("speed_print");
-        if (iter3 != kvs.end())
-        {
-            defaultSpeed = std::atof(iter3->second.c_str()) / 60.0f;
-            iter3->second = std::to_string(defaultSpeed);
-        }
-        
-        //
-        changeKey("firstLayerUnderspeed", "speed_layer_0", kvs);
-        iter3 = kvs.find("speed_layer_0");
-        if (iter3 != kvs.end())
-        {
-            float s = std::atof(iter3->second.c_str());
-            iter3->second = std::to_string(s * defaultSpeed);
-        }
+        auto speed_print = [&kvs]()->float {
+            float defaultSpeed = 0.0f;
+            auto iter = kvs.find("speed_print");
+            if (iter != kvs.end())
+            {
+                defaultSpeed = std::atof(iter->second.c_str());
+            }
+            return defaultSpeed;
+        };
 
-        //rapidXYspeed, 4800
-        changeKey("rapidXYspeed", "speed_travel", kvs);
-        iter3 = kvs.find("speed_travel");
+        auto checkoutSpeed = [&kvs, &speed_print](const std::string& key) {
+            auto iter = kvs.find(key);
+            if (iter != kvs.end())
+            {
+                float _speed = std::atof(iter->second.c_str());
+                if (_speed <= 1.0f)
+                {
+                    float defaultSpeed = speed_print();
+                    if (defaultSpeed > 1.0f)
+                    {
+                        iter->second = std::to_string(_speed * defaultSpeed);
+                    }
+                }
+            }
+        };
+
+        iter3 = kvs.find("defaultSpeed");
         if (iter3 != kvs.end())
         {
             float defaultSpeed = std::atof(iter3->second.c_str()) / 60.0f;
             iter3->second = std::to_string(defaultSpeed);
+            changeKey("defaultSpeed", "speed_print", kvs);
+        }
+
+        //
+        changeKey("firstLayerUnderspeed", "speed_layer_0", kvs);
+        checkoutSpeed("speed_layer_0");
+
+        iter3 = kvs.find("rapidXYspeed");
+        if (iter3 != kvs.end())
+        {
+            float defaultSpeed = std::atof(iter3->second.c_str()) / 60.0f;
+            iter3->second = std::to_string(defaultSpeed);
+            changeKey("rapidXYspeed", "speed_travel", kvs);
         }
 
         //Outer Wall Speed  outlineUnderspeed
         changeKey("outlineUnderspeed", "speed_wall_0", kvs);
-        iter3 = kvs.find("speed_wall_0");
-        if (iter3 != kvs.end())
-        {
-            float s = std::atof(iter3->second.c_str());
-            iter3->second = std::to_string(s * defaultSpeed);
-        }
-       
-        changeKey("solidInfillUnderspeed", "speed_infill", kvs);
-        iter3 = kvs.find("speed_infill");
-        if (iter3 != kvs.end())
-        {
-            float s = std::atof(iter3->second.c_str());
-            iter3->second = std::to_string(s * defaultSpeed);
-        }
+        checkoutSpeed("speed_wall_0");
 
+        changeKey("solidInfillUnderspeed", "speed_infill", kvs);
+        checkoutSpeed("speed_infill");
         //Support Speed
-        changeKey("solidInfillUnderspeed", "speed_support", kvs);
-        iter3 = kvs.find("speed_support");
-        if (iter3 != kvs.end())
-        {
-            float s = std::atof(iter3->second.c_str());
-            iter3->second = std::to_string(s * defaultSpeed);
-        }
+        changeKey("supportUnderspeed", "speed_support", kvs);
+        checkoutSpeed("speed_support");
 
         //
         changeKey("toolChangeRetractionDistance", "retraction_amount", kvs);
