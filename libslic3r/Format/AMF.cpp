@@ -14,6 +14,7 @@
 #include <expat.h>
 
 #include <boost/nowide/cstdio.hpp>
+
 #include "../libslic3r.h"
 #include "../Exception.hpp"
 #include "../Model.hpp"

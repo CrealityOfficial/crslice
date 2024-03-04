@@ -18,7 +18,6 @@
 #define GCODEVIEWER_APP_NAME "PrusaSlicer G-code Viewer"
 #define GCODEVIEWER_APP_KEY  "PrusaSlicerGcodeViewer"
 
-
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <memory>
 #include <array>
@@ -64,8 +63,7 @@
 #endif
 
 #define BOOST_LOG_TRIVIAL(x)  std::cout
-
-using coord_t =
+using coord_t = 
 #if 1
 // Saves around 32% RAM after slicing step, 6.7% after G-code export (tested on PrusaSlicer 2.2.0 final).
     int32_t;

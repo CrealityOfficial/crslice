@@ -6,7 +6,7 @@
 #define MINIZ_EXTENSION_HPP
 
 #include <string>
-#include <miniz/miniz.h>
+#include <miniz.h>
 
 namespace Slic3r {
 

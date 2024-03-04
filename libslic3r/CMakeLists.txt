@@ -507,8 +507,8 @@ set(SRCS
     admesh/stl_io.cpp
     admesh/stlinit.cpp
     admesh/util.cpp
-	miniz/miniz.h
-	miniz/miniz.c
+	miniz.h
+	miniz.c
 	qoi/qoilib.c
 	
     CutSurface.hpp
