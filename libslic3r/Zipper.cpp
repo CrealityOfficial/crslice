@@ -4,7 +4,7 @@
 #include "Exception.hpp"
 #include "Zipper.hpp"
 #include "miniz_extension.hpp"
-//#include <boost/log/trivial.hpp>
+
 #include "I18N.hpp"
 
 //! macro used to mark string used at localization,

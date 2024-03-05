@@ -43,6 +43,7 @@ set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(qhull)
 add_subdirectory(glu-libtess)
 add_subdirectory(tbb)
+add_subdirectory(imgui)
 add_subdirectory(libslic3r)
 
 #binary

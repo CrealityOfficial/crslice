@@ -1,7 +1,7 @@
 #include <functional>
 #include <optional>
 
-//#include <libslic3r/OpenVDBUtils.hpp>
+#include <libslic3r/OpenVDBUtils.hpp>
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/TriangleMeshSlicer.hpp>
 #include <libslic3r/SLA/Hollowing.hpp>
@@ -10,7 +10,7 @@
 #include <libslic3r/QuadricEdgeCollapse.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
 
-#include <boost/log/trivial.hpp>
+
 
 #include <libslic3r/MTUtils.hpp>
 #include <libslic3r/I18N.hpp>
@@ -79,25 +79,25 @@ static InteriorPtr generate_interior_verbose(const TriangleMesh & mesh,
     //    BOOST_LOG_TRIVIAL(error) << "Returned OpenVDB grid is NULL";
     //    return {};
     //}
-
-    if (ctl.stopcondition()) return {};
-    else ctl.statuscb(30, L("Hollowing"));
-
-    double iso_surface = D;
+    //
+    //if (ctl.stopcondition()) return {};
+    //else ctl.statuscb(30, L("Hollowing"));
+    //
+    //double iso_surface = D;
     auto   narrowb = double(in_range);
     //gridptr = redistance_grid(*gridptr, -(offset + D), narrowb, narrowb);
-
-    if (ctl.stopcondition()) return {};
-    else ctl.statuscb(70, L("Hollowing"));
-
-    double adaptivity = 0.;
+    //
+    //if (ctl.stopcondition()) return {};
+    //else ctl.statuscb(70, L("Hollowing"));
+    //
+    //double adaptivity = 0.;
     InteriorPtr interior = InteriorPtr{new Interior{}};
-
+    //
     //interior->mesh = grid_to_mesh(*gridptr, iso_surface, adaptivity);
     //interior->gridptr = gridptr;
-
-    if (ctl.stopcondition()) return {};
-    else ctl.statuscb(100, L("Hollowing"));
+    //
+    //if (ctl.stopcondition()) return {};
+    //else ctl.statuscb(100, L("Hollowing"));
 
     interior->closing_distance = D;
     interior->thickness = offset;
@@ -311,12 +311,12 @@ void hollow_mesh(TriangleMesh &mesh, const HollowingConfig &cfg, int flags)
 
 void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
 {
-    if (mesh.empty() || interior.mesh.empty()) return;
-
+    //if (mesh.empty() || interior.mesh.empty()) return;
+    //
     //if (flags & hfRemoveInsideTriangles && interior.gridptr)
     //    remove_inside_triangles(mesh, interior);
-
-    mesh.merge(TriangleMesh{interior.mesh});
+    //
+    //mesh.merge(TriangleMesh{interior.mesh});
 }
 
 // Get the distance of p to the interior's zero iso_surface. Interior should
@@ -324,7 +324,6 @@ void hollow_mesh(TriangleMesh &mesh, const Interior &interior, int flags)
 // the model surface.
 static double get_distance_raw(const Vec3f &p, const Interior &interior)
 {
-    return 0.0;
     //assert(interior.gridptr);
     //
     //if (!interior.accessor) interior.reset_accessor();
@@ -334,6 +333,7 @@ static double get_distance_raw(const Vec3f &p, const Interior &interior)
     //    {v.x(), v.y(), v.z()});
     //
     //return interior.accessor->getValue(grididx) ;
+    return 0.0;
 }
 
 struct TriangleBubble { Vec3f center; double R; };

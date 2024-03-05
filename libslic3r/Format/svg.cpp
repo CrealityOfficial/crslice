@@ -3,12 +3,11 @@
 #include "../TriangleMesh.hpp"
 
 #include "svg.hpp"
-#define NANOSVG_IMPLEMENTATION
 #include "nanosvg/nanosvg.h"
 
 #include <string>
 
-//#include <boost/log/trivial.hpp>
+
 
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeEdge.hxx"

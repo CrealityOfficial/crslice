@@ -1,8 +1,6 @@
-#if 1
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Surface_sweep_2_algorithms.h>
-#endif 
 
 #include "libslic3r/Geometry/Voronoi.hpp"
 #include "libslic3r/Arachne/utils/VoronoiUtils.hpp"
@@ -26,11 +24,11 @@ bool VoronoiUtilsCgal::is_voronoi_diagram_planar_intersection(const VD &voronoi_
 
     std::vector<CGAL_Segment> segments;
     segments.reserve(voronoi_diagram.num_edges());
-    
+
     for (const VD::edge_type &edge : voronoi_diagram.edges()) {
         if (edge.color() != 0)
             continue;
-    
+
         if (edge.is_finite() && edge.is_linear() && edge.vertex0() != nullptr && edge.vertex1() != nullptr &&
             Arachne::VoronoiUtils::is_finite(*edge.vertex0()) && Arachne::VoronoiUtils::is_finite(*edge.vertex1())) {
             segments.emplace_back(to_cgal_point(*edge.vertex0()), to_cgal_point(*edge.vertex1()));
@@ -39,10 +37,10 @@ bool VoronoiUtilsCgal::is_voronoi_diagram_planar_intersection(const VD &voronoi_
             edge.twin()->color(1);
         }
     }
-    
+
     for (const VD::edge_type &edge : voronoi_diagram.edges())
         edge.color(0);
-    
+
     std::vector<CGAL_Point> intersections_pt;
     CGAL::compute_intersection_points(segments.begin(), segments.end(), std::back_inserter(intersections_pt));
     return intersections_pt.empty();

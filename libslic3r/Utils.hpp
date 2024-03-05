@@ -7,11 +7,11 @@
 #define slic3r_Utils_hpp_
 
 #include <locale>
+#include <iomanip>
 #include <utility>
 #include <functional>
 #include <type_traits>
 #include <system_error>
-#include <iomanip>
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
@@ -49,6 +49,7 @@
 #define CLI_PRINTABLE_SIZE_REDUCED     -20
 #define CLI_OBJECT_ARRANGE_FAILED      -21
 #define CLI_OBJECT_ORIENT_FAILED       -22
+#define CLI_MODIFIED_PARAMS_TO_PRINTER -23
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -125,8 +126,11 @@ inline std::string convert_to_full_version(std::string short_version)
     }
     return result;
 }
-
-
+template<typename DataType>
+inline DataType round_divide(DataType dividend, DataType divisor) //!< Return dividend divided by divisor rounded to the nearest integer
+{
+    return (dividend + divisor / 2) / divisor;
+}
 
 // Set a path with GUI localization files.
 void set_local_dir(const std::string &path);
@@ -160,6 +164,11 @@ void flush_logs();
 // A special type for strings encoded in the local Windows 8-bit code page.
 // This type is only needed for Perl bindings to relay to Perl that the string is raw, not UTF-8 encoded.
 typedef std::string local_encoded_string;
+
+// Returns next utf8 sequence length. =number of bytes in string, that creates together one utf-8 character. 
+// Starting at pos. ASCII characters returns 1. Works also if pos is in the middle of the sequence.
+extern size_t get_utf8_sequence_length(const std::string& text, size_t pos = 0);
+extern size_t get_utf8_sequence_length(const char *seq, size_t size);
 
 // Convert an UTF-8 encoded string into local coding.
 // On Windows, the UTF-8 string is converted to a local 8-bit code page.
@@ -364,6 +373,7 @@ inline typename CONTAINER_TYPE::value_type& next_value_modulo(typename CONTAINER
 }
 
 extern std::string xml_escape(std::string text, bool is_marked = false);
+extern std::string xml_escape_double_quotes_attribute_value(std::string text);
 extern std::string xml_unescape(std::string text);
 
 
@@ -641,6 +651,9 @@ inline std::string filter_characters(const std::string& str, const std::string& 
 
 void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target);
 
+// Orca: Since 1.7.9 Boost deprecated save_string_file and load_string_file, copy and modified from boost 1.7.8
+void save_string_file(const boost::filesystem::path& p, const std::string& str);
+void load_string_file(const boost::filesystem::path& p, std::string& str);
 
 } // namespace Slic3r
 

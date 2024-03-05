@@ -7,6 +7,7 @@
 
 #include "../Point.hpp"
 #include "../PrintConfig.hpp"
+#include "PrintConfig.hpp"
 #include "ThumbnailData.hpp"
 
 #include <vector>
@@ -35,8 +36,7 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                                       const std::vector<Vec2d>    &sizes,
                                       GCodeThumbnailsFormat        format,
                                       WriteToOutput                output,
-                                      ThrowIfCanceledCallback      throw_if_canceled,
-                                      int                          layer_count = 0)
+                                      ThrowIfCanceledCallback      throw_if_canceled)
 {
     // Write thumbnails using base64 encoding
     if (thumbnail_cb != nullptr) {
@@ -45,7 +45,6 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
         short                         i              = 0;
         for (const ThumbnailData &data : thumbnails) {
             if (data.is_valid()) {
-                output("; THUMBNAIL_BLOCK_START\n");
                 auto compressed = compress_thumbnail(data, format);
                 if (compressed->data && compressed->size) {
                     if (format == GCodeThumbnailsFormat::BTT_TFT) {
@@ -54,25 +53,23 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                         output((char *) compressed->data);
                         if (i == (thumbnails.size() - 1))
                             output("; bigtree thumbnail end\r\n\r\n");
-                    } else {
+                    }
+                    else if (format == GCodeThumbnailsFormat::ColPic) {
+                        if (i == 0) {
+                            output((boost::format("\n\n;gimage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
+                        } else {
+                            output((boost::format("\n\n;simage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
+                        }
+                    } 
+                    else {
+                        output("; THUMBNAIL_BLOCK_START\n");
                         std::string encoded;
                         encoded.resize(boost::beast::detail::base64::encoded_size(compressed->size));
                         encoded.resize(boost::beast::detail::base64::encode((void *) encoded.data(), (const void *) compressed->data,
-                                                                            compressed->size));     
-
-                        if (format == GCodeThumbnailsFormat::CR_PNG)
-                        {
-                            output((boost::format("\n;\n; %s begin %d*%d %d %d %d %d\n") % compressed->tag() % data.width % data.height % encoded.size() % data.pos_s % data.pos_e % layer_count)
-                                .str()
-                                .c_str());
-                        }
-                        else
-                        {
-                            output((boost::format("\n;\n; %s begin %dx%d %d\n") % compressed->tag() % data.width % data.height % encoded.size())
-                                .str()
-                                .c_str());
-                        }
-                    
+                                                                            compressed->size));                        
+                        output((boost::format("\n;\n; %s begin %dx%d %d\n") % compressed->tag() % data.width % data.height % encoded.size())
+                                   .str()
+                                   .c_str());                        
                         while (encoded.size() > max_row_length) {
                             output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
                             encoded = encoded.substr(max_row_length);
@@ -83,10 +80,10 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                             output((boost::format("; %s\n") % encoded).str().c_str());
 
                         output((boost::format("; %s end\n") % compressed->tag()).str().c_str());
+                        output("; THUMBNAIL_BLOCK_END\n\n");
                     }
                     throw_if_canceled();
                 }
-                output("; THUMBNAIL_BLOCK_END\n\n");
 
                 i++;
             }

@@ -7,7 +7,7 @@
 #include <random>
 
 #include <boost/container/small_vector.hpp>
-//#include <boost/log/trivial.hpp>
+
 #include <boost/static_assert.hpp>
 
 #include "../ClipperUtils.hpp"

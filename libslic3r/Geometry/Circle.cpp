@@ -1,10 +1,14 @@
+///|/ Copyright (c) Prusa Research 2021 - 2022 Luk¨¢? Mat¨§na @lukasmatena, Filip Sykala @Jony01, Vojt¨§ch Bubn¨ªk @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "Circle.hpp"
 
 #include "../Polygon.hpp"
 
 #include <numeric>
 #include <random>
-//#include <boost/log/trivial.hpp>
+
 
 namespace Slic3r { namespace Geometry {
 
@@ -108,7 +112,7 @@ Circled circle_taubin_newton(const Vec2ds& input, size_t cycles)
     return out;
 }
 
-Circled circle_ransac(const Vec2ds& input, size_t iterations)
+Circled circle_ransac(const Vec2ds& input, size_t iterations, double* min_error)
 {
     if (input.size() < 3)
         return Circled::make_invalid();
@@ -132,6 +136,8 @@ Circled circle_ransac(const Vec2ds& input, size_t iterations)
             circle_best = c;
         }
     }
+    if (min_error)
+        *min_error = err_min;
     return circle_best;
 }
 

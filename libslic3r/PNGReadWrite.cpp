@@ -6,7 +6,6 @@
 #include <png.h>
 #include <assert.h>
 #include "libslic3r/libslic3r.h"
-//#include <boost/log/trivial.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 namespace Slic3r { namespace png {

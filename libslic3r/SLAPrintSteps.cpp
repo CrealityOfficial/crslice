@@ -16,8 +16,8 @@
 #include <libslic3r/AABBTreeIndirect.hpp>
 
 #include <libslic3r/ClipperUtils.hpp>
+#include <libslic3r/libslic3r.h>
 
-//#include <boost/log/trivial.hpp>
 
 #include "I18N.hpp"
 
@@ -135,8 +135,9 @@ void SLAPrint::Steps::hollow_model(SLAPrintObject &po)
 
     sla::InteriorPtr interior = generate_interior(po.transformed_mesh(), hlwcfg);
 
-    if (!interior || sla::get_mesh(*interior).empty())
+    if (!interior || sla::get_mesh(*interior).empty()) {
         BOOST_LOG_TRIVIAL(warning) << "Hollowed interior is empty!";
+    }
     else {
         po.m_hollowing_data.reset(new SLAPrintObject::HollowingData());
         po.m_hollowing_data->interior = std::move(interior);
@@ -398,14 +399,14 @@ void SLAPrint::Steps::drill_holes(SLAPrintObject &po)
         auto bb = bounding_box(m);
         Eigen::AlignedBox<float, 3> ebb{bb.min.cast<float>(),
                                         bb.max.cast<float>()};
-
-        AABBTreeIndirect::traverse(
-                    tree,
-                    AABBTreeIndirect::intersecting(ebb),
-                    [&part_to_drill, &hollowed_mesh](size_t faceid)
-        {
-            part_to_drill.indices.emplace_back(hollowed_mesh.its.indices[faceid]);
-        });
+        //BBS
+        //AABBTreeIndirect::traverse(
+        //            tree,
+        //            AABBTreeIndirect::intersecting(ebb),
+        //            [&part_to_drill, &hollowed_mesh](size_t faceid)
+        //{
+        //    part_to_drill.indices.emplace_back(hollowed_mesh.its.indices[faceid]);
+        //});
 
         auto cgal_meshpart = MeshBoolean::cgal::triangle_mesh_to_cgal(
             remove_unconnected_vertices(part_to_drill));

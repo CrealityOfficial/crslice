@@ -10,7 +10,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <memory>
-#include <unordered_set>
 
 #include "../ClipperUtils.hpp"
 #include "../Geometry.hpp"
@@ -1097,7 +1096,7 @@ void Layer::make_ironing()
 
         // Create the filler object.
         f->spacing = ironing_params.line_spacing;
-        f->angle = float(ironing_params.angle + 0.25 * M_PI);
+        f->angle = float(ironing_params.angle);
         f->link_max_length = (coord_t) scale_(3. * f->spacing);
 		double  extrusion_height = ironing_params.height * f->spacing / nozzle_dmr;
 		float  extrusion_width  = Flow::rounded_rectangle_extrusion_width_from_spacing(float(nozzle_dmr), float(extrusion_height));

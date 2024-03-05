@@ -48,6 +48,8 @@ set(lisbslic3r_sources
     Clipper2Utils.cpp
     Clipper2Utils.hpp
     ClipperZUtils.hpp
+    Color.cpp
+    Color.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp
@@ -56,17 +58,21 @@ set(lisbslic3r_sources
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
     ElephantFootCompensation.hpp
+    Emboss.cpp
+    Emboss.hpp
+    EmbossShape.hpp
     enum_bitmask.hpp
     ExPolygon.cpp
     ExPolygon.hpp
+    ExPolygonSerialize.hpp
+    ExPolygonsIndex.cpp
+    ExPolygonsIndex.hpp
     Extruder.cpp
     Extruder.hpp
     ExtrusionEntity.cpp
     ExtrusionEntity.hpp
     ExtrusionEntityCollection.cpp
     ExtrusionEntityCollection.hpp
-    ExtrusionRole.cpp
-    ExtrusionRole.hpp
     ExtrusionSimulator.cpp
     ExtrusionSimulator.hpp
     FileParserError.hpp
@@ -192,12 +198,17 @@ set(lisbslic3r_sources
     BlacklistedLibraryCheck.hpp
     LocalesUtils.cpp
     LocalesUtils.hpp
+    CutUtils.cpp
+    CutUtils.hpp
     Model.cpp
     Model.hpp
     ModelArrange.hpp
     ModelArrange.cpp
     MultiMaterialSegmentation.cpp
     MultiMaterialSegmentation.hpp
+    Measure.hpp
+    Measure.cpp
+    MeasureUtils.hpp
     CustomGCode.cpp
     CustomGCode.hpp
     Arrange.hpp
@@ -209,6 +220,8 @@ set(lisbslic3r_sources
     MultiPoint.cpp
     MultiPoint.hpp
     MutablePriorityQueue.hpp
+    NSVGUtils.cpp
+    NSVGUtils.hpp
     ObjectID.cpp
     ObjectID.hpp
     PerimeterGenerator.cpp
@@ -289,7 +302,7 @@ set(lisbslic3r_sources
     PrincipalComponents2D.hpp
     SupportSpotsGenerator.cpp
     SupportSpotsGenerator.hpp
-    TreeSupport.hpp
+    TreeSupport.hpp 
     TreeSupport.cpp
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
@@ -297,11 +310,13 @@ set(lisbslic3r_sources
     Surface.hpp
     SurfaceCollection.cpp
     SurfaceCollection.hpp
+    SurfaceMesh.hpp
     SVG.cpp
     SVG.hpp
     Technologies.hpp
     Tesselate.cpp
     Tesselate.hpp
+    TextConfiguration.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
     TriangleMeshSlicer.cpp
@@ -313,6 +328,8 @@ set(lisbslic3r_sources
     Utils.hpp
     Time.cpp
     Time.hpp
+    Timer.cpp
+    Timer.hpp
     Thread.cpp
     Thread.hpp
     TriangleSelector.cpp
@@ -413,30 +430,32 @@ set(lisbslic3r_sources
     Shape/TextShape.hpp
     Shape/TextShape.cpp
     calib.hpp
-    calib.cpp
-        GCode/Thumbnails.cpp
-        GCode/Thumbnails.hpp	
-	semver/semver.h
-	semver/semver.c
-	clipper/clipper_z.hpp
-	clipper/clipper_z.cpp
-	admesh/connect.cpp
-    admesh/normals.cpp
-    admesh/shared.cpp
-    admesh/stl.h
-    admesh/stl_io.cpp
-    admesh/stlinit.cpp
-    admesh/util.cpp
-	miniz/miniz.h
-	miniz/miniz.c
-	qoi.h
-	qoilib.c
-	
+    calib.cpp	
 	#MeshBoolean.cpp 
 	#MeshBoolean.hpp  
 	#TryCatchSignal.hpp
     #TryCatchSignal.cpp
 )
+
+set(EXTRA_SOURCES 
+    #GCode/Thumbnails.cpp
+    #GCode/Thumbnails.hpp	
+	#semver/semver.h
+	#semver/semver.c
+	#clipper/clipper_z.hpp
+	#clipper/clipper_z.cpp
+	#admesh/connect.cpp
+    #admesh/normals.cpp
+    #admesh/shared.cpp
+    #admesh/stl.h
+    #admesh/stl_io.cpp
+    #admesh/stlinit.cpp
+    #admesh/util.cpp
+	../extra/miniz.h
+	../extra/miniz.c
+	../qoi/qoi.h
+	../qoi/qoilib.c
+	)
 
 list(APPEND lisbslic3r_sources 
 	#"${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
@@ -470,7 +489,8 @@ __assert_target(expat)
 set(libslic3r_dir ${CMAKE_CURRENT_SOURCE_DIR}/../)
 set(ILIBS)
 set(INTERFACES ${libslic3r_dir} ${CMAKE_CURRENT_SOURCE_DIR}
-	#${CMAKE_CURRENT_BINARY_DIR} 
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/../extra/
 	)
 set(INCS ${INTERFACES})
 set(DEFS)
@@ -479,7 +499,7 @@ if(WIN32)
     list(APPEND ILIBS Psapi.lib)
 endif()
 
-list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thread
+list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thread imgui
 			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess cgal)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
@@ -533,7 +553,7 @@ list(REVERSE OLIBS)  # for linux build
 list(APPEND ILIBS ${OLIBS})
 
 __add_real_target(libslic3r lib 
-	SOURCE ${lisbslic3r_sources} ${OpenVDBUtils_SOURCES}
+	SOURCE ${lisbslic3r_sources} ${OpenVDBUtils_SOURCES} ${EXTRA_SOURCES}
 	ILIB ${ILIBS}
 	INTERFACE ${INTERFACES}
 	INC ${INCS}

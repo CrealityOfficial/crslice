@@ -5,11 +5,10 @@
 
 #include <stack>
 #include <functional>
-#include <unordered_set>
 #include <sstream>
 #include <queue>
 #include <functional>
-//#include <boost/log/trivial.hpp>
+
 
 #include "utils/VoronoiUtils.hpp"
 
@@ -19,6 +18,8 @@
 #include "Geometry/VoronoiVisualUtils.hpp"
 #include "Geometry/VoronoiUtilsCgal.hpp"
 #include "../EdgeGrid.hpp"
+#include "ankerl/unordered_dense.h"
+#include "libslic3r/libslic3r.h"
 
 #define SKELETAL_TRAPEZOIDATION_BEAD_SEARCH_MAX 1000 //A limit to how long it'll keep searching for adjacent beads. Increasing will re-use beadings more often (saving performance), but search longer for beading (costing performance).
 
@@ -522,14 +523,14 @@ static bool has_missing_twin_edge(const SkeletalTrapezoidationGraph &graph)
     return false;
 }
 
-inline static std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
+inline static ankerl::unordered_dense::map<Point, Point, PointHash> try_to_fix_degenerated_voronoi_diagram_by_rotation(
     Geometry::VoronoiDiagram                     &voronoi_diagram,
     const Polygons                               &polys,
     Polygons                                     &polys_rotated,
     std::vector<SkeletalTrapezoidation::Segment> &segments,
     const double                                  fix_angle)
 {
-    std::unordered_map<Point, Point, PointHash> vertex_mapping;
+    ankerl::unordered_dense::map<Point, Point, PointHash> vertex_mapping;
     for (Polygon &poly : polys_rotated)
         poly.rotate(fix_angle);
 
@@ -562,7 +563,7 @@ inline static std::unordered_map<Point, Point, PointHash> try_to_fix_degenerated
 
 inline static void rotate_back_skeletal_trapezoidation_graph_after_fix(SkeletalTrapezoidationGraph                       &graph,
                                                                        const double                                       fix_angle,
-                                                                       const std::unordered_map<Point, Point, PointHash> &vertex_mapping)
+                                                                       const ankerl::unordered_dense::map<Point, Point, PointHash> &vertex_mapping)
 {
     for (STHalfEdgeNode &node : graph.nodes) {
         // If a mapping exists between a rotated point and an original point, use this mapping. Otherwise, rotate a point in the opposite direction.
@@ -623,23 +624,24 @@ void SkeletalTrapezoidation::constructFromPolygons(const Polygons& polys)
     const bool   is_voronoi_diagram_planar  = Geometry::VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(voronoi_diagram);
     const double fix_angle                  = PI / 6;
 
-    std::unordered_map<Point, Point, PointHash> vertex_mapping;
+    ankerl::unordered_dense::map<Point, Point, PointHash> vertex_mapping;
     // polys_copy is referenced through items stored in the std::vector segments.
     Polygons                                    polys_copy = polys;
     if (has_missing_voronoi_vertex || !is_voronoi_diagram_planar) {
-        if (has_missing_voronoi_vertex)
+        if (has_missing_voronoi_vertex) {
             BOOST_LOG_TRIVIAL(warning) << "Detected missing Voronoi vertex, input polygons will be rotated back and forth.";
-        else if (!is_voronoi_diagram_planar)
+        } else if (!is_voronoi_diagram_planar) {
             BOOST_LOG_TRIVIAL(warning) << "Detected non-planar Voronoi diagram, input polygons will be rotated back and forth.";
-
+        }
         vertex_mapping = try_to_fix_degenerated_voronoi_diagram_by_rotation(voronoi_diagram, polys, polys_copy, segments, fix_angle);
 
         assert(!detect_missing_voronoi_vertex(voronoi_diagram, segments));
         assert(Geometry::VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(voronoi_diagram));
-        if (detect_missing_voronoi_vertex(voronoi_diagram, segments))
+        if (detect_missing_voronoi_vertex(voronoi_diagram, segments)) {
             BOOST_LOG_TRIVIAL(error) << "Detected missing Voronoi vertex even after the rotation of input.";
-        else if (!Geometry::VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(voronoi_diagram))
+        } else if (!Geometry::VoronoiUtilsCgal::is_voronoi_diagram_planar_angle(voronoi_diagram)) {
             BOOST_LOG_TRIVIAL(error) << "Detected non-planar Voronoi diagram even after the rotation of input.";
+        }
     }
 
     bool degenerated_voronoi_diagram = has_missing_voronoi_vertex || !is_voronoi_diagram_planar;
@@ -751,7 +753,7 @@ process_voronoi_diagram:
 
 void SkeletalTrapezoidation::separatePointyQuadEndNodes()
 {
-    std::unordered_set<node_t*> visited_nodes;
+    ankerl::unordered_dense::set<node_t*> visited_nodes;
     for (edge_t& edge : graph.edges)
     {
         if (edge.prev) 
@@ -2221,7 +2223,7 @@ void SkeletalTrapezoidation::addToolpathSegment(const ExtrusionJunction& from, c
 
 void SkeletalTrapezoidation::connectJunctions(ptr_vector_t<LineJunctions>& edge_junctions)
 {
-    std::unordered_set<edge_t*> unprocessed_quad_starts(graph.edges.size() * 5 / 2);
+    ankerl::unordered_dense::set<edge_t*> unprocessed_quad_starts(graph.edges.size() * 5 / 2);
     for (edge_t& edge : graph.edges)
     {
         if (!edge.prev)
@@ -2230,7 +2232,7 @@ void SkeletalTrapezoidation::connectJunctions(ptr_vector_t<LineJunctions>& edge_
         }
     }
 
-    std::unordered_set<edge_t*> passed_odd_edges;
+    ankerl::unordered_dense::set<edge_t*> passed_odd_edges;
 
     while (!unprocessed_quad_starts.empty())
     {
