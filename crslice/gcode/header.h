@@ -120,8 +120,8 @@ namespace gcode
 		virtual ~GcodeTracer() {}
 
 		virtual void tick(const std::string& tag) = 0;
-		virtual void getPathData(const trimesh::vec3 point, float e, int type) = 0;
-		virtual void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true) = 0;
+		virtual void getPathData(const trimesh::vec3 point, float e, int type, bool isOrca = false) = 0;
+		virtual void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true, bool isOrca = false) = 0;
 		virtual void setParam(GCodeParseInfo& pathParam) = 0;
 		virtual void setLayer(int layer) = 0;
 		virtual void setLayers(int layer) = 0;
@@ -132,6 +132,7 @@ namespace gcode
 		virtual void setFan(float fan) = 0;
 		virtual void setZ(float z, float h = -1) = 0;
 		virtual void setE(float e) = 0;
+		virtual void setWidth(float width) = 0;
 		virtual void getNotPath() = 0;
 		virtual void set_data_gcodelayer(int layer, const std::string& gcodelayer) = 0;
 		virtual void setNozzleColorList(std::string& colorList) = 0;

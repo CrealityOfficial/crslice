@@ -1915,6 +1915,13 @@ namespace gcode
             pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
             kvs.erase(iter);
         }
+
+        iter = kvs.find("LAYER_HEIGHT");
+        if (iter != kvs.end())
+        {
+            pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
+            kvs.erase(iter);
+        }       
     }
 
     void _detect_type(std::unordered_map<std::string, std::string>& kvs, SliceLineType& curType, SliceLineType& lastType)
@@ -2117,7 +2124,8 @@ namespace gcode
         , trimesh::vec3& v
         , SliceLineType& curType
         , SliceLineType& lastType
-        , GcodeTracer* pathData)
+        , GcodeTracer* pathData
+        , SliceCompany& sliceCompany)
     {
         if (!command.empty())
         {
@@ -2136,7 +2144,7 @@ namespace gcode
             }
             else if (curType == SliceLineType::Wipe)
             {
-                lastType = curType;
+                //lastType = curType;
             }
             else
             {
@@ -2155,7 +2163,7 @@ namespace gcode
                     //trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
                     //    p_source_position_->get_current_position_ptr()->z);
                     //double e = p_source_position_->get_current_position_ptr()->get_current_extruder().e_relative;
-                    pathData->getPathData(v, e, (int)curType);
+                    pathData->getPathData(v, e, (int)curType, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
                 }
                 else
                     pathData->getNotPath();
@@ -2178,7 +2186,7 @@ namespace gcode
                         //trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
                         //    p_source_position_->get_current_position_ptr()->z);
                         //double e = p_source_position_->get_current_position_ptr()->get_current_extruder().e_relative;
-                        pathData->getPathData(v, e, (int)curType);
+                        pathData->getPathData(v, e, (int)curType, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
                     }
                     else
                         pathData->getNotPath();
@@ -2750,6 +2758,21 @@ namespace gcode
                     haveLayerCount = true;
                 }   
 
+
+                iter = kvs.find("WIDTH");
+                if (iter != kvs.end())
+                {
+                    pathData->setWidth(std::atof(iter->second.c_str()));
+                    kvs.erase(iter);
+                }
+
+                iter = kvs.find("LINE_WIDTH");
+                if (iter != kvs.end())
+                {
+                    pathData->setWidth(std::atof(iter->second.c_str()));
+                    kvs.erase(iter);
+                }
+
                 //relative extrusion
                 if (cmd.command == "M83" || cmd.command == "G91")
                 {
@@ -2798,7 +2821,8 @@ namespace gcode
                         , v
                         , curType
                         , lastType
-                        , pathData);
+                        , pathData
+                        ,sliceCompany);
                 }
 
                 //get box

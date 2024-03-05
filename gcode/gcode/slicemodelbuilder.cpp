@@ -592,7 +592,7 @@ namespace gcode
         }
     }
 
-    void GCodeStruct::processG01_sub(SliceLineType tempType,double tempEndE,trimesh::vec3 tempEndPos,bool havaXYZ,int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode) {
+    void GCodeStruct::processG01_sub(SliceLineType tempType,double tempEndE,trimesh::vec3 tempEndPos,bool havaXYZ,int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode, bool isOrca) {
         
         GcodeLayerInfo gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
 
@@ -656,9 +656,13 @@ namespace gcode
 
                 float material_s = PI * (material_diameter * 0.5) * (material_diameter * 0.5);
                 float width = m_gcodeLayerInfos.back().width;
-                if (len >0.0001 && h > 0.0001 && move.e > 0.0f)
+
+                if (!isOrca)
                 {
-                    width = move.e * material_s / len / h;
+                    if (len > 0.0001 && h > 0.0001 && move.e > 0.0f)
+                    {
+                        width = move.e * material_s / len / h;
+                    }
                 }
 
                 //calculate flow
@@ -703,7 +707,7 @@ namespace gcode
         }
     }
 
-    void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode)
+    void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode, bool isOrca)
     {
         std::vector<std::string> G01Strs = splitString(G01Str," ");
 
@@ -768,10 +772,10 @@ namespace gcode
                 
         }
 
-        processG01_sub(tempType, tempEndE, tempEndPos, havaXYZ, nIndex, stepIndexMap, isG2G3, fromGcode);
+        processG01_sub(tempType, tempEndE, tempEndPos, havaXYZ, nIndex, stepIndexMap, isG2G3, fromGcode,isOrca);
     }
     
-    void GCodeStruct::processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap)
+    void GCodeStruct::processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap, bool isOrca)
     {
         bool bcircles = false;
 
@@ -873,13 +877,13 @@ namespace gcode
 
         for (const auto& G23toG01 : G23toG1s)
         {
-            processG01(G23toG01, nIndex, stepIndexMap, true);
+            processG01(G23toG01, nIndex, stepIndexMap, true,isOrca);
         }
 
         tempCurrentE = info.currentE;
     }
 
-    void GCodeStruct::processG23(const std::string& G23Code, int nIndex, std::vector<int>& stepIndexMap)
+    void GCodeStruct::processG23(const std::string& G23Code, int nIndex, std::vector<int>& stepIndexMap, bool isOrca)
     {
         std::vector<std::string> G23Strs = splitString(G23Code," ");//G1 Fxxx Xxxx Yxxx Exxx
         //G3 F1500 X118.701 Y105.96 I9.55 J1.115 E7.96039
@@ -953,7 +957,7 @@ namespace gcode
             }
         }
 
-        GCodeStruct::processG23_sub(info,  nIndex, stepIndexMap);
+        GCodeStruct::processG23_sub(info,  nIndex, stepIndexMap, isOrca);
 
 
     }
@@ -1268,7 +1272,7 @@ namespace gcode
         baseInfo = tempBaseInfo;
     }
 
-    void GCodeStruct::getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode)
+    void GCodeStruct::getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode, bool isOrca)
     {
         if (layerNumberParseSuccess)
         {
@@ -1321,7 +1325,7 @@ namespace gcode
         processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex++, m_stepIndexMaps.back(), false, fromGcode);
     }
 
-    void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2, bool fromGcode) {
+    void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2, bool fromGcode, bool isOrca) {
         
         trimesh::vec3 tempEndPos = tempCurrentPos;
 
@@ -1489,6 +1493,13 @@ namespace gcode
 
     void GCodeStruct::setE(float e){
         tempCurrentE = e;
+    }
+
+    void GCodeStruct::setWidth(float width)
+    {
+        GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
+        gcodeLayerInfo.width = width;
+        m_gcodeLayerInfos.push_back(gcodeLayerInfo);
     }
 
     void GCodeStruct::setTime(float time)

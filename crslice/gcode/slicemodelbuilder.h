@@ -132,8 +132,8 @@ namespace gcode
 
 		std::vector<std::string> m_nozzleColorList;
 		gcode::GCodeParseInfo& getParam();
-		void getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode = false);
-		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true,bool fromGcode = false);
+		void getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode = false, bool isOrca = false);
+		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true,bool fromGcode = false, bool isOrca = false);
 		void setParam(gcode::GCodeParseInfo& pathParam);
 		void setLayer(int layer);
 		void setSpeed(float s);
@@ -143,16 +143,17 @@ namespace gcode
 		void setZ(float z, float h);
 		void setZ_from_gcode(float z);
 		void setE(float e);
+		void setWidth(float width);
 		void setTime(float time);
 		void getNotPath();
 		void setNozzleColorList(std::string& colorList);
 	private:
 		void processLayer(const std::string& layerCode, int layer, std::vector<int>& stepIndexMap);
 		void processStep(const std::string& stepCode, int nIndex, std::vector<int>& stepIndexMap);
-		void processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap,bool isG2G3 =false, bool fromGcode = false);
-		void processG01_sub(SliceLineType tempType, double tempEndE, trimesh::vec3 tempEndPos, bool havaXYZ, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode = false);
-		void processG23(const std::string& G23Str, int nIndex, std::vector<int>& stepIndexMap);
-		void processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap);
+		void processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap,bool isG2G3 =false, bool fromGcode = false, bool isOrca = false);
+		void processG01_sub(SliceLineType tempType, double tempEndE, trimesh::vec3 tempEndPos, bool havaXYZ, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode = false, bool isOrca = false);
+		void processG23(const std::string& G23Str, int nIndex, std::vector<int>& stepIndexMap, bool isOrca = false);
+		void processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap, bool isOrca = false);
 		void processSpeed(float speed);
 
 		void processPrefixCode(const std::string& stepCod);
