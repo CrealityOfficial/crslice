@@ -1104,7 +1104,8 @@ bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boole
     std::vector<TriangleMesh> new_meshes;
 
     const TriangleMesh &cut_mesh = cut_object->mesh();
-    MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
+    //remove boolean
+    //MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
 
     this->clear_volumes();
     int i = 1;

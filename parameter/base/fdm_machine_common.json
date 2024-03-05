@@ -23,7 +23,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coPercent",
-        "unit": "%%"
+        "unit": "%"
     },
     "activate_air_filtration": {
         "default_value": "0",
@@ -62,6 +62,18 @@
         "settable_per_meshgroup": "false",
         "type": "coInts",
         "unit": "%"
+    },
+    "alternate_extra_wall": {
+        "default_value": "0",
+        "description": "This setting adds an extra wall to every other layer. This way the infill gets wedged vertically between the walls, resulting in stronger prints. \n\nWhen this option is enabled, the ensure vertical shell thickness option needs to be disabled. \n\nUsing lightning infill together with this option is not recommended as there is limited infill to anchor the extra perimeters to.",
+        "enabled": "true",
+        "label": "Alternate extra wall",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
     },
     "auxiliary_fan": {
         "default_value": "0",
@@ -707,6 +719,18 @@
         "type": "coStrings",
         "unit": ""
     },
+    "disable_m73": {
+        "default_value": "0",
+        "description": "Disable generating of the M73: Set remaining print time in the final gcode",
+        "enabled": "true",
+        "label": "Disable set remaining print time",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "draft_shield": {
         "default_value": "disabled",
         "description": "",
@@ -763,6 +787,18 @@
         "settable_per_meshgroup": "false",
         "type": "coInt",
         "unit": "layers"
+    },
+    "emit_machine_limits_to_gcode": {
+        "default_value": "1",
+        "description": "If enabled, the machine limits will be emitted to G-code file.\nThis option will be ignored if the g-code flavor is set to Klipper.",
+        "enabled": "true",
+        "label": "Emit limits to G-code",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
     },
     "enable_arc_fitting": {
         "default_value": "0",
@@ -903,7 +939,7 @@
         "unit": ""
     },
     "exclude_object": {
-        "default_value": "1",
+        "default_value": "0",
         "description": "Enable this option to add EXCLUDE OBJECT command in g-code",
         "enabled": "true",
         "label": "Exclude objects",
@@ -1052,7 +1088,7 @@
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
+        "type": "coFloats",
         "unit": "%"
     },
     "fan_min_speed": {
@@ -1066,7 +1102,7 @@
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
-        "type": "coInts",
+        "type": "coFloats",
         "unit": "%"
     },
     "fan_speedup_overhangs": {
@@ -1085,7 +1121,7 @@
         "default_value": "0",
         "description": "Start the fan this number of seconds earlier than its target start time (you can use fractional seconds). It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting is unsupported).\nIt won't move fan comands from custom gcodes (they act as a sort of 'barrier').\nIt won't move fan comands into the start gcode if the 'only custom start gcode' is activated.\nUse 0 to deactivate.",
         "enabled": "true",
-        "label": "Fan speed-up time",
+        "label": "",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -1298,7 +1334,7 @@
     },
     "filament_minimal_purge_on_wipe_tower": {
         "default_value": "15",
-        "description": "After a tool change, the exact position of the newly loaded filament inside the nozzle may not be known, and the filament pressure is likely not yet stable. Before purging the print head into an infill or a sacrificial object, Slic3r will always prime this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.",
+        "description": "After a tool change, the exact position of the newly loaded filament inside the nozzle may not be known, and the filament pressure is likely not yet stable. Before purging the print head into an infill or a sacrificial object, Orca Slicer will always prime this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.",
         "enabled": "true",
         "label": "Minimal purge on wipe tower",
         "minimum_value": "0",
@@ -1645,7 +1681,7 @@
     },
     "filament_wipe_distance": {
         "default_value": "1",
-        "description": "Discribe how long the nozzle will move along the last path when retracting",
+        "description": "Discribe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.",
         "enabled": "true",
         "label": "Wipe Distance",
         "settable_globally": "false",
@@ -1721,6 +1757,22 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
+        "unit": ""
+    },
+    "first_layer_sequence_choice": {
+        "default_value": "Auto",
+        "description": "",
+        "enabled": "true",
+        "label": "First layer filament sequence",
+        "options": {
+            "Auto": "Auto",
+            "Customize": "Customize"
+        },
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
         "unit": ""
     },
     "flush_into_infill": {
@@ -1827,6 +1879,18 @@
         "type": "coEnum",
         "unit": ""
     },
+    "fuzzy_skin_first_layer": {
+        "default_value": "0",
+        "description": "Whether to apply fuzzy skin on the first layer",
+        "enabled": "true",
+        "label": "Apply fuzzy skin to first layer",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "fuzzy_skin_point_distance": {
         "default_value": "0.8",
         "description": "The average diatance between the random points introducded on each line segment",
@@ -1922,6 +1986,18 @@
         "type": "coBool",
         "unit": ""
     },
+    "head_wrap_detect_zone": {
+        "default_value": "",
+        "description": "",
+        "enabled": "true",
+        "label": "Head wrap detect zone",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coPoints",
+        "unit": ""
+    },
     "high_current_on_filament_swap": {
         "default_value": "0",
         "description": "It may be beneficial to increase the extruder motor current during the filament exchange sequence to allow for rapid ramming feed rates and to overcome resistance when loading a filament with an ugly shaped tip.",
@@ -1972,7 +2048,7 @@
     },
     "host_type": {
         "default_value": "octoprint",
-        "description": "Slic3r can upload G-code files to a printer host. This field must contain the kind of the host.",
+        "description": "Orca Slicer can upload G-code files to a printer host. This field must contain the kind of the host.",
         "enabled": "true",
         "label": "Host Type",
         "options": {
@@ -2033,7 +2109,7 @@
     },
     "infill_anchor": {
         "default_value": "400%",
-        "description": "Connect an infill line to an internal perimeter with a short segment of an additional perimeter. If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Slic3r tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment shorter than infill_anchor_max is found, the infill line is connected to a perimeter segment at just one side and the length of the perimeter segment taken is limited to this parameter, but no longer than anchor_length_max. \nSet this parameter to zero to disable anchoring perimeters connected to a single infill line.",
+        "description": "Connect an infill line to an internal perimeter with a short segment of an additional perimeter. If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Orca Slicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment shorter than infill_anchor_max is found, the infill line is connected to a perimeter segment at just one side and the length of the perimeter segment taken is limited to this parameter, but no longer than anchor_length_max. \nSet this parameter to zero to disable anchoring perimeters connected to a single infill line.",
         "enabled": "true",
         "label": "Sparse infill anchor length",
         "options": {
@@ -2053,7 +2129,7 @@
     },
     "infill_anchor_max": {
         "default_value": "20",
-        "description": "Connect an infill line to an internal perimeter with a short segment of an additional perimeter. If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Slic3r tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment shorter than this parameter is found, the infill line is connected to a perimeter segment at just one side and the length of the perimeter segment taken is limited to infill_anchor, but no longer than this parameter. \nIf set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.",
+        "description": "Connect an infill line to an internal perimeter with a short segment of an additional perimeter. If expressed as percentage (example: 15%) it is calculated over infill extrusion width. Orca Slicer tries to connect two close infill lines to a short perimeter segment. If no such perimeter segment shorter than this parameter is found, the infill line is connected to a perimeter segment at just one side and the length of the perimeter segment taken is limited to infill_anchor, but no longer than this parameter. \nIf set to 0, the old algorithm for infill connection will be used, it should create the same result as with 1000 & 0.",
         "enabled": "true",
         "label": "Maximum length of the infill anchor",
         "options": {
@@ -2372,7 +2448,7 @@
     },
     "internal_solid_infill_pattern": {
         "default_value": "monotonic",
-        "description": "Line pattern of internal solid infill. if the detect nattow internal solid infill be enabled, the concentric pattern will be used for the small area.",
+        "description": "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area.",
         "enabled": "true",
         "label": "Internal solid infill pattern",
         "options": {
@@ -2492,6 +2568,18 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coEnum",
+        "unit": ""
+    },
+    "is_infill_first": {
+        "default_value": "0",
+        "description": "Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting walls first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.",
+        "enabled": "true",
+        "label": "Print infill first",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
         "unit": ""
     },
     "layer_change_gcode": {
@@ -2998,6 +3086,32 @@
         "type": "coFloat",
         "unit": "mm2"
     },
+    "mmu_segmented_region_interlocking_depth": {
+        "default_value": "0",
+        "description": "Interlocking depth of a segmented region. Zero disables this feature.",
+        "enabled": "true",
+        "label": "Interlocking depth of a segmented region",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm"
+    },
+    "mmu_segmented_region_max_width": {
+        "default_value": "0",
+        "description": "Maximum width of a segmented region. Zero disables this feature.",
+        "enabled": "true",
+        "label": "Maximum width of a segmented region",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm"
+    },
     "notes": {
         "default_value": "",
         "description": "You can put here your personal notes. This text will be added to the G-code header comments.",
@@ -3300,9 +3414,21 @@
     },
     "overhang_reverse": {
         "default_value": "0",
-        "description": "Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhang.",
+        "description": "Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhangs.\n\nThis setting can also help reduce part warping due to the reduction of stresses in the part walls.",
         "enabled": "true",
         "label": "Reverse on odd",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "overhang_reverse_internal_only": {
+        "default_value": "0",
+        "description": "Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recomended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.",
+        "enabled": "true",
+        "label": "Reverse only internal perimeters",
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
@@ -3350,7 +3476,7 @@
     },
     "post_process": {
         "default_value": "",
-        "description": "If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and they can access the Slic3r config settings by reading environment variables.",
+        "description": "If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and they can access the Orca Slicer config settings by reading environment variables.",
         "enabled": "true",
         "label": "Post-processing Scripts",
         "settable_globally": "true",
@@ -3371,6 +3497,20 @@
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
+    },
+    "preferred_orientation": {
+        "default_value": "0",
+        "description": "Automatically orient stls on the Z-axis upon initial import",
+        "enabled": "true",
+        "label": "Preferred orientation",
+        "maximum_value": "360",
+        "minimum_value": "-360",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "."
     },
     "preset_name": {
         "default_value": "",
@@ -3476,7 +3616,7 @@
     },
     "print_host": {
         "default_value": "",
-        "description": "Slic3r can upload G-code files to a printer host. This field should contain the hostname, IP address or URL of the printer host instance. Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL in the following format: https://username:password@your-octopi-address/",
+        "description": "Orca Slicer can upload G-code files to a printer host. This field should contain the hostname, IP address or URL of the printer host instance. Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL in the following format: https://username:password@your-octopi-address/",
         "enabled": "true",
         "label": "Hostname, IP or URL",
         "settable_globally": "false",
@@ -3637,7 +3777,7 @@
     },
     "printhost_apikey": {
         "default_value": "",
-        "description": "Slic3r can upload G-code files to a printer host. This field should contain the API Key or the password required for authentication.",
+        "description": "Orca Slicer can upload G-code files to a printer host. This field should contain the API Key or the password required for authentication.",
         "enabled": "true",
         "label": "API Key / Password",
         "settable_globally": "false",
@@ -3716,6 +3856,18 @@
         "description": "",
         "enabled": "true",
         "label": "User",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coString",
+        "unit": ""
+    },
+    "printing_by_object_gcode": {
+        "default_value": "",
+        "description": "Insert Gcode between objects. This parameter will only come into effect when you print your models object by object",
+        "enabled": "true",
+        "label": "Between Object Gcode",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -3894,6 +4046,7 @@
         "description": "If you set this to a positive value, Z lift will only take place above the specified absolute Z.",
         "enabled": "true",
         "label": "Only lift Z above",
+        "minimum_value": "0",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -3906,6 +4059,7 @@
         "description": "If you set this to a positive value, Z lift will only take place below the specified absolute Z.",
         "enabled": "true",
         "label": "Only lift Z below",
+        "minimum_value": "0",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -4099,7 +4253,7 @@
         "description": "Distance from skirt to brim or object",
         "enabled": "true",
         "label": "Skirt distance",
-        "maximum_value": "10",
+        "maximum_value": "60",
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4296,7 +4450,7 @@
     },
     "sparse_infill_density": {
         "default_value": "20%",
-        "description": "Density of internal sparse infill, 100% means solid throughout",
+        "description": "Density of internal sparse infill, 100% turns all sparse infill into solid infill and internal solid infill pattern will be used",
         "enabled": "true",
         "label": "Sparse infill density",
         "maximum_value": "100",
@@ -4386,7 +4540,33 @@
         "label": "Spiral vase",
         "settable_globally": "true",
         "settable_per_extruder": "true",
-        "settable_per_mesh": "false",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "spiral_mode_max_xy_smoothing": {
+        "default_value": "200%",
+        "description": "Maximum distance to move points in XY to try to achieve a smooth spiralIf expressed as a %, it will be computed over nozzle diameter",
+        "enabled": "true",
+        "label": "Max XY Smoothing",
+        "maximum_value": "1000",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coFloatOrPercent",
+        "unit": "mm or %"
+    },
+    "spiral_mode_smooth": {
+        "default_value": "0",
+        "description": "Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam at all, even in the XY directions on walls that are not vertical",
+        "enabled": "true",
+        "label": "Smooth Spiral",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -4565,11 +4745,11 @@
     },
     "support_interface_bottom_layers": {
         "default_value": "0",
-        "description": "",
+        "description": "Number of bottom interface layers",
         "enabled": "true",
         "label": "Bottom interface layers",
         "options": {
-            "-1": "-1",
+            "-1": "Same as top",
             "0": "0",
             "1": "1",
             "2": "2",
@@ -4601,6 +4781,18 @@
         "description": "Cover the top contact layer of the supports with loops. Disabled by default.",
         "enabled": "true",
         "label": "Interface use loop pattern",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "support_interface_not_for_body": {
+        "default_value": "1",
+        "description": "Avoid using support interface filament to print support base if possible.",
+        "enabled": "true",
+        "label": "Avoid interface filament for base",
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
@@ -4699,6 +4891,18 @@
         "settable_per_meshgroup": "false",
         "type": "coInts",
         "unit": "%"
+    },
+    "support_multi_bed_types": {
+        "default_value": "0",
+        "description": "Enable this option if you want to use multiple bed types",
+        "enabled": "true",
+        "label": "Support multi bed types",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
     },
     "support_object_xy_distance": {
         "default_value": "0.35",
@@ -4914,8 +5118,9 @@
             "PNG": "PNG",
             "JPG": "JPG",
             "QOI": "QOI",
-            "BTT TFT": "BTT TFT",
-			"CR_PNG": "CR_PNG"
+            "BTT TFT": "BTT TT",
+            "CR_PNG": "CR_PNG",
+            "ColPic": "ColPic"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -5425,25 +5630,6 @@
         "type": "coEnum",
         "unit": ""
     },
-    "wall_infill_order": {
-        "default_value": "inner wall/outer wall/infill",
-        "description": "Print sequence of inner wall, outer wall and infill. ",
-        "enabled": "true",
-        "label": "Order of inner wall/outer wall/infil",
-        "options": {
-            "inner wall/outer wall/infill": "inner/outer/infill",
-            "outer wall/inner wall/infill": "outer/inner/infill",
-            "infill/inner wall/outer wall": "infill/inner/outer",
-            "infill/outer wall/inner wall": "infill/outer/inner",
-            "inner-outer-inner wall/infill": "inner-outer-inner/infill"
-        },
-        "settable_globally": "true",
-        "settable_per_extruder": "true",
-        "settable_per_mesh": "true",
-        "settable_per_meshgroup": "false",
-        "type": "coEnum",
-        "unit": ""
-    },
     "wall_loops": {
         "default_value": "2",
         "description": "Number of walls of every layer",
@@ -5456,6 +5642,23 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coInt",
+        "unit": ""
+    },
+    "wall_sequence": {
+        "default_value": "inner wall/outer wall",
+        "description": "Print sequence of the internal (inner) and external (outer) walls. \n\nUse Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n\nUse Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recomended against the Outer/Inner option in most cases. \n\nUse Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n ",
+        "enabled": "true",
+        "label": "Walls printing order",
+        "options": {
+            "inner wall/outer wall": "Inner/Outer",
+            "outer wall/inner wall": "Outer/Inner",
+            "inner-outer-inner wall": "Inner/Outer/Inner"
+        },
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
         "unit": ""
     },
     "wall_transition_angle": {
@@ -5510,9 +5713,21 @@
         "type": "coBools",
         "unit": ""
     },
+    "wipe_before_external_loop": {
+        "default_value": "0",
+        "description": "To minimise visibility of potential overextrusion at the start of an external perimeter when printing with Outer/Inner or Inner/Outer/Inner wall print order, the deretraction is performed slightly on the inside from the start of the external perimeter. That way any potential over extrusion is hidden from the outside surface. \n\nThis is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it is more likely an external perimeter is printed immediately after a deretraction move.",
+        "enabled": "true",
+        "label": "Wipe before external loop",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "wipe_distance": {
         "default_value": "1",
-        "description": "Discribe how long the nozzle will move along the last path when retracting",
+        "description": "Discribe how long the nozzle will move along the last path when retracting. \n\nDepending on how long the wipe operation lasts, how fast and long the extruder/filament retraction settings are, a retraction move may be needed to retract the remaining filament. \n\nSetting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after.",
         "enabled": "true",
         "label": "Wipe Distance",
         "minimum_value": "0",
@@ -5626,7 +5841,7 @@
         "unit": "."
     },
     "wipe_tower_x": {
-        "default_value": "155",
+        "default_value": "15",
         "description": "",
         "enabled": "true",
         "label": "",
@@ -5690,6 +5905,8 @@
         "description": "Whenever the retraction is done, the nozzle is lifted a little to create clearance between nozzle and the print. It prevents nozzle from hitting the print when travel move. Using spiral line to lift z can prevent stringing",
         "enabled": "true",
         "label": "Z hop when retract",
+        "maximum_value": "5",
+        "minimum_value": "0",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",

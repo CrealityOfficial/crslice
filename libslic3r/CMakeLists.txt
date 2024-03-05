@@ -430,27 +430,23 @@ set(lisbslic3r_sources
     Shape/TextShape.hpp
     Shape/TextShape.cpp
     calib.hpp
-    calib.cpp	
-	#MeshBoolean.cpp 
-	#MeshBoolean.hpp  
-	#TryCatchSignal.hpp
-    #TryCatchSignal.cpp
+    calib.cpp
+    GCode/Thumbnails.cpp
+    GCode/Thumbnails.hpp	
 )
 
-set(EXTRA_SOURCES 
-    #GCode/Thumbnails.cpp
-    #GCode/Thumbnails.hpp	
-	#semver/semver.h
-	#semver/semver.c
-	#clipper/clipper_z.hpp
-	#clipper/clipper_z.cpp
-	#admesh/connect.cpp
-    #admesh/normals.cpp
-    #admesh/shared.cpp
-    #admesh/stl.h
-    #admesh/stl_io.cpp
-    #admesh/stlinit.cpp
-    #admesh/util.cpp
+set(EXTRA_SOURCES 	
+	../semver/semver.h
+	../semver/semver.c
+	../clipper/clipper_z.hpp
+	../clipper/clipper_z.cpp
+	../admesh/connect.cpp
+    ../admesh/normals.cpp
+    ../admesh/shared.cpp
+    ../admesh/stl.h
+    ../admesh/stl_io.cpp
+    ../admesh/stlinit.cpp
+    ../admesh/util.cpp
 	../extra/miniz.h
 	../extra/miniz.c
 	../qoi/qoi.h
@@ -469,6 +465,19 @@ if (APPLE)
         )
 endif ()
 
+list(APPEND lisbslic3r_sources
+    	CutSurface.hpp
+	CutSurface.cpp
+    	IntersectionPoints.hpp
+	IntersectionPoints.cpp
+    	#MeshBoolean.hpp
+	#MeshBoolean.cpp
+    	TryCatchSignal.hpp
+	TryCatchSignal.cpp
+    	Triangulation.hpp
+	Triangulation.cpp
+	)
+	
 __cc_find(boost_static)
 __cc_find(eigen)
 __cc_find(admesh)
