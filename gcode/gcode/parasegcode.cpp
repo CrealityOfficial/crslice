@@ -70,7 +70,7 @@ namespace gcode
         void process_extruder_cache(int active_extruder_id)
         {
             //size_t active_extruder_id = processor->m_extruder_id;
-            if (tool_change_cache != 0.0f) {
+            if (tool_change_cache >= 0.0f) {
                 if (volumes_per_extruder.find(active_extruder_id) != volumes_per_extruder.end())
                     volumes_per_extruder[active_extruder_id] += tool_change_cache;
                 else
@@ -78,7 +78,7 @@ namespace gcode
                 tool_change_cache = 0.0f;
             }
 
-            if (Wipe_cache != 0.0f) {
+            if (Wipe_cache > 0.0f) {
                 if (volumes_per_tower.find(active_extruder_id) != volumes_per_tower.end())
                     volumes_per_tower[active_extruder_id] += Wipe_cache;
                 else
@@ -147,6 +147,8 @@ namespace gcode
 
         double current_e;
         trimesh::vec3 current_v;
+
+        std::set <int> extruders;
 
         std::vector<float> filament_diameters;
         std::vector<float> material_densitys;
@@ -2295,12 +2297,20 @@ namespace gcode
                         extruder_id = p.unsigned_long_value;
                         pathData->setExtruder((int)extruder_id);
                         gcodeProcessor.gcodeParaseInfo.total_filamentchanges++;
+
+                        gcodeProcessor.extruders.insert(extruder_id);
                     }
             }
             if (extruder_id >= 0 && extruder_id <= 254
                 &&extruder_id != gcodeProcessor.m_extruder_id)
             {
                 //if (id >= m_result.extruders_count) {}
+
+                auto iter = gcodeProcessor.extruders.find(gcodeProcessor.m_extruder_id);
+                if (iter == gcodeProcessor.extruders.end() && gcodeProcessor.m_extruder_id == 0)
+                {
+                    gcodeProcessor.m_extruder_id = extruder_id;
+                }
 
                 gcodeProcessor.m_last_extruder_id = gcodeProcessor.m_extruder_id;
                 process_filaments(gcodeProcessor, GCodeType::ToolChange);
@@ -2800,6 +2810,17 @@ namespace gcode
         }
 
         gcodeProcessor.m_used_filaments.process_color_change_cache();
+
+        if (!gcodeProcessor.extruders.empty())
+        {
+            auto iter = gcodeProcessor.extruders.find(gcodeProcessor.m_extruder_id);
+            if (iter == gcodeProcessor.extruders.end() && gcodeProcessor.m_extruder_id == 0)
+            {
+                auto it = gcodeProcessor.extruders.end();
+                it--;
+                gcodeProcessor.m_extruder_id =  *it;
+            }
+        }
         gcodeProcessor.m_used_filaments.process_extruder_cache(gcodeProcessor.m_extruder_id);
         //process_role_cache
 
