@@ -2422,11 +2422,34 @@ namespace gcode
         }
     }
 
+    void parese_manual_tool_change(parsed_command& cmd)
+    {
+        if (cmd.comment.find("MANUAL_TOOL_CHANGE") != std::string::npos)
+        {
+            std::vector<std::string> _kvs;
+            removeSpace(cmd.comment);
+            Stringsplit(cmd.comment, ' ', _kvs);
+            if (_kvs.size() > 1)
+            {
+                cmd.command = _kvs[1];
+
+                std::vector<std::string> __kvs;
+                Stringsplit(_kvs[1], 'T', __kvs);
+                if (__kvs.size() > 1)
+                {
+                    cmd.parameters.push_back(parsed_command_parameter("T", atoi(__kvs[1].c_str())));
+                }
+            }
+        }
+    }
+
     void process_gcode_line(parsed_command& cmd, GCodeProcessor& pathParam, SliceLineType& curType, GcodeTracer* pathData)
     {
         //START_PRINT EXTRUDER_TEMP=220 BED_TEMP=60
         if (!cmd.gcode.empty() && !pathParam.have_start_print)
             getDefineTEMP(cmd.gcode, pathParam,pathData);
+
+        parese_manual_tool_change(cmd);
 
         if (cmd.command.length() >=1 ) {
             switch (cmd.command[0])
