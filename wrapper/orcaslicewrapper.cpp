@@ -124,23 +124,6 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 	tmesh = Slic3r::TriangleMesh(indexedTriangleSet);
 }
 
-void removeSpace(std::string& str)
-{
-	str.erase(0, str.find_first_not_of(" "));
-	str.erase(str.find_last_not_of(" ") + 1);
-}
-
-void Stringsplit(std::string str, const char split, std::vector<std::string>& res)
-{
-	std::istringstream iss(str);	// 输入流
-	std::string token;			// 接收缓冲区
-	while (getline(iss, token, split))	// 以split为分隔符
-	{
-		removeSpace(token);
-		res.push_back(token);
-	}
-}
-
 Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::ConfigOptionDef* cDef)
 {
 	Slic3r::ConfigOption* option = nullptr;
@@ -246,7 +229,6 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
-	bool is_bbl_printer, const Slic3r::Vec3d& plate_origin,
 	const std::string& out, ccglobal::Tracer* tracer)
 {
 #if 1
@@ -287,7 +269,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 
-void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
+void prusa_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 {
 	if (!scene)
 		return;
@@ -299,19 +281,15 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	//calibParams.start = 0.0;
 	//calibParams.step = 0.0;
 	//calibParams.print_numbers = false;
-
-
 	convert_scene_2_orca(scene, model, config);
 
-	slice_impl(model, config, scene->m_isBBLPrinter, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, tracer);
+	slice_impl(model, config, scene->m_gcodeFileName, tracer);
 }
 
-void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
+void prusa_slice_from_binary(const std::string& file, const std::string& out)
 {
 	std::ifstream in(file, std::ios::in | std::ios::binary);
 
-	bool is_bbl_printer = false;
-	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
 
@@ -379,8 +357,19 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	//	std::cout << serialization_key_ordinal << std::endl;
 	//}
 #endif
-	//Slic3r::Calib_Params calibParams;
-	slice_impl(model, config, is_bbl_printer, plate_origin, out, nullptr);
+	slice_impl(model, config, out, nullptr);
+}
+
+void prusa_slice_from_3mf(const std::string& file, const std::string& out)
+{
+
+}
+
+void prusa_slice_fromfile_impl(const std::string& file, const std::string& out)
+{
+	if (boost::ends_with(file, ".3mf"))
+		return prusa_slice_from_3mf(file, out);
+	return prusa_slice_from_binary(file, out);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)

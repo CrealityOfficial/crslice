@@ -24,11 +24,11 @@ namespace crslice2
 			return;
 		}
 
-		orca_slice_impl(scene, tracer);
+		prusa_slice_impl(scene, tracer);
 	}
 
-	void orcaSliceFromFile(const std::string& file, const std::string& out)
+	void prusaSliceFromFile(const std::string& file, const std::string& out)
 	{
-		orca_slice_fromfile_impl(file, out);
+		prusa_slice_fromfile_impl(file, out);
 	}
 }

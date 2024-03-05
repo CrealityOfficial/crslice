@@ -27,6 +27,6 @@ namespace crslice2
         SliceResult sliceResult;
 	};
 
-    CRSLICE2_API void orcaSliceFromFile(const std::string& file, const std::string& out);
+    CRSLICE2_API void prusaSliceFromFile(const std::string& file, const std::string& out);
 }
 #endif  // MSIMPLIFY_SIMPLIFY_H
