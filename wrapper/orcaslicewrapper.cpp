@@ -21,6 +21,7 @@
 #include "crslice2/base/parametermeta.h"
 
 #include "GCode/ThumbnailData.hpp"
+#include "libslic3r/Semver.hpp"
 
 #include "crgroup.h"
 #include "crobject.h"
@@ -151,23 +152,6 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 	tmesh.from_stl(stl);
 }
 
-void removeSpace(std::string& str)
-{
-	str.erase(0, str.find_first_not_of(" "));
-	str.erase(str.find_last_not_of(" ") + 1);
-}
-
-void Stringsplit(std::string str, const char split, std::vector<std::string>& res)
-{
-	std::istringstream iss(str);	// 输入流
-	std::string token;			// 接收缓冲区
-	while (getline(iss, token, split))	// 以split为分隔符
-	{
-		removeSpace(token);
-		res.push_back(token);
-	}
-}
-
 Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::ConfigOptionDef* cDef)
 {
 	Slic3r::ConfigOption* option = nullptr;
@@ -290,7 +274,6 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	}
 }
 
-
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
 	bool is_bbl_printer,int plate_index, const Slic3r::Vec3d& plate_origin,
 	const std::string& out, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
@@ -373,7 +356,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, thumbnailData, tracer);
 }
 
-void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
+void orca_slice_from_arch_impl(const std::string& file, const std::string& out)
 {
 	std::ifstream in(file, std::ios::in | std::ios::binary);
 
@@ -449,7 +432,34 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 #endif
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
-	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, calibParams, thumbnailDatas,nullptr);
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, calibParams, thumbnailDatas, nullptr);
+}
+
+void orca_slice_from_3mf_impl(const std::string& file, const std::string& out)
+{
+	Slic3r::DynamicPrintConfig config;
+	Slic3r::PlateDataPtrs             plate_data;
+	Slic3r::En3mfType                 en_3mf_file_type = Slic3r::En3mfType::From_BBS;
+	Slic3r::LoadStrategy strategy = Slic3r::LoadStrategy::LoadModel | Slic3r::LoadStrategy::LoadConfig;
+	Slic3r::ConfigSubstitutionContext config_substitutions{ Slic3r::ForwardCompatibilitySubstitutionRule::Enable };
+	std::vector<Slic3r::Preset*>     project_presets;
+	Slic3r::Semver             file_version;
+
+	Slic3r::Model model = Slic3r::Model::read_from_archive(file, &config, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets, &file_version);
+
+	bool is_bbl_printer = true;
+	int plate_index = 0;
+	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
+	Slic3r::Calib_Params calibParams;
+	Slic3r::ThumbnailsList thumbnailDatas;
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, calibParams, thumbnailDatas, nullptr);
+}
+
+void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
+{
+	if (boost::ends_with(file, ".3mf"))
+		return orca_slice_from_3mf_impl(file, out);
+	return orca_slice_from_arch_impl(file, out);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)
