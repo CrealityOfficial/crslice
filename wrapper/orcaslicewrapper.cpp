@@ -93,7 +93,8 @@ void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& mod
 	}
 
 	boost::nowide::ofstream c;
-	c.open("cx_parameter.json", std::ios::out | std::ios::trunc);
+	//c.open("cx_parameter.json", std::ios::out | std::ios::trunc);
+	c.open(fileName.c_str(), std::ios::out | std::ios::trunc);
 	c << std::setw(4) << j << std::endl;
 	c.close();
 }
@@ -293,10 +294,10 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
 	bool is_bbl_printer,int plate_index, const Slic3r::Vec3d& plate_origin,
-	const std::string& out, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
+	const std::string& out, const std::string& out_json, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
 {
 #if 1
-	save_parameter_2_json("", model, config);
+	save_parameter_2_json(out_json, model, config);
 #endif
 
 	Slic3r::PrintBase::status_callback_type callback = [&tracer](const Slic3r::PrintBase::SlicingStatus& _status) {
@@ -370,7 +371,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 	convert_scene_2_orca(scene, model, config, calibParams, thumbnailData);
 
-	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, calibParams, thumbnailData, tracer);
+	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, scene->m_tempDirectory, calibParams, thumbnailData, tracer);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
@@ -382,6 +383,8 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
+
+	std::string out_json = "cx_parameter.json";
 
 #if 1
 	cereal::BinaryInputArchive iarchive(in);
@@ -449,7 +452,7 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 #endif
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
-	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, calibParams, thumbnailDatas,nullptr);
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, out_json, calibParams, thumbnailDatas,nullptr);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)
