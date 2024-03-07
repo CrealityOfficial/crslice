@@ -115,6 +115,7 @@ public:
     const bool is_bbl_printers() const {return m_is_bbl_printers;}
     void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
     GCodeFlavor get_gcode_flavor() const { return config.gcode_flavor; }
+    void set_printer_model(bool bval) { m_printer_model_bbl = bval; }
 
     // Returns whether this flavor supports separate print and travel acceleration.
     static bool supports_separate_travel_acceleration(GCodeFlavor flavor);
@@ -164,6 +165,7 @@ public:
     bool            m_is_bbl_printers = false;
     double          m_current_speed;
     bool            m_is_first_layer = true;
+    bool            m_printer_model_bbl = false;
 
     enum class Acceleration {
         Travel,

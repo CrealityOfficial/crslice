@@ -1814,8 +1814,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     m_fan_mover.release();
-    
     m_writer.set_is_bbl_machine(is_bbl_printers);
+
+    std::string printer_model = print.full_print_config().option("printer_model")->serialize();
+    if (printer_model.find("Bambu") != std::string::npos)
+    {
+        m_writer.set_printer_model(true);
+    }
 
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
