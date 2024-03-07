@@ -297,7 +297,10 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	const std::string& out, const std::string& out_json, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
 {
 #if 1
-	save_parameter_2_json(out_json, model, config);
+	if (!out_json.empty())
+	{
+		save_parameter_2_json(out_json + "cx_parameter.json", model, config);
+	}
 #endif
 
 	Slic3r::PrintBase::status_callback_type callback = [&tracer](const Slic3r::PrintBase::SlicingStatus& _status) {
