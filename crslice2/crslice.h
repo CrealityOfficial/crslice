@@ -2,6 +2,7 @@
 #define CRSLICE_SLICE_H_2
 #include "crslice2/interface.h"
 #include "crslice2/crscene.h"
+#include <vector>
 
 namespace crslice2
 {
@@ -27,6 +28,15 @@ namespace crslice2
         SliceResult sliceResult;
 	};
 
+    struct SliceParams
+    {
+        float layer_height;
+        float min_layer_height;
+        float max_layer_height;
+        float initial_layer_print_height;
+    };
+
+    CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(SliceParams& slicing_params, trimesh::TriMesh* triMesh, float quality);
     CRSLICE2_API void orcaSliceFromFile(const std::string& file, const std::string& out);
 }
 #endif  // MSIMPLIFY_SIMPLIFY_H
