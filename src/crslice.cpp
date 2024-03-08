@@ -27,11 +27,6 @@ namespace crslice2
 		orca_slice_impl(scene, tracer);
 	}
 
-	CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(SliceParams& slicing_params, trimesh::TriMesh* triMesh, float quality)
-	{
-		return orca_layer_height_profile_adaptive(slicing_params, triMesh, quality);
-	}
-
 	void orcaSliceFromFile(const std::string& file, const std::string& out)
 	{
 		orca_slice_fromfile_impl(file, out);

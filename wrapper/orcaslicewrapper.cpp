@@ -13,7 +13,6 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
-#include "libslic3r/Slicing.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PrintBase.hpp"
 #include "nlohmann/json.hpp"
@@ -355,31 +354,6 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	Slic3r::ThumbnailsGeneratorCallback thumbnail_cb = g_Minus;
 	print.export_gcode(out, &result, thumbnail_cb);
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
-}
-
-std::vector<double> orca_layer_height_profile_adaptive(crslice2::SliceParams& slicing_params, trimesh::TriMesh* triMesh, float quality)
-{
-	if (!triMesh)
-		return std::vector<double>();
-
-	Slic3r::TriangleMesh mesh;
-	trimesh2Slic3rTriangleMesh(triMesh, mesh);
-	Slic3r::Model model;
-	Slic3r::ModelObject* currentObject = model.add_object();
-	currentObject->add_instance();
-	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
-
-	Slic3r::SlicingParameters m_slicing_params = {0};
-	m_slicing_params.valid = true;
-	m_slicing_params.layer_height = slicing_params.layer_height;
-	m_slicing_params.min_layer_height = slicing_params.min_layer_height;
-	m_slicing_params.max_layer_height = slicing_params.max_layer_height;
-	m_slicing_params.first_object_layer_height = slicing_params.initial_layer_print_height;
-
-	m_slicing_params.object_print_z_max = currentObject->bounding_box().max.z();
-
-	auto layer = Slic3r::layer_height_profile_adaptive(m_slicing_params, *currentObject, quality);
-	return Slic3r::generate_object_layers(m_slicing_params, layer);
 }
 
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
