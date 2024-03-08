@@ -2679,6 +2679,8 @@ namespace gcode
         bool haveLayerHeight = false;
         bool haveLayerCount = false;
 
+        bool loadInitWiDth = false;
+
         SliceLineType curType(SliceLineType::NoneType);
         SliceLineType lastType(SliceLineType::NoneType);
         if (gcode_file != nullptr)
@@ -2721,10 +2723,18 @@ namespace gcode
 
                 _detect_gcode_company(is_get_company, cmd.comment, sliceCompany);
 
-                if (curLayer <= 0 && cmd.comment == "===== noozle load line ===============================")
+                if (curLayer <= 0 
+                    && (cmd.comment == "===== noozle load line ==============================="
+                        || curType != SliceLineType::NoneType))
                 {
                     gcode_layer_data.clear();
                     gcodeProcessor.haveStartCmd = true;
+                    
+                    if (kvs.find("LAYER") == kvs.end())
+                    {
+                        kvs.insert(std::make_pair("LAYER","0"));
+                    } 
+
                     startLayer = true;
                 }
                     
@@ -2758,6 +2768,21 @@ namespace gcode
                     haveLayerCount = true;
                 }   
 
+                //add init width
+                if (!loadInitWiDth)
+                {
+                    iter = kvs.find("external perimeters extrusion width");
+                    if (iter != kvs.end())
+                    {
+                        std::vector<std::string> widths;
+                        Stringsplit(iter->second, 'mm', widths);
+                        if (!widths.empty())
+                        {
+                            pathData->setWidth(std::atof(widths[0].c_str()));
+                        }
+                        loadInitWiDth = true;
+                    }
+                }
 
                 iter = kvs.find("WIDTH");
                 if (iter != kvs.end())
