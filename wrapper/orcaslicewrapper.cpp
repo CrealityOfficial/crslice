@@ -376,7 +376,7 @@ std::vector<double> orca_layer_height_profile_adaptive(crslice2::SliceParams& sl
 	m_slicing_params.max_layer_height = slicing_params.max_layer_height;
 	m_slicing_params.first_object_layer_height = slicing_params.initial_layer_print_height;
 
-	m_slicing_params.object_print_z_max = currentObject->bounding_box().max.z();
+	m_slicing_params.object_print_z_max = currentObject->bounding_box_approx().max.z();
 
 	auto layer = Slic3r::layer_height_profile_adaptive(m_slicing_params, *currentObject, quality);
 	return Slic3r::generate_object_layers(m_slicing_params, layer);
