@@ -13,6 +13,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
+<<<<<<< HEAD   (d32b5f fix:[crslice2]添加bambu机型判断)
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PrintBase.hpp"
 #include "nlohmann/json.hpp"
@@ -150,6 +151,163 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 
 	stl_get_size(&stl);
 	tmesh.from_stl(stl);
+=======
+#include "libslic3r/Slicing.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/PrintBase.hpp"
+#include "nlohmann/json.hpp"
+#include <boost/nowide/fstream.hpp>
+
+#include "crslice2/base/parametermeta.h"
+
+#include "GCode/ThumbnailData.hpp"
+
+#include "crgroup.h"
+#include "crobject.h"
+#include "ccglobal/log.h"
+
+#include <sstream>
+
+namespace cereal
+{
+	// Let cereal know that there are load / save non-member functions declared for ModelObject*, ignore serialization of pointers triggering
+	// static assert, that cereal does not support serialization of raw pointers.
+	template <class Archive> struct specialize<Archive, Slic3r::Model*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelObject*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelVolume*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelInstance*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, Slic3r::ModelMaterial*, cereal::specialization::non_member_load_save> {};
+	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
+}
+
+void save_nlohmann_json(const std::string& fileName, const nlohmann::ordered_json& j)
+{
+	boost::nowide::ofstream c;
+	c.open(fileName.c_str(), std::ios::out | std::ios::trunc);
+	c << std::setw(4) << j << std::endl;
+	c.close();
+}
+
+void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config)
+{
+	using namespace Slic3r;
+	using namespace nlohmann;
+
+	json j;
+
+	auto save_dynamic_config = [](const Slic3r::DynamicPrintConfig& config, json& j) {
+		t_config_option_keys ks = config.keys();
+		for (const t_config_option_key& k : ks)
+		{
+			const ConfigOption* option = config.optptr(k);
+			j[k] = option->serialize();
+		}
+	};
+	{
+		json G;
+		save_dynamic_config(config, G);
+		j["global"] = G;
+	}
+
+	{
+		json M;
+		int size = (int)model.objects.size();
+		for (int i = 0; i < size; ++i)
+		{
+			json MO;
+			ModelObject* object = model.objects.at(i);
+			save_dynamic_config(object->config.get(), MO);
+			int vsize = (int)object->volumes.size();
+			for (int j = 0; j < vsize; ++j)
+			{
+				json MOV;
+				ModelVolume* volume = object->volumes.at(j);
+				save_dynamic_config(volume->config.get(), MOV);
+
+				MO[std::to_string(j)] = MOV;
+			}
+
+			M[std::to_string(i)] = MO;
+		}
+		j["model"] = M;
+	}
+
+	boost::nowide::ofstream c;
+	//c.open("cx_parameter.json", std::ios::out | std::ios::trunc);
+	c.open(fileName.c_str(), std::ios::out | std::ios::trunc);
+	c << std::setw(4) << j << std::endl;
+	c.close();
+}
+
+void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tmesh)
+{
+	if (!mesh)
+		return;
+	int pointSize = (int)mesh->vertices.size();
+	int facesSize = (int)mesh->faces.size();
+	if (pointSize < 3 || facesSize < 1)
+		return;
+
+	indexed_triangle_set indexedTriangleSet;
+	indexedTriangleSet.vertices.resize(pointSize);
+	indexedTriangleSet.indices.resize(facesSize);
+	for (int i = 0; i < pointSize; i++)
+	{
+		const trimesh::vec3& v = mesh->vertices.at(i);
+		indexedTriangleSet.vertices.at(i) = stl_vertex(v.x, v.y, v.z);
+	}
+
+	for (int i = 0; i < facesSize; i++)
+	{
+		const trimesh::TriMesh::Face& f = mesh->faces.at(i);
+		stl_triangle_vertex_indices faceIndex(f[0], f[1], f[2]);
+		indexedTriangleSet.indices.at(i) = faceIndex;
+	}
+
+	stl_file stl;
+	stl.stats.type = inmemory;
+	// count facets and allocate memory
+	stl.stats.number_of_facets = uint32_t(indexedTriangleSet.indices.size());
+	stl.stats.original_num_facets = int(stl.stats.number_of_facets);
+	stl_allocate(&stl);
+
+#pragma omp parallel for
+	for (int i = 0; i < (int)stl.stats.number_of_facets; ++i) {
+		stl_facet facet;
+		facet.vertex[0] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](0))];
+		facet.vertex[1] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](1))];
+		facet.vertex[2] = indexedTriangleSet.vertices[size_t(indexedTriangleSet.indices[i](2))];
+		facet.extra[0] = 0;
+		facet.extra[1] = 0;
+
+		stl_normal normal;
+		stl_calculate_normal(normal, &facet);
+		stl_normalize_vector(normal);
+		facet.normal = normal;
+
+		stl.facet_start[i] = facet;
+	}
+
+	stl_get_size(&stl);
+	tmesh.from_stl(stl);
+}
+
+void removeSpace(std::string& str)
+{
+	str.erase(0, str.find_first_not_of(" "));
+	str.erase(str.find_last_not_of(" ") + 1);
+}
+
+void Stringsplit(std::string str, const char split, std::vector<std::string>& res)
+{
+	std::istringstream iss(str);	// ������
+	std::string token;			// ���ջ�����
+	while (getline(iss, token, split))	// ��splitΪ�ָ���
+	{
+		removeSpace(token);
+		res.push_back(token);
+	}
+>>>>>>> CHANGE (aef8b1 feature:[crslice2]添加可变层高计算接口)
 }
 
 Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::ConfigOptionDef* cDef)
@@ -274,12 +432,25 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	}
 }
 
+<<<<<<< HEAD   (d32b5f fix:[crslice2]添加bambu机型判断)
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
 	bool is_bbl_printer,int plate_index, const Slic3r::Vec3d& plate_origin,
 	const std::string& out, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
 {
 #if 1
 	save_parameter_2_json("", model, config);
+=======
+
+void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, 
+	bool is_bbl_printer,int plate_index, const Slic3r::Vec3d& plate_origin,
+	const std::string& out, const std::string& out_json, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
+{
+#if 1
+	if (!out_json.empty())
+	{
+		save_parameter_2_json(out_json + "cx_parameter.json", model, config);
+	}
+>>>>>>> CHANGE (aef8b1 feature:[crslice2]添加可变层高计算接口)
 #endif
 
 	Slic3r::PrintBase::status_callback_type callback = [&tracer](const Slic3r::PrintBase::SlicingStatus& _status) {
@@ -335,6 +506,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 
+<<<<<<< HEAD   (d32b5f fix:[crslice2]添加bambu机型判断)
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 {
 	if (!scene)
@@ -460,6 +632,133 @@ void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
 	if (boost::ends_with(file, ".3mf"))
 		return orca_slice_from_3mf_impl(file, out);
 	return orca_slice_from_arch_impl(file, out);
+=======
+std::vector<double> orca_layer_height_profile_adaptive(crslice2::SliceParams& slicing_params, trimesh::TriMesh* triMesh, float quality)
+{
+	if (!triMesh)
+		return std::vector<double>();
+
+	Slic3r::TriangleMesh mesh;
+	trimesh2Slic3rTriangleMesh(triMesh, mesh);
+	Slic3r::Model model;
+	Slic3r::ModelObject* currentObject = model.add_object();
+	currentObject->add_instance();
+	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+
+	Slic3r::SlicingParameters m_slicing_params = {0};
+	m_slicing_params.valid = true;
+	m_slicing_params.layer_height = slicing_params.layer_height;
+	m_slicing_params.min_layer_height = slicing_params.min_layer_height;
+	m_slicing_params.max_layer_height = slicing_params.max_layer_height;
+	m_slicing_params.first_object_layer_height = slicing_params.initial_layer_print_height;
+
+	m_slicing_params.object_print_z_max = currentObject->bounding_box().max.z();
+
+	auto layer = Slic3r::layer_height_profile_adaptive(m_slicing_params, *currentObject, quality);
+	return Slic3r::generate_object_layers(m_slicing_params, layer);
+}
+
+void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
+{
+	if (!scene)
+		return;
+
+	Slic3r::Model model;
+	Slic3r::DynamicPrintConfig config;
+	Slic3r::Calib_Params calibParams;
+	calibParams.end = 0.0;
+	calibParams.start = 0.0;
+	calibParams.step = 0.0;
+	calibParams.print_numbers = false;
+
+
+	Slic3r::ThumbnailsList thumbnailData;
+
+	convert_scene_2_orca(scene, model, config, calibParams, thumbnailData);
+
+	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, scene->m_tempDirectory, calibParams, thumbnailData, tracer);
+}
+
+void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
+{
+	std::ifstream in(file, std::ios::in | std::ios::binary);
+
+	bool is_bbl_printer = false;
+	int plate_index = 0;
+	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
+	Slic3r::Model model;
+	Slic3r::DynamicPrintConfig config;
+
+	std::string out_json = "cx_parameter.json";
+
+#if 1
+	cereal::BinaryInputArchive iarchive(in);
+	iarchive(is_bbl_printer);
+	iarchive(plate_origin);
+	size_t count;
+	iarchive(count);
+
+	std::vector<Slic3r::ModelObject*> objects;
+	for (size_t i = 0; i < count; ++i) {
+		objects.push_back(model.add_object());
+	}
+	for (size_t i = 0; i < count; ++i) {
+		Slic3r::ModelObject* o = objects.at(i);
+
+		iarchive(o->name, o->module_name, o->config, o->layer_config_ranges, o->layer_height_profile, o->printable,
+			o->origin_translation);
+
+		size_t i_count = o->instances.size();
+		iarchive(i_count);
+		for (size_t j = 0; j < i_count; ++j) {
+			o->add_instance();
+		}
+		for (size_t j = 0; j < i_count; ++j) {
+			iarchive(*o->instances.at(j));
+			int order = 0;
+			iarchive(order);
+			o->instances.at(j)->arrange_order = order;
+		}
+
+		size_t v_count = o->volumes.size();
+		iarchive(v_count);
+
+		std::vector<Slic3r::TriangleMesh> meshes;
+		if (v_count > 0)
+			meshes.resize(v_count);
+		for (size_t j = 0; j < v_count; ++j) {
+			Slic3r::TriangleMesh mesh;
+			iarchive(mesh);
+
+			Slic3r::ModelVolume* v = o->add_volume(mesh);
+			iarchive(v->config);
+			iarchive(v->supported_facets);
+			iarchive(v->seam_facets);
+			iarchive(v->mmu_segmentation_facets);
+		}
+	}
+	iarchive >> config;
+#endif 
+
+#if 0
+	//in.seekg(0, std::ios::end);
+	//int len = in.tellg();
+	//in.seekg(0, std::ios::beg);
+	//std::vector<size_t> buff(len / sizeof(size_t));
+	//in.read((char*)buff.data(), len);
+
+	//size_t cnt;
+	//iarchive(cnt);
+	//for (size_t i = 0; i < cnt; ++i) {
+	//	size_t serialization_key_ordinal;
+	//	iarchive(serialization_key_ordinal);
+	//	std::cout << serialization_key_ordinal << std::endl;
+	//}
+#endif
+	Slic3r::Calib_Params calibParams;
+	Slic3r::ThumbnailsList thumbnailDatas;
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, out_json, calibParams, thumbnailDatas,nullptr);
+>>>>>>> CHANGE (aef8b1 feature:[crslice2]添加可变层高计算接口)
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)
