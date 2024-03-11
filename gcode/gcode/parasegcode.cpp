@@ -747,7 +747,7 @@ namespace gcode
     {
         if (_layer)
         {
-            changeKey("AFTER_LAYER_CHANGE", "LAYER", kvs);
+            //changeKey("AFTER_LAYER_CHANGE", "LAYER", kvs);
             changeKey("LAYER_CHANGE", "LAYER", kvs);
             changeKey("CHANGE_LAYER", "LAYER", kvs);
             changeKey("===== noozle load line ===============================", "LAYER", kvs);
@@ -2681,6 +2681,8 @@ namespace gcode
 
         bool loadInitWiDth = false;
 
+        bool bDataValiable = false;
+
         SliceLineType curType(SliceLineType::NoneType);
         SliceLineType lastType(SliceLineType::NoneType);
         if (gcode_file != nullptr)
@@ -2727,15 +2729,15 @@ namespace gcode
                     && (cmd.comment == "===== noozle load line ==============================="
                         || curType != SliceLineType::NoneType))
                 {
-                    gcode_layer_data.clear();
                     gcodeProcessor.haveStartCmd = true;
-                    
-                    if (kvs.find("LAYER") == kvs.end())
-                    {
-                        kvs.insert(std::make_pair("LAYER","0"));
-                    } 
-
                     startLayer = true;
+
+                    if (!bDataValiable)
+                    {
+                        gcode_layer_data.clear();
+                        gcode_layer_data += line.c_str();
+                        bDataValiable = true;
+                    }
                 }
                     
                 //todo : avoid TOOLCHANGE
@@ -2868,6 +2870,13 @@ namespace gcode
             {
                 pathData->set_data_gcodelayer(curLayer-1, gcode_layer_data);
                 pathData->setLayer(curLayer);
+            }
+
+            auto iter1 = kvs.find("TIME_ELAPSED");
+            if (iter1 != kvs.end())
+            {
+                pathData->setTime(std::atoi(iter1->second.c_str()));
+                kvs.erase(iter1);
             }
 
             kvs.insert(std::make_pair("box_max_x", std::to_string(gcodeProcessor.box.size().x)));
