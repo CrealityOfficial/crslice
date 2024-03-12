@@ -119,7 +119,8 @@ namespace crslice2
 		, const std::vector<std::string>& m_colors2Facets
 		, const std::vector<std::string>& m_seam2Facets
 		, const std::vector<std::string>& m_support2Facets
-		, const std::string& objectName)
+		, const std::string& objectName
+		, const std::vector<double>& layerHeight)
 	{
 		if (groupID < 0 || groupID >= (int)m_groups.size())
 		{
@@ -128,7 +129,7 @@ namespace crslice2
 		}
 
 		CrGroup* group = m_groups.at(groupID);
-		group->setObjectMeshPaint(objectID, mesh, m_colors2Facets, m_seam2Facets, m_support2Facets, objectName);
+		group->setObjectMeshPaint(objectID, mesh, m_colors2Facets, m_seam2Facets, m_support2Facets, objectName, layerHeight);
 	}
 
 	void CrScene::setOjbectExclude(int groupID, int objectID, const std::string& fileName, std::vector<trimesh::vec3>& outline_ObjectExclude)

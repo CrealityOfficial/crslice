@@ -28,15 +28,9 @@ namespace crslice2
         SliceResult sliceResult;
 	};
 
-    struct SliceParams
-    {
-        float layer_height;
-        float min_layer_height;
-        float max_layer_height;
-        float initial_layer_print_height;
-    };
-
-    CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(SliceParams& slicing_params, trimesh::TriMesh* triMesh, float quality);
+    CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, float quality);
+    CRSLICE2_API std::vector<double> smooth_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+        const std::vector<double>& profile, unsigned int radius, bool keep_min);
     CRSLICE2_API void orcaSliceFromFile(const std::string& file, const std::string& out);
 }
 #endif  // MSIMPLIFY_SIMPLIFY_H

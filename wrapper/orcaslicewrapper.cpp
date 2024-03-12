@@ -220,7 +220,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 			Slic3r::TriangleMesh mesh;
 			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
 			Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
-
+			currentObject->layer_height_profile.set(aObject.m_layerHeight);
 			if (aObject.m_mesh->faces.size() == aObject.m_colors2Facets.size())
 				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
 					if (!aObject.m_colors2Facets[i].empty())
@@ -357,7 +357,19 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 
-std::vector<double> orca_layer_height_profile_adaptive(crslice2::SliceParams& slicing_params, trimesh::TriMesh* triMesh, float quality)
+Slic3r::SlicingParameters getSliceParam(crslice2::SettingsPtr settings,  Slic3r::ModelObject* currentObject)
+{
+	Slic3r::DynamicPrintConfig config;
+	const Slic3r::ConfigDef* _def = config.def();
+	for (const std::pair<std::string, std::string> pair : settings->settings)
+	{
+		config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
+	}
+
+	return Slic3r::PrintObject::slicing_parameters(config, *currentObject, 0.f);
+}
+
+std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, float quality)
 {
 	if (!triMesh)
 		return std::vector<double>();
@@ -369,17 +381,24 @@ std::vector<double> orca_layer_height_profile_adaptive(crslice2::SliceParams& sl
 	currentObject->add_instance();
 	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
 
-	Slic3r::SlicingParameters m_slicing_params = { 0 };
-	m_slicing_params.valid = true;
-	m_slicing_params.layer_height = slicing_params.layer_height;
-	m_slicing_params.min_layer_height = slicing_params.min_layer_height;
-	m_slicing_params.max_layer_height = slicing_params.max_layer_height;
-	m_slicing_params.first_object_layer_height = slicing_params.initial_layer_print_height;
+	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
+	return Slic3r::layer_height_profile_adaptive(m_slicing_params, *currentObject, quality);
+}
 
-	m_slicing_params.object_print_z_max = currentObject->bounding_box_approx().max.z();
+std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+	const std::vector<double>& profile, unsigned int radius, bool keep_min)
+{
+	Slic3r::TriangleMesh mesh;
+	trimesh2Slic3rTriangleMesh(triMesh, mesh);
+	Slic3r::Model model;
+	Slic3r::ModelObject* currentObject = model.add_object();
+	currentObject->add_instance();
+	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
 
-	auto layer = Slic3r::layer_height_profile_adaptive(m_slicing_params, *currentObject, quality);
-	return Slic3r::generate_object_layers(m_slicing_params, layer);
+	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
+	Slic3r::HeightProfileSmoothingParams smoothing_params_orca(radius, keep_min);
+
+	return Slic3r::smooth_height_profile(profile, m_slicing_params, smoothing_params_orca);
 }
 
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)

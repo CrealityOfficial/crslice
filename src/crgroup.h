@@ -18,7 +18,8 @@ namespace crslice2
 			, const std::vector<std::string>& colors2Facets
 			, const std::vector<std::string>& seam2Facets
 			, const std::vector<std::string>& support2Facets
-			, const std::string& objectName);
+			, const std::string& objectName
+			, const std::vector<double>& layerHeight);
 
 		void setObjectSettings(int objectID, SettingsPtr settings);
 		void setSettings(SettingsPtr settings);

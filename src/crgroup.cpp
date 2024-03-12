@@ -40,7 +40,8 @@ namespace crslice2
 		, const std::vector<std::string>& colors2Facets
 		, const std::vector<std::string>& seam2Facets
 		, const std::vector<std::string>& support2Facets
-		, const std::string& objectName)
+		, const std::string& objectName
+		, const std::vector<double>& layerHeight)
 	{
 		if (objectID < 0 || objectID >= (int)m_objects.size())
 		{
@@ -55,6 +56,7 @@ namespace crslice2
 		object.m_seam2Facets = seam2Facets;
 		object.m_support2Facets = support2Facets;
 		object.m_objectName = objectName;
+		object.m_layerHeight = layerHeight;
 	}
 
 	void CrGroup::setObjectSettings(int objectID, SettingsPtr settings)

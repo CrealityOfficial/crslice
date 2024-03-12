@@ -25,6 +25,7 @@ namespace crslice2
 		std::vector<std::string> m_support2Facets; //Í¿Ä¨Ö§³Å
 
 		std::string m_objectName;
+		std::vector<double> m_layerHeight;
 	};
 }
 
