@@ -401,6 +401,21 @@ std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, t
 	return Slic3r::smooth_height_profile(profile, m_slicing_params, smoothing_params_orca);
 }
 
+std::vector<double> orca_generate_object_layers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+	const std::vector<double>& profile)
+{
+	Slic3r::TriangleMesh mesh;
+	trimesh2Slic3rTriangleMesh(triMesh, mesh);
+	Slic3r::Model model;
+	Slic3r::ModelObject* currentObject = model.add_object();
+	currentObject->add_instance();
+	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+
+	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
+
+	return Slic3r::generate_object_layers(m_slicing_params, profile);
+}
+
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 {
 	if (!scene)
