@@ -213,6 +213,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "activate_chamber_temp_control",
         "manual_filament_change",
         "disable_m73",
+        "acceleration_limit_mess_enable",
+        "acceleration_limit_mess",
+        "speed_limit_to_height_enable",
+        "speed_limit_to_height",
     };
 
     static std::unordered_set<std::string> steps_ignore;

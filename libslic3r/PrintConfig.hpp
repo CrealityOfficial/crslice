@@ -804,6 +804,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              initial_layer_jerk))
     ((ConfigOptionFloat,              travel_jerk))
 
+    ((ConfigOptionBool,               acceleration_limit_mess_enable))
+    ((ConfigOptionBool,               speed_limit_to_height_enable))
+    ((ConfigOptionString,            acceleration_limit_mess))
+    ((ConfigOptionString,            speed_limit_to_height))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

@@ -23,6 +23,7 @@
 #include "GCode/ExtrusionProcessor.hpp"
 
 #include "GCode/PressureEqualizer.hpp"
+#include "GCode/smoothspeedandacc.h"
 
 #include <memory>
 #include <map>
@@ -181,7 +182,8 @@ public:
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max())),
         // BBS
         m_toolchange_count(0),
-        m_nominal_z(0.)
+        m_nominal_z(0.),
+        m_smoothSpeedAcc(new SmoothSpeedAcc())
         {}
     ~GCode() = default;
 
@@ -546,6 +548,8 @@ private:
 
     //some post-processing on the file, with their data class
     std::unique_ptr<FanMover> m_fan_mover;
+
+    std::unique_ptr<SmoothSpeedAcc> m_smoothSpeedAcc;
 
     // BBS
     Print* m_curr_print = nullptr;

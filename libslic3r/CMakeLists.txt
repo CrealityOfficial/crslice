@@ -162,6 +162,8 @@ set(lisbslic3r_sources
     GCode/ExtrusionProcessor.hpp
     GCode/ConflictChecker.cpp
     GCode/ConflictChecker.hpp
+	GCode/smoothspeedandacc.h
+	GCode/smoothspeedandacc.cpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp

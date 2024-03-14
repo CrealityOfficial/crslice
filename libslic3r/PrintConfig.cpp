@@ -4566,6 +4566,40 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(85));
 
+    def = this->add("acceleration_limit_mess", coString);
+    def->label = L("Weight limit speed and acceleration");
+    def->tooltip = L("Weight limit speed and acceleration");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 5;
+    def->mode = comAdvanced;
+    def->sidetext = L("[[kg,kg,mm/s,mm/s²]]");
+    //def->sidetext = L("");
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("speed_limit_to_height", coString);
+    def->label = L("Height limit speed and acceleration");
+    def->tooltip = L("Height limit speed and acceleration");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 5;
+    def->mode = comAdvanced;
+    def->sidetext = L("[[mm,mm,mm/s,mm/s²]]");
+    //def->sidetext = L("");
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("acceleration_limit_mess_enable", coBool);
+    def->category = L("Weight limit speed and acceleration Enable");
+    def->label = L("Weight limit speed and acceleration Enable");
+    def->tooltip = L("Weight limit speed and acceleration Enable");
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("speed_limit_to_height_enable", coBool);
+    def->category = L("Height limit speed and acceleration Enable");
+    def->label = L("Height limit speed and acceleration Enable");
+    def->tooltip = L("Height limit speed and acceleration Enable");
+    def->set_default_value(new ConfigOptionBool(false));
+
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
         // floats

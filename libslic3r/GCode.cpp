@@ -1430,6 +1430,17 @@ namespace DoExport {
         print_statistics.filament_stats = result.print_statistics.volumes_per_extruder;
     }
 
+    static double update_total_weight(const std::vector<Extruder>& extruders)
+    {
+        double total_weight = 0.0;
+        for (auto& extruder : extruders)
+        {
+            total_weight += extruder.extruded_volume()* extruder.filament_density() / 1000.0f;
+        }
+        return total_weight; 
+    }
+
+
     // if any reserved keyword is found, returns a std::vector containing the first MAX_COUNT keywords found
     // into pairs containing:
     // first: source
@@ -1956,6 +1967,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     m_enable_cooling_markers = true;
     this->apply_print_config(print.config());
+
+    //限制速度加速度温度    
+    if (print.full_print_config().option<ConfigOptionBool>("acceleration_limit_mess_enable")
+        || print.full_print_config().option<ConfigOptionBool>("speed_limit_to_height_enable"))
+        m_smoothSpeedAcc->init_limit(print.full_print_config());
 
     //m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
@@ -4844,6 +4860,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     gcode += this->unretract();
     m_config.apply(m_calib_config);
 
+    double weight = 0.0f;
+    if (m_config.acceleration_limit_mess_enable
+        || m_config.speed_limit_to_height_enable)
+             weight = DoExport::update_total_weight(m_writer.extruders());
+
     // Orca: optimize for Klipper, set acceleration and jerk in one command
     unsigned int acceleration_i = 0;
     double jerk = 0;
@@ -4871,9 +4892,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             acceleration = m_config.default_acceleration.value;
         }
+
+        if (m_config.acceleration_limit_mess_enable
+            || m_config.speed_limit_to_height_enable)
+                m_smoothSpeedAcc->detect_acc(acceleration, weight, m_last_layer_z);
+
         acceleration_i = (unsigned int)floor(acceleration + 0.5);
     }
-
+     
     // adjust X Y jerk
     if (m_config.default_jerk.value > 0) {
         if (this->on_first_layer() && m_config.initial_layer_jerk.value > 0) {
@@ -5181,6 +5207,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     if (!variable_speed) {
+
+        if (m_config.acceleration_limit_mess_enable
+            || m_config.speed_limit_to_height_enable)
+            m_smoothSpeedAcc->detect_speed_min(F, weight, m_last_layer_z);
+
         // F is mm per minute.
         gcode += m_writer.set_speed(F, "", comment);
         double path_length = 0.;
@@ -5270,6 +5301,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     } else {
         double last_set_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), new_points[0].speed) * 60.0;
+
+        if (m_config.acceleration_limit_mess_enable
+            || m_config.speed_limit_to_height_enable)
+            m_smoothSpeedAcc->detect_speed(last_set_speed, weight, m_last_layer_z);
 
         gcode += m_writer.set_speed(last_set_speed, "", comment);
         Vec2d prev = this->point_to_gcode_quantized(new_points[0].p);
