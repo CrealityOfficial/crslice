@@ -621,7 +621,8 @@ namespace gcode
             move.type = tempType;
             if (move.e == 0.0f)
                 move.type = SliceLineType::Travel;
-            else if (move.e >0.0f && move.type==SliceLineType::OuterWall && m_moves.back().type==SliceLineType::Travel)
+            //else if ( (move.e > 0.0f && move.type == SliceLineType::OuterWall && m_moves.back().type == SliceLineType::Travel)
+            if ((move.type == SliceLineType::Travel || move.type == SliceLineType::React) && m_moves.size() > 0 && m_moves.back().type == SliceLineType::OuterWall)
             {
                 m_zSeams.push_back(move.start);
             }
