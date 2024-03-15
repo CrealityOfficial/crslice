@@ -1563,14 +1563,13 @@ float GCodeProcessor::layer_time()
         machine.calculate_time(TimeProcessor::Planner::queue_size);
         if (!machine.layers_time.empty())
         {
-			float currentTime = machine.layers_time[machine.layers_time.size()-1];
-			if (currentTime > layerTime)
-			{
-				layerTime = currentTime;
-			}
+            for (auto&time : machine.layers_time)
+            {
+                layerTime += time;
+            }
         }
     }
-    return layerTime;
+    return layerTime >= 0.0f ? layerTime : 0.0f;
 };
 
 void GCodeProcessor::finalize(bool post_process)
