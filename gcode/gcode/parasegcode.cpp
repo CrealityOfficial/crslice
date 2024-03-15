@@ -752,7 +752,7 @@ namespace gcode
             changeKey("CHANGE_LAYER", "LAYER", kvs);
             changeKey("===== noozle load line ===============================", "LAYER", kvs);
             
-            kvs.insert(std::make_pair("TIME_ELAPSED", "0"));
+            //kvs.insert(std::make_pair("TIME_ELAPSED", "0"));
            
             changeKey("FEATURE", "TYPE", kvs);
             //if (iter != kvs.end())
@@ -1871,6 +1871,8 @@ namespace gcode
 
                 if (curLayer > 0)
                 {
+                    pathData->setLayer(curLayer);
+
                     auto iter1 = kvs.find("TIME_ELAPSED");
                     if (iter1 != kvs.end())
                     {
@@ -1881,8 +1883,6 @@ namespace gcode
                     {
                         pathData->setTime(0);
                     }
-
-                    pathData->setLayer(curLayer);
                 }
             }
             kvs.erase(iter);

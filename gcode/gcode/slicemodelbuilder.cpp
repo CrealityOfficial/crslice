@@ -1507,12 +1507,11 @@ namespace gcode
     {
         float temp = time - tempCurrentTime;
         float templog = 0.0f;
-        //if (temp >0)
-        //{
-        //    templog = std::log(temp);
-        //}
-        //m_layerTimeLogs.insert(std::pair<int, float>(layer, templog));
-        m_layerTimes.insert(std::pair<int, float>(tempBaseInfo.layerNumbers.size()-1, temp));
+        
+        if (!tempBaseInfo.layerNumbers.empty())
+        {
+            m_layerTimes.insert(std::pair<int, float>(tempBaseInfo.layerNumbers.back()-1, temp));
+        }
         tempCurrentTime = time;//strs[1].toFloat();
 
         parseInfo.printTime = tempCurrentTime;
