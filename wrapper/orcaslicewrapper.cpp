@@ -309,6 +309,11 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 		{
 			tracer->progress((float)_status.percent * 0.01);
 			tracer->message(_status.text.c_str());
+
+			if (tracer->interrupt())
+			{
+				throw Slic3r::SlicingError("User Cancelled", 0);
+			}
 		}
 	};
 
@@ -795,6 +800,15 @@ void export_metas_impl()
 
 void _handle_slice_exception(const Slic3r::Print& print, size_t objectId, const char* failMsg, ccglobal::Tracer* tracer)
 {
+	std::string failStr;
+
+	if (0 == objectId)
+	{
+		failStr = std::string(failMsg) + "@";
+		tracer->failed(failStr.c_str());
+		return;
+	}
+
 	Slic3r::ObjectID model_object_id(objectId);
 	std::string modelObjectName = "";
 	const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
@@ -803,7 +817,7 @@ void _handle_slice_exception(const Slic3r::Print& print, size_t objectId, const 
 		modelObjectName = mo->name;
 	}
 
-	std::string failStr = std::string(failMsg) + "@" + modelObjectName;
+	failStr = std::string(failMsg) + "@" + modelObjectName;
 
 	tracer->failed(failStr.c_str());
 }
