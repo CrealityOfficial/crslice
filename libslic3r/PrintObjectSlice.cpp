@@ -787,6 +787,10 @@ void groupingVolumesForBrim(PrintObject* object, LayerPtrs& layers, int firstLay
     groupingVolumes(partsObjSliceByVolume, object->firstLayerObjGroupsMod(), scaled_resolution, firstLayerReplacedBy);
     applyNegtiveVolumes(object->model_object()->volumes, object->firstLayerObjSliceMod(), object->firstLayerObjGroupsMod(), scaled_resolution);
 
+    // TODO: ID1026159: split completely coincident geometry error and slicing crash
+    if (layers.empty())
+        throw Slic3r::SlicingError(L("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"));
+
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
     reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices, scaled_resolution);
 }
