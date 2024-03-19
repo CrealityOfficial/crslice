@@ -247,7 +247,8 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		}
 	}
 
-	if (scene->m_calibParams.mode != crslice2::CalibMode::Calib_None)
+	if ((int)scene->m_calibParams.mode > 0
+		&& scene->m_calibParams.mode != crslice2::CalibMode::Calib_None)
 	{
 		_calibParams.start = scene->m_calibParams.start;
 		_calibParams.end = scene->m_calibParams.end;
@@ -358,7 +359,17 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	auto g_Minus = [&](const Slic3r::ThumbnailsParams&) { return thumbnailDatas; };
 	Slic3r::ThumbnailsGeneratorCallback thumbnail_cb = g_Minus;
-	print.export_gcode(out, &result, thumbnail_cb);
+
+	try
+	{
+		print.export_gcode(out, &result, thumbnail_cb);
+	}
+	catch (const std::exception& ex)
+	{
+		tracer->failed("export gcode failed@");
+		return;
+	}
+	
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 

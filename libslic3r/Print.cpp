@@ -2047,7 +2047,13 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     //BBS: compute plate offset for gcode-generator
     const Vec3d origin = this->get_plate_origin();
     gcode.set_gcode_offset(origin(0), origin(1));
-    gcode.do_export(this, path.c_str(), result, thumbnail_cb);
+
+    try {
+        gcode.do_export(this, path.c_str(), result, thumbnail_cb);
+    }
+    catch (std::exception&  ex ) {
+        throw ex;
+    }
     //BBS
     result->conflict_result = m_conflict_result;
     return path.c_str();
