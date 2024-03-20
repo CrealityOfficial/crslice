@@ -306,7 +306,7 @@ namespace gcode
                 else {
                     std::string str = comment;
                     int pos = str.find("feature");
-                    if (pos >=0 && pos < str.length())
+                    if (pos >= 0 && pos < str.length())
                     {
                         str = str.substr(pos + 7, str.length());
                     }
@@ -316,11 +316,58 @@ namespace gcode
                 }
             }
             break;
+        case SliceCompany::craftware:
+            Stringsplit(comment, ':', _kvs);
+            if (_kvs.size() > 1) {
+                kvs.insert(std::make_pair(_kvs[0], _kvs[1]));
+            }
+            else { //end of gcode
+                std::string str = comment;
+                if (str.find("AreaBegin") != std::string::npos)
+                {
+                    //; @AreaBegin "Raft" Z-0.650 H0.3
+                    int pos = str.find("\"");
+                    if (pos != std::string::npos)
+                    {
+                        std::string _comment = str.substr(pos + 1, str.length());
+                        pos = _comment.find("\"");
+                        if (pos != std::string::npos)
+                        {
+                            std::string type = _comment.substr(0, pos);
+                            kvs.insert(std::make_pair("TYPE", type));
+
+                            pos = str.find("H");
+                            if (pos != std::string::npos)
+                            {
+                                std::string h = str.substr(pos + 1, str.length());
+                                kvs.insert(std::make_pair("HEIGHT", h));
+                            }
+                        }
+                    }
+                }
+
+                //LayerBegin N1 Z - 0.400 H0.3
+                if (str.find("LayerBegin") != std::string::npos)
+                {
+                    kvs.insert(std::make_pair("LAYER", ""));
+                    int pos = str.find("H");
+                    if (pos != std::string::npos)
+                    {
+                        std::string h = str.substr(pos + 1, str.length());
+                        kvs.insert(std::make_pair("HEIGHT", h));
+                    }
+                }
+
+                removeSpace(str);
+                kvs.insert(std::make_pair(str, ""));
+            }
+                break;
         default:
             Stringsplit(comment, ':', _kvs);
             if (_kvs.size() > 1) {
                 kvs.insert(std::make_pair(_kvs[0], _kvs[1]));
             }
+
             break;
         };
     }
@@ -1737,6 +1784,54 @@ namespace gcode
         changeKey("bed_temperature", "material_bed_temperature", kvs);
     }
 
+    void _craftwareKv(std::unordered_map<std::string, std::string>& kvs, bool _layer)
+    {
+        if (_layer)
+        {
+            changeKey("LayerBegin", "LAYER", kvs);
+
+            auto iter = kvs.find("TYPE");
+            if (iter != kvs.end())
+            {
+                if (iter->second == "Shell")
+                {
+                    iter->second = "Outer wall";
+                }
+                else if (iter->second == "Perimeter")
+                {
+                    iter->second = "Inner wall";
+                }
+                else if (iter->second == "Support")
+                {
+                    iter->second = "Support";
+                }
+                else if (iter->second == "SupportInterface")
+                {
+                    iter->second = "Support interface";
+                }
+                else if (iter->second == "Bridge")
+                {
+                    iter->second = "Bridge";
+                }
+                else if (iter->second == "Raft"
+                    || iter->second == "Skirt")
+                {
+                    iter->second = "Skirt";
+                }
+                else if (iter->second == "Infill")
+                {
+                    iter->second = "Internal solid infill";
+                }
+                else
+                    ;// iter->second = "Outer wall";
+            }
+
+
+            kvs.insert(std::make_pair("TIME_ELAPSED", "0"));
+            return;
+        }
+    }
+
     void _paraseKvs(GCodeProcessor& gcodeProcessor,trimesh::box3& box, SliceLineType& curType,bool _layer = false)
     {
         std::unordered_map<std::string, std::string>& kvs = gcodeProcessor.kvs;
@@ -1767,6 +1862,9 @@ namespace gcode
             break;
         case SliceCompany::superslicer:
             _superslicerKv(kvs, _layer);
+            break;
+        case SliceCompany::craftware:
+            _craftwareKv(kvs, _layer);
             break;
         default:
             break;
@@ -1945,7 +2043,7 @@ namespace gcode
                 lastType = curType;
             }
             else if (iter->second == "SUPPORT"
-                || iter->second == "SUPPORT - INTERFACE")
+                || iter->second == "SUPPORT-INTERFACE")
             {
                 curType = SliceLineType::Support;
                 lastType = curType;
@@ -2111,6 +2209,10 @@ namespace gcode
             else if (comment.find("Simplify3D") != std::string::npos)
             {
                 sliceCompany = SliceCompany::simplify;
+            }
+            else if (comment.find("CraftWare") != std::string::npos)
+            {
+                sliceCompany = SliceCompany::craftware;
             }
             else
                 is_get_company = false;

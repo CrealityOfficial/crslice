@@ -155,7 +155,7 @@ namespace gcode
 
     enum class SliceCompany
     {
-        none,creality, cura, prusa, bambu, ideamaker, superslicer, ffslicer, simplify
+        none,creality, cura, prusa, bambu, ideamaker, superslicer, ffslicer, simplify,craftware
     };
 
 }
