@@ -26,6 +26,9 @@ namespace crslice2
 
 		std::string m_objectName;
 		std::vector<double> m_layerHeight;
+
+		//column major
+		float m_xform[16];
 	};
 }
 

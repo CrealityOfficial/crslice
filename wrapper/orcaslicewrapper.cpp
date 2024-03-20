@@ -207,7 +207,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	for (crslice2::CrGroup* aCrgroup : scene->m_groups)
 	{
 		Slic3r::ModelObject* currentObject = model.add_object();
-		currentObject->add_instance();
+		Slic3r::ModelInstance* mi = currentObject->add_instance();
 		currentObject->name = aCrgroup->m_objects[0].m_objectName;
 
 		//currentObject->config.assign_config(config);
@@ -217,6 +217,18 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		}
 		for (crslice2::CrObject aObject : aCrgroup->m_objects)
 		{
+			Slic3r::Transform3d t3d;
+			for (int i = 0; i < 4; i++)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					t3d(i, j) = aObject.m_xform[i + j * 4];
+				}
+
+			}
+			Slic3r::Geometry::Transformation t(t3d);
+			mi->set_transformation(t);
+
 			Slic3r::TriangleMesh mesh;
 			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
 			Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
