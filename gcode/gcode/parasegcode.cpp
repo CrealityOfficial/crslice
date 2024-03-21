@@ -1,7 +1,7 @@
 #include <sstream>
 #include <fstream>
 #include <memory>
-
+#include <optional>
 #include "crslice/gcode/parasegcode.h"
 #include "gcodeprocesslib/gcode_position.h"
 #include "gcodeprocesslib/gcode_parser.h"
@@ -123,6 +123,27 @@ namespace gcode
         }
     };
 
+    class SeamsDetector
+    {
+        bool m_active{ false };
+        std::optional<trimesh::vec3> m_first_vertex;
+
+        public:
+        void activate(bool active) {
+            if (m_active != active) {
+                m_active = active;
+                if (m_active)
+                    m_first_vertex.reset();
+            }
+        }
+
+        std::optional<trimesh::vec3> get_first_vertex() const { return m_first_vertex; }
+        void set_first_vertex(const trimesh::vec3& vertex) { m_first_vertex = vertex; }
+
+        bool is_active() const { return m_active; }
+        bool has_first_vertex() const { return m_first_vertex.has_value(); }
+    };
+
     struct GCodeProcessor {
 
         SliceCompany sliceCompany = SliceCompany::none;
@@ -131,7 +152,10 @@ namespace gcode
         GCodeParseInfo gcodeParaseInfo;
         UsedFilaments m_used_filaments;
 
-        EMoveType eMoveType{ EMoveType ::Noop};
+
+        SliceLineType curType = SliceLineType::NoneType;
+        SliceLineType lastType = SliceLineType::NoneType;
+        EMoveType eMoveType{ EMoveType::Noop};
         bool haveStartCmd{ false };
         bool have_start_print{ false };
 
@@ -149,6 +173,9 @@ namespace gcode
         trimesh::vec3 current_v;
 
         std::set <int> extruders;
+
+        //seam
+        SeamsDetector m_seams_detector;
 
         std::vector<float> filament_diameters;
         std::vector<float> material_densitys;
@@ -1832,7 +1859,7 @@ namespace gcode
         }
     }
 
-    void _paraseKvs(GCodeProcessor& gcodeProcessor,trimesh::box3& box, SliceLineType& curType,bool _layer = false)
+    void _paraseKvs(GCodeProcessor& gcodeProcessor,trimesh::box3& box,bool _layer = false)
     {
         std::unordered_map<std::string, std::string>& kvs = gcodeProcessor.kvs;
         SliceCompany& sliceCompany = gcodeProcessor.sliceCompany;
@@ -1926,7 +1953,7 @@ namespace gcode
         iter1 = kvs.find("WIPE_START");
         if (iter1 != kvs.end())
         {
-            curType = SliceLineType::Wipe;
+            gcodeProcessor.eMoveType = EMoveType::Wipe;
             gcodeProcessor.m_wiping = true;
             kvs.erase(iter1);
         }
@@ -2022,13 +2049,17 @@ namespace gcode
         }       
     }
 
-    void _detect_type(std::unordered_map<std::string, std::string>& kvs, SliceLineType& curType, SliceLineType& lastType)
+    void _detect_type(std::unordered_map<std::string, std::string>& kvs, GCodeProcessor& gCodeProcessor)
     {
+        SliceLineType& curType = gCodeProcessor.curType;
+        SliceLineType& lastType = gCodeProcessor.lastType;
+
         auto iter = kvs.find("TYPE");
         if (iter != kvs.end())
         {
             if (iter->second == "WALL-OUTER")
             {
+                gCodeProcessor.m_seams_detector.activate(true);
                 curType = SliceLineType::OuterWall;
                 lastType = curType;
             }
@@ -2082,6 +2113,7 @@ namespace gcode
             }
             else if (role == ("Outer wall"))
             {
+                gCodeProcessor.m_seams_detector.activate(true);
                 curType = SliceLineType::erExternalPerimeter;
                 lastType = curType;
             }
@@ -2219,38 +2251,78 @@ namespace gcode
         }
     }
 
+    bool detectZSeam(GCodeProcessor& gcodeProcessor,trimesh::vec3& v, trimesh::vec3& vp)
+    {
+        bool detect = false;
+        if (gcodeProcessor.m_seams_detector.is_active()) {
+            if (gcodeProcessor.eMoveType == EMoveType::Extrude && gcodeProcessor.curType == SliceLineType::OuterWall && !gcodeProcessor.m_seams_detector.has_first_vertex()) {
+                gcodeProcessor.m_seams_detector.set_first_vertex(v);
+            }
+            else if ((gcodeProcessor.eMoveType != EMoveType::Extrude || (gcodeProcessor.curType != SliceLineType::OuterWall && gcodeProcessor.curType != SliceLineType::erOverhangPerimeter)) && gcodeProcessor.m_seams_detector.has_first_vertex()) {
+                const trimesh::vec3 curr_pos = v;
+                const trimesh::vec3 new_pos = vp;
+                const std::optional<trimesh::vec3> first_vertex = gcodeProcessor.m_seams_detector.get_first_vertex();
+
+                double len = sqrt((new_pos - *first_vertex).x + (new_pos - *first_vertex).y);
+                if (len < 0.0625f) {
+                    detect = false;
+                }
+                else
+                    detect = true;
+
+
+                gcodeProcessor.m_seams_detector.activate(false);
+            }
+        }
+        else if (gcodeProcessor.eMoveType == EMoveType::Extrude && gcodeProcessor.curType == SliceLineType::OuterWall) {
+            gcodeProcessor.m_seams_detector.activate(true);
+            gcodeProcessor.m_seams_detector.set_first_vertex(vp);
+        }
+            return detect;
+    }
+
     void _get_path(std::string& command, std::vector<parsed_command_parameter>& parameters
-        , double e
+        , GCodeProcessor& gcodeProcessor
         , bool is_travel
         , bool has_position_changed
         , trimesh::vec3& v
-        , SliceLineType& curType
-        , SliceLineType& lastType
+        , trimesh::vec3& vp
         , GcodeTracer* pathData
         , SliceCompany& sliceCompany)
     {
+        double& e = gcodeProcessor.current_e;
+        SliceLineType curType = gcodeProcessor.curType;
         if (!command.empty())
         {
-            //travel and react is_travel
-            if (is_travel)
+            if (gcodeProcessor.eMoveType != EMoveType::Extrude && gcodeProcessor.eMoveType != EMoveType::Noop)
             {
-                curType = SliceLineType::Travel;
-            }
-            else  if (e < 0)
-            {
-                curType = SliceLineType::React;
-            }
-            else if (curType == SliceLineType::Unretract)
-            {
-
-            }
-            else if (curType == SliceLineType::Wipe)
-            {
-                //lastType = curType;
-            }
-            else
-            {
-                curType = lastType;
+                switch (gcodeProcessor.eMoveType)
+                {
+                case EMoveType::Retract:
+                    curType = SliceLineType::Retract;
+                    break;
+                case EMoveType::Unretract:
+                    curType = SliceLineType::Unretract;
+                    break;
+                case EMoveType::Seam:
+                    break;
+                case EMoveType::Tool_change:
+                    break;
+                case EMoveType::Color_change:
+                    break;
+                case EMoveType::Pause_Print:
+                    break;
+                case EMoveType::Custom_GCode:
+                    break;
+                case EMoveType::Travel:
+                    curType = SliceLineType::Travel;
+                    break;
+                case EMoveType::Wipe:
+                    curType = SliceLineType::Wipe;
+                    break;
+                default:
+                    break;
+                }
             }
 
             if (command == "G0")
@@ -2262,9 +2334,6 @@ namespace gcode
                 }
                 if (has_position_changed)
                 {
-                    //trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
-                    //    p_source_position_->get_current_position_ptr()->z);
-                    //double e = p_source_position_->get_current_position_ptr()->get_current_extruder().e_relative;
                     pathData->getPathData(v, e, (int)curType, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
                 }
                 else
@@ -2274,21 +2343,21 @@ namespace gcode
             {
                 for (auto& p : parameters)
                 {
-                    //if (p.name == "Z" || p.name == "z")
-                    //    pathData->setZ(p.double_value, p.double_value);         
                     if (p.name == "F" || p.name == "f")
                         pathData->setSpeed(p.double_value);
                 }
                 if (has_position_changed)
                 {
-                    //trimesh::vec3 v1(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
-                    //    p_source_position_->get_current_position_ptr()->z);
                     if (has_position_changed)
                     {
-                        //trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
-                        //    p_source_position_->get_current_position_ptr()->z);
-                        //double e = p_source_position_->get_current_position_ptr()->get_current_extruder().e_relative;
-                        pathData->getPathData(v, e, (int)curType, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
+                        if (detectZSeam(gcodeProcessor,v, vp))
+                        {
+                            pathData->getPathData(v, e, (int)curType, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa), true);
+                        }
+                        else
+                        {
+                            pathData->getPathData(v, e, (int)curType, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
+                        }    
                     }
                     else
                         pathData->getNotPath();
@@ -2302,16 +2371,10 @@ namespace gcode
                 if (command == "G3")
                     isG2 = false;
 
-                //trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
-                //    p_source_position_->get_current_position_ptr()->z);
-                //double e = p_source_position_->get_current_position_ptr()->get_current_extruder().e_relative;
-
                 float i = 0.0f;
                 float j = 0.0f;
                 for (auto& p : parameters)
-                {
-                    //if (p.name == "Z" || p.name == "z")
-                    //    pathData->setZ(p.double_value, p.double_value);         
+                { 
                     if (p.name == "F" || p.name == "f")
                         pathData->setSpeed(p.double_value);
                     else if (p.name == "I" || p.name == "i")
@@ -2319,23 +2382,19 @@ namespace gcode
                     else if (p.name == "J" || p.name == "j")
                         j = p.double_value;
                 }
-                pathData->getPathDataG2G3(v, i, j, e, (int)curType, isG2);
+
+                 if (detectZSeam(gcodeProcessor, v, vp))
+                {
+                    pathData->getPathDataG2G3(v, i, j, e, (int)curType, isG2, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa),true);
+                }
+                else
+                {
+                    pathData->getPathDataG2G3(v, i, j, e, (int)curType, isG2, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
+                }
+
             }
-            //else if (command == "T")
-            //{
-            //    for (auto& p : parameters)
-            //    {
-            //        if (p.name == "T" || p.name == "t")
-            //            pathData->setExtruder((int)p.unsigned_long_value);
-            //    }
-            //}
             else
                 pathData->getNotPath();
-
-            if (curType == SliceLineType::Unretract)
-            {
-                curType = lastType;
-            }
         }
         else
             pathData->getNotPath();
@@ -2432,7 +2491,7 @@ namespace gcode
         pathData->getNotPath();
     }
 
-    void process_G1(GCodeProcessor& pathParam,SliceLineType& curType)
+    void process_G1(GCodeProcessor& pathParam)
     {
         float filament_diameter = 1.75f;
         if (!pathParam.filament_diameters.empty()
@@ -2450,29 +2509,29 @@ namespace gcode
 
             if (pathParam.m_wiping) {
                 type = EMoveType::Wipe;
-                curType = SliceLineType::Wipe;
+                pathParam.eMoveType = type;
             }
             else if (pathParam.current_e < 0.0f)
             {
                 type = (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f) ? EMoveType::Travel : EMoveType::Retract;           
-                curType = type == EMoveType::Travel ? SliceLineType::Travel : SliceLineType::Retract;
+                pathParam.eMoveType = type == EMoveType::Travel ? EMoveType::Travel : EMoveType::Retract;
             }
             else if (pathParam.current_e > 0.0f) {
                 if (pathParam.current_v.x == 0.0f && pathParam.current_v.y == 0.0f)
                 {
                     type = (pathParam.current_v.z == 0.0f) ? EMoveType::Unretract : EMoveType::Travel;
-                    curType = type == EMoveType::Unretract ? SliceLineType::Unretract : SliceLineType::Travel;
+                    pathParam.eMoveType = type == EMoveType::Unretract ? EMoveType::Unretract : EMoveType::Travel;
                 }
                 else if (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f)
                 {
                     type = EMoveType::Extrude;
-                    curType = SliceLineType::Extrude;
+                    pathParam.eMoveType = EMoveType::Extrude;
                 }
             }
             else if (pathParam.current_v.x != 0.0f || pathParam.current_v.y != 0.0f || pathParam.current_v.z != 0.0f)
             {
                 type = EMoveType::Travel;
-                curType = SliceLineType::Travel;
+                pathParam.eMoveType = EMoveType::Travel;
             }
 
             return type;
@@ -2480,12 +2539,15 @@ namespace gcode
 
         EMoveType type = move_type();
         if (type == EMoveType::Extrude) {
-            //float delta_xyz = std::sqrt(sqr(pathParam.current_v.x) + sqr(pathParam.current_v.y) + sqr(pathParam.current_v.z));
             float volume_extruded_filament = area_filament_cross_section * pathParam.current_e;
-            //float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
 
             // save extruded volume to the cache
-            pathParam.m_used_filaments.increase_caches(volume_extruded_filament);
+            if(pathParam.curType == SliceLineType::erWipeTower)
+                pathParam.m_used_filaments.increase_color_change_caches(volume_extruded_filament);
+            else
+            {
+                pathParam.m_used_filaments.increase_caches(volume_extruded_filament);
+            }
 
         }
         else if (type == EMoveType::Unretract && pathParam.m_flushing) {
@@ -2505,7 +2567,7 @@ namespace gcode
         {
             float volume_extruded_filament = area_filament_cross_section * pathParam.current_e;
             // save extruded volume to the cache
-            pathParam.m_used_filaments.increase_color_change_caches(volume_extruded_filament);
+            //pathParam.m_used_filaments.increase_color_change_caches(volume_extruded_filament);
         }
     }
 
@@ -2574,7 +2636,7 @@ namespace gcode
                     case '1': //{ process_G1(pathParam); break; }  // Move
                     case '2':
                     case '3': //{ process_G2_G3(line); break; }  // Move
-                    { process_G1(pathParam, curType); break; }
+                    { process_G1(pathParam); break; }
                     //BBS
                     //case 4: { process_G4(line); break; }  // Delay
                     default: break;
@@ -2785,8 +2847,8 @@ namespace gcode
 
         bool bDataValiable = false;
 
-        SliceLineType curType(SliceLineType::NoneType);
-        SliceLineType lastType(SliceLineType::NoneType);
+        //SliceLineType curType(SliceLineType::NoneType);
+        //SliceLineType lastType(SliceLineType::NoneType);
         if (gcode_file != nullptr)
         {
             int curLayer = 0;
@@ -2823,13 +2885,13 @@ namespace gcode
                 gcode_comment_processor* gcode_comment_processor = p_source_position_->get_gcode_comment_processor();
 
                 getKvs(cmd.comment, sliceCompany, kvs);
-                _paraseKvs(gcodeProcessor, gcodeProcessor.box, curType,true);
+                _paraseKvs(gcodeProcessor, gcodeProcessor.box,true);
 
                 _detect_gcode_company(is_get_company, cmd.comment, sliceCompany);
 
                 if (curLayer <= 0 
                     && (cmd.comment == "===== noozle load line ==============================="
-                        || curType != SliceLineType::NoneType))
+                        || gcodeProcessor.curType != SliceLineType::NoneType))
                 {
                     gcodeProcessor.haveStartCmd = true;
                     startLayer = true;
@@ -2841,22 +2903,6 @@ namespace gcode
                         bDataValiable = true;
                     }
                 }
-                    
-                //todo : avoid TOOLCHANGE
-                //if (cmd.comment.find("CP TOOLCHANGE LOAD") != std::string::npos)
-                //{
-                //    isToolChange = true;
-                //}
-                //else if (cmd.comment.find("CP TOOLCHANGE WIPE") != std::string::npos
-                //    || cmd.comment.find("TYPE") != std::string::npos
-                //    || cmd.comment.find("HEIGHT") != std::string::npos
-                //    || cmd.comment.find("LAYER_CHANGE") != std::string::npos)
-                //{
-                //    isToolChange = false;
-                //}
-
-                //if (isToolChange)
-                //    continue;
 
                 auto iter = kvs.find("layer_count");
                 if (iter != kvs.end() && !haveLayerCount)
@@ -2910,13 +2956,13 @@ namespace gcode
                 }
 
                 //must have : layer height
-                _detect_height(kvs,haveLayerHeight, pathData, curType);
+                _detect_height(kvs,haveLayerHeight, pathData, gcodeProcessor.curType);
 
                 //must have : per layer
                 _detect_layer(gcodeProcessor, gcode_layer_data, startLayer, curLayer, pathData);
 
                 //must have : per path type
-                _detect_type(kvs, curType, lastType);
+                _detect_type(kvs, gcodeProcessor);
 
                 gcodeProcessor.current_e = p_source_position_->get_current_position_ptr()->get_current_extruder().e_relative;
 
@@ -2931,7 +2977,7 @@ namespace gcode
                         _v.z = p.double_value;
                 }  
                 gcodeProcessor.current_v = _v;
-                process_gcode_line(cmd, gcodeProcessor, curType,pathData);
+                process_gcode_line(cmd, gcodeProcessor, gcodeProcessor.curType,pathData);
 
                 //path
                 if (startLayer)
@@ -2943,20 +2989,22 @@ namespace gcode
                     trimesh::vec3 v(p_source_position_->get_current_position_ptr()->x, p_source_position_->get_current_position_ptr()->y,
                         p_source_position_->get_current_position_ptr()->z);
 
+                    trimesh::vec3 vp(p_source_position_->get_previous_position_ptr()->x, p_source_position_->get_previous_position_ptr()->y,
+                        p_source_position_->get_previous_position_ptr()->z);
+
                     _get_path(cmd.command, cmd.parameters
-                        , gcodeProcessor.current_e
+                        , gcodeProcessor
                         , is_travel
                         , has_position_changed
                         , v
-                        , curType
-                        , lastType
+                        , vp
                         , pathData
                         ,sliceCompany);
                 }
 
                 //get box
                 if ((cmd.command == "G1" || cmd.command == "G2" || cmd.command == "G3")
-                    && (curType != SliceLineType::React && curType != SliceLineType::Travel))
+                    && (gcodeProcessor.eMoveType != EMoveType::Retract && gcodeProcessor.eMoveType != EMoveType::Travel))
                 {
                     trimesh::vec3 v3(p_source_position_->get_previous_position_ptr()->x, p_source_position_->get_previous_position_ptr()->y,
                         p_source_position_->get_previous_position_ptr()->z);
@@ -3389,8 +3437,7 @@ namespace gcode
         _paraseGcodeAndPreview(gCodeFile, gcodeProcessor, pathData, tracer);
 
         //解析成通用参数
-        SliceLineType sliceLineType;
-        _paraseKvs(gcodeProcessor, box, sliceLineType);
+        _paraseKvs(gcodeProcessor, box);
 
         //设置参数
         _setParam(gcodeProcessor);

@@ -592,7 +592,7 @@ namespace gcode
         }
     }
 
-    void GCodeStruct::processG01_sub(SliceLineType tempType,double tempEndE,trimesh::vec3 tempEndPos,bool havaXYZ,int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode, bool isOrca) {
+    void GCodeStruct::processG01_sub(SliceLineType tempType,double tempEndE,trimesh::vec3 tempEndPos,bool havaXYZ,int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode, bool isOrca, bool isseam) {
         
         GcodeLayerInfo gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
 
@@ -622,7 +622,8 @@ namespace gcode
             if (move.e == 0.0f)
                 move.type = SliceLineType::Travel;
             //else if ( (move.e > 0.0f && move.type == SliceLineType::OuterWall && m_moves.back().type == SliceLineType::Travel)
-            if ((move.type == SliceLineType::Travel || move.type == SliceLineType::React) && m_moves.size() > 0 && m_moves.back().type == SliceLineType::OuterWall)
+            //if ((move.type == SliceLineType::Travel || move.type == SliceLineType::React) && m_moves.size() > 0 && m_moves.back().type == SliceLineType::OuterWall)
+            if (isseam)
             {
                 m_zSeams.push_back(move.start);
             }
@@ -708,7 +709,7 @@ namespace gcode
         }
     }
 
-    void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode, bool isOrca)
+    void GCodeStruct::processG01(const std::string& G01Str, int nIndex, std::vector<int>& stepIndexMap, bool isG2G3, bool fromGcode, bool isOrca, bool isseam)
     {
         std::vector<std::string> G01Strs = splitString(G01Str," ");
 
@@ -773,10 +774,10 @@ namespace gcode
                 
         }
 
-        processG01_sub(tempType, tempEndE, tempEndPos, havaXYZ, nIndex, stepIndexMap, isG2G3, fromGcode,isOrca);
+        processG01_sub(tempType, tempEndE, tempEndPos, havaXYZ, nIndex, stepIndexMap, isG2G3, fromGcode,isOrca,isseam);
     }
     
-    void GCodeStruct::processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap, bool isOrca)
+    void GCodeStruct::processG23_sub(G2G3Info info, int nIndex, std::vector<int>& stepIndexMap, bool isG2, bool fromGcode, bool isOrca, bool isseam)
     {
         bool bcircles = false;
 
@@ -876,15 +877,23 @@ namespace gcode
             G23toG1s.push_back(devideTemp.c_str());
         }
 
+        bool first = true;
         for (const auto& G23toG01 : G23toG1s)
         {
-            processG01(G23toG01, nIndex, stepIndexMap, true,isOrca);
+            if (first)
+            {
+                first = false;
+                processG01(G23toG01, nIndex, stepIndexMap, true, fromGcode, isOrca, isseam);
+            }
+            else
+                processG01(G23toG01, nIndex, stepIndexMap, true, fromGcode, isOrca, false);
+
         }
 
         tempCurrentE = info.currentE;
     }
 
-    void GCodeStruct::processG23(const std::string& G23Code, int nIndex, std::vector<int>& stepIndexMap, bool isOrca)
+    void GCodeStruct::processG23(const std::string& G23Code, int nIndex, std::vector<int>& stepIndexMap, bool isG2, bool fromGcode, bool isOrca, bool isseam)
     {
         std::vector<std::string> G23Strs = splitString(G23Code," ");//G1 Fxxx Xxxx Yxxx Exxx
         //G3 F1500 X118.701 Y105.96 I9.55 J1.115 E7.96039
@@ -958,7 +967,7 @@ namespace gcode
             }
         }
 
-        GCodeStruct::processG23_sub(info,  nIndex, stepIndexMap, isOrca);
+        GCodeStruct::processG23_sub(info,  nIndex, stepIndexMap,isG2, fromGcode, isOrca, isseam);
 
 
     }
@@ -1273,7 +1282,7 @@ namespace gcode
         baseInfo = tempBaseInfo;
     }
 
-    void GCodeStruct::getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode, bool isOrca)
+    void GCodeStruct::getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode, bool isOrca, bool isseam)
     {
         if (layerNumberParseSuccess)
         {
@@ -1323,10 +1332,10 @@ namespace gcode
         //std::vector<int> stepIndexMap;
         if(m_stepIndexMaps.empty())
             m_stepIndexMaps.push_back(std::vector<int>());
-        processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex++, m_stepIndexMaps.back(), false, fromGcode);
+        processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex++, m_stepIndexMaps.back(), false, fromGcode, isOrca,isseam);
     }
 
-    void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2, bool fromGcode, bool isOrca) {
+    void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2, bool fromGcode, bool isOrca, bool isseam) {
         
         trimesh::vec3 tempEndPos = tempCurrentPos;
 
@@ -1392,7 +1401,7 @@ namespace gcode
         //TODO
         if (m_stepIndexMaps.empty())
             m_stepIndexMaps.push_back(std::vector<int>());
-        GCodeStruct::processG23_sub(info, nIndex++, m_stepIndexMaps.back());
+        GCodeStruct::processG23_sub(info, nIndex++, m_stepIndexMaps.back(), isG2,  fromGcode,  isOrca,  isseam);
     }
 
     void GCodeStruct::getNotPath()
