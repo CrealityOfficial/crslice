@@ -44,6 +44,11 @@ namespace crslice2
 		return orca_generate_object_layers(settings, triMesh, profile);
 	}
 
+	CRSLICE2_API std::vector<double> updateObjectLayers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, const std::vector<double>& profile)
+	{
+		return orca_update_layer_height_profile(settings, triMesh, profile);
+	}
+
 	void orcaSliceFromFile(const std::string& file, const std::string& out)
 	{
 		orca_slice_fromfile_impl(file, out);

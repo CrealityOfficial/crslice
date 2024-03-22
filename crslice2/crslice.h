@@ -33,6 +33,8 @@ namespace crslice2
         const std::vector<double>& profile, unsigned int radius, bool keep_min);
     CRSLICE2_API std::vector<double> generateObjectLayers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
         const std::vector<double>& profile);
+    CRSLICE2_API std::vector<double> updateObjectLayers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+        const std::vector<double>& profile);
     CRSLICE2_API void orcaSliceFromFile(const std::string& file, const std::string& out);
 }
 #endif  // MSIMPLIFY_SIMPLIFY_H
