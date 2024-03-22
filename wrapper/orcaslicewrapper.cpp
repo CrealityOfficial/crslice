@@ -397,6 +397,18 @@ Slic3r::SlicingParameters getSliceParam(crslice2::SettingsPtr settings,  Slic3r:
 	return Slic3r::PrintObject::slicing_parameters(config, *currentObject, 0.f);
 }
 
+void fixFlyingInstance(Slic3r::ModelObject* instance)
+{
+	if(!instance)
+		return;
+
+	const double shift_z = instance->get_instance_min_z(0);
+	if (shift_z > Slic3r::SINKING_Z_THRESHOLD) {
+		// Move the instance down to the bed
+		instance->translate(0.0, 0.0, -shift_z);
+	}
+}
+
 std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, float quality)
 {
 	if (!triMesh)
@@ -408,6 +420,7 @@ std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr set
 	Slic3r::ModelObject* currentObject = model.add_object();
 	currentObject->add_instance();
 	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+	fixFlyingInstance(currentObject);
 
 	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
 	return Slic3r::layer_height_profile_adaptive(m_slicing_params, *currentObject, quality);
@@ -422,6 +435,7 @@ std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, t
 	Slic3r::ModelObject* currentObject = model.add_object();
 	currentObject->add_instance();
 	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+	fixFlyingInstance(currentObject);
 
 	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
 	Slic3r::HeightProfileSmoothingParams smoothing_params_orca(radius, keep_min);
@@ -438,6 +452,7 @@ std::vector<double> orca_generate_object_layers(crslice2::SettingsPtr settings, 
 	Slic3r::ModelObject* currentObject = model.add_object();
 	currentObject->add_instance();
 	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+	fixFlyingInstance(currentObject);
 
 	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
 
@@ -453,6 +468,7 @@ std::vector<double> orca_update_layer_height_profile(crslice2::SettingsPtr setti
 	Slic3r::ModelObject* currentObject = model.add_object();
 	currentObject->add_instance();
 	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+	fixFlyingInstance(currentObject);
 
 	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
 	std::vector<double> m_profile = profile;
