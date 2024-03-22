@@ -3338,7 +3338,7 @@ namespace gcode
             float filament_radius = 0.5f * gcodeProcessor.filament_diameters[f.first % gcodeProcessor.filament_diameters.size()];
             float filament_density = gcodeProcessor.material_densitys[f.first % gcodeProcessor.material_densitys.size()];
             double s = M_PI * sqr(filament_radius) > 0.0f ? M_PI * sqr(filament_radius) : 1.0f;
-            float used_filament = f.second / s;
+            float used_filament = f.second / s * 0.001;
             float weight = f.second * filament_density * 0.001;
             pathParam.volumes_per_tower.push_back(std::pair(f.first, used_filament));
             pathParam.volumes_per_tower.push_back(std::pair(f.first, weight));
