@@ -169,6 +169,8 @@ namespace gcode
         bool m_flushing{false};
         bool m_wiping{ false };
 
+        bool isFirstLayerHeight{ false };
+
         double current_e;
         trimesh::vec3 current_v;
 
@@ -1973,6 +1975,7 @@ namespace gcode
         auto iter = kvs.find("LAYER");
         if (iter != kvs.end())
         {
+            gcodeProcessor.isFirstLayerHeight = true;
             startLayer = true;
 
             int pos = gcode_layer_data.find_last_of("\n");
@@ -2015,8 +2018,9 @@ namespace gcode
         }
     }
 
-    void _detect_height(std::unordered_map<std::string, std::string>& kvs,bool& haveLayerHeight, GcodeTracer* pathData, const SliceLineType& curType)
+    void _detect_height(std::unordered_map<std::string, std::string>& kvs, GCodeProcessor& gCodeProcessor,bool& haveLayerHeight, GcodeTracer* pathData)
     {
+        const SliceLineType& curType = gCodeProcessor.curType;
         if (curType == SliceLineType::FlowTravel)
         {
             auto iter = kvs.find("HEIGHT");
@@ -2041,10 +2045,22 @@ namespace gcode
             kvs.erase(iter);
         }
 
+
         iter = kvs.find("LAYER_HEIGHT");
         if (iter != kvs.end())
         {
-            pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
+            //orca当每一层有多个层高修改时，只取第一次的层高值， 表现：悬空层预览断层
+            if (gCodeProcessor.sliceCompany == SliceCompany::bambu)
+            {
+                if (gCodeProcessor.isFirstLayerHeight)
+                {
+                    pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
+                    gCodeProcessor.isFirstLayerHeight = false;
+                }
+            }
+            else
+                pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
+
             kvs.erase(iter);
         }       
     }
@@ -2956,7 +2972,7 @@ namespace gcode
                 }
 
                 //must have : layer height
-                _detect_height(kvs,haveLayerHeight, pathData, gcodeProcessor.curType);
+                _detect_height(kvs,gcodeProcessor,haveLayerHeight, pathData);
 
                 //must have : per layer
                 _detect_layer(gcodeProcessor, gcode_layer_data, startLayer, curLayer, pathData);
