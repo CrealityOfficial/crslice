@@ -8,6 +8,7 @@ namespace crslice2
 	CrObject::CrObject()
 	{
 		m_settings.reset(new Settings());
+		m_xform = trimesh::xform();
 	}
 
 	CrObject::~CrObject()

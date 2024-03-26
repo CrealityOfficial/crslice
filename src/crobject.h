@@ -28,7 +28,7 @@ namespace crslice2
 		std::vector<double> m_layerHeight;
 
 		//column major
-		float m_xform[16];
+		trimesh::xform m_xform;
 	};
 }
 
