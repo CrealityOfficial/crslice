@@ -2797,6 +2797,25 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
 
+    def = this->add("cool_special_cds_fan_speed", coInts);
+    def->label = L("Fan speed for overhangs");
+    def->tooltip = L("Speed of auxiliary part cooling fan.Auxiliary fan will run at this speed during printing except the first several layers "
+        "which is defined by no cooling layers.\nPlease enable auxiliary_fan in printer settings to use this feature. G-code command: M106 P2 S(0-255)");
+    def->sidetext = L("%");
+    def->min = 0;
+    def->max = 100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts{ 0 });
+
+    def = this->add("cool_cds_fan_start_at_height", coFloats);
+    def->label = L("Regular Cds Fan Speed at Height");
+    def->tooltip = L("The height at which the Cds fans spin on regular fan speed. ");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 500;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionFloats{ 0.5 });
+
     def = this->add("min_layer_height", coFloats);
     def->label = L("Min");
     def->tooltip = L("The lowest printable layer height for extruder. Used tp limits "

@@ -60,6 +60,8 @@
         "inherits",
         "filament_wipe_distance",
         "additional_cooling_fan_speed",
+		"cool_special_cds_fan_speed",
+		"cool_cds_fan_start_at_height",
         "nozzle_temperature_range_low",
         "nozzle_temperature_range_high",
         "enable_pressure_advance",

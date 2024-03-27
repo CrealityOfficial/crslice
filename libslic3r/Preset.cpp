@@ -841,6 +841,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
     //BBS
     "filament_wipe_distance", "additional_cooling_fan_speed",
+    "cool_special_cds_fan_speed","cool_cds_fan_start_at_height",
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
     "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,

@@ -63,6 +63,34 @@
         "type": "coInts",
         "unit": "%"
     },
+	"cool_special_cds_fan_speed": {
+        "default_value": "0",
+        "description": "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers which is defined by no cooling layers.\nPlease enable auxiliary_fan in printer settings to use this feature. G-code command: M106 P2 S(0-255)",
+        "enabled": "true",
+        "label": "Fan speed",
+        "maximum_value": "100",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
+    },
+	"cool_cds_fan_start_at_height": {
+        "default_value": "0.5",
+        "description": "The height at which the Cds fans spin on regular fan speed. ",
+        "enabled": "true",
+        "label": "Regular Cds Fan Speed at Height",
+        "maximum_value": "500",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": "mm"
+    },
     "alternate_extra_wall": {
         "default_value": "0",
         "description": "This setting adds an extra wall to every other layer. This way the infill gets wedged vertically between the walls, resulting in stronger prints. \n\nWhen this option is enabled, the ensure vertical shell thickness option needs to be disabled. \n\nUsing lightning infill together with this option is not recommended as there is limited infill to anchor the extra perimeters to.",

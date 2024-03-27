@@ -734,7 +734,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
     int  overhang_fan_speed   = 0;
     bool supp_interface_fan_control= false;
     int  supp_interface_fan_speed = 0;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &supp_interface_fan_control, &supp_interface_fan_speed](bool immediately_apply) {
+
+    auto change_extruder_set_fan = [ this, layer_id, layer_time,&new_gcode, &overhang_fan_control, &overhang_fan_speed, &supp_interface_fan_control, &supp_interface_fan_speed](bool immediately_apply) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         float fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         float fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
@@ -810,6 +811,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
                                                                {CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START, false},
                                                                {CoolingLine::TYPE_FORCE_RESUME_FAN, false}};
     bool need_set_fan = false;
+
+    bool bcool_special_cds_fan_speed = false;
 
     for (const CoolingLine *line : lines) {
         const char *line_start  = gcode.c_str() + line->line_start;
@@ -940,8 +943,22 @@ std::string CoolingBuffer::apply_layer_cooldown(
             new_gcode.append(line_start, line_end - line_start);
         }
 
+        if (bcool_special_cds_fan_speed && !fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
+            bcool_special_cds_fan_speed = false;
+            m_additional_fan_speed = m_config.cool_special_cds_fan_speed.get_at(m_current_extruder);
+        }
+
         if (need_set_fan) {
             if (fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]){
+                if (m_config.enable_overhang_bridge_fan.get_at(m_current_extruder) && m_current_pos.size() > 2)
+                {
+                    if (m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder) >0.0f && m_current_pos[2] > m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder))
+                    {
+                        new_gcode += GCodeWriter::set_additional_fan(m_config.cool_special_cds_fan_speed.get_at(m_current_extruder));
+                        bcool_special_cds_fan_speed = true;
+                    }
+                }
+
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
                 m_current_fan_speed = overhang_fan_speed;
             }
