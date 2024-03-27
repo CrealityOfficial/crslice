@@ -116,6 +116,7 @@ public:
     void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
     GCodeFlavor get_gcode_flavor() const { return config.gcode_flavor; }
     void set_printer_model(bool bval) { m_printer_model_bbl = bval; }
+    const bool get_printer_model() const { return m_printer_model_bbl; }
 
     // Returns whether this flavor supports separate print and travel acceleration.
     static bool supports_separate_travel_acceleration(GCodeFlavor flavor);
