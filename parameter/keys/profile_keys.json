@@ -232,6 +232,10 @@
         "hole_to_polyhole_threshold",
         "hole_to_polyhole_twisted",
         "mmu_segmented_region_max_width",
-        "mmu_segmented_region_interlocking_depth"
+        "mmu_segmented_region_interlocking_depth",
+        "acceleration_limit_mess_enable",
+        "acceleration_limit_mess",
+        "speed_limit_to_height_enable",
+        "speed_limit_to_height"
     ]
 }

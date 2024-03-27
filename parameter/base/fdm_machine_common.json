@@ -3540,11 +3540,11 @@
         "type": "coFloat",
         "unit": "."
     },
-	"acceleration_limit_mess_enable": {
+    "acceleration_limit_mess_enable": {
         "default_value": "0",
-        "description": "Weight limit speed and acceleration Enable",
+        "description": "Acceleration Limit Volume Enable",
         "enabled": "true",
-        "label": "Weight limit speed and acceleration Enable",
+        "label": "Acceleration Limit Volume Enable",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -3552,11 +3552,11 @@
         "type": "coBool",
         "unit": ""
     },
-	"acceleration_limit_mess": {
+    "acceleration_limit_mess": {
         "default_value": "[[0.5,1.0,100,6000,210],[1.0,1.5,80,5500,200],[1.5,2.0,60,5000,190]]",
-        "description": "Weight limit speed and acceleration",
+        "description": "Acceleration Limit Volume",
         "enabled": "true",
-        "label": "Weight limit speed and acceleration",
+        "label": "Acceleration Limit Volume",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -3566,9 +3566,9 @@
     },
 	"speed_limit_to_height_enable": {
         "default_value": "0",
-        "description": "Height limit speed and acceleration Enable",
+        "description": "Print Speed Limit to Height Enable",
         "enabled": "true",
-        "label": "Height limit speed and acceleration Enable",
+        "label": "Print Speed Limit to Height Enable",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -3578,9 +3578,9 @@
     },
 	"speed_limit_to_height": {
         "default_value": "[[100,150,100,6000,210],[150,200,80,5500,200],[200,250,60,5000,190]]",
-        "description": "Height limit speed and acceleration",
+        "description": "Print Speed Limit to Height",
         "enabled": "true",
-        "label": "Height limit speed and acceleration",
+        "label": "Print Speed Limit to Height",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
