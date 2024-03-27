@@ -798,7 +798,7 @@ namespace gcode
         {
             theta = getAngelOfTwoVector(circleEndPos, tempCurrentPos, circlePos);
         }
-        if (bcircles)
+        if (info.p >0)
         {
             theta = 360;
         }
@@ -891,7 +891,6 @@ namespace gcode
             }
             else
                 processG01(G23toG01, nIndex, stepIndexMap, true, fromGcode, isOrca, false);
-
         }
 
         tempCurrentE = info.currentE;
@@ -1339,7 +1338,7 @@ namespace gcode
         processG01_sub(tempType, tempEndE, tempEndPos, true , nIndex++, m_stepIndexMaps.back(), false, fromGcode, isOrca,isseam);
     }
 
-    void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2, bool fromGcode, bool isOrca, bool isseam) {
+    void GCodeStruct::getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type,int p, bool isG2, bool fromGcode, bool isOrca, bool isseam) {
         
         trimesh::vec3 tempEndPos = tempCurrentPos;
 
@@ -1380,6 +1379,7 @@ namespace gcode
         info.y = tempEndPos.y;
         info.i = i;
         info.j = j;
+        info.p = p;
         info.bIsTravel = (tempCurrentType == SliceLineType::Travel || tempCurrentType == SliceLineType::React);
         info.currentE = tempCurrentE;
 

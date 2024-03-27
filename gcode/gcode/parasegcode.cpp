@@ -2389,6 +2389,7 @@ namespace gcode
 
                 float i = 0.0f;
                 float j = 0.0f;
+                int _p = 0;
                 for (auto& p : parameters)
                 { 
                     if (p.name == "F" || p.name == "f")
@@ -2397,15 +2398,17 @@ namespace gcode
                         i = p.double_value;
                     else if (p.name == "J" || p.name == "j")
                         j = p.double_value;
+                    else if (p.name == "P" || p.name == "p")
+                        _p = (int)p.double_value;
                 }
 
                  if (detectZSeam(gcodeProcessor, v, vp))
                 {
-                    pathData->getPathDataG2G3(v, i, j, e, (int)curType, isG2, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa),true);
+                    pathData->getPathDataG2G3(v, i, j, e, (int)curType,_p, isG2, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa),true);
                 }
                 else
                 {
-                    pathData->getPathDataG2G3(v, i, j, e, (int)curType, isG2, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
+                    pathData->getPathDataG2G3(v, i, j, e, (int)curType,_p, isG2, (sliceCompany == SliceCompany::bambu || sliceCompany == SliceCompany::prusa));
                 }
 
             }

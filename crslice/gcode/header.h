@@ -121,7 +121,7 @@ namespace gcode
 
 		virtual void tick(const std::string& tag) = 0;
 		virtual void getPathData(const trimesh::vec3 point, float e, int type, bool isOrca = false, bool isseam = false) = 0;
-		virtual void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true, bool isOrca = false, bool isseam = false) = 0;
+		virtual void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, int p,bool isG2 = true, bool isOrca = false, bool isseam = false) = 0;
 		virtual void setParam(GCodeParseInfo& pathParam) = 0;
 		virtual void setLayer(int layer) = 0;
 		virtual void setLayers(int layer) = 0;

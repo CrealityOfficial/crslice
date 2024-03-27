@@ -24,7 +24,7 @@ namespace crslice
 	public:
 		void tick(const std::string& tag) override {};
 		void getPathData(const trimesh::vec3 point, float e, int type,bool isOrca = false, bool isseam = false) override {};
-		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true, bool isOrca = false, bool isseam = false)  override {};
+		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, int p, bool isG2 = true, bool isOrca = false, bool isseam = false)  override {};
 		void setParam(gcode::GCodeParseInfo& pathParam)override {};
 		void setLayer(int layer) override {};
 		void setLayers(int layer) override {};

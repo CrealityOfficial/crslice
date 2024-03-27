@@ -21,6 +21,7 @@ namespace gcode
 		float y;
 		float i;
 		float j;
+		int p;
 		float currentE;
 		bool isG2;
 		bool bIsTravel;
@@ -133,7 +134,7 @@ namespace gcode
 		std::vector<std::string> m_nozzleColorList;
 		gcode::GCodeParseInfo& getParam();
 		void getPathData(const trimesh::vec3 point, float e, int type, bool fromGcode = false, bool isOrca = false, bool isseam =false);
-		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, bool isG2 = true,bool fromGcode = false, bool isOrca = false, bool isseam=false);
+		void getPathDataG2G3(const trimesh::vec3 point, float i, float j, float e, int type, int p, bool isG2 = true,bool fromGcode = false, bool isOrca = false, bool isseam=false);
 		void setParam(gcode::GCodeParseInfo& pathParam);
 		void setLayer(int layer);
 		void setSpeed(float s);

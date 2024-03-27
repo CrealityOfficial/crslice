@@ -1679,7 +1679,7 @@ void GCodeExport::writeFXYZIJE(const Velocity& speed, const coord_t x, const coo
             , MMtoStream{ i }.value
             , MMtoStream{ j }.value
             , (e + current_e_offset != current_e_value) ? PrecisionedDouble{ 5, output_e }.value :-999
-            , (int)feature, estimateCalculator->is_ccw);
+            , (int)feature,0, estimateCalculator->is_ccw);
 
 
     *output_stream << new_line;
