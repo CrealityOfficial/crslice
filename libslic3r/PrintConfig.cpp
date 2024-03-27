@@ -1772,7 +1772,11 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Vendor");
     def->tooltip = L("Vendor of filament. For show only");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
+    def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
+    def->gui_flags = "show_value";
+    def->enum_values.push_back("Creality");
+    def->enum_values.push_back("Generic");
+    def->set_default_value(new ConfigOptionStrings{L("(Creality)")});
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);

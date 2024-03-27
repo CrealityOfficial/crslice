@@ -1688,6 +1688,10 @@
         "description": "Vendor of filament. For show only",
         "enabled": "true",
         "label": "Vendor",
+		"options": {
+            "Creality": "Creality",
+            "Generic": "Generic"
+        },
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
