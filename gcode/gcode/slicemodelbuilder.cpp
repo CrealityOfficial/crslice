@@ -815,16 +815,20 @@ namespace gcode
         float flow = r * r * PI * info.e * tempSpeed / 60.0 / len;
 
         float h = m_gcodeLayerInfos.back().layerHight;
-        float width = 0.0f;
-        if (len > 0.0001 && h > 0.0001 && info.e > 0.0f)
+        float width = m_gcodeLayerInfos.back().width;
+
+        if (!isOrca)
         {
-            width = info.e * material_s / len / h;
+            if (len > 0.0001 && h > 0.0001 && info.e > 0.0f)
+            {
+                width = info.e * material_s / len / h;
+            }
+            if ((len < 0.05) && m_gcodeLayerInfos.back().width > 0.0f)
+            {
+                width = m_gcodeLayerInfos.back().width;
+            }
         }
 
-        if ((len < 0.05) && m_gcodeLayerInfos.back().width > 0.0f)
-        {
-            width = m_gcodeLayerInfos.back().width;
-        }
         if (std::abs(m_gcodeLayerInfos.back().flow - flow) > 0.001 && len >= 1.0f)
         {
             GcodeLayerInfo  gcodeLayerInfo = m_gcodeLayerInfos.size() > 0 ? m_gcodeLayerInfos.back() : GcodeLayerInfo();
