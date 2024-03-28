@@ -13,7 +13,7 @@ std::vector<double> orca_generate_object_layers(crslice2::SettingsPtr settings, 
 	const std::vector<double>& profile);
 std::vector<double> orca_update_layer_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
 	const std::vector<double>& profile);
-void orca_slice_fromfile_impl(const std::string& file, const std::string& out);
+void orca_slice_fromfile_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer = nullptr);
 void parse_metas_map_impl(crslice2::MetasMap& datas);
 void get_meta_keys_impl(crslice2::MetaGroup metaGroup, std::vector<std::string>& keys);
 void export_metas_impl();

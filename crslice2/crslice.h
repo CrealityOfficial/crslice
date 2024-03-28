@@ -35,6 +35,6 @@ namespace crslice2
         const std::vector<double>& profile);
     CRSLICE2_API std::vector<double> updateObjectLayers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
         const std::vector<double>& profile);
-    CRSLICE2_API void orcaSliceFromFile(const std::string& file, const std::string& out);
+    CRSLICE2_API void orcaSliceFromFile(const std::string& file, const std::string& out, ccglobal::Tracer* tracer = nullptr);
 }
 #endif  // MSIMPLIFY_SIMPLIFY_H

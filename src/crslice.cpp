@@ -49,8 +49,8 @@ namespace crslice2
 		return orca_update_layer_height_profile(settings, triMesh, profile);
 	}
 
-	void orcaSliceFromFile(const std::string& file, const std::string& out)
+	void orcaSliceFromFile(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
 	{
-		orca_slice_fromfile_impl(file, out);
+		orca_slice_fromfile_impl(file, out, tracer);
 	}
 }

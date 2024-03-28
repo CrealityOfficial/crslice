@@ -481,10 +481,14 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, scene->m_tempDirectory, calibParams, thumbnailData, tracer);
 }
 
-void orca_slice_from_arch_impl(const std::string& file, const std::string& out)
+void orca_slice_from_arch_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
 {
 	std::ifstream in(file, std::ios::in | std::ios::binary);
-
+	if (!in.is_open())
+	{
+		in.close();
+		return;
+	}
 	bool is_bbl_printer = false;
 	int plate_index = 0;
 	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
@@ -559,10 +563,10 @@ void orca_slice_from_arch_impl(const std::string& file, const std::string& out)
 #endif
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
-	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, out_json, calibParams, thumbnailDatas, nullptr);
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, out_json, calibParams, thumbnailDatas, tracer);
 }
 
-void orca_slice_from_3mf_impl(const std::string& file, const std::string& out)
+void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
 {
 	Slic3r::DynamicPrintConfig config;
 	Slic3r::PlateDataPtrs             plate_data;
@@ -579,14 +583,14 @@ void orca_slice_from_3mf_impl(const std::string& file, const std::string& out)
 	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
-	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, "", calibParams, thumbnailDatas, nullptr);
+	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, "", calibParams, thumbnailDatas, tracer);
 }
 
-void orca_slice_fromfile_impl(const std::string& file, const std::string& out)
+void orca_slice_fromfile_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
 {
 	if (boost::ends_with(file, ".3mf"))
-		return orca_slice_from_3mf_impl(file, out);
-	return orca_slice_from_arch_impl(file, out);
+		return orca_slice_from_3mf_impl(file, out, tracer);
+	return orca_slice_from_arch_impl(file, out, tracer);
 }
 
 void parse_metas_map_impl(crslice2::MetasMap& datas)
