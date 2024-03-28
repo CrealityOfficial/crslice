@@ -3366,7 +3366,7 @@ bool FffGcodeWriter::processInsets(const SliceDataStorage& storage, LayerPlan& g
     }
     std::vector<VariableWidthLines> new_wall_toolpaths;
     // for non-spiralized layers, determine the shape of the unsupported areas below this part
-    if (! spiralize && gcode_layer.getLayerNr() > 0)
+    if (!spiralize && gcode_layer.getLayerNr() > 0 && application->currentGroup()->settings.get<EGCodeFlavor>("machine_gcode_flavor")!= EGCodeFlavor::PLC)
     {
         // accumulate the outlines of all of the parts that are on the layer below
 

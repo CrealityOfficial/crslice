@@ -3076,8 +3076,12 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 							} 
 							else
 							{
-								const double extrude_speed = speed * path.speed_back_pressure_factor;
-								gcode.writeExtrusion(path.points[point_idx], extrude_speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+								if (application->sceneSettings().get<EGCodeFlavor>("machine_gcode_flavor")!=EGCodeFlavor::PLC)
+								{
+                                    speed *= path.speed_back_pressure_factor;
+								}
+
+								gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
 							}
                         }
                     }

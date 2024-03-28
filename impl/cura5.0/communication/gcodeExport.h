@@ -122,6 +122,9 @@ namespace cura52
         double material_diameter = { 1.75 };
         double material_density = { 1.24 };
 
+        int lastW=0;
+        int addW=0;
+
         // flow-rate compensation
         double current_e_offset; //!< Offset to compensate for flow rate (mm or mm^3)
         double max_extrusion_offset; //!< 0 to turn it off, normally 4
@@ -446,6 +449,7 @@ namespace cura52
          */
         void writeTravel(const coord_t x, const coord_t y, const coord_t z, const Velocity& speed);
 
+        void writeG0XY(const coord_t x, const coord_t y, const Velocity& speed);
         /*!
          * Perform un-z-hop
          * Perform unretract
@@ -464,8 +468,8 @@ namespace cura52
             const Velocity& speed, const double extrusion_mm3_per_mm,
             const PrintFeatureType& feature, const bool update_extrusion_offset = false);
 
-        void writeFXYZEW(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const double w, const PrintFeatureType& feature);
-
+        void writeFXYZEW(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const double angle, const PrintFeatureType& feature);
+        void writeFW(const Velocity& speed,  const double w);
 
         void writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z,
             const coord_t i, const coord_t j, double arc_length,

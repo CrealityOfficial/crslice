@@ -1166,18 +1166,18 @@ void GCodeExport::writeExtrusionMode(bool set_relative_extrusion_mode)
 {
     if (set_relative_extrusion_mode)
     {
-		if (flavor==EGCodeFlavor::MACH3_Creality)
+		if (flavor==EGCodeFlavor::MACH3_Creality || flavor == EGCodeFlavor::PLC)
 		{
 			*output_stream << "G91 ;relative extrusion mode" << new_line;
 		} 
-		else
+        else
 		{
 			*output_stream << "M83 ;relative extrusion mode" << new_line;
 		}
     }
     else
     {
-		if (flavor == EGCodeFlavor::MACH3_Creality)
+		if (flavor == EGCodeFlavor::MACH3_Creality || flavor == EGCodeFlavor::PLC)
 		{
 			*output_stream << "G90 ;absolute extrusion mode" << new_line;
 		}
@@ -1337,23 +1337,53 @@ void GCodeExport::writeExtrusionG2G3(const Point3& p, const Point& center_offset
 //	return theta;
 //}
 
+float getAngelOfTwoVector_test(const trimesh::vec& pt1, const trimesh::vec& pt2, const trimesh::vec& c)
+{
+    float theta = atan2(pt1.y - c.y, pt1.x - c.x) - atan2(pt2.y - c.y, pt2.x - c.x);
+    if (theta > M_PIf)
+        theta -= 2 * M_PIf;
+    if (theta < -M_PIf)
+        theta += 2 * M_PIf;
+
+    theta = theta * 180.0 / M_PIf;
+    if (theta < 0)
+    {
+        theta = 360 + theta;
+    }
+    return theta;
+}
+
+
+float getAngelOfTwoVector(const Point& pt1, const Point& pt2, const Point& c)
+{
+    float theta = atan2(pt1.Y - c.Y, pt1.X - c.X) - atan2(pt2.Y - c.Y, pt2.X - c.X);
+    if (theta > M_PIf)
+        theta -= 2 * M_PIf;
+    if (theta < -M_PIf)
+        theta += 2 * M_PIf;
+
+    theta = theta * 180.0 / M_PIf;
+    if (theta < 0)
+    {
+        theta = 360 + theta;
+    }
+    return theta;
+}
+
 float getAngelOfTwoVector(const Point& endP, const Point& startP)
 {
-	auto path_direction = startP - endP;
+    Point firstVector(-1, 0);
+    Point secondVector = endP - startP;
+    float vectors_length = vSize(secondVector);
+    auto theta = dot(firstVector, secondVector) / vectors_length;
+    auto radians = acos(theta);
+    auto degrees = radians / M_PI * 180;
 
-	float path_length = vSize(path_direction);
-	Point roller_direction(0, -1);
-
-	auto theta = dot(roller_direction, path_direction) / path_length;
-	auto radians = acos(theta);
-	auto degrees = radians / M_PI * 180;
-
-	auto sum = cross(roller_direction, path_direction);
-	if (sum < 0) {
-		degrees = 180 + 180 - degrees;
-	}
-
-	return degrees;
+    auto sum = cross(firstVector, secondVector);
+    if (sum < 0 && degrees != 0.0) {
+        degrees = 360 - degrees;
+    }
+    return degrees;
 }
 
 
@@ -1458,9 +1488,28 @@ void GCodeExport::writeTravel(const coord_t x, const coord_t y, const coord_t z,
     const int display_width = extruder_attr[current_extruder].retraction_e_amount_current ? MM2INT(0.2) : MM2INT(0.1);
     const double layer_height = application->currentGroup()->settings.get<double>("layer_height");
 
-    *output_stream << "G0";
+    if (flavor == EGCodeFlavor::PLC)
+    {
+        *output_stream << "G0 G90";
+    }
+    else
+    {
+        *output_stream << "G0";
+    }
     writeFXYZE(speed, x, y, z, current_e_value, travel_move_type);
 }
+
+void GCodeExport::writeG0XY(const coord_t x, const coord_t y, const Velocity& speed)
+{
+    *output_stream << "G0 G90";
+    *output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
+    Point gcode_pos = getGcodePos(x, y, current_extruder);
+    total_bounding_box.include(Point3(gcode_pos.X, gcode_pos.Y, 0));
+    *output_stream << " X" << MMtoStream{ gcode_pos.X } << " Y" << MMtoStream{ gcode_pos.Y };
+    *output_stream << new_line;
+}
+
+
 
 void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t z, const Velocity& _speed, const double extrusion_mm3_per_mm, const PrintFeatureType& feature, const bool update_extrusion_offset)
 {
@@ -1545,46 +1594,95 @@ void GCodeExport::writeExtrusion(const coord_t x, const coord_t y, const coord_t
     extruder_attr[current_extruder].last_e_value_after_wipe += extrusion_per_mm * diff_length;
     const double new_e_value = current_e_value + extrusion_per_mm * diff_length;
 
-    *output_stream << "G1";
+
     Velocity speed_e = speed;
     if (diff_length)
     {
         Velocity* max_feedrate = estimateCalculator->maxFeedrate();
         Velocity max_E_feedrate = std::min(max_feedrate[TimeEstimateCalculator::E_AXIS] * extruder_attr[current_extruder].filament_area, extruder_attr[current_extruder].max_volumetric_spped) / extrusion_mm3_per_mm;
         speed_e = std::min(std::min(speed_e, std::min(max_feedrate[TimeEstimateCalculator::X_AXIS], max_feedrate[TimeEstimateCalculator::Y_AXIS])), max_E_feedrate);
-        
+
         //if (max_speed_limit_to_height > 0)
         //    speed_e = std::min(speed_e, max_speed_limit_to_height);
     }
-	if (this->flavor == EGCodeFlavor::PLC)
-	{
-		Point last(lastPosition.x, lastPosition.y), current(currentPosition.x, currentPosition.y), next(x, y);
+    if (this->flavor == EGCodeFlavor::PLC)
+    {
+        Point last(lastPosition.x, lastPosition.y), current(currentPosition.x, currentPosition.y), next(x, y);
 
-		float velocity_rotated = 180 / 1; 
+        float velocity_rotated = 180 / 1;
         float nextRollerDegrees = getAngelOfTwoVector(next, current);
+        //nextRollerDegrees = getAngelOfTwoVector(last, next, current);
         float diff_degrees = nextRollerDegrees - currentRollerDegrees;
         float time_rotated = diff_degrees / velocity_rotated;
 
         float length = vSize(next - current);
-        float time = length / speed / 10.f;
+        //      float time = length / speed / 10.f;
+        if (1/*length <= 40000*/)
+        {
+            addW += nextRollerDegrees - lastW;
+            lastW = nextRollerDegrees;
+            if (addW >= 10 || addW<=-10)
+            {
+                int value = (int)nextRollerDegrees % 10;
+                int add = value > 5 ? 1 : 0;
+                int num = nextRollerDegrees / 10 + add;
+                if (num==36)
+                {
+                    num = 0;
+                }
+                int angle = 1000 + num*10;
+                *output_stream << "M" << (int)angle<<new_line;
+                *output_stream << "G1";
+                writeFXYZEW(speed_e, x, y, z, new_e_value, -1, feature);
+                addW = 0;
+            }
+            else
+            {
+                *output_stream << "G1";
+                writeFXYZEW(speed_e, x, y, z, new_e_value, -1, feature);
+            }
+           
+            return;
+        }
 
-		if (time < time_rotated) {
-			writeFXYZEW(speed_e, x, y, z, new_e_value, nextRollerDegrees, feature);
-			return;
-		}
-
-		auto dir = next - current;
+        //if (time < time_rotated) 
+  //      {
+        //	writeFXYZEW(speed_e, x, y, z, new_e_value, nextRollerDegrees, feature);
+        //	return;
+        //}
+        *output_stream << "G1";
+        auto dir = next - current;
         auto temp = current;
-        temp.X += time > 0.0f ? dir.X * (time - time_rotated) / time : 0.0f;
-        temp.Y += time > 0.0f ? dir.Y * (time - time_rotated) / time : 0.0f;
-		writeFXYZEW(speed_e, temp.X, temp.Y, z, new_e_value, currentRollerDegrees, feature);
+        temp.X += dir.X * (20000 / length);
+        temp.Y += dir.Y * (20000 / length);
 
-		*output_stream << "G1";
-		writeFXYZEW(speed_e, x, y, z, new_e_value, nextRollerDegrees, feature);
-	}
-	else {
-		writeFXYZE(speed_e, x, y, z, new_e_value, feature);
-	}
+        double tempE = current_e_value + (new_e_value - current_e_value) * (20000 / length);
+
+        double rotateSpeed = 84;
+        if (application->sceneSettings().get<bool>("have_rotate_speed"))
+        {
+            rotateSpeed = application->sceneSettings().get<Velocity>("speed_rotate");
+        }
+        writeFXYZEW(rotateSpeed, temp.X, temp.Y, z, tempE, nextRollerDegrees, feature);
+        //writeFW(rotateSpeed,nextRollerDegrees);
+        *output_stream << "G1";
+        //writeFXYZEW(speed_e, temp.X, temp.Y, z, new_e_value, currentRollerDegrees, feature);
+        writeFXYZEW(speed_e, x, y, z, new_e_value, nextRollerDegrees, feature);
+
+        lastW = nextRollerDegrees;
+        addW = 0;
+        //*output_stream << "G1";
+  //      double rotateSpeed = 84;
+  //      if (application->sceneSettings().get<bool>("have_rotate_speed"))
+  //      {
+  //          rotateSpeed = application->sceneSettings().get<Velocity>("speed_rotate");
+  //      }
+        //writeFXYZEW(rotateSpeed, x, y, z, new_e_value, nextRollerDegrees, feature);
+    }
+    else {
+        *output_stream << "G1";
+        writeFXYZE(speed_e, x, y, z, new_e_value, feature);
+    }
 }
 
 void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coord_t z, 
@@ -1689,10 +1787,27 @@ void GCodeExport::writeExtrusionG2G3(const coord_t x, const coord_t y, const coo
 	writeFXYZIJE(speed_e, x, y, z, i, j, new_e_value, feature);
 }
 
-void GCodeExport::writeFXYZEW(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const double w, const PrintFeatureType& feature)
+void GCodeExport::writeFW(const Velocity& speed, const double w)
+{
+    *output_stream << " G90";
+    if (currentSpeed != speed)
+    {
+        *output_stream << " F" << PrecisionedDouble{ 1, speed * 60 };
+
+        if (application->debugger())
+            application->debugger()->setSpeed(PrecisionedDouble{ 1, speed * 60 }.value);
+
+        //lastSpeed = currentSpeed;
+        currentSpeed = speed;
+    }
+    *output_stream << " W" << (int)w << new_line;
+}
+
+void GCodeExport::writeFXYZEW(const Velocity& speed, const coord_t x, const coord_t y, const coord_t z, const double e, const double angle, const PrintFeatureType& feature)
 {
 	//double mass = e * (0.25 * 1.75 * 1.75 * 3.1415926) * (1.24 / 1000.0);
 	//if (mass > 1.73) { speed.operator double = 0.5*speed.operator double(); }
+    *output_stream << " G90";
 
 	if (currentSpeed != speed)
 	{
@@ -1714,21 +1829,24 @@ void GCodeExport::writeFXYZEW(const Velocity& speed, const coord_t x, const coor
 		*output_stream << " Z" << MMtoStream{ z };
 	}
 
+    if (angle !=-1)
+    {
+        *output_stream << " M" << (int)angle;
+    }
+
 	if (e + current_e_offset != current_e_value)
 	{
 		const double output_e = (relative_extrusion) ? e + current_e_offset - current_e_value : e + current_e_offset;
-		*output_stream << " " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
+		*output_stream << " G91 " << extruder_attr[current_extruder].extruderCharacter << PrecisionedDouble{ 5, output_e };
 		if (application->debugger())
 			application->debugger()->getPathData(trimesh::vec3(MMtoStream{ gcode_pos.X }.value, MMtoStream{ gcode_pos.Y }.value, z), PrecisionedDouble{ 5, output_e }.value, (int)feature);
 	}
 	else if (application->debugger())
 		application->debugger()->getPathData(trimesh::vec3(MMtoStream{ gcode_pos.X }.value, MMtoStream{ gcode_pos.Y }.value, z), -999, (int)feature);
 
-	*output_stream << " W" << w;
-
 	*output_stream << new_line;
 
-	currentRollerDegrees = w;
+	currentRollerDegrees = angle;
 	lastPosition = currentPosition;
 	currentPosition = Point3(x, y, z);
 	current_e_value = e;
@@ -2432,6 +2550,11 @@ void GCodeExport::writeChamberFanCommand(double chamber_speed)
 
 void GCodeExport::writeFanCommand(double speed, double cds_speed)
 {
+    if (flavor == EGCodeFlavor::PLC)
+    {
+        return;
+    }
+
     if (std::abs(current_fan_speed - speed) < 0.1)
     {
         writeCdsFanCommand(cds_speed);
@@ -2485,6 +2608,13 @@ void GCodeExport::writeFanCommand(double speed, double cds_speed)
 
 void GCodeExport::writeTemperatureCommand(const size_t extruder, const Temperature& _temperature, const bool wait)
 {
+    if (flavor== EGCodeFlavor::PLC)
+    {
+        return;
+    }
+
+
+
     Temperature temperature = _temperature;
 
     //limit temp
@@ -2653,7 +2783,7 @@ void GCodeExport::writeTopHeaterCommand(const size_t extruder, const Temperature
 
 void GCodeExport::writeBedTemperatureCommand(const Temperature& temperature, const bool wait)
 {
-    if (flavor == EGCodeFlavor::ULTIGCODE)
+    if (flavor == EGCodeFlavor::ULTIGCODE || flavor == EGCodeFlavor::PLC)
     { // The UM2 family doesn't support temperature commands (they are fixed in the firmware)
         return;
     }
