@@ -90,6 +90,7 @@ namespace crslice2
 			, const std::vector<double>& layerHeight);
 
 		void setGroupOffset(int groupID, trimesh::vec3 offset);
+		void setGroupTransform(int groupID, trimesh::xform gxform);
 
 		void setObjectSettings(int groupID, int objectID, SettingsPtr settings);
 		void setGroupSettings(int groupID, SettingsPtr settings);
