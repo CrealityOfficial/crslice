@@ -42,6 +42,16 @@ namespace cereal
 	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
 }
 
+struct TempParamater
+{
+	bool is_bbl_printer = false;
+	int plate_index = 0;
+	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
+	std::string outFile;
+	std::string temp_directory;
+	int extruderCount = 1;
+};
+
 void save_nlohmann_json(const std::string& fileName, const nlohmann::ordered_json& j)
 {
 	boost::nowide::ofstream c;
@@ -291,13 +301,12 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config,
-	bool is_bbl_printer, int plate_index, const Slic3r::Vec3d& plate_origin,
-	const std::string& out, const std::string& out_json, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
+	const TempParamater& tp, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
 {
 #if 1
-	if (!out_json.empty())
+	if (!tp.temp_directory.empty())
 	{
-		save_parameter_2_json(out_json + "cx_parameter.json", model, config);
+		save_parameter_2_json(tp.temp_directory + "cx_parameter.json", model, config);
 	}
 #endif
 
@@ -321,10 +330,13 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	print.set_calib_params(_calibParams);
 	print.apply(model, config);
 
-	print.is_BBL_printer() = is_bbl_printer;
-	print.set_plate_origin(plate_origin);
+	Slic3r::Model::setExtruderParams(config, tp.extruderCount);
+	Slic3r::Model::setPrintSpeedTable(config, print.config());
 
-	print.set_plate_index(plate_index);
+	print.is_BBL_printer() = tp.is_bbl_printer;
+	print.set_plate_origin(tp.plate_origin);
+
+	print.set_plate_index(tp.plate_index);
 
 	Slic3r::StringObjectException warning;
 	//BBS: refine seq-print logic
@@ -358,7 +370,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	try
 	{
-		print.export_gcode(out, &result, thumbnail_cb);
+		print.export_gcode(tp.outFile, &result, thumbnail_cb);
 	}
 	catch (const std::exception& ex)
 	{
@@ -478,7 +490,15 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 	convert_scene_2_orca(scene, model, config, calibParams, thumbnailData);
 
-	slice_impl(model, config, scene->m_isBBLPrinter, scene->m_plate_index, Slic3r::Vec3d(0.0, 0.0, 0.0), scene->m_gcodeFileName, scene->m_tempDirectory, calibParams, thumbnailData, tracer);
+	TempParamater tp;
+	tp.is_bbl_printer = scene->m_isBBLPrinter;
+	tp.plate_index = scene->m_plate_index;
+	tp.plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
+	tp.outFile = scene->m_gcodeFileName;
+	tp.temp_directory = scene->m_tempDirectory;
+	tp.extruderCount = (int)scene->m_extruders.size();
+
+	slice_impl(model, config, tp, calibParams, thumbnailData, tracer);
 }
 
 void orca_slice_from_arch_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
@@ -489,18 +509,18 @@ void orca_slice_from_arch_impl(const std::string& file, const std::string& out, 
 		in.close();
 		return;
 	}
-	bool is_bbl_printer = false;
-	int plate_index = 0;
-	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
+
+	TempParamater tp;
+	tp.temp_directory = "cx_parameter.json";
+	tp.outFile = out;
+
 	Slic3r::Model model;
 	Slic3r::DynamicPrintConfig config;
 
-	std::string out_json = "cx_parameter.json";
-
 #if 1
 	cereal::BinaryInputArchive iarchive(in);
-	iarchive(is_bbl_printer);
-	iarchive(plate_origin);
+	iarchive(tp.is_bbl_printer);
+	iarchive(tp.plate_origin);
 	size_t count;
 	iarchive(count);
 
@@ -563,7 +583,8 @@ void orca_slice_from_arch_impl(const std::string& file, const std::string& out, 
 #endif
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
-	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, out_json, calibParams, thumbnailDatas, tracer);
+
+	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer);
 }
 
 void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
@@ -577,13 +598,22 @@ void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, c
 	Slic3r::Semver             file_version;
 
 	Slic3r::Model model = Slic3r::Model::read_from_archive(file, &config, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets, &file_version);
+	for (Slic3r::ModelObject* object : model.objects)
+	{
+		for (Slic3r::ModelInstance* instance : object->instances)
+		{
+			instance->use_loaded_id_for_label = true;
+		}
+	}
 
-	bool is_bbl_printer = true;
-	int plate_index = 0;
-	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
+	TempParamater tp;
+	tp.outFile = out;
+	tp.is_bbl_printer = true;
+	
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
-	slice_impl(model, config, is_bbl_printer, plate_index, plate_origin, out, "", calibParams, thumbnailDatas, tracer);
+
+	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
