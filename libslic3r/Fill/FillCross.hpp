@@ -15,7 +15,7 @@ class FillCross : public Fill
 public:
     ~FillCross() override {}
 
-	void set_cross_fill_provider(BoundingBox& abox, const Point& offset, InfillPattern _pattern, const float infill_line_distance, const float sparse_infill_line_width);
+	void set_cross_fill_provider(const BoundingBox& abox, const Point& offset, InfillPattern _pattern, const float infill_line_distance, const float sparse_infill_line_width);
 protected:
     Fill* clone() const override { return new FillCross(*this); };
 	void _fill_surface_single(

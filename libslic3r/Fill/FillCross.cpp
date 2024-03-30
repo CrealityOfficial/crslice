@@ -26,7 +26,7 @@ void FillCross::_fill_surface_single(
    polylines_out = Slic3r::to_polylines(apolygons);
 }
 
-void FillCross::set_cross_fill_provider(BoundingBox& abox,const Point& offset, InfillPattern _pattern, const float infill_line_distance, const float sparse_infill_line_width)
+void FillCross::set_cross_fill_provider(const BoundingBox& abox,const Point& offset, InfillPattern _pattern, const float infill_line_distance, const float sparse_infill_line_width)
 {
     m_pattern = _pattern;
     m_offset = offset;
