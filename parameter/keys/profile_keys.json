@@ -240,6 +240,8 @@
 		"flush_multiplier",
 		"wipe_tower_x",
 		"wipe_tower_y",
-		"filament_colour"
+		"filament_colour",
+		"flush_volumes_matrix",
+		"flush_volumes_vector"
     ]
 }
