@@ -157,7 +157,11 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "archimedeanchords",  ipArchimedeanChords },
     { "octagramspiral",     ipOctagramSpiral },
     { "supportcubic",       ipSupportCubic },
-    { "lightning",          ipLightning }
+    { "lightning",          ipLightning },
+    { "cross",              ipCross },
+    { "cross3d",            ipCross3d },
+    { "quarter_cubic",      ipquarter_cubic },
+    { "tetrahedral",        iptetrahedral }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -209,7 +213,11 @@ static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "honeycomb",          smpHoneycomb },
     { "lightning",          smpLightning },
     { "default",            smpDefault},
-    { "hollow",               smpNone},
+    { "hollow",             smpNone},
+    { "cross",              smpCross},
+    { "gyroid",             smpGyroid},
+    { "triangles",          smpTriangles},
+    { "zigzag",             smpZigzag}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
 
@@ -1820,6 +1828,10 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("octagramspiral");
     def->enum_values.push_back("supportcubic");
     def->enum_values.push_back("lightning");
+    def->enum_values.push_back("cross");
+    def->enum_values.push_back("cross3d");
+    def->enum_values.push_back("quarter_cubic");
+    def->enum_values.push_back("tetrahedral");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -1837,6 +1849,10 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->enum_labels.push_back(L("Support Cubic"));
     def->enum_labels.push_back(L("Lightning"));
+    def->enum_values.push_back(L("Cross"));
+    def->enum_values.push_back(L("Cross3d"));
+    def->enum_values.push_back(L("quarter_cubic"));
+    def->enum_values.push_back(L("tetrahedral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
@@ -3860,12 +3876,20 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("lightning");
     def->enum_values.push_back("hollow");
+    def->enum_values.push_back("cross");
+    def->enum_values.push_back("gyroid");
+    def->enum_values.push_back("triangles");
+    def->enum_values.push_back("zigzag");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Hollow"));
+    def->enum_values.push_back(L("cross"));
+    def->enum_values.push_back(L("Gyroid"));
+    def->enum_values.push_back(L("Triangles"));
+    def->enum_values.push_back(L("Zig Zag"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpDefault));
 

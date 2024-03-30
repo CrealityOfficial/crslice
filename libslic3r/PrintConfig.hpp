@@ -69,7 +69,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning,
+    ipLightning, ipCross,ipCross3d, ipquarter_cubic, iptetrahedral,
     ipCount,
 };
 
@@ -121,6 +121,7 @@ enum SupportMaterialPattern {
     smpRectilinear, smpRectilinearGrid, smpHoneycomb,
     smpLightning,
     smpNone,
+    smpCross, smpGyroid, smpTriangles, smpZigzag,
 };
 
 enum SupportMaterialStyle {

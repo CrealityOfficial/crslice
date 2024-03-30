@@ -5,6 +5,7 @@
 #include "Print.hpp"
 #include "SupportMaterial.hpp"
 #include "Fill/FillBase.hpp"
+#include "Fill/FillCross.hpp"
 #include "Geometry.hpp"
 #include "Point.hpp"
 #include "MutablePolygon.hpp"
@@ -349,6 +350,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_object                (object),
     m_print_config          (&object->print()->config()),
     m_object_config         (&object->config()),
+    m_region_config         (&object->print()->default_region_config()),
     m_slicing_params        (slicing_params)
 {
     m_support_params.first_layer_flow                   = support_material_1st_layer_flow(object, float(slicing_params.first_print_layer_height));
@@ -412,6 +414,26 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_support_params.base_fill_pattern      = 
         support_pattern == smpHoneycomb ? ipHoneycomb :
         m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase;
+
+    switch (support_pattern)
+    {
+    case SupportMaterialPattern::smpCross:
+        m_support_params.base_fill_pattern = ipCross;
+        break;
+    case SupportMaterialPattern::smpGyroid:
+        m_support_params.base_fill_pattern = ipGyroid;
+        break;
+    case SupportMaterialPattern::smpTriangles:
+        m_support_params.base_fill_pattern = ipTriangles;
+        break;
+    case SupportMaterialPattern::smpZigzag:
+        m_support_params.base_fill_pattern = ipRectilinear;
+        break;
+    }
+
+    //if (m_support_params.base_fill_pattern == ipCross)
+    //    dynamic_cast<FillCross*>(f.get())->set_cross_fill_provider(cross_fill_provider, offset, m_support_params.base_fill_pattern);
+
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     if (m_object_config->support_interface_pattern == smipGrid)
         m_support_params.contact_fill_pattern = ipGrid;
@@ -4428,6 +4450,12 @@ void PrintObjectSupportMaterial::generate_toolpaths(
 
             std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.interface_fill_pattern));
             std::unique_ptr<Fill> filler_support   = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
+            
+           float infill_line_distance = m_region_config->sparse_infill_density <= 0 ? 4600 :  1000 * m_region_config->sparse_infill_line_width * 100 / m_region_config->sparse_infill_density;
+           float sparse_infill_line_width = 1000 * m_region_config->sparse_infill_line_width;
+            if (m_support_params.base_fill_pattern == ipCross)
+                dynamic_cast<FillCross*>(filler_support.get())->set_cross_fill_provider(m_object->bounding_box(), m_object->center_offset(), m_support_params.base_fill_pattern, infill_line_distance, sparse_infill_line_width);
+
             filler_interface->set_bounding_box(bbox_object);
             filler_support->set_bounding_box(bbox_object);
 
@@ -4534,6 +4562,12 @@ void PrintObjectSupportMaterial::generate_toolpaths(
         auto filler_base_interface  = std::unique_ptr<Fill>(base_interface_layers.empty() ? nullptr : 
             Fill::new_from_type(m_support_params.interface_density > 0.95 || m_support_params.with_sheath ? ipRectilinear : ipSupportBase));
         auto filler_support         = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
+
+        float infill_line_distance = m_region_config->sparse_infill_density <= 0 ? 4600 : 1000 * m_region_config->sparse_infill_line_width * 100 / m_region_config->sparse_infill_density;
+        float sparse_infill_line_width = 1000 * m_region_config->sparse_infill_line_width;
+        if (m_support_params.base_fill_pattern == ipCross)
+            dynamic_cast<FillCross*>(filler_support.get())->set_cross_fill_provider(m_object->bounding_box(), m_object->center_offset(), m_support_params.base_fill_pattern, infill_line_distance, sparse_infill_line_width);
+
         filler_interface->set_bounding_box(bbox_object);
         if (filler_first_layer_ptr)
             filler_first_layer_ptr->set_bounding_box(bbox_object);
@@ -4734,6 +4768,10 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             // Base support or flange.
             if (! base_layer.empty() && ! base_layer.polygons_to_extrude().empty()) {
                 Fill *filler = filler_support.get();
+
+                if(m_support_params.base_fill_pattern == ipGyroid)
+                    filler->z = base_layer.layer->print_z;
+
                 filler->angle = angles[support_layer_id % angles.size()];
                 // We don't use $base_flow->spacing because we need a constant spacing
                 // value that guarantees that all layers are correctly aligned.

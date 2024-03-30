@@ -90,6 +90,8 @@ set(lisbslic3r_sources
     Fill/FillConcentricInternal.hpp
     Fill/FillHoneycomb.cpp
     Fill/FillHoneycomb.hpp
+	Fill/FillCross.cpp
+    Fill/FillCross.hpp
     Fill/FillGyroid.cpp
     Fill/FillGyroid.hpp
     Fill/FillPlanePath.cpp
@@ -106,8 +108,22 @@ set(lisbslic3r_sources
     Fill/Lightning/Layer.hpp
     Fill/Lightning/TreeNode.cpp
     Fill/Lightning/TreeNode.hpp
+	Fill/Cross/SierpinskiFillProvider.h
+    Fill/Cross/SierpinskiFillProvider.cpp
+    Fill/Cross/SierpinskiFill.h
+    Fill/Cross/SierpinskiFill.cpp
+    Fill/Cross/ImageBasedDensityProvider.h
+    Fill/Cross/ImageBasedDensityProvider.cpp
     Fill/FillRectilinear.cpp
     Fill/FillRectilinear.hpp
+	Fill/FillQuarter.cpp
+    Fill/FillQuarter.hpp
+	Fill/FillTetrahedral.cpp
+    Fill/FillTetrahedral.hpp
+	Fill/Quarter/NoZigZagConnectorProcessor.cpp
+    Fill/Quarter/NoZigZagConnectorProcessor.h
+	Fill/Quarter/ZigzagConnectorProcessor.cpp
+    Fill/Quarter/ZigzagConnectorProcessor.h
     Flow.cpp
     Flow.hpp
     FlushVolCalc.cpp

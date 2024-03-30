@@ -4589,7 +4589,11 @@
             "archimedeanchords": "Archimedean Chords",
             "octagramspiral": "Octagram Spiral",
             "supportcubic": "Support Cubic",
-            "lightning": "Lightning"
+            "lightning": "Lightning",
+	    "cross": "Cross",
+	    "cross3d": "Cross3d",
+	    "quarter_cubic": "quarter_cubic",
+	    "tetrahedral": "tetrahedral"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4724,7 +4728,11 @@
             "rectilinear-grid": "Rectilinear grid",
             "honeycomb": "Honeycomb",
             "lightning": "Lightning",
-            "hollow": "Hollow"
+            "hollow": "Hollow",
+			"cross": "cross",
+			"gyroid": "Gyroid",
+			"triangles": "Triangles",
+			"zigzag": "Zig Zag"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",

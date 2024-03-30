@@ -554,7 +554,7 @@ void PrintObject::infill()
             [this, &adaptive_fill_octree = adaptive_fill_octree, &support_fill_octree = support_fill_octree](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get(), this->m_lightning_generator.get());
+                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get(), this->center_offset(), this->m_lightning_generator.get());
                 }
             }
         );
@@ -2189,7 +2189,8 @@ void PrintObject::bridge_over_infill()
                 infill_lines.at(
                     lidx) = po->get_layer(lidx)->generate_sparse_infill_polylines_for_anchoring(po->m_adaptive_fill_octrees.first.get(),
                                                                                                 po->m_adaptive_fill_octrees.second.get(),
-                                                                                                po->m_lightning_generator.get());
+                                                                                                po->m_lightning_generator.get(),
+                                                                                                po->center_offset());
             }
         });
 #ifdef DEBUG_BRIDGE_OVER_INFILL

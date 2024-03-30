@@ -21,8 +21,10 @@
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
 #include "FillLightning.hpp"
+#include "FillCross.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
+#include "FillQuarter.hpp"
 
 namespace Slic3r {
 
@@ -706,7 +708,7 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
 #endif
 
 // friend to Layer
-void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator)
+void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, const Point offset, FillLightning::Generator* lightning_generator)
 {
 	for (LayerRegion *layerm : m_regions)
 		layerm->fills.clear();
@@ -740,6 +742,21 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
 		if (surface_fill.params.pattern == ipLightning)
             dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
+        else if (surface_fill.params.pattern == ipCross || surface_fill.params.pattern == ipCross3d)
+        {
+            float infill_line_distance = this->object()->print()->default_region_config().sparse_infill_density <=0 ? 4600 : 1000 * this->object()->print()->default_region_config().sparse_infill_line_width * 100 / this->object()->print()->default_region_config().sparse_infill_density;
+            float sparse_infill_line_width = 1000 * this->object()->print()->default_region_config().sparse_infill_line_width;
+            dynamic_cast<FillCross*>(f.get())->set_cross_fill_provider(this->object()->bounding_box(), offset, surface_fill.params.pattern, infill_line_distance, sparse_infill_line_width);
+        }
+        else if (surface_fill.params.pattern == ipquarter_cubic || surface_fill.params.pattern == iptetrahedral)
+        {
+            Vec3crd center = this->object()->size();
+            Point _offset = offset;
+
+            float infill_line_distance = this->object()->print()->default_region_config().sparse_infill_density <= 0 ? 4600 : 1000 *2* this->object()->print()->default_region_config().sparse_infill_line_width * 100 / this->object()->print()->default_region_config().sparse_infill_density;
+            float sparse_infill_line_width = 1000 * this->object()->print()->default_region_config().sparse_infill_line_width;
+            dynamic_cast<FillQuarter*>(f.get())->setOrigin(surface_fill.params.pattern,Point(center.x()/2.0, center.y()/2.0), _offset, slice_z *1000.0f, infill_line_distance, sparse_infill_line_width);
+        }
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.bridge;
@@ -814,7 +831,9 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 #endif
 }
 
-Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree,  FillLightning::Generator* lightning_generator) const
+Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator, const Point offset) const
+//Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptivinfill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree,  FillLightning::Generator* lightning_generator) const
+//Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator, Cross::SierpinskiFillProvider* cross_fill_provider, const Point offset) const
 {
     std::vector<SurfaceFill>  surface_fills = group_fills(*this);
     const Slic3r::BoundingBox bbox          = this->object()->bounding_box();
@@ -832,6 +851,10 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipSupportBase: continue; break;
         case ipConcentricInternal: continue; break;
         case ipLightning:
+        case ipCross:
+        case ipCross3d:
+        case ipquarter_cubic:
+        case iptetrahedral:
 		case ipAdaptiveCubic:
         case ipSupportCubic:
         case ipRectilinear:
@@ -864,6 +887,21 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
 
         if (surface_fill.params.pattern == ipLightning)
             dynamic_cast<FillLightning::Filler *>(f.get())->generator = lightning_generator;
+        else if (surface_fill.params.pattern == ipCross || surface_fill.params.pattern == ipCross3d)
+        {
+            float infill_line_distance = this->object()->print()->default_region_config().sparse_infill_density <= 0 ? 4600 : 1000 * this->object()->print()->default_region_config().sparse_infill_line_width * 100 / this->object()->print()->default_region_config().sparse_infill_density;
+            float sparse_infill_line_width = 1000 * this->object()->print()->default_region_config().sparse_infill_line_width;
+            dynamic_cast<FillCross*>(f.get())->set_cross_fill_provider(this->object()->bounding_box(), offset, surface_fill.params.pattern, infill_line_distance, sparse_infill_line_width);
+        }
+        else if (surface_fill.params.pattern == ipquarter_cubic || surface_fill.params.pattern == iptetrahedral)
+        {
+            Vec3crd center = this->object()->size();
+            Point _offset = offset;
+
+            float infill_line_distance = this->object()->print()->default_region_config().sparse_infill_density <= 0 ? 4600 : 1000 * 2 * this->object()->print()->default_region_config().sparse_infill_line_width * 100 / this->object()->print()->default_region_config().sparse_infill_density;
+            float sparse_infill_line_width = 1000 * this->object()->print()->default_region_config().sparse_infill_line_width;
+            dynamic_cast<FillQuarter*>(f.get())->setOrigin(surface_fill.params.pattern,Point(center.x() / 2.0, center.y() / 2.0), _offset, slice_z* 1000.0f, infill_line_distance, sparse_infill_line_width);
+        }
 
         // calculate flow spacing for infill pattern generation
         double link_max_length = 0.;
