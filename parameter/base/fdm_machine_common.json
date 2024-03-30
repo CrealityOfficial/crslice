@@ -608,13 +608,11 @@
         "unit": "mm"
     },
     "curr_bed_type": {
-        "default_value": "Cool Plate",
+        "default_value": "High Temp Plate",
         "description": "Bed types supported by the printer",
         "enabled": "true",
         "label": "Bed type",
         "options": {
-            "Cool Plate": "Cool Plate",
-            "Engineering Plate": "Engineering Plate",
             "High Temp Plate": "Smooth PEI Plate / High Temp Plate",
             "Textured PEI Plate": "Textured PEI Plate"
         },
