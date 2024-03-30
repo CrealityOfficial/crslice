@@ -236,6 +236,10 @@
         "acceleration_limit_mess_enable",
         "acceleration_limit_mess",
         "speed_limit_to_height_enable",
-        "speed_limit_to_height"
+        "speed_limit_to_height",
+		"flush_multiplier",
+		"wipe_tower_x",
+		"wipe_tower_y",
+		"filament_colour"
     ]
 }
