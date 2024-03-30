@@ -195,7 +195,7 @@ namespace Slic3r::Cross
      * By following the path along the middle of each edge the Cross Fractal curve will be generated, which is the dual of the Sierpinski curve.
      */
 
-    static Point no_point(std::numeric_limits<signed long long>::min(), std::numeric_limits<signed long long>::min());
+    static Point no_point(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::min());
     class SierpinskiFill
     {
         friend class SierpinskiFillTest;
