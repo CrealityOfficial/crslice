@@ -160,6 +160,18 @@ namespace crslice2
 		group->setOffset(offset);
 	}
 
+	void CrScene::setGroupTransform(int groupID, trimesh::xform gxform)
+	{
+		if (groupID < 0 || groupID >= (int)m_groups.size())
+		{
+			LOGE("CrScene::setGroupTransform [%d] not exist.", groupID);
+			return;
+		}
+
+		CrGroup* group = m_groups.at(groupID);
+		group->setGroupTransform(gxform);
+	}
+
 	void CrScene::setObjectSettings(int groupID, int objectID, SettingsPtr settings)
 	{
 		if (groupID < 0 || groupID >= (int)m_groups.size())

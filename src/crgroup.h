@@ -31,9 +31,12 @@ namespace crslice2
 		void load(std::fstream& in, int version);   //for version
 		void save(std::fstream& out, int version);  //for version
 
+		void setGroupTransform(trimesh::xform gxform);
+
 		std::vector<CrObject> m_objects;
 		SettingsPtr m_settings;
 		trimesh::vec3 m_offset;
+		trimesh::xform m_groupTransform;
 	};
 }
 

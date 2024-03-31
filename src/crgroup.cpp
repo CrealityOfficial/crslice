@@ -124,4 +124,9 @@ namespace crslice2
 		for (int i = 0; i < objectCount; ++i)
 			m_objects.at(i).save(out, version);
 	}
+
+	void CrGroup::setGroupTransform(trimesh::xform gxform)
+	{
+		m_groupTransform = gxform;
+	}
 }

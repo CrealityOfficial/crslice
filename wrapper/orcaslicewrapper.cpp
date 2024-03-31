@@ -201,7 +201,21 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	for (crslice2::CrGroup* aCrgroup : scene->m_groups)
 	{
 		Slic3r::ModelObject* currentObject = model.add_object();
+
 		Slic3r::ModelInstance* mi = currentObject->add_instance();
+		Slic3r::Transform3d groupTransform;
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				groupTransform(i, j) = aCrgroup->m_groupTransform[i + j * 4];
+			}
+
+		}
+
+		Slic3r::Geometry::Transformation gt(groupTransform);
+		mi->set_transformation(gt);
+
 		currentObject->name = aCrgroup->m_objects[0].m_objectName;
 
 		//currentObject->config.assign_config(config);
@@ -221,11 +235,11 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 
 			}
 			Slic3r::Geometry::Transformation t(t3d);
-			mi->set_transformation(t);
 
 			Slic3r::TriangleMesh mesh;
 			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
 			Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+			v->set_transformation(t);
 			currentObject->layer_height_profile.set(aObject.m_layerHeight);
 			if (aObject.m_mesh->faces.size() == aObject.m_colors2Facets.size())
 				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
