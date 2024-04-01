@@ -75,6 +75,44 @@ void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& mod
 			j[k] = option->serialize();
 		}
 	};
+
+	auto save_object_transform = [](ModelObject* object, json& j) {
+		int size = (int)object->instances.size();
+		for (int i = 0; i < size; ++i)
+		{
+			Slic3r::ModelInstance* instance = object->instances.at(i);
+
+			std::stringstream ss;
+			ss.precision(8);
+			ss.setf(std::ios::fixed);
+			ss << instance->get_matrix().matrix();
+			j[std::to_string(i) + "trans"] = ss.str();
+		}
+	};
+
+	auto save_volume_transform = [](ModelVolume* volume, json& j) {
+		std::stringstream ss;
+		ss.precision(8);
+		ss.setf(std::ios::fixed);
+		ss << volume->get_matrix().matrix();
+		j["transform"] = ss.str();
+	};
+
+	auto save_mesh = [](const TriangleMesh& mesh, json& j) {
+		std::stringstream ss;
+		ss.precision(8);
+		ss.setf(std::ios::fixed);
+		for (const Slic3r::Vec3f& v : mesh.its.vertices)
+		{
+			ss << v.matrix() << '\n';
+		}
+		for (const stl_triangle_vertex_indices& f : mesh.its.indices)
+		{
+			ss << f.matrix() << '\n';
+		}
+		j["mesh"] = ss.str();
+	};
+
 	{
 		json G;
 		save_dynamic_config(config, G);
@@ -89,13 +127,17 @@ void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& mod
 			json MO;
 			ModelObject* object = model.objects.at(i);
 			save_dynamic_config(object->config.get(), MO);
+			save_object_transform(object, MO);
 			int vsize = (int)object->volumes.size();
 			for (int j = 0; j < vsize; ++j)
 			{
 				json MOV;
 				ModelVolume* volume = object->volumes.at(j);
 				save_dynamic_config(volume->config.get(), MOV);
-
+				save_volume_transform(volume, MOV);
+#if _DEBUG
+				save_mesh(volume->mesh(), MOV);
+#endif
 				MO[std::to_string(j)] = MOV;
 			}
 
@@ -187,9 +229,21 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	size_t numGroup = scene->m_groups.size();
 	assert(numGroup > 0);
 
+	std::set<std::string> banned_keys;
+	banned_keys.insert("brim_ears");
+	banned_keys.insert("different_settings_to_system");
+	banned_keys.insert("inherits");
+	banned_keys.insert("inherits_group");
+	banned_keys.insert("preset_name");
+	banned_keys.insert("preset_names");
+	banned_keys.insert("tree_support_with_infill");
+
 	const Slic3r::ConfigDef* _def = config.def();
 	for (const std::pair<std::string, std::string> pair : scene->m_settings->settings)
 	{
+		if (banned_keys.find(pair.first) != banned_keys.end())
+			continue;
+
 		config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
 	}
 
