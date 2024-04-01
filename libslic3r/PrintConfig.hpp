@@ -807,8 +807,10 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionBool,               acceleration_limit_mess_enable))
     ((ConfigOptionBool,               speed_limit_to_height_enable))
-    ((ConfigOptionString,            acceleration_limit_mess))
-    ((ConfigOptionString,            speed_limit_to_height))
+    ((ConfigOptionString,             acceleration_limit_mess))
+    ((ConfigOptionString,             speed_limit_to_height))
+    ((ConfigOptionBool,               material_flow_dependent_temperature))
+    ((ConfigOptionString,             material_flow_temp_graph))
 
 )
 
@@ -1022,6 +1024,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 
 
     // SoftFever
+    ((ConfigOptionBool,                machine_LED_light_exist))
+    ((ConfigOptionBool,                machine_platform_motion_enable))
     ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                use_relative_e_distances))
     ((ConfigOptionBool,                accel_to_decel_enable))

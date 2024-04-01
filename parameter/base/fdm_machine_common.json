@@ -1,4 +1,52 @@
 {
+	"machine_LED_light_exist": {
+        "default_value": "0",
+        "description": "Machine LED light exist",
+        "enabled": "true",
+        "label": "Machine LED light exist",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+	"machine_platform_motion_enable": {
+        "default_value": "0",
+        "description": "Machine platform motion enable",
+        "enabled": "true",
+        "label": "Machine platform motion enable",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+	"material_flow_dependent_temperature": {
+        "default_value": "0",
+        "description": "Auto Temperature",
+        "enabled": "true",
+        "label": "Change the temperature for each layer automatically with the average flow speed of that layer.",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+	"material_flow_temp_graph": {
+        "default_value": "[[3.5,200],[7.0,240]]",
+        "description": "Flow Temperature Graph",
+        "enabled": "true",
+        "label": "Print Speed Limit to Height",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coStrings",
+        "unit": "[[mm³,°C]]"
+    },
     "accel_to_decel_enable": {
         "default_value": "1",
         "description": "Klipper's max_accel_to_decel will be adjusted automatically",

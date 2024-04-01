@@ -1979,6 +1979,18 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
 
+    def = this->add("machine_LED_light_exist", coBool);
+    def->label = L("Machine LED light exist");
+    def->tooltip = L("Machine LED light exist");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("machine_platform_motion_enable", coBool);
+    def->label = L("Machine platform motion enable");
+    def->tooltip = L("Machine platform motion enable");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("accel_to_decel_enable", coBool);
     def->label = L("Enable accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically");
@@ -4646,6 +4658,22 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Height limit speed and acceleration Enable");
     def->tooltip = L("Height limit speed and acceleration Enable");
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("material_flow_dependent_temperature", coBool);
+    def->category = L("Auto Temperature");
+    def->label = L("Change the temperature for each layer automatically with the average flow speed of that layer.");
+    def->tooltip = L("Change the temperature for each layer automatically with the average flow speed of that layer.");
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("material_flow_temp_graph", coString);
+    def->label = L("Flow Temperature Graph");
+    def->tooltip = L("Flow Temperature Graph");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 5;
+    def->mode = comAdvanced;
+    def->sidetext = L("[[mm³,.C]]");
+    def->set_default_value(new ConfigOptionString(""));
 
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
