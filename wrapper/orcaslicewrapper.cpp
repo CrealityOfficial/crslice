@@ -324,9 +324,11 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	}
 #endif
 
-	Slic3r::PrintBase::status_callback_type callback = [&tracer](const Slic3r::PrintBase::SlicingStatus& _status) {
-		if (tracer)
+	float alreadyShow = 0.0;
+	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow](const Slic3r::PrintBase::SlicingStatus& _status) {
+		if (tracer && alreadyShow < (float)_status.percent * 0.01)
 		{
+			alreadyShow = (float)_status.percent * 0.01;
 			tracer->progress((float)_status.percent * 0.01);
 			tracer->message(_status.text.c_str());
 
