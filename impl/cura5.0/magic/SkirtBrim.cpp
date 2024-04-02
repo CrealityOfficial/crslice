@@ -652,7 +652,7 @@ namespace cura52
 	void SkirtBrim::generate(SliceDataStorage& storage, Polygons first_layer_outline, const coord_t start_distance, size_t primary_line_count, const bool allow_helpers /*= true*/)
 	{
 		const bool is_skirt = start_distance > 0;
-		const size_t skirt_brim_extruder_nr = storage.application->currentGroup()->settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr;
+		size_t skirt_brim_extruder_nr = storage.application->currentGroup()->settings.get<ExtruderTrain&>("skirt_brim_extruder_nr").extruder_nr;
 		const Settings& adhesion_settings = storage.application->extruders()[skirt_brim_extruder_nr].settings;
 		const coord_t primary_extruder_skirt_brim_line_width = adhesion_settings.get<coord_t>("skirt_brim_line_width") * adhesion_settings.get<Ratio>("initial_layer_line_width_factor");
 		const coord_t primary_extruder_minimal_length = adhesion_settings.get<coord_t>("skirt_brim_minimal_length");
@@ -752,7 +752,16 @@ namespace cura52
 		if (first_layer_outline.polygonLength() > 0)
 		{ // process other extruders' brim/skirt (as one brim line around the old brim)
 			int last_width = primary_extruder_skirt_brim_line_width;
+			if (storage.meshes.size() == 1 && storage.meshes[0].settings.get<int>("extruder_nr") == 1)
+			{
+				std::swap(storage.skirt_brim[0], storage.skirt_brim[1]);
+				skirt_brim_extruder_nr = 1;
+
+			}
 			std::vector<bool> extruder_is_used = storage.getExtrudersUsed();
+
+
+
 			for (size_t extruder_nr = 0; extruder_nr < storage.application->extruderCount(); extruder_nr++)
 			{
 				if (extruder_nr == skirt_brim_extruder_nr || !extruder_is_used[extruder_nr])
@@ -773,6 +782,8 @@ namespace cura52
 				}
 			}
 		}
+
+
 	}
 
 	void SkirtBrim::generateEX(SliceDataStorage& storage, Polygons first_layer_outline, const coord_t start_distance, std::vector<size_t> vct_primary_line_count, const bool allow_helpers /*= true*/)
