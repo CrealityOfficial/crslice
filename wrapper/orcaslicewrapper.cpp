@@ -60,6 +60,56 @@ void save_nlohmann_json(const std::string& fileName, const nlohmann::ordered_jso
 	c.close();
 }
 
+void save_slices(const std::string& fileName, Slic3r::Print& print)
+{
+	using namespace Slic3r;
+	using namespace nlohmann;
+
+	typedef std::function<void(const Slic3r::Polygon& poly, std::stringstream& ss)> save_poly;
+	save_poly f1 = [](const Slic3r::Polygon& poly, std::stringstream& ss) {
+		for (const Slic3r::Point& p : poly.points)
+		{
+			ss << p.matrix();
+		}
+	};
+
+	auto save_slice = [f1](const PrintObject& object, json& j) {
+		std::stringstream ss;
+		ss.precision(8);
+		ss.setf(std::ios::fixed);
+		int layerCount = object.layer_count();
+		for (int i = 0; i < layerCount; ++i)
+		{
+			const Layer* l = object.get_layer(i);
+			const Slic3r::ExPolygons& polys = l->lslices;
+
+			for (const Slic3r::ExPolygon& poly : polys)
+			{
+				f1(poly.contour, ss);
+				for (const Slic3r::Polygon& p : poly.holes)
+					f1(p, ss);
+			}
+		}
+		
+		j["slice"] = ss.str();
+	};
+
+	json j;
+	std::vector<PrintObject*> objs = print.objects_mutable();
+	for (int i = 0; i < objs.size(); ++i)
+	{
+		PrintObject* po = objs.at(i);
+		json S;
+		save_slice(*po, S);
+		j[std::to_string(i)] = S;
+	}
+
+	boost::nowide::ofstream c;
+	c.open(fileName.c_str(), std::ios::out | std::ios::trunc);
+	c << std::setw(4) << j << std::endl;
+	c.close();
+}
+
 void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config)
 {
 	using namespace Slic3r;
@@ -135,7 +185,7 @@ void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& mod
 				ModelVolume* volume = object->volumes.at(j);
 				save_dynamic_config(volume->config.get(), MOV);
 				save_volume_transform(volume, MOV);
-#if _DEBUG
+#if 0
 				save_mesh(volume->mesh(), MOV);
 #endif
 				MO[std::to_string(j)] = MOV;
@@ -423,6 +473,8 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	try {
 		print.process();
+
+		save_slices(tp.temp_directory + "cx_slice.json", print);
 	}
 	catch (const Slic3r::SlicingError& e1)
 	{
