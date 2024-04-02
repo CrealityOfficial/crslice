@@ -36,7 +36,7 @@ namespace crslice2
         object.m_mesh->need_bbox();
 	}
 
-	void CrGroup::setObjectMeshPaint(int objectID, TriMeshPtr mesh, float* xform
+	void CrGroup::setObjectMeshPaint(int objectID, TriMeshPtr mesh, const trimesh::xform& componentXform
 		, const std::vector<std::string>& colors2Facets
 		, const std::vector<std::string>& seam2Facets
 		, const std::vector<std::string>& support2Facets
@@ -58,10 +58,12 @@ namespace crslice2
 		object.m_objectName = objectName;
 		object.m_layerHeight = layerHeight;
 
-		for (int i = 0; i < 16; i++)
-		{
-			object.m_xform[i] = xform[i];
-		}
+		//for (int i = 0; i < 16; i++)
+		//{
+		//	object.m_xform[i] = xform[i];
+		//}
+
+		object.m_xform = componentXform;
 	}
 
 	void CrGroup::setObjectSettings(int objectID, SettingsPtr settings)
