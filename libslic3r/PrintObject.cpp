@@ -2980,6 +2980,23 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
         updated = true;
     }
 
+    bool needFixLayer = !layer_height_profile.empty() && layer_height_profile.size() > 2 &&
+        (std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_max) > 1e-3);
+    if (needFixLayer)
+    {
+        double heightGap = std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_max);
+        for (int i = 0; i < layer_height_profile.size(); i+=2)
+        {
+            layer_height_profile[i] += heightGap;
+        }
+        // generate support layer height
+        SlicingParameters tmpParam = slicing_parameters;
+        tmpParam.object_print_z_max = layer_height_profile.front();
+        auto supportLayer = layer_height_profile_from_ranges(tmpParam, model_object.layer_config_ranges);
+        // combine the two layer height profile
+        layer_height_profile.insert(layer_height_profile.begin(), supportLayer.begin(), supportLayer.end());
+    }
+
     // Verify the layer_height_profile.
     if (!layer_height_profile.empty() &&
         // Must not be of even length.
