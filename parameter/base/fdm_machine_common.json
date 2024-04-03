@@ -4638,10 +4638,10 @@
             "octagramspiral": "Octagram Spiral",
             "supportcubic": "Support Cubic",
             "lightning": "Lightning",
-	    "cross": "Cross",
-	    "cross3d": "Cross3d",
-	    "quarter_cubic": "quarter_cubic",
-	    "tetrahedral": "tetrahedral"
+            "cross": "Cross",
+            "cross3d": "Cross 3D",
+            "quarter_cubic": "Quarter Cubic",
+            "tetrahedral": "Octet"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4777,10 +4777,10 @@
             "honeycomb": "Honeycomb",
             "lightning": "Lightning",
             "hollow": "Hollow",
-			"cross": "cross",
-			"gyroid": "Gyroid",
-			"triangles": "Triangles",
-			"zigzag": "Zig Zag"
+            "cross": "Cross",
+            "gyroid": "Gyroid",
+            "triangles": "Triangles",
+            "zigzag": "Zig Zag"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
