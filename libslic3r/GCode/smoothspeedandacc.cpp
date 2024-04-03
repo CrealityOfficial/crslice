@@ -204,7 +204,7 @@ namespace Slic3r
         }
         else if (limitType == LimitType::LIMIT_HEIGHT)
         {
-            value = current_layer_z;
+            value = current_layer_z*1000;
         }
 
         if (value < 0)
@@ -261,7 +261,7 @@ namespace Slic3r
         }
         else if (limitType == LimitType::LIMIT_HEIGHT)
         {
-            value = current_layer_z;
+            value = current_layer_z *1000;
         }
 
         if (value < 0)
@@ -315,11 +315,11 @@ namespace Slic3r
         {
             //double volume = value_e * (0.25 * material_diameter * material_diameter * 3.1415926);
             //value = volume * (material_density / 1000.0);
-            value = value_e ;
+            value = value_e  ;
         }
         else if (limitType == LimitType::LIMIT_HEIGHT)
         {
-            value = current_layer_z;
+            value = current_layer_z*1000;
         }
 
         if (value < 0)

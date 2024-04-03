@@ -5304,7 +5304,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
         if (m_config.acceleration_limit_mess_enable
             || m_config.speed_limit_to_height_enable)
-            m_smoothSpeedAcc->detect_speed(last_set_speed, weight, m_last_layer_z);
+            m_smoothSpeedAcc->detect_speed_min(last_set_speed, weight, m_last_layer_z);
 
         gcode += m_writer.set_speed(last_set_speed, "", comment);
         Vec2d prev = this->point_to_gcode_quantized(new_points[0].p);
@@ -5348,6 +5348,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
             const double line_length = (p - prev).norm();
             double new_speed = std::max((float)EXTRUDER_CONFIG(slow_down_min_speed), pre_processed_point.speed) * 60.0;
+            if (m_config.acceleration_limit_mess_enable
+                || m_config.speed_limit_to_height_enable)
+                m_smoothSpeedAcc->detect_speed_min(new_speed, weight, m_last_layer_z);
+
             if (last_set_speed != new_speed) {
                 gcode += m_writer.set_speed(new_speed, "", comment);
                 last_set_speed = new_speed;
