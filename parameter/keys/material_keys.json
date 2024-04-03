@@ -84,6 +84,8 @@
         "filament_multitool_ramming",
         "filament_multitool_ramming_volume",
         "filament_multitool_ramming_flow",
-        "activate_chamber_temp_control"
+        "activate_chamber_temp_control",
+        "material_flow_dependent_temperature",
+        "material_flow_temp_graph"
     ]
 }

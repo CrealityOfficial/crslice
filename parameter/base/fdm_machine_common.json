@@ -25,9 +25,9 @@
     },
 	"material_flow_dependent_temperature": {
         "default_value": "0",
-        "description": "Auto Temperature",
+        "description": "Change the temperature for each layer automatically with the average flow speed of that layer.",
         "enabled": "true",
-        "label": "Change the temperature for each layer automatically with the average flow speed of that layer.",
+        "label": "Auto Temperature",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
@@ -37,9 +37,9 @@
     },
 	"material_flow_temp_graph": {
         "default_value": "[[3.5,200],[7.0,240]]",
-        "description": "Flow Temperature Graph",
+        "description": "Print Speed Limit to Height",
         "enabled": "true",
-        "label": "Print Speed Limit to Height",
+        "label": "Flow Temperature Graph",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
