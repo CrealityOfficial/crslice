@@ -111,6 +111,8 @@
         "retract_length_toolchange",
         "retract_restart_extra_toolchange",
         "extruder_colour",
-        "default_filament_profile"
+        "default_filament_profile",
+		"machine_LED_light_exist",
+		"machine_platform_motion_enable"
     ]
 }
