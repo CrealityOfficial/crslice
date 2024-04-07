@@ -183,7 +183,8 @@ public:
         // BBS
         m_toolchange_count(0),
         m_nominal_z(0.),
-        m_smoothSpeedAcc(new SmoothSpeedAcc())
+        m_smoothSpeedAcc(new SmoothSpeedAcc()),
+        m_smoothTemp(new FlowTempGraph())
         {}
     ~GCode() = default;
 
@@ -550,6 +551,7 @@ private:
     std::unique_ptr<FanMover> m_fan_mover;
 
     std::unique_ptr<SmoothSpeedAcc> m_smoothSpeedAcc;
+    std::unique_ptr <FlowTempGraph> m_smoothTemp;
 
     // BBS
     Print* m_curr_print = nullptr;
@@ -557,6 +559,11 @@ private:
     coordf_t m_nominal_z;
     bool m_need_change_layer_lift_z = false;
     int m_start_gcode_filament = -1;
+
+    double m_last_flow = 0.0f;
+    double m_last_time = 0.0f;
+    int m_currentExtruder = 0;
+    int m_temperature = 0;
 
     std::set<unsigned int>                  m_initial_layer_extruders;
     // BBS

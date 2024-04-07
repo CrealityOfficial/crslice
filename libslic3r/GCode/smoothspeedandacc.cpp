@@ -389,4 +389,93 @@ namespace Slic3r
             iter++;
         }
     }
+
+    void FlowTempGraph::init_limit(const std::string& limit)
+    {
+        std::string str = limit;
+
+        //[[3.5,200],[7.0,240]]
+        int len = str.length();
+        if (len <= 3)
+            return;
+
+        int no = str.find_first_of('[');
+        if (no < 0 || no >= len)
+            return;
+
+        str = str.substr(no + 1, str.length());
+        no = str.find_last_of(']');
+        if (no < 0 || no >= len)
+            return;
+
+        str = str.substr(0, no);
+        int findIndex1 = str.find(']');
+        while (findIndex1 >= 0 && findIndex1 < str.size())
+        {
+            //std::vector<Datum> data
+            Datum _data(0,0);
+
+            std::string temp = str.substr(0, findIndex1);
+            str = str.substr(findIndex1 + 1, str.length());
+
+            int findIndex = temp.find_last_of('[');
+            if (findIndex < 0 || findIndex >= temp.length())
+                continue;
+            temp = temp.substr(findIndex + 1, temp.length());
+
+            findIndex = temp.find(',');
+            std::vector<double> initdata;
+            std::string str1;
+            while (findIndex >= 0 && findIndex < temp.length())
+            {
+                str1 = temp.substr(0, findIndex);
+                temp = temp.substr(findIndex + 1, temp.length());
+                initdata.push_back(std::atof(str1.c_str()));
+                findIndex = temp.find(',');
+
+                if (findIndex < 0 || findIndex >= temp.length())
+                {
+                    initdata.push_back(std::atof(temp.c_str()));
+                }
+            }
+
+            if (initdata.size() == 2)
+            {
+                _data.flow = initdata[0];
+                _data.temp = initdata[1];
+                //limitData.data.temp;
+                data.push_back(_data);
+            }
+            findIndex1 = str.find(']');
+        }
+
+    }
+
+    double FlowTempGraph::getTemp(const double flow, const double material_print_temperature, bool flow_dependent_temperature) const
+    {
+        if (!flow_dependent_temperature || data.empty() )
+        {
+            return material_print_temperature;
+        }
+        if (data.size() == 1)
+        {
+            return data.front().temp;
+        }
+        if (flow < data.front().flow)
+        {
+            return data.front().temp;
+        }
+        const Datum* last_datum = &data.front();
+        for (unsigned int datum_idx = 1; datum_idx < data.size(); datum_idx++)
+        {
+            const Datum& datum = data[datum_idx];
+            if (datum.flow >= flow)
+            {
+                return last_datum->temp + (datum.temp - last_datum->temp) * (flow - last_datum->flow) / (datum.flow - last_datum->flow);
+            }
+            last_datum = &datum;
+        }
+
+        return data.back().temp;
+    }
 }

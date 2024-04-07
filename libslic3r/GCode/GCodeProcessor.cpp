@@ -1572,6 +1572,11 @@ float GCodeProcessor::layer_time()
     return layerTime >= 0.0f ? layerTime : 0.0f;
 };
 
+float GCodeProcessor::layer_flow()
+{
+    return m_used_filaments.model_extrude_cache;
+}
+
 void GCodeProcessor::finalize(bool post_process)
 {
     // update width/height of wipe moves

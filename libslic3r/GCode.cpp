@@ -1968,10 +1968,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_enable_cooling_markers = true;
     this->apply_print_config(print.config());
 
-    //限制速度加速度温度    
+    //限制速度加速度 
     if (print.full_print_config().option<ConfigOptionBool>("acceleration_limit_mess_enable")
         || print.full_print_config().option<ConfigOptionBool>("speed_limit_to_height_enable"))
         m_smoothSpeedAcc->init_limit(print.full_print_config());
+
+    //限制温度 
+    if (print.full_print_config().option<ConfigOptionBool>("material_flow_dependent_temperature"))
+    {
+        std::string str = print.full_print_config().option<ConfigOptionString>("material_flow_temp_graph")->serialize();
+        m_smoothTemp->init_limit(str);
+    }
 
     //m_volumetric_speed = DoExport::autospeed_volumetric_limit(print);
     print.throw_if_canceled();
@@ -2817,6 +2824,8 @@ void GCode::process_layers(
     const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>>   &layers_to_print,
     GCodeOutputStream                                                   &output_stream)
 {
+    bool first_layer = true;
+
     // The pipeline is variable: The vase mode filter is optional.
     size_t layer_to_print_idx = 0;
     const auto generator = tbb::make_filter<void, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
@@ -2868,11 +2877,39 @@ void GCode::process_layers(
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
-        [&output_stream,&processor = this->m_processor](std::string s) {
-            output_stream.write(s);
+        [this, &first_layer,&print,&output_stream,&processor = this->m_processor](std::string s) {
+
+            //output_stream.write(s);
 			float layerTime = processor.layer_time();
-			std::string strLayerTime = ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
-			output_stream.write(strLayerTime); }
+            std::string strLayerTemp = "";
+
+            if (print.full_print_config().option<ConfigOptionBool>("material_flow_dependent_temperature")
+                && !first_layer) {
+
+                if (m_temperature <= 0)
+                {
+                    m_temperature = m_config.nozzle_temperature.get_at(m_currentExtruder);
+                }
+                if (layerTime - m_last_time > 0.0f)
+                {
+                    double avg_flow = (processor.layer_flow() - m_last_flow) / (layerTime - m_last_time);
+                    double _temperature = m_smoothTemp->getTemp(avg_flow, m_temperature);
+
+                    if (_temperature != m_temperature)
+                    {
+                        strLayerTemp = m_writer.set_temperatured((float)_temperature, false, m_currentExtruder);
+                        m_temperature = _temperature;
+                        s = strLayerTemp + s;
+                    }
+                }
+            }
+
+            m_last_flow = processor.layer_flow();
+            m_last_time = layerTime;
+            first_layer = false;
+
+            s += ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
+			output_stream.write(s); }
     );
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
@@ -3189,6 +3226,10 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
         int temp = print.config().nozzle_temperature_initial_layer.get_at(first_printing_extruder_id);
         if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
             temp = temp_by_gcode;
+
+        if (print.full_print_config().option<ConfigOptionBool>("material_flow_dependent_temperature")){
+            m_temperature = temp;
+        }
         m_writer.set_temperature(temp, wait, first_printing_extruder_id);
     } else {
         // Custom G-code does not set the extruder temperature. Do it now.
@@ -3196,7 +3237,12 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
             // Set temperature of the first printing extruder only.
             int temp = print.config().nozzle_temperature_initial_layer.get_at(first_printing_extruder_id);
             if (temp > 0)
+            {
+                if (print.full_print_config().option<ConfigOptionBool>("material_flow_dependent_temperature")) {
+                    m_temperature = temp;
+                }
                 file.write(m_writer.set_temperature(temp, wait, first_printing_extruder_id));
+            }
         } else {
             // Set temperatures of all the printing extruders.
             for (unsigned int tool_id : print.extruders()) {
@@ -3204,7 +3250,12 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
                 if (print.config().ooze_prevention.value)
                     temp += print.config().standby_temperature_delta.value;
                 if (temp > 0)
+                {
+                    if (print.full_print_config().option<ConfigOptionBool>("material_flow_dependent_temperature")) {
+                        m_temperature = temp;
+                    }
                     file.write(m_writer.set_temperature(temp, wait, tool_id));
+                }
             }
         }
     }
@@ -3713,7 +3764,12 @@ LayerResult GCode::process_layer(
                 continue;
             int temperature = print.config().nozzle_temperature.get_at(extruder.id());
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
+            {
+                if (print.full_print_config().option<ConfigOptionBool>("material_flow_dependent_temperature")) {
+                    m_temperature = temperature;
+                }
                 gcode += m_writer.set_temperature(temperature, false, extruder.id());
+            }
         }
 
         // BBS
@@ -3974,6 +4030,7 @@ LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
+        m_currentExtruder = extruder_id;
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {

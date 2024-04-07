@@ -28,22 +28,24 @@ namespace Slic3r
         double Temp2;
     };
 
+    struct Datum
+    {
+        double flow; //!< The flow in mm^3/s
+        double temp; //!< The temperature in *C
+        Datum(const double flow, const double temp)
+            : flow(flow)
+            , temp(temp)
+        {}
+    };
+
     class FlowTempGraph
     {
     public:
-        struct Datum
-        {
-            const double flow; //!< The flow in mm^3/s
-            const double temp; //!< The temperature in *C
-            Datum(const double flow, const double temp)
-                : flow(flow)
-                , temp(temp)
-            {}
-        };
+
+        void init_limit(const std::string& limit);
+        double getTemp(const double flow, const double material_print_temperature, bool flow_dependent_temperature = true) const;
 
         std::vector<Datum> data; 
-
-        double getTemp(const double flow, const double material_print_temperature, const bool flow_dependent_temperature) const;
     };
 
     class SmoothSpeedAcc

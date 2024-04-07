@@ -36,7 +36,7 @@
         "unit": ""
     },
 	"material_flow_temp_graph": {
-        "default_value": "[[3.5,200],[7.0,240]]",
+        "default_value": "[[3.0,210],[10.0,220],[12.0,230]]",
         "description": "Print Speed Limit to Height",
         "enabled": "true",
         "label": "Flow Temperature Graph",
