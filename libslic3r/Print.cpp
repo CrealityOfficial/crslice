@@ -221,8 +221,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "speed_limit_to_height",
         "material_flow_dependent_temperature",
         "material_flow_temp_graph",
-        "material_flow_dependent_temperature",
-        "material_flow_temp_graph",
     };
 
     static std::unordered_set<std::string> steps_ignore;
