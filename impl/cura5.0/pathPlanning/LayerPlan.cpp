@@ -619,7 +619,7 @@ GCodePath& LayerPlan::addTravel(const Point p, const bool force_retract)
         }
         forceNewPathStart(); // force a new travel path after this first bogus move
     }
-    else if (force_retract /*&& last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance)*/)
+    else if (force_retract && last_planned_position && ! shorterThen(*last_planned_position - p, retraction_config.retraction_min_travel_distance))
     {//force retract is not limited to retraction_min_travel_distance
         // path is not shorter than min travel distance, force a retraction
         path->retract = true;
