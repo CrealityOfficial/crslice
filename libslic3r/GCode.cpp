@@ -2080,6 +2080,21 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 [&print]() { print.throw_if_canceled(); }, m_layer_count);
     }
 
+    {
+        BoundingBoxf3 _bbox;
+        for (PrintObject* object : print.objects()) {
+            for (PrintInstance& inst : object->instances()) {
+                _bbox.merge(inst.get_bounding_box());
+            }
+        }
+        file.write_format("; MINX = %0.2f\n", _bbox.min.x());
+        file.write_format("; MINY = %0.2f\n", _bbox.min.y());
+        file.write_format("; MINZ = %0.2f\n", _bbox.min.z());
+        file.write_format("; MAXX = %0.2f\n", _bbox.max.x());
+        file.write_format("; MAXY = %0.2f\n", _bbox.max.y());
+        file.write_format("; MAXZ = %0.2f\n\n", _bbox.max.z());
+    }
+
       if (is_bbl_printers) {
         file.write("; CONFIG_BLOCK_START\n");
         std::string full_config;
@@ -2770,31 +2785,33 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 //      file.write_format("; variable_layer_height = %d\n", print.ad.adaptive_layer_height ? 1 : 0);
    
       file.write("; CONFIG_BLOCK_END\n\n");
+    }
 
-      Slic3r::PrintEstimatedStatistics::ETimeMode mode = Slic3r::PrintEstimatedStatistics::ETimeMode::Normal;
-      const std::vector<std::pair<Slic3r::EMoveType, float>>& moves_times = m_processor.get_moves_time(mode);
-      const std::vector<std::pair<Slic3r::ExtrusionRole, float>>& roles_times = m_processor.get_roles_time(mode);
-      float time = m_processor.get_time(mode);
-      std::string _moves_times;
-      for (auto& time : moves_times)
-      {
-          _moves_times += std::to_string((int)time.first);
-          _moves_times += ",";
-          _moves_times += std::to_string(time.second);
-          _moves_times += "; ";
-      }
-      std::string _roles_times;
-      for (auto& time : roles_times)
-      {
-          _roles_times += std::to_string((int)time.first);
-          _roles_times += ",";
-          _roles_times += std::to_string(time.second);
-          _roles_times += "; ";
-      }
+    {
+        Slic3r::PrintEstimatedStatistics::ETimeMode mode = Slic3r::PrintEstimatedStatistics::ETimeMode::Normal;
+        const std::vector<std::pair<Slic3r::EMoveType, float>>& moves_times = m_processor.get_moves_time(mode);
+        const std::vector<std::pair<Slic3r::ExtrusionRole, float>>& roles_times = m_processor.get_roles_time(mode);
+        float time = m_processor.get_time(mode);
+        std::string _moves_times;
+        for (auto& time : moves_times)
+        {
+            _moves_times += std::to_string((int)time.first);
+            _moves_times += ",";
+            _moves_times += std::to_string(time.second);
+            _moves_times += "; ";
+        }
+        std::string _roles_times;
+        for (auto& time : roles_times)
+        {
+            _roles_times += std::to_string((int)time.first);
+            _roles_times += ",";
+            _roles_times += std::to_string(time.second);
+            _roles_times += "; ";
+        }
 
-      file.write_format("; type_times_1 =  %s\n", _moves_times.c_str());
-      file.write_format("; type_times_2 =  %s\n", _roles_times.c_str());
-      file.write_format("; type_times_3 =  %.3f\n\n", time);
+        file.write_format("; type_times_1 =  %s\n", _moves_times.c_str());
+        file.write_format("; type_times_2 =  %s\n", _roles_times.c_str());
+        file.write_format("; type_times_3 =  %.3f\n\n", time);
     }
     file.write("\n");
 
