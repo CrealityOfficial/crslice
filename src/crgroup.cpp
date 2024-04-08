@@ -34,6 +34,12 @@ namespace crslice2
 		CrObject& object = m_objects.at(objectID);
 		object.m_mesh = mesh;
         object.m_mesh->need_bbox();
+
+		trimesh::box3 b = mesh->bbox;
+
+		trimesh::vec3 offset = trimesh::vec3(0.0f, 0.0f, 0.0f) - b.center();
+		trimesh::trans(mesh.get(), offset);
+		object.m_xform = trimesh::xform::trans(-offset);
 	}
 
 	void CrGroup::setObjectMeshPaint(int objectID, TriMeshPtr mesh, const trimesh::xform& componentXform
