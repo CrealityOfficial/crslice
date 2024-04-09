@@ -122,26 +122,26 @@ target_link_libraries(tbb_inner
     ${TBB_COMMON_LINK_LIBS}
 )
 
-tbb_install_target(tbb_inner)
+#tbb_install_target(tbb_inner)
 
 if (WIN32)
     # Create a copy of target linker file (tbb_inner<ver>[_debug].lib) with legacy name (tbb_inner[_debug].lib)
     # to support previous user experience for linkage.
-    install(FILES
-            $<TARGET_LINKER_FILE:tbb_inner>
-            DESTINATION lib
-            CONFIGURATIONS RelWithDebInfo Release MinSizeRel
-            RENAME tbb_inner.lib
-            COMPONENT devel
-    )
-
-    install(FILES
-            $<TARGET_LINKER_FILE:tbb_inner>
-            DESTINATION lib
-            CONFIGURATIONS Debug
-            RENAME tbb_debug.lib
-            COMPONENT devel
-    )
+    #install(FILES
+    #        $<TARGET_LINKER_FILE:tbb_inner>
+    #        DESTINATION lib
+    #        CONFIGURATIONS RelWithDebInfo Release MinSizeRel
+    #        RENAME tbb_inner.lib
+    #        COMPONENT devel
+    #)
+	#
+    #install(FILES
+    #        $<TARGET_LINKER_FILE:tbb_inner>
+    #        DESTINATION lib
+    #        CONFIGURATIONS Debug
+    #        RENAME tbb_debug.lib
+    #        COMPONENT devel
+    #)
 endif()
 
 set(_tbb_pc_lib_name tbb_inner)
@@ -171,9 +171,9 @@ else()
 endif()
 
 configure_file(${PROJECT_SOURCE_DIR}/integration/pkg-config/tbb.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
-        COMPONENT devel)
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc
+#        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
+#        COMPONENT devel)
 
 if (COMMAND tbb_gen_vars)
     tbb_gen_vars(tbb_inner)

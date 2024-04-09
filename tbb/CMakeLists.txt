@@ -214,28 +214,28 @@ else()
     # Installation instructions
     include(CMakePackageConfigHelpers)
 
-    install(DIRECTORY include/
-            DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            COMPONENT devel)
+    #install(DIRECTORY include/
+    #        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    #        COMPONENT devel)
 
-    install(EXPORT ${PROJECT_NAME}Targets
-            NAMESPACE TBB::
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-            COMPONENT devel)
+    #install(EXPORT ${PROJECT_NAME}Targets
+    #        NAMESPACE TBB::
+    #        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    #        COMPONENT devel)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
                "include(\${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Targets.cmake)\n")
 
     write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
                                      COMPATIBILITY AnyNewerVersion)
 
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-                  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-            COMPONENT devel)
+    #install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    #              "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    #        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    #        COMPONENT devel)
 
-    install(FILES "README.md"
-            DESTINATION ${CMAKE_INSTALL_DOCDIR}
-            COMPONENT devel)
+    #install(FILES "README.md"
+    #        DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    #        COMPONENT devel)
     # -------------------------------------------------------------------
 endif()
 

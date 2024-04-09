@@ -107,5 +107,5 @@ target_link_libraries(tbbmalloc
     ${TBB_COMMON_LINK_LIBS}
 )
 
-tbb_install_target(tbbmalloc)
+#tbb_install_target(tbbmalloc)
 

@@ -88,7 +88,7 @@ function(tbbbind_build TBBBIND_NAME REQUIRED_HWLOC_TARGET)
         ${TBB_COMMON_LINK_LIBS}
     )
 
-    tbb_install_target(${TBBBIND_NAME})
+    #tbb_install_target(${TBBBIND_NAME})
 
     if (COMMAND tbb_gen_vars)
         tbb_gen_vars(${TBBBIND_NAME})

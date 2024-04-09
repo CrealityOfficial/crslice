@@ -86,4 +86,4 @@ target_link_libraries(tbbmalloc_proxy
     ${TBB_COMMON_LINK_LIBS}
 )
 
-tbb_install_target(tbbmalloc_proxy)
+#tbb_install_target(tbbmalloc_proxy)
