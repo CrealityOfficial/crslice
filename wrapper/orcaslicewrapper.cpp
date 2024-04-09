@@ -294,6 +294,11 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		if (banned_keys.find(pair.first) != banned_keys.end())
 			continue;
 
+		std::string value = pair.second;
+		if (pair.first == "curr_bed_type" && pair.second == "Default Plate")
+		{
+			value = "Textured PEI Plate";
+		}
 		config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
 	}
 
@@ -452,6 +457,13 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	Slic3r::Model::setExtruderParams(config, tp.extruderCount);
 	Slic3r::Model::setPrintSpeedTable(config, print.config());
+
+#if _DEBUG
+	const Slic3r::ConfigOptionDef* bed_type_def = Slic3r::print_config_def.get("curr_bed_type");
+	const Slic3r::t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
+	std::string bed_key = Slic3r::get_bed_temp_key(Slic3r::BedType::btDefault);
+	const Slic3r::ConfigOptionInts* bed_temp_opt = config.option<Slic3r::ConfigOptionInts>(bed_key);
+#endif
 
 	print.is_BBL_printer() = tp.is_bbl_printer;
 	print.set_plate_origin(tp.plate_origin);
