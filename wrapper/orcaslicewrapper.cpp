@@ -508,7 +508,10 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	}
 	catch (const std::exception& ex)
 	{
-		tracer->failed("export gcode failed@");
+		//tracer->failed("export gcode failed@");
+		std::string error = ex.what();
+		error += "@";
+		tracer->failed(error.c_str());
 		return;
 	}
 	
