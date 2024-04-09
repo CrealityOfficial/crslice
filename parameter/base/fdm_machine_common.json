@@ -1195,7 +1195,7 @@
         "default_value": "0",
         "description": "Start the fan this number of seconds earlier than its target start time (you can use fractional seconds). It assumes infinite acceleration for this time estimation, and will only take into account G1 and G0 moves (arc fitting is unsupported).\nIt won't move fan comands from custom gcodes (they act as a sort of 'barrier').\nIt won't move fan comands into the start gcode if the 'only custom start gcode' is activated.\nUse 0 to deactivate.",
         "enabled": "true",
-        "label": "",
+        "label": "Fan speed-up time",
         "settable_globally": "false",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
