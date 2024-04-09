@@ -3314,7 +3314,7 @@ namespace gcode
         pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
         pathParam.lineWidth = std::atof(getValue(kvs, "wall_line_width").c_str());
         pathParam.layerHeight = std::atof(getValue(kvs, "layer_height").c_str());
-        pathParam.cost = std::atof(getValue(kvs, "gcode_filament_cost").c_str());
+        pathParam.cost = 0;// std::atof(getValue(kvs, "gcode_filament_cost").c_str());
         //pathParam.weight = std::atof(getValue(kvs, "filament_weight").c_str());
         //float filament_cost = std::atof(getValue(kvs, "gcode_filament_cost").c_str());
         //pathParam.unitPrice = pathParam.materialLenth > 0.0f ? filament_cost / pathParam.materialLenth : 0.0f;
@@ -3355,7 +3355,7 @@ namespace gcode
 			pathParam.materialLenth += used_filament;
 			pathParam.weight += weight;
             float filament_cost = gcodeProcessor.material_costs[f.first % gcodeProcessor.material_costs.size()];
-            pathParam.cost += weight * filament_cost * 0.1;
+            pathParam.cost += weight * filament_cost * 0.001;
         }
         for (auto& f : gcodeProcessor.m_used_filaments.flush_per_filament)
         {
@@ -3372,7 +3372,7 @@ namespace gcode
 			pathParam.materialLenth += used_filament;
 			pathParam.weight += weight;
 			float filament_cost = gcodeProcessor.material_costs[f.first % gcodeProcessor.material_costs.size()];
-			pathParam.cost += weight * filament_cost * 0.1;
+			pathParam.cost += weight * filament_cost * 0.001;
         }
         for (auto& f : gcodeProcessor.m_used_filaments.volumes_per_tower)
         {
@@ -3389,7 +3389,7 @@ namespace gcode
 			pathParam.materialLenth += used_filament;
 			pathParam.weight += weight;
 			float filament_cost = gcodeProcessor.material_costs[f.first % gcodeProcessor.material_costs.size()];
-			pathParam.cost += weight * filament_cost * 0.1;
+			pathParam.cost += weight * filament_cost * 0.001;
         }
 
 
