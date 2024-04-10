@@ -2809,7 +2809,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             _roles_times += "; ";
         }
 
-        file.write_format("; type_times_1 =  %s\n", _moves_times.c_str());
+        file.write_format("\n; type_times_1 =  %s\n", _moves_times.c_str());
         file.write_format("; type_times_2 =  %s\n", _roles_times.c_str());
         file.write_format("; type_times_3 =  %.3f\n\n", time);
     }
