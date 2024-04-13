@@ -2591,8 +2591,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write(gcode);
     } else {
         //BBS: open spaghetti detector
-        if (is_bbl_printers
-            && boost::starts_with(m_curr_print->config().printer_model.value, "Bambu")) {
+        if (is_bbl_printers) {
             // if (print.config().spaghetti_detector.value)
             file.write("M981 S1 P20000 ;open spaghetti detector\n");
         }
@@ -2723,8 +2722,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
             //BBS: close powerlost recovery
             {
-                if (is_bbl_printers && m_second_layer_things_done
-                    && boost::starts_with(m_curr_print->config().printer_model.value, "Bambu")) {
+                if (is_bbl_printers && m_second_layer_things_done) {
                     file.write("; close powerlost recovery\n");
                     file.write("M1003 S0\n");
                 }
@@ -2749,8 +2747,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: make sure the additional fan is closed when end
     if(m_config.auxiliary_fan.value)
         file.write(m_writer.set_additional_fan(0));
-    if (is_bbl_printers
-        && boost::starts_with(m_curr_print->config().printer_model.value, "Bambu")) {
+    if (is_bbl_printers) {
         //BBS: close spaghetti detector
         //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
         //if (print.config().spaghetti_detector.value)
@@ -4288,8 +4285,7 @@ LayerResult GCode::process_layer(
                 }
                 // exclude objects
                 if (m_enable_exclude_object) {
-                    if (is_BBL_Printer() 
-                        && boost::starts_with(m_curr_print->config().printer_model.value, "Bambu"))
+                    if (is_BBL_Printer())
                     {
                         m_writer.set_object_start_str(
                             std::string("; start printing object, unique label id: ") +
