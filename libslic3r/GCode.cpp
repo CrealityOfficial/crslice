@@ -4173,7 +4173,9 @@ LayerResult GCode::process_layer(
                 }
                 // exclude objects
                 if (m_enable_exclude_object) {
-                    if (is_BBL_Printer()) {
+                    if (is_BBL_Printer() 
+                        && boost::starts_with(m_curr_print->config().printer_model.value, "Bambu"))
+                    {
                         m_writer.set_object_start_str(
                             std::string("; start printing object, unique label id: ") +
                             std::to_string(instance_to_print.label_object_id) + "\n" + "M624 " +
