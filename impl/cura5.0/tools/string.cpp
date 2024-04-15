@@ -1,5 +1,5 @@
 #include "string.h"
-
+#include <vector>
 namespace cura52
 {
     bool SplitString(const std::string& Src, std::vector<std::string>& Vctdest, const std::string& c)

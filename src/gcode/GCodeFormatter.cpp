@@ -1,5 +1,6 @@
 #include "GCodeFormatter.h"
-
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/karma.hpp>
 namespace Slic3r
 {
     void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {
