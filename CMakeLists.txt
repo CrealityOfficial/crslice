@@ -42,6 +42,11 @@ set(INTERFACES ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(qhull)
 add_subdirectory(glu-libtess)
+
+if(CC_BC_MAC)
+	add_compile_options(-fno-aligned-allocation)
+endif()
+
 add_subdirectory(tbb)
 add_subdirectory(imgui)
 add_subdirectory(libslic3r)
