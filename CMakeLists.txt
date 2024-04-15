@@ -44,7 +44,7 @@ add_subdirectory(qhull)
 add_subdirectory(glu-libtess)
 
 if(CC_BC_MAC)
-	add_compile_options(-fno-aligned-allocation)
+#	add_compile_options(-fno-aligned-allocation)
 endif()
 
 add_subdirectory(tbb)

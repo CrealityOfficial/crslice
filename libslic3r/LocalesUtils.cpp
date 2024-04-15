@@ -1,5 +1,5 @@
 #include "LocalesUtils.hpp"
-
+#include <sstream>
 #ifdef _WIN32
     #include <charconv>
 #endif
