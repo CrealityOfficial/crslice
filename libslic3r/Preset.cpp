@@ -818,7 +818,6 @@ static std::vector<std::string> s_Preset_print_options {
      "wipe_tower_rotation_angle", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_branch_angle_organic",
      "hole_to_polyhole", "hole_to_polyhole_threshold", "hole_to_polyhole_twisted", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
      "acceleration_limit_mess_enable","acceleration_limit_mess","speed_limit_to_height_enable","speed_limit_to_height",
-     "material_flow_dependent_temperature","material_flow_temp_graph",
 };
 
 static std::vector<std::string> s_Preset_filament_options {
@@ -881,7 +880,8 @@ static std::vector<std::string> s_Preset_printer_options {
     "cooling_tube_retraction",
     "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "purge_in_prime_tower", "enable_filament_ramming",
     "z_offset",
-    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "support_multi_bed_types"
+    "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "support_multi_bed_types",
+    "material_flow_dependent_temperature","material_flow_temp_graph"
     };
 
 static std::vector<std::string> s_Preset_sla_print_options {
