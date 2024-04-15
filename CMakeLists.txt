@@ -45,7 +45,7 @@ add_subdirectory(glu-libtess)
 
 if(CC_BC_MAC)
 find_library(CoreFoundationLib CoreFoundation)
-find_library(FoundationLib Foundation)
+find_library(FOUNDATION_LIBRARY Foundation)
 
 #	add_compile_options(-fno-aligned-allocation)
 endif()
@@ -70,8 +70,7 @@ if(CC_BC_WIN)
 	list(APPEND LIBS Bcrypt.lib)
 endif()
 if(CC_BC_MAC)
-	list(APPEND LIBS ${CoreFoundationLib})
-	list(APPEND LIBS ${FoundationLib})
+	list(APPEND LIBS ${CoreFoundationLib} ${FOUNDATION_LIBRARY})
 endif()
 __add_common_library(crslice2 FOLDER slice OPENMP
 							 DEF ${DEFS}
