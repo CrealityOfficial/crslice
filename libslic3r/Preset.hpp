@@ -673,6 +673,7 @@ public:
     // Without force, the selection is only updated if the index changes.
     // With force, the changes are reverted if the new index is the same as the old index.
     bool            select_preset_by_name(const std::string &name, bool force);
+    bool is_base_preset(const Preset &preset) const { return preset.is_system || (preset.is_user() && preset.inherits().empty()); }
 
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name, bool detach = false) const;
@@ -769,6 +770,9 @@ private:
 
     //BBS: mutex
     std::mutex          m_mutex;
+
+    // Orca: used for validation only
+    int m_errors = 0;
 };
 
 // Printer supports the FFF and SLA technologies, with different set of configuration values,

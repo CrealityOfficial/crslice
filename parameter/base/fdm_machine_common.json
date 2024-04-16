@@ -73,6 +73,30 @@
         "type": "coPercent",
         "unit": "%"
     },
+    "acceleration_limit_mess": {
+        "default_value": "",
+        "description": "Weight limit speed and acceleration",
+        "enabled": "true",
+        "label": "Weight limit speed and acceleration",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coString",
+        "unit": "[[kg,kg,mm/s,mm/s²]]"
+    },
+    "acceleration_limit_mess_enable": {
+        "default_value": "0",
+        "description": "Weight limit speed and acceleration Enable",
+        "enabled": "true",
+        "label": "Weight limit speed and acceleration Enable",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "activate_air_filtration": {
         "default_value": "0",
         "description": "Activate for better air filtration. G-code command: M106 P3 S(0-255)",
@@ -95,6 +119,18 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBools",
+        "unit": ""
+    },
+    "adaptive_bed_mesh_margin": {
+        "default_value": "0",
+        "description": "This option determines the additional distance by which the adaptive bed mesh area should be expanded in the XY directions.",
+        "enabled": "true",
+        "label": "Mesh margin",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
         "unit": ""
     },
     "additional_cooling_fan_speed": {
@@ -175,6 +211,18 @@
         "type": "coBool",
         "unit": ""
     },
+    "bbl_use_printhost": {
+        "default_value": "0",
+        "description": "Allow controlling BambuLab's printer through 3rd party print hosts",
+        "enabled": "true",
+        "label": "Use 3rd-party print host",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "bed_custom_model": {
         "default_value": "",
         "description": "",
@@ -209,6 +257,43 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coPoints",
+        "unit": ""
+    },
+    "bed_mesh_max": {
+        "default_value": "99999,99999",
+        "description": "This option sets the max point for the allowed bed mesh area. Due to the probe's XY offset, most printers are unable to probe the entire bed. To ensure the probe point does not go outside the bed area, the minimum and maximum points of the bed mesh should be set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max points. This information can usually be obtained from your printer manufacturer. The default setting is (99999, 99999), which means there are no limits, thus allowing probing across the entire bed.",
+        "enabled": "true",
+        "label": "Bed mesh max",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coPoint",
+        "unit": ""
+    },
+    "bed_mesh_min": {
+        "default_value": "-99999,-99999",
+        "description": "This option sets the min point for the allowed bed mesh area. Due to the probe's XY offset, most printers are unable to probe the entire bed. To ensure the probe point does not go outside the bed area, the minimum and maximum points of the bed mesh should be set appropriately. OrcaSlicer ensures that adaptive_bed_mesh_min/adaptive_bed_mesh_max values do not exceed these min/max points. This information can usually be obtained from your printer manufacturer. The default setting is (-99999, -99999), which means there are no limits, thus allowing probing across the entire bed.",
+        "enabled": "true",
+        "label": "Bed mesh min",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coPoint",
+        "unit": ""
+    },
+    "bed_mesh_probe_distance": {
+        "default_value": "50,50",
+        "description": "This option sets the preferred distance between probe points (grid size) for the X and Y directions, with the default being 50mm for both X and Y.",
+        "enabled": "true",
+        "label": "Probe point distance",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coPoint",
         "unit": ""
     },
     "before_layer_change_gcode": {
@@ -308,7 +393,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
-        "unit": "mm/s2 or %"
+        "unit": "mm/s² or %"
     },
     "bridge_angle": {
         "default_value": "0",
@@ -321,7 +406,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "bridge_density": {
         "default_value": "100%",
@@ -413,7 +498,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "brim_object_gap": {
         "default_value": "0",
@@ -475,7 +560,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "change_extrusion_role_gcode": {
         "default_value": "",
@@ -589,7 +674,7 @@
     },
     "complete_print_exhaust_fan_speed": {
         "default_value": "80",
-        "description": "Speed of exhuast fan after printing completes",
+        "description": "Speed of exhaust fan after printing completes",
         "enabled": "true",
         "label": "Fan speed",
         "maximum_value": "100",
@@ -600,6 +685,20 @@
         "settable_per_meshgroup": "false",
         "type": "coInts",
         "unit": "%"
+    },
+    "cool_cds_fan_start_at_height": {
+        "default_value": "0.5",
+        "description": "The height at which the Cds fans spin on regular fan speed. ",
+        "enabled": "true",
+        "label": "Regular Cds Fan Speed at Height",
+        "maximum_value": "500",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": "mm"
     },
     "cool_plate_temp": {
         "default_value": "35",
@@ -613,7 +712,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "cool_plate_temp_initial_layer": {
         "default_value": "35",
@@ -627,7 +726,21 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
+    },
+    "cool_special_cds_fan_speed": {
+        "default_value": "0",
+        "description": "Speed of auxiliary part cooling fan.Auxiliary fan will run at this speed during printing except the first several layers which is defined by no cooling layers.\nPlease enable auxiliary_fan in printer settings to use this feature. G-code command: M106 P2 S(0-255)",
+        "enabled": "true",
+        "label": "Fan speed for overhangs",
+        "maximum_value": "100",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": "%"
     },
     "cooling_tube_length": {
         "default_value": "5",
@@ -655,12 +768,31 @@
         "type": "coFloat",
         "unit": "mm"
     },
+    "counterbore_hole_bridging": {
+        "default_value": "none",
+        "description": "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n1. None: No bridge is created.\n2. Partially Bridged: Only a part of the unsupported area will be bridged.\n3. Sacrificial Layer: A full sacrificial bridge layer is created.",
+        "enabled": "true",
+        "label": "Bridge counterbore holes",
+        "options": {
+            "none": "None",
+            "partiallybridge": "Partially bridged",
+            "sacrificiallayer": "Sacrificial layer"
+        },
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
+        "unit": ""
+    },
     "curr_bed_type": {
-        "default_value": "High Temp Plate",
+        "default_value": "Cool Plate",
         "description": "Bed types supported by the printer",
         "enabled": "true",
         "label": "Bed type",
         "options": {
+            "Cool Plate": "Cool Plate",
+            "Engineering Plate": "Engineering Plate",
             "High Temp Plate": "Smooth PEI Plate / High Temp Plate",
             "Textured PEI Plate": "Textured PEI Plate"
         },
@@ -682,7 +814,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "default_filament_colour": {
         "default_value": "\"\"",
@@ -805,6 +937,23 @@
         "type": "coBool",
         "unit": ""
     },
+    "dont_filter_internal_bridges": {
+        "default_value": "disabled",
+        "description": "This option can help reducing pillowing on top surfaces in heavily slanted or curved models.\n\nBy default, small internal bridges are filtered out and the internal solid infill is printed directly over the sparse infill. This works well in most cases, speeding up printing without too much compromise on top surface quality. \n\nHowever, in heavily slanted or curved models especially where too low sparse infill density is used, this may result in curling of the unsupported solid infill, causing pillowing.\n\nEnabling this option will print internal bridge layer over slightly unsupported internal solid infill. The options below control the amount of filtering, i.e. the amount of internal bridges created.\n\nDisabled - Disables this option. This is the default behaviour and works well in most cases.\n\nLimited filtering - Creates internal bridges on heavily slanted surfaces, while avoiding creating uncessesary interal bridges. This works well for most difficult models.\n\nNo filtering - Creates internal bridges on every potential internal overhang. This option is useful for heavily slanted top surface models. However, in most cases it creates too many unecessary bridges.",
+        "enabled": "true",
+        "label": "Don't filter out small internal bridges (beta)",
+        "options": {
+            "disabled": "Disabled",
+            "limited": "Limited filtering",
+            "nofilter": "No filtering"
+        },
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
+        "unit": ""
+    },
     "draft_shield": {
         "default_value": "disabled",
         "description": "",
@@ -824,7 +973,7 @@
     },
     "during_print_exhaust_fan_speed": {
         "default_value": "60",
-        "description": "Speed of exhuast fan during printing.This speed will overwrite the speed in filament custom gcode",
+        "description": "Speed of exhaust fan during printing.This speed will overwrite the speed in filament custom gcode",
         "enabled": "true",
         "label": "Fan speed",
         "maximum_value": "100",
@@ -984,7 +1133,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "eng_plate_temp_initial_layer": {
         "default_value": "45",
@@ -998,18 +1147,24 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "ensure_vertical_shell_thickness": {
-        "default_value": "1",
-        "description": "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)",
+        "default_value": "ensure_all",
+        "description": "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)\nNone: No solid infill will be added anywhere. Caution: Use this option carefully if your model has sloped surfaces\nCritical Only: Avoid adding solid infill for walls\nModerate: Add solid infill for heavily sloping surfaces only\nAll: Add solid infill for all suitable sloping surfaces\nDefault value is All.",
         "enabled": "true",
         "label": "Ensure vertical shell thickness",
+        "options": {
+            "none": "None",
+            "ensure_critical_only": "Critical Only",
+            "ensure_moderate": "Moderate",
+            "ensure_all": "All"
+        },
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
-        "type": "coBool",
+        "type": "coEnum",
         "unit": ""
     },
     "exclude_object": {
@@ -1278,7 +1433,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "g/cm3"
+        "unit": "g/cm³"
     },
     "filament_deretraction_speed": {
         "default_value": "0",
@@ -1404,7 +1559,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3/s"
+        "unit": "mm³/s"
     },
     "filament_minimal_purge_on_wipe_tower": {
         "default_value": "15",
@@ -1417,7 +1572,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "filament_multitool_ramming": {
         "default_value": "0",
@@ -1442,7 +1597,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3/s"
+        "unit": "mm³/s"
     },
     "filament_multitool_ramming_volume": {
         "default_value": "10",
@@ -1455,7 +1610,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "filament_notes": {
         "default_value": "\"\"",
@@ -1730,7 +1885,7 @@
         "unit": "mm/s"
     },
     "filament_vendor": {
-        "default_value": "(Undefined)",
+        "default_value": "(Creality)",
         "description": "Vendor of filament. For show only",
         "enabled": "true",
         "label": "Vendor",
@@ -1997,6 +2152,23 @@
         "type": "coFloat",
         "unit": "mm"
     },
+    "gap_fill_target": {
+        "default_value": "everywhere",
+        "description": "Enables gap fill for the selected surfaces. The minimum gap length that will be filled can be controlled from the filter out tiny gaps option below.\n\nOptions:\n1. Everywhere: Applies gap fill to top, bottom and internal solid surfaces\n2. Top and Bottom surfaces: Applies gap fill to top and bottom surfaces only\n3. Nowhere: Disables gap fill\n",
+        "enabled": "true",
+        "label": "Apply gap fill",
+        "options": {
+            "everywhere": "Everywhere",
+            "topbottom": "Top and bottom surfaces",
+            "nowhere": "Nowhere"
+        },
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
+        "unit": ""
+    },
     "gap_infill_speed": {
         "default_value": "30",
         "description": "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly",
@@ -2060,6 +2232,18 @@
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "has_scarf_joint_seam": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
@@ -2137,7 +2321,10 @@
             "flashair": "FlashAir",
             "astrobox": "AstroBox",
             "repetier": "Repetier",
-            "mks": "MKS"
+            "mks": "MKS",
+            "obico": "Obico",
+            "flashforge": "Flashforge",
+            "simplyprint": "SimplyPrint"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
@@ -2158,7 +2345,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "hot_plate_temp_initial_layer": {
         "default_value": "45",
@@ -2171,7 +2358,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "independent_support_layer_height": {
         "default_value": "1",
@@ -2249,7 +2436,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "infill_jerk": {
         "default_value": "9",
@@ -2311,7 +2498,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "initial_layer_infill_speed": {
         "default_value": "60",
@@ -2416,7 +2603,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "inner_wall_jerk": {
         "default_value": "9",
@@ -2508,7 +2695,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
-        "unit": "mm/s2 or %"
+        "unit": "mm/s² or %"
     },
     "internal_solid_infill_line_width": {
         "default_value": "0",
@@ -2571,7 +2758,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "ironing_flow": {
         "default_value": "10%",
@@ -2699,6 +2886,18 @@
         "type": "coFloatOrPercent",
         "unit": "mm or %"
     },
+    "machine_LED_light_exist": {
+        "default_value": "1",
+        "description": "Machine LED light exist",
+        "enabled": "true",
+        "label": "Machine LED light exist",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "machine_end_gcode": {
         "default_value": "M104 S0 ; turn off temperature\\nG28 X0  ; home X axis\\nM84     ; disable motors\\n",
         "description": "End G-code when finish the whole printing",
@@ -2735,7 +2934,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_extruding": {
         "default_value": "1500,1250",
@@ -2748,7 +2947,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_retracting": {
         "default_value": "1500,1250",
@@ -2761,7 +2960,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_travel": {
         "default_value": "0,0",
@@ -2774,7 +2973,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_x": {
         "default_value": "1000,1000",
@@ -2787,7 +2986,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_y": {
         "default_value": "1000,1000",
@@ -2800,7 +2999,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_acceleration_z": {
         "default_value": "500,200",
@@ -2813,7 +3012,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloats",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "machine_max_jerk_e": {
         "default_value": "2.5,2.5",
@@ -2957,6 +3156,18 @@
         "type": "coString",
         "unit": ""
     },
+    "machine_platform_motion_enable": {
+        "default_value": "1",
+        "description": "Machine platform motion enable",
+        "enabled": "true",
+        "label": "Machine platform motion enable",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "machine_start_gcode": {
         "default_value": "G28 ; home all axes\\nG1 Z5 F5000 ; lift nozzle\\n",
         "description": "Start G-code when start the whole printing",
@@ -2996,7 +3207,7 @@
     },
     "make_overhang_printable_angle": {
         "default_value": "55",
-        "description": "Maximum angle of overhangs to allow after making more steep overhangs printable.90. will not change the model at all and allow any overhang, while 0 will replace all overhangs with conical material.",
+        "description": "Maximum angle of overhangs to allow after making more steep overhangs printable.90° will not change the model at all and allow any overhang, while 0 will replace all overhangs with conical material.",
         "enabled": "true",
         "label": "Make overhangs printable - Maximum angle",
         "maximum_value": "90",
@@ -3006,7 +3217,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "make_overhang_printable_hole_size": {
         "default_value": "0",
@@ -3019,7 +3230,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm2"
+        "unit": "mm²"
     },
     "manual_filament_change": {
         "default_value": "0",
@@ -3032,6 +3243,30 @@
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
+    },
+    "material_flow_dependent_temperature": {
+        "default_value": "0",
+        "description": "Change the temperature for each layer automatically with the average flow speed of that layer.",
+        "enabled": "true",
+        "label": "Change the temperature for each layer automatically with the average flow speed of that layer.",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "material_flow_temp_graph": {
+        "default_value": "",
+        "description": "Flow Temperature Graph",
+        "enabled": "true",
+        "label": "Flow Temperature Graph",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coString",
+        "unit": "[[mm³,.C]]"
     },
     "max_bridge_length": {
         "default_value": "10",
@@ -3083,7 +3318,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm3/s2"
+        "unit": "mm³/s²"
     },
     "max_volumetric_extrusion_rate_slope_segment_length": {
         "default_value": "3",
@@ -3138,9 +3373,23 @@
         "type": "coFloats",
         "unit": "mm"
     },
+    "min_length_factor": {
+        "default_value": "0.5",
+        "description": "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n\nNOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the ouside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visibile if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.",
+        "enabled": "true",
+        "label": "Minimum wall length",
+        "maximum_value": "25",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": ""
+    },
     "min_width_top_surface": {
         "default_value": "300%",
-        "description": "If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value. This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters. This value can be a mm or a % of the perimeter extrusion width.\nWarning: If enabled, artifacts can be created is you have some thin features on the next layer, like letters. Set this setting to 0 to remove these artifacts.",
+        "description": "If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value. This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters. This value can be a mm or a % of the perimeter extrusion width.\nWarning: If enabled, artifacts can be created if you have some thin features on the next layer, like letters. Set this setting to 0 to remove these artifacts.",
         "enabled": "true",
         "label": "One wall threshold",
         "minimum_value": "0",
@@ -3162,7 +3411,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm2"
+        "unit": "mm²"
     },
     "mmu_segmented_region_interlocking_depth": {
         "default_value": "0",
@@ -3241,7 +3490,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_temperature_initial_layer": {
         "default_value": "200",
@@ -3255,7 +3504,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_temperature_range_high": {
         "default_value": "240",
@@ -3269,7 +3518,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_temperature_range_low": {
         "default_value": "190",
@@ -3283,7 +3532,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "nozzle_type": {
         "default_value": "undefine",
@@ -3313,7 +3562,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "only_one_wall_first_layer": {
         "default_value": "0",
@@ -3362,7 +3611,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "outer_wall_jerk": {
         "default_value": "9",
@@ -3566,9 +3815,9 @@
     },
     "precise_outer_wall": {
         "default_value": "0",
-        "description": "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.",
+        "description": "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency.\nNote: This setting will only take effect if the wall sequence is configured to Inner-Outer",
         "enabled": "true",
-        "label": "Precise wall(experimental)",
+        "label": "Precise wall",
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
@@ -3588,7 +3837,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "acceleration_limit_mess_enable": {
         "default_value": "0",
@@ -3712,7 +3961,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm3"
+        "unit": "mm³"
     },
     "print_compatible_printers": {
         "default_value": "",
@@ -3762,6 +4011,22 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coString",
+        "unit": ""
+    },
+    "print_order": {
+        "default_value": "default",
+        "description": "Print order within a single layer",
+        "enabled": "true",
+        "label": "Intra-layer order",
+        "options": {
+            "default": "Default",
+            "as_obj_list": "As object list"
+        },
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
         "unit": ""
     },
     "print_sequence": {
@@ -4307,6 +4572,59 @@
         "type": "coBool",
         "unit": ""
     },
+    "scarf_angle_threshold": {
+        "default_value": "155",
+        "description": "This option sets the threshold angle for applying a conditional scarf joint seam.\nIf the maximum angle within the perimeter loop exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°.",
+        "enabled": "true",
+        "label": "Conditional angle threshold",
+        "maximum_value": "180",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": "°"
+    },
+    "scarf_joint_flow_ratio": {
+        "default_value": "1",
+        "description": "This factor affects the amount of material for scarf joints.",
+        "enabled": "true",
+        "label": "Scarf joint flow ratio",
+        "maximum_value": "2",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": ""
+    },
+    "scarf_joint_speed": {
+        "default_value": "100%",
+        "description": "This option sets the printing speed for scarf joints. It is recommended to print scarf joints at a slow speed (less than 100 mm/s).  It's also advisable to enable 'Extrusion rate smoothing' if the set speed varies significantly from the speed of the outer or inner walls. If the speed specified here is higher than the speed of the outer or inner walls, the printer will default to the slower of the two speeds. When specified as a percentage (e.g., 80%), the speed is calculated based on the respective outer or inner wall speed. The default value is set to 100%.",
+        "enabled": "true",
+        "label": "Scarf joint speed",
+        "minimum_value": "1",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloatOrPercent",
+        "unit": "mm/s or %"
+    },
+    "scarf_overhang_threshold": {
+        "default_value": "40%",
+        "description": "This option determines the overhang threshold for the application of scarf joint seams. If the unsupported portion of the perimeter is less than this threshold, scarf joint seams will be applied. The default threshold is set at 40% of the external wall's width. Due to performance considerations, the degree of overhang is estimated.",
+        "enabled": "true",
+        "label": "Conditional overhang threshold",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coPercent",
+        "unit": "%"
+    },
     "seam_gap": {
         "default_value": "10%",
         "description": "In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\nThis amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 10%.",
@@ -4334,6 +4652,98 @@
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
+        "unit": ""
+    },
+    "seam_slope_conditional": {
+        "default_value": "0",
+        "description": "Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively.",
+        "enabled": "true",
+        "label": "Conditional scarf joint",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "seam_slope_entire_loop": {
+        "default_value": "0",
+        "description": "The scarf extends to the entire length of the wall.",
+        "enabled": "true",
+        "label": "Scarf around entire wall",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "seam_slope_inner_walls": {
+        "default_value": "0",
+        "description": "Use scarf joint for inner walls as well.",
+        "enabled": "true",
+        "label": "Scarf joint for inner walls",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "seam_slope_min_length": {
+        "default_value": "20",
+        "description": "Length of the scarf. Setting this parameter to zero effectively disables the scarf.",
+        "enabled": "true",
+        "label": "Scarf length",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm"
+    },
+    "seam_slope_start_height": {
+        "default_value": "0",
+        "description": "Start height of the scarf.\nThis amount can be specified in millimeters or as a percentage of the current layer height. The default value for this parameter is 0.",
+        "enabled": "true",
+        "label": "Scarf start height",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloatOrPercent",
+        "unit": "mm or %"
+    },
+    "seam_slope_steps": {
+        "default_value": "10",
+        "description": "Minimum number of segments of each scarf.",
+        "enabled": "true",
+        "label": "Scarf steps",
+        "minimum_value": "1",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": ""
+    },
+    "seam_slope_type": {
+        "default_value": "none",
+        "description": "Use scarf joint to minimize seam visibility and increase seam strength.",
+        "enabled": "true",
+        "label": "Scarf joint seam (beta)",
+        "options": {
+            "none": "None",
+            "external": "Contour",
+            "all": "Contour and hole"
+        },
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coEnum",
         "unit": ""
@@ -4499,7 +4909,7 @@
     },
     "slow_down_min_speed": {
         "default_value": "10",
-        "description": "The minimum printing speed for the filament when slow down for better layer cooling is enabled, when printing overhangs and when feature speeds are not specified explicitly.",
+        "description": "The minimum printing speed that the printer will slow down to to attempt to maintain the minimum layer time above, when slow down for better layer cooling is enabled.",
         "enabled": "true",
         "label": "Min print speed",
         "minimum_value": "0",
@@ -4520,6 +4930,30 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coBool",
+        "unit": ""
+    },
+    "small_area_infill_flow_compensation": {
+        "default_value": "0",
+        "description": "Enable flow compensation for small infill areas",
+        "enabled": "true",
+        "label": "Small area flow compensation (beta)",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "small_area_infill_flow_compensation_model": {
+        "default_value": "0,0;\"\\n0.2,0.4444\";\"\\n0.4,0.6145\";\"\\n0.6,0.7059\";\"\\n0.8,0.7619\";\"\\n1.5,0.8571\";\"\\n2,0.8889\";\"\\n3,0.9231\";\"\\n5,0.9520\";\"\\n10,1\"",
+        "description": "Flow Compensation Model, used to adjust the flow for small infill areas. The model is expressed as a comma separated pair of values for extrusion length and flow correction factors, one per line, in the following format: \"1.234,5.678\"",
+        "enabled": "true",
+        "label": "Flow Compensation Model",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coStrings",
         "unit": ""
     },
     "small_perimeter_speed": {
@@ -4572,7 +5006,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloatOrPercent",
-        "unit": "mm/s2 or %"
+        "unit": "mm/s² or %"
     },
     "sparse_infill_density": {
         "default_value": "20%",
@@ -4621,27 +5055,29 @@
         "enabled": "true",
         "label": "Sparse infill pattern",
         "options": {
-            "concentric": "Concentric",
-            "zig-zag": "Rectilinear",
-            "grid": "Grid",
-            "line": "Line",
-            "cubic": "Cubic",
-            "triangles": "Triangles",
-            "tri-hexagon": "Tri-hexagon",
-            "gyroid": "Gyroid",
-            "honeycomb": "Honeycomb",
-            "adaptivecubic": "Adaptive Cubic",
-            "alignedrectilinear": "Aligned Rectilinear",
-            "3dhoneycomb": "3D Honeycomb",
-            "hilbertcurve": "Hilbert Curve",
-            "archimedeanchords": "Archimedean Chords",
-            "octagramspiral": "Octagram Spiral",
-            "supportcubic": "Support Cubic",
-            "lightning": "Lightning",
-            "cross": "Cross",
-            "cross3d": "Cross 3D",
-            "quarter_cubic": "Quarter Cubic",
-            "tetrahedral": "Octet"
+            "concentric": "concentric",
+            "zig-zag": "zig-zag",
+            "grid": "grid",
+            "line": "line",
+            "cubic": "cubic",
+            "triangles": "triangles",
+            "tri-hexagon": "tri-hexagon",
+            "gyroid": "gyroid",
+            "honeycomb": "honeycomb",
+            "adaptivecubic": "adaptivecubic",
+            "alignedrectilinear": "alignedrectilinear",
+            "3dhoneycomb": "3dhoneycomb",
+            "hilbertcurve": "hilbertcurve",
+            "archimedeanchords": "archimedeanchords",
+            "octagramspiral": "octagramspiral",
+            "supportcubic": "supportcubic",
+            "lightning": "lightning",
+            "cross": "cross",
+            "cross3d": "cross3d",
+            "quarter_cubic": "quarter_cubic",
+            "tetrahedral": "tetrahedral",
+            "Cross": "Cross",
+            "Cross3d": "Cross3d"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -4662,6 +5098,30 @@
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm/s"
+    },
+    "speed_limit_to_height": {
+        "default_value": "",
+        "description": "Height limit speed and acceleration",
+        "enabled": "true",
+        "label": "Height limit speed and acceleration",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coString",
+        "unit": "[[mm,mm,mm/s,mm/s²]]"
+    },
+    "speed_limit_to_height_enable": {
+        "default_value": "0",
+        "description": "Height limit speed and acceleration Enable",
+        "enabled": "true",
+        "label": "Height limit speed and acceleration Enable",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
     },
     "spiral_mode": {
         "default_value": "0",
@@ -4725,7 +5185,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coInt",
-        "unit": ".C"
+        "unit": "∆°C"
     },
     "start_end_points": {
         "default_value": "30x-3,54x245",
@@ -4763,24 +5223,27 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "support_base_pattern": {
-        "default_value": "rectilinear",
+        "default_value": "default",
         "description": "Line pattern of support",
         "enabled": "true",
         "label": "Base pattern",
         "options": {
-            "default": "Default",
-            "rectilinear": "Rectilinear",
-            "rectilinear-grid": "Rectilinear grid",
-            "honeycomb": "Honeycomb",
-            "lightning": "Lightning",
-            "hollow": "Hollow",
-            "cross": "Cross",
-            "gyroid": "Gyroid",
-            "triangles": "Triangles",
-            "zigzag": "Zig Zag"
+            "default": "default",
+            "rectilinear": "rectilinear",
+            "rectilinear-grid": "rectilinear-grid",
+            "honeycomb": "honeycomb",
+            "lightning": "lightning",
+            "hollow": "hollow",
+            "cross": "cross",
+            "gyroid": "gyroid",
+            "triangles": "triangles",
+            "zigzag": "zigzag",
+            "Gyroid": "Gyroid",
+            "Triangles": "Triangles",
+            "Zig Zag": "Zig Zag"
         },
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -5122,7 +5585,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coInt",
-        "unit": "."
+        "unit": "°"
     },
     "support_top_z_distance": {
         "default_value": "0.2",
@@ -5191,7 +5654,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "textured_plate_temp_initial_layer": {
         "default_value": "45",
@@ -5205,7 +5668,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coInts",
-        "unit": ".C"
+        "unit": "°C"
     },
     "thick_bridges": {
         "default_value": "0",
@@ -5252,7 +5715,7 @@
             "PNG": "PNG",
             "JPG": "JPG",
             "QOI": "QOI",
-            "BTT TFT": "BTT TT",
+            "BTT_TFT": "BTT_TFT",
             "CR_PNG": "CR_PNG",
             "ColPic": "ColPic"
         },
@@ -5355,7 +5818,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "top_surface_jerk": {
         "default_value": "9",
@@ -5430,7 +5893,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "mm/s2"
+        "unit": "mm/s²"
     },
     "travel_jerk": {
         "default_value": "12",
@@ -5495,7 +5958,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "tree_support_auto_brim": {
         "default_value": "1",
@@ -5521,7 +5984,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "tree_support_branch_angle_organic": {
         "default_value": "40",
@@ -5535,7 +5998,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "tree_support_branch_diameter": {
         "default_value": "5",
@@ -5563,7 +6026,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "tree_support_branch_diameter_double_wall": {
         "default_value": "3",
@@ -5663,9 +6126,9 @@
     },
     "tree_support_wall_count": {
         "default_value": "1",
-        "description": "This setting specify the count of walls around tree support",
+        "description": "This setting specify the count of walls around support",
         "enabled": "true",
-        "label": "Tree support wall loops",
+        "label": "Support wall loops",
         "minimum_value": "0",
         "settable_globally": "true",
         "settable_per_extruder": "true",
@@ -5712,7 +6175,7 @@
     },
     "use_relative_e_distances": {
         "default_value": "1",
-        "description": "Relative extrusion is recommended when using \"label_objects\" option.Some extruders work better with this option unckecked (absolute extrusion mode). Wipe tower is only compatible with relative mode. It is always enabled on BambuLab printers. Default is checked",
+        "description": "Relative extrusion is recommended when using \"label_objects\" option.Some extruders work better with this option unckecked (absolute extrusion mode). Wipe tower is only compatible with relative mode. It is recommended on most printers. Default is checked",
         "enabled": "true",
         "label": "Use relative E distances",
         "settable_globally": "false",
@@ -5720,6 +6183,23 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBool",
+        "unit": ""
+    },
+    "wall_direction": {
+        "default_value": "auto",
+        "description": "The direction which the wall loops are extruded when looking down from the top.\n\nBy default all walls are extruded in counter-clockwise, unless Reverse on odd is enabled. Set this to any option other than Auto will force the wall direction regardless of the Reverse on odd.\n\nThis option will be disabled if sprial vase mode is enabled.",
+        "enabled": "true",
+        "label": "Wall loop direction",
+        "options": {
+            "auto": "Auto",
+            "ccw": "Counter clockwise",
+            "cw": "Clockwise"
+        },
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coEnum",
         "unit": ""
     },
     "wall_distribution_count": {
@@ -5807,7 +6287,7 @@
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "wall_transition_filter_deviation": {
         "default_value": "25%",
@@ -5921,7 +6401,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "wipe_tower_extra_spacing": {
         "default_value": "100%",
@@ -5954,7 +6434,7 @@
         "default_value": "0",
         "description": "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print.",
         "enabled": "true",
-        "label": "No sparse layers (EXPERIMENTAL)",
+        "label": "No sparse layers (beta)",
         "settable_globally": "true",
         "settable_per_extruder": "true",
         "settable_per_mesh": "false",
@@ -5972,7 +6452,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coFloat",
-        "unit": "."
+        "unit": "°"
     },
     "wipe_tower_x": {
         "default_value": "15",

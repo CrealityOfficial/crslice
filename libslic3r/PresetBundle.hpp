@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <array>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -91,6 +92,7 @@ public:
     VendorType get_current_vendor_type();
     // Vendor related handy functions
     bool is_bbl_vendor() { return get_current_vendor_type() == VendorType::Marlin_BBL; }
+    bool use_bbl_network();
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
@@ -115,6 +117,9 @@ public:
     void           update_selections(AppConfig &config);
     void set_calibrate_printer(std::string name);
 
+    void set_is_validation_mode(bool mode) { validation_mode = mode; }
+    void set_vendor_to_validate(std::string vendor) { vendor_to_validate = vendor; }
+
     PresetCollection            prints;
     PresetCollection            sla_prints;
     PresetCollection            filaments;
@@ -128,6 +133,7 @@ public:
     std::vector<std::string>    filament_presets;
     // BBS: ams
     std::map<int, DynamicPrintConfig> filament_ams_list;
+    std::vector<std::vector<std::string>> ams_multi_color_filment;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;
@@ -247,6 +253,21 @@ public:
 	static const char *BBL_DEFAULT_PRINTER_MODEL;
 	static const char *BBL_DEFAULT_PRINTER_VARIANT;
 	static const char *BBL_DEFAULT_FILAMENT;
+
+    static std::array<Preset::Type, 3>  types_list(PrinterTechnology pt) {
+        if (pt == ptFFF)
+            return  { Preset::TYPE_PRINTER, Preset::TYPE_PRINT, Preset::TYPE_FILAMENT };
+        return      { Preset::TYPE_PRINTER, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL };
+    }
+
+    // Orca: for validation only
+    bool has_errors() const
+    {
+        if (m_errors != 0 || printers.m_errors != 0 || filaments.m_errors != 0 || prints.m_errors != 0)
+            return true;
+        return false;
+    }
+
 private:
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic
@@ -270,6 +291,12 @@ private:
 
     DynamicPrintConfig          full_fff_config() const;
     DynamicPrintConfig          full_sla_config() const;
+
+    // Orca: used for validation only
+    bool validation_mode = false;
+    std::string vendor_to_validate = ""; 
+    int m_errors = 0;
+
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)

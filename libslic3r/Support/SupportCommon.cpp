@@ -2,8 +2,6 @@
 ///|/
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
-/// 
-#include <clipper/clipper_z.hpp> 
 #include "../ClipperUtils.hpp"
 // #include "../ClipperZUtils.hpp"
 #include "../ExtrusionEntityCollection.hpp"
@@ -13,6 +11,7 @@
 #include "../MutablePolygon.hpp"
 #include "../Geometry.hpp"
 #include "../Point.hpp"
+#include "clipper/clipper_z.hpp"
 
 #include <cmath>
 #include <boost/container/static_vector.hpp>

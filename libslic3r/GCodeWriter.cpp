@@ -284,7 +284,7 @@ std::string GCodeWriter::set_jerk_xy(double jerk)
     else
         gcode << "M205 X" << jerk << " Y" << jerk;
       
-    if (m_is_bbl_printers && m_printer_model_bbl)
+    if (m_is_bbl_printers)
         gcode << std::setprecision(2) << " Z" << m_max_jerk_z << " E" << m_max_jerk_e;
 
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust jerk";
@@ -341,7 +341,7 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     std::ostringstream gcode;
     if (pa < 0)
         return gcode.str();
-    if(m_is_bbl_printers && m_printer_model_bbl){
+    if(m_is_bbl_printers){
         //SoftFever: set L1000 to use linear model
         gcode << "M900 K" <<std::setprecision(4)<< pa << " L1000 M10 ; Override pressure advance value\n";
     }

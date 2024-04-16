@@ -166,7 +166,7 @@ unsigned get_logging_level()
 // to perform unit and integration tests.
 static struct RunOnInit {
     RunOnInit() {
-        set_logging_level(1);
+        set_logging_level(2);
 
     }
 } g_RunOnInit;
@@ -259,6 +259,18 @@ void set_sys_shapes_dir(const std::string &dir)
 const std::string& sys_shapes_dir()
 {
 	return g_sys_shapes_dir;
+}
+
+static std::string g_custom_gcodes_dir;
+
+void set_custom_gcodes_dir(const std::string &dir)
+{
+    g_custom_gcodes_dir = dir;
+}
+
+const std::string& custom_gcodes_dir()
+{
+    return g_custom_gcodes_dir;
 }
 
 // Translate function callback, to call wxWidgets translate function to convert non-localized UTF8 string to a localized one.
@@ -1321,7 +1333,7 @@ std::string format_memsize_MB(size_t n)
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
-    if (ignore_loglevel ) {
+    if (ignore_loglevel) {
 #ifdef WIN32
     #ifndef PROCESS_MEMORY_COUNTERS_EX
         // MingW32 doesn't have this struct in psapi.h
@@ -1493,7 +1505,7 @@ bool bbl_calc_md5(std::string &filename, std::string &md5_out)
 }
 
 // SoftFever: copy directory recursively
-void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target)
+void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target, std::function<bool(const std::string)> filter)
 {
     BOOST_LOG_TRIVIAL(info) << format("copy_directory_recursively %1% -> %2%", source, target);
     std::string error_message;
@@ -1512,6 +1524,8 @@ void copy_directory_recursively(const boost::filesystem::path &source, const boo
             copy_directory_recursively(dir_entry, target_path);
         }
         else {
+			if(filter && filter(name))
+				continue;
             CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
             if (cfr != CopyFileResult::SUCCESS) {
                 BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;

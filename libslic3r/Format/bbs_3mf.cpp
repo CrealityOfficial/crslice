@@ -31,6 +31,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/spirit/include/karma.hpp>
@@ -45,8 +46,9 @@
 
 namespace pt = boost::property_tree;
 
-#include <tbb/parallel_reduce.h>
+#include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <tbb/parallel_reduce.h>
 
 #include <expat.h>
 #include <Eigen/Dense>
@@ -138,6 +140,9 @@ const std::string BBL_REGION_TAG                    = "Region";
 const std::string BBL_MODIFICATION_TAG              = "ModificationDate";
 const std::string BBL_CREATION_DATE_TAG             = "CreationDate";
 const std::string BBL_APPLICATION_TAG               = "Application";
+const std::string BBL_MAKERLAB_TAG                  = "MakerLab";
+const std::string BBL_MAKERLAB_VERSION_TAG          = "MakerLabVersion";
+
 
 const std::string BBL_PROFILE_TITLE_TAG             = "ProfileTitle";
 const std::string BBL_PROFILE_COVER_TAG             = "ProfileCover";
@@ -1719,18 +1724,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             project->project_country_code = m_contry_code;
         }
 
-        //BBS: version check
+        // Orca: skip version check
         bool dont_load_config = !m_load_config;
-        if (m_bambuslicer_generator_version) {
-            Semver app_version = *(Semver::parse(SoftFever_VERSION));
-            Semver file_version = *m_bambuslicer_generator_version;
-            if (file_version.maj() != app_version.maj())
-                dont_load_config = true;
-        }
-        else {
-            m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
-            dont_load_config = true;
-        }
+        // if (m_bambuslicer_generator_version) {
+        //     Semver app_version = *(Semver::parse(SoftFever_VERSION));
+        //     Semver file_version = *m_bambuslicer_generator_version;
+        //     if (file_version.maj() != app_version.maj())
+        //         dont_load_config = true;
+        // }
+        // else {
+        //     m_bambuslicer_generator_version = Semver::parse("0.0.0.0");
+        //     dont_load_config = true;
+        // }
 
         // we then loop again the entries to read other files stored in the archive
         for (mz_uint i = 0; i < num_entries; ++i) {
@@ -5897,7 +5902,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
 
             // Adds slic3r print config file ("Metadata/Slic3r_PE.config").
-            // This file contains the content of FullPrintConfing / SLAFullPrintConfig.
+            // This file contains the content of FullPrintConfig / SLAFullPrintConfig.
             if (config != nullptr) {
                 // BBS: change to json format
                 // if (!_add_print_config_file_to_archive(archive, *config)) {
@@ -6385,6 +6390,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_APPLICATION_TAG] = (boost::format("%1%-%2%") % "BambuStudio" % SoftFever_VERSION).str();
             }
             metadata_item_map[BBS_3MF_VERSION] = std::to_string(VERSION_BBS_3MF);
+
+            if (!model.mk_name.empty()) {
+                metadata_item_map[BBL_MAKERLAB_TAG] = xml_escape(model.mk_name);
+                BOOST_LOG_TRIVIAL(info) << "saved mk_name " << model.mk_name;
+            }
+            if (!model.mk_version.empty()) {
+                metadata_item_map[BBL_MAKERLAB_VERSION_TAG] = xml_escape(model.mk_version);
+                BOOST_LOG_TRIVIAL(info) << "saved mk_version " << model.mk_version;
+            }
 
             // store metadata info
             for (auto item : metadata_item_map) {

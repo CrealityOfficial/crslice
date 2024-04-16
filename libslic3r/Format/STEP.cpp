@@ -5,6 +5,12 @@
 #include "STEP.hpp"
 
 #include <string>
+#include <boost/nowide/cstdio.hpp>
+#include <boost/nowide/iostream.hpp>
+#include <boost/nowide/fstream.hpp>
+
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
@@ -27,10 +33,6 @@
 #include "TopExp_Explorer.hxx"
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
-
-#include <boost/nowide/fstream.hpp>
-#include <boost/nowide/cstdio.hpp>
-#include <tbb/parallel_for.h>
 
 const double STEP_TRANS_CHORD_ERROR = 0.003;
 const double STEP_TRANS_ANGLE_RES = 0.5;
@@ -207,6 +209,9 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
             break;
         case TopAbs_SOLID:
             namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName);
+            break;
+        case TopAbs_SHELL:
+            namedSolids.emplace_back(TopoDS::Shell(transform.Shape()), fullName);
             break;
         default:
             break;

@@ -180,6 +180,8 @@ set(lisbslic3r_sources
     GCode/ConflictChecker.hpp
 	GCode/smoothspeedandacc.h
 	GCode/smoothspeedandacc.cpp
+	GCode/SmallAreaInfillFlowCompensator.hpp
+	GCode/SmallAreaInfillFlowCompensator.cpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp
