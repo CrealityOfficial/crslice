@@ -37,7 +37,7 @@
     },
 	"material_flow_temp_graph": {
         "default_value": "[[3.0,210],[10.0,220],[12.0,230]]",
-        "description": "Print Speed Limit to Height",
+        "description": "Correspondence between flow rate (mm2/s) and printing temperature (°C).",
         "enabled": "true",
         "label": "Flow Temperature Graph",
         "settable_globally": "false",
