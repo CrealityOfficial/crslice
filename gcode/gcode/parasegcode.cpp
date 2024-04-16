@@ -2063,16 +2063,16 @@ namespace gcode
         iter = kvs.find("LAYER_HEIGHT");
         if (iter != kvs.end())
         {
-            //orca当每一层有多个层高修改时，只取第一次的层高值， 表现：悬空层预览断层
-            if (gCodeProcessor.sliceCompany == SliceCompany::bambu)
-            {
-                if (gCodeProcessor.isFirstLayerHeight)
-                {
-                    pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
-                    gCodeProcessor.isFirstLayerHeight = false;
-                }
-            }
-            else
+            ////orca当每一层有多个层高修改时，只取第一次的层高值， 表现：悬空层预览断层
+            //if (gCodeProcessor.sliceCompany == SliceCompany::bambu)
+            //{
+            //    if (gCodeProcessor.isFirstLayerHeight)
+            //    {
+            //        pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
+            //        gCodeProcessor.isFirstLayerHeight = false;
+            //    }
+            //}
+            //else
                 pathData->setZ(std::atof(iter->second.c_str()), std::atof(iter->second.c_str()));
 
             kvs.erase(iter);
