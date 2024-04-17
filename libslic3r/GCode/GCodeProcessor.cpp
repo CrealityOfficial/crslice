@@ -396,7 +396,7 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num)
+void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num, float filament_used)
 {
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
     if (in.f == nullptr)
@@ -514,6 +514,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
+                        
 						if(!s_IsBBLPrinter)
                             // SoftFever: compatibility with klipper_estimator
                             sprintf(buf, "; estimated printing time (normal mode) = %s\n", get_time_dhms(machine.time).c_str());
@@ -524,6 +525,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
                                 get_time_dhms(machine.time - machine.prepare_time).c_str(),
                                 get_time_dhms(machine.time).c_str());
+
+                        char buf1[128];
+                        char buf2[128];
+                        sprintf(buf1, "; total estimated time: %s\n",get_time_dhms(machine.time).c_str());
+                        sprintf(buf2, "; filament used [mm]: %0.2f\n", filament_used);
+                        ret += buf1;
+                        ret += buf2;
                         }
                         ret += buf;
                     }
@@ -1624,7 +1632,7 @@ float GCodeProcessor::layer_flow()
     return m_used_filaments.model_extrude_cache;
 }
 
-void GCodeProcessor::finalize(bool post_process)
+void GCodeProcessor::finalize(bool post_process, float filament_used)
 {
     // update width/height of wipe moves
     for (GCodeProcessorResult::MoveVertex& move : m_result.moves) {
@@ -1669,7 +1677,7 @@ void GCodeProcessor::finalize(bool post_process)
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     if (post_process){
-        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
+        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id, filament_used);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
