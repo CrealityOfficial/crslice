@@ -253,7 +253,7 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 	}
 
 	stl_get_size(&stl);
-	tmesh.from_stl(stl);
+	tmesh.from_stl(stl,true);
 }
 
 Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::ConfigOptionDef* cDef)
