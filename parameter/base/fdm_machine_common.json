@@ -1663,7 +1663,7 @@
         "enabled": "true",
         "label": "Type",
         "options": {
-            "PLA": "PLA",
+           "PLA": "PLA",
             "ABS": "ABS",
             "ASA": "ASA",
             "PETG": "PETG",
@@ -1674,14 +1674,15 @@
             "PA6-CF": "PA6-CF",
             "PLA-CF": "PLA-CF",
             "PET-CF": "PET-CF",
+            "PET": "PET",
             "PETG-CF": "PETG-CF",
             "PVA": "PVA",
             "HIPS": "HIPS",
-            "PLA-AERO": "PLA-AERO",
+            "BVOH": "BVOH",
             "PPS": "PPS",
+            "PP": "PP",
             "PPS-CF": "PPS-CF",
-            "PPA-CF": "PPA-CF",
-            "PPA-GF": "PPA-GF"
+            "PAHT-CF": "PAHT-CF"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
