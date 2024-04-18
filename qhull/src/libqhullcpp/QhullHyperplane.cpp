@@ -17,7 +17,7 @@
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Constructors
 
@@ -150,12 +150,12 @@ norm() const {
     return sqrt(d);
 }//norm
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::ostream;
-using orgQhull::QhullHyperplane;
+using orgQQhull::QhullHyperplane;
 
 #//!\name GetSet<<
 

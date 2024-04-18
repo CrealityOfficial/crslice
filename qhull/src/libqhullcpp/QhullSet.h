@@ -23,7 +23,7 @@
  #include <QtCore/QList>
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class Qhull;
@@ -442,14 +442,14 @@ findPrevious(const T &t)
     return false;
 }//findPrevious
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 
 #//!\name == Global namespace =========================================
 
 template <typename T>
 std::ostream &
-operator<<(std::ostream &os, const orgQhull::QhullSet<T> &qs)
+operator<<(std::ostream &os, const orgQQhull::QhullSet<T> &qs)
 {
     const typename T::base_type *i= qs.data();
     const typename T::base_type *e= qs.endData();

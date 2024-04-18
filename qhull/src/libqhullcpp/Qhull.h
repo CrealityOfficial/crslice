@@ -13,7 +13,7 @@
 #include "libqhullcpp/QhullVertex.h"
 #include "libqhullcpp/QhullFacet.h"
 
-namespace orgQhull {
+namespace orgQQhull {
 
 /***
    Compile qhullcpp and libqhull with the same compiler.  setjmp() and longjmp() must be the same.
@@ -127,6 +127,6 @@ private:
     void                initializeFeasiblePoint(int hulldim);
 };//Qhull
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #endif // QHULLCPP_H

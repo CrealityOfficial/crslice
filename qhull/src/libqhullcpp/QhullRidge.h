@@ -17,7 +17,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class Qhull;
@@ -104,9 +104,9 @@ public:
     PrintRidge          print(const char* message) const { return PrintRidge(message, *this); }
 };//class QhullRidge
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullRidge &r);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullRidge::PrintRidge &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullRidge &r);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullRidge::PrintRidge &pr);
 
 #endif // QHULLRIDGE_H

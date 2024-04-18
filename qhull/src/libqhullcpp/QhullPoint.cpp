@@ -17,7 +17,7 @@
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Constructors
 
@@ -161,12 +161,12 @@ distance(const QhullPoint &p) const
     return sqrt(dist);
 }//distance
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::ostream;
-using orgQhull::QhullPoint;
+using orgQQhull::QhullPoint;
 
 //! Same as qh_printpointid [io.c]
 ostream &

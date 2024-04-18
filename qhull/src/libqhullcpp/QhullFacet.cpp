@@ -29,7 +29,7 @@ using std::ostream;
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Class objects
 facetT QhullFacet::
@@ -200,20 +200,20 @@ vertices() const
     return QhullVertexSet(qh_qh, qh_facet->vertices);
 }//vertices
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name operator<<
 
 using std::ostream;
 
-using orgQhull::QhullFacet;
-using orgQhull::QhullFacetSet;
-using orgQhull::QhullPoint;
-using orgQhull::QhullPointSet;
-using orgQhull::QhullRidge;
-using orgQhull::QhullRidgeSet;
-using orgQhull::QhullSetBase;
-using orgQhull::QhullVertexSet;
+using orgQQhull::QhullFacet;
+using orgQQhull::QhullFacetSet;
+using orgQQhull::QhullPoint;
+using orgQQhull::QhullPointSet;
+using orgQQhull::QhullRidge;
+using orgQQhull::QhullRidgeSet;
+using orgQQhull::QhullSetBase;
+using orgQQhull::QhullVertexSet;
 
 ostream &
 operator<<(ostream &os, const QhullFacet::PrintFacet &pr)

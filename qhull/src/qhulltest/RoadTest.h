@@ -15,7 +15,7 @@
 
 #define QHULL_USES_QT 1
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
 
@@ -85,7 +85,7 @@ public:
 #define TESTadd_(t) extern void t(); t();
 
 
-}//orgQhull
+}//orgQQhull
 
 namespace QTest{
 

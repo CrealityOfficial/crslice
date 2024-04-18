@@ -22,7 +22,7 @@ using std::ws;
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//! PointCoordinates -- vector of PointCoordinates
 
@@ -313,15 +313,15 @@ indexOffset(countT i) const {
     return n;
 }
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::endl;
 using std::ostream;
 
-using orgQhull::Coordinates;
-using orgQhull::PointCoordinates;
+using orgQQhull::Coordinates;
+using orgQQhull::PointCoordinates;
 
 ostream&
 operator<<(ostream &os, const PointCoordinates &p)

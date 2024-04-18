@@ -17,7 +17,7 @@
 #include <assert.h>
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! QhullError -- std::exception class for Qhull
@@ -53,10 +53,10 @@ public:
 };//class QhullError
 
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-inline std::ostream &operator<<(std::ostream &os, const orgQhull::QhullError &e) { return os << e.what(); }
+inline std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullError &e) { return os << e.what(); }
 
 #endif // QHULLERROR_H

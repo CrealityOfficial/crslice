@@ -29,7 +29,7 @@ using std::ostream;
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Global variables
 
@@ -354,5 +354,5 @@ initializeFeasiblePoint(int hulldim)
     }
 }//initializeFeasiblePoint
 
-}//namespace orgQhull
+}//namespace orgQQhull
 

@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! Only QHULL_DECLARE_SEQUENTIAL_ITERATOR is used in libqhullcpp.  The others need further development
@@ -167,7 +167,7 @@ public: \
       n = c->end(); return false;  } \
 };//QhullMutable##C##Iterator
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #endif // QHULLITERATOR_H
 

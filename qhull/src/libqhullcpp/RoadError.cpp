@@ -22,7 +22,7 @@ using std::string;
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Class fields
 
@@ -154,5 +154,5 @@ logErrorLastResort() const
 }//logError
 
 
-}//namespace orgQhull
+}//namespace orgQQhull
 

@@ -17,7 +17,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class Coordinates;
@@ -137,15 +137,15 @@ public:
 
 };//class QhullFacet
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacet::PrintFacet &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacet::PrintCenter &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacet::PrintFlags &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacet::PrintHeader &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacet::PrintRidges &pr);
-std::ostream &operator<<(std::ostream &os, orgQhull::QhullFacet &f); // non-const due to qh_getcenter()
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacet::PrintFacet &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacet::PrintCenter &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacet::PrintFlags &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacet::PrintHeader &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacet::PrintRidges &pr);
+std::ostream &operator<<(std::ostream &os, orgQQhull::QhullFacet &f); // non-const due to qh_getcenter()
 
 #endif // QHULLFACET_H

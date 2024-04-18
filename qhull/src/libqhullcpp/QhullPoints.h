@@ -15,7 +15,7 @@
 #include <cstddef>  // ptrdiff_t, size_t
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     class QhullPoints;          //!< One or more points Coordinate pointers with dimension and iterators
@@ -256,11 +256,11 @@ public:
     void                toFront() { i = ps->constBegin(); }
 };//QhullPointsIterator
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &          operator<<(std::ostream &os, const orgQhull::QhullPoints &p);
-std::ostream &          operator<<(std::ostream &os, const orgQhull::QhullPoints::PrintPoints &pr);
+std::ostream &          operator<<(std::ostream &os, const orgQQhull::QhullPoints &p);
+std::ostream &          operator<<(std::ostream &os, const orgQQhull::QhullPoints::PrintPoints &pr);
 
 #endif // QHULLPOINTS_H

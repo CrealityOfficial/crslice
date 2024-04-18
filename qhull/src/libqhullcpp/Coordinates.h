@@ -18,7 +18,7 @@
 // Requires STL vector class.  Can use with another vector class such as QList.
 #include <vector>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! An std::vector of point coordinates independent of dimension
@@ -294,10 +294,10 @@ public:
 };//MutableCoordinatesIterator
 
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::Coordinates &c);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::Coordinates &c);
 
 #endif // QHCOORDINATES_H

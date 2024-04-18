@@ -14,19 +14,19 @@
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 // Implemented via QhullSet.h
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::endl;
 using std::ostream;
-using orgQhull::QhullPoint;
-using orgQhull::QhullPointSet;
-using orgQhull::QhullPointSetIterator;
+using orgQQhull::QhullPoint;
+using orgQQhull::QhullPointSet;
+using orgQQhull::QhullPointSetIterator;
 
 ostream &
 operator<<(ostream &os, const QhullPointSet::PrintIdentifiers &pr)

@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
 
@@ -60,7 +60,7 @@ public:
 };//SumSquaresOf
 
 
-}//orgQhull
+}//orgQQhull
 
 
 #endif //QHFUNCTIONOBJECTS_H

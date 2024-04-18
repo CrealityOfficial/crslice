@@ -11,7 +11,7 @@
 
 #include "libqhullcpp/QhullSet.h"
 
-namespace orgQhull {
+namespace orgQQhull {
 
     //See: QhullFacetSet.h
     //See: QhullPointSet.h
@@ -22,6 +22,6 @@ namespace orgQhull {
     typedef QhullSet<QhullRidge>  QhullRidgeSet;
     typedef QhullSetIterator<QhullRidge>  QhullRidgeSetIterator;
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #endif // QHULLSETS_H

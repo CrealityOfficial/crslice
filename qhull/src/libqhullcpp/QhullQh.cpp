@@ -29,7 +29,7 @@ using std::ostream;
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Global variables
 const double QhullQh::
@@ -183,7 +183,7 @@ setOutputStream(ostream *os)
     use_output_stream= (os!=0);
 }//setOutputStream
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 /*-<a                             href="qh_qh-user.htm#TOC"
  >-------------------------------</a><a name="qh_fprintf">-</a>
@@ -201,7 +201,7 @@ extern "C"
 void qh_fprintf(qhT *qh, FILE *fp, int msgcode, const char *fmt, ... ) {
     va_list args;
 
-    using namespace orgQhull;
+    using namespace orgQQhull;
 
     if(!qh->ISqhullQh){
         qh_fprintf_stderr(10025, "Qhull error: qh_fprintf called from a Qhull instance without QhullQh defined\n");
