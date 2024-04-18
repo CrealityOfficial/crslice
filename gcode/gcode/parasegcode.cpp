@@ -954,7 +954,7 @@ namespace gcode
             Stringsplit(iter->second, ',', _kvs);
             for (auto& v : _kvs)
             {
-                filament_len += std::atof(_kvs[0].c_str());
+                filament_len += std::atof(v.c_str());
             }
             iter->second = std::to_string(filament_len);
         }
@@ -2882,6 +2882,7 @@ namespace gcode
             {
                 fgets(_line, 1024, gcode_file);
                 std::string line(_line);
+
                 lines_processed_++;
                 bool isLayer = false;
                 cmd.clear();
