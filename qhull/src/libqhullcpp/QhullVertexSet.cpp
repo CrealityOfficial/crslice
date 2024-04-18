@@ -24,7 +24,7 @@ using std::vector;
                                     /* setjmp should not be implemented with 'catch' */
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 QhullVertexSet::
 QhullVertexSet(const Qhull &q, facetT *facetlist, setT *facetset, bool allfacets)
@@ -117,16 +117,16 @@ toStdVector() const
 }//toStdVector
 #endif //QHULL_NO_STL
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::endl;
 using std::ostream;
-using orgQhull::QhullPoint;
-using orgQhull::QhullVertex;
-using orgQhull::QhullVertexSet;
-using orgQhull::QhullVertexSetIterator;
+using orgQQhull::QhullPoint;
+using orgQQhull::QhullVertex;
+using orgQQhull::QhullVertexSet;
+using orgQQhull::QhullVertexSetIterator;
 
 //! Print Vertex identifiers to stream.  Space prefix.  From qh_printVertexheader [io_r.c]
 ostream &

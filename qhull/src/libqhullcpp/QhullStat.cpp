@@ -23,7 +23,7 @@ using std::ostream;
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Constructor, destructor, etc.
 
@@ -38,5 +38,5 @@ QhullStat::
 {
 }//~QhullStat
 
-}//namespace orgQhull
+}//namespace orgQQhull
 

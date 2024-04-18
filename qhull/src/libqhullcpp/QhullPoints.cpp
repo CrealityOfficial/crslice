@@ -19,7 +19,7 @@
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Constructors
 
@@ -284,14 +284,14 @@ findPrevious(const QhullPoint &p)
     return false;
 }//findPrevious
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::ostream;
-using orgQhull::QhullPoint;
-using orgQhull::QhullPoints;
-using orgQhull::QhullPointsIterator;
+using orgQQhull::QhullPoint;
+using orgQQhull::QhullPoints;
+using orgQQhull::QhullPointsIterator;
 
 ostream &
 operator<<(ostream &os, const QhullPoints &p)

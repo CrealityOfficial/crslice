@@ -25,7 +25,7 @@ using std::ws;
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//! RboxPoints -- generate random PointCoordinates for qhull (rbox)
 
@@ -141,7 +141,7 @@ appendPoints(const char *rboxCommand)
     }
 }//appendPoints
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
@@ -163,7 +163,7 @@ extern "C"
 void qh_fprintf_rbox(qhT *qh, FILE*, int msgcode, const char *fmt, ... ) {
     va_list args;
 
-    using namespace orgQhull;
+    using namespace orgQQhull;
 
     if(!qh->cpp_object){
         qh_errexit_rbox(qh, 10072);

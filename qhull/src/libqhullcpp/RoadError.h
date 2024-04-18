@@ -19,7 +19,7 @@
 
 using std::endl;
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! RoadError -- Report and log errors
@@ -79,10 +79,10 @@ public:
     void                logErrorLastResort() const;
 };//class RoadError
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-inline std::ostream &   operator<<(std::ostream &os, const orgQhull::RoadError &e) { return os << e.what(); }
+inline std::ostream &   operator<<(std::ostream &os, const orgQQhull::RoadError &e) { return os << e.what(); }
 
 #endif // ROADERROR_H

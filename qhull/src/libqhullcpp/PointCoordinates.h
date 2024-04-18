@@ -20,7 +20,7 @@
 #include <vector>
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! QhullPoints with Coordinates and description
@@ -152,10 +152,10 @@ public:
 
 // FIXUP QH11002:  Add MutablePointCoordinatesIterator after adding modify operators
 \
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &          operator<<(std::ostream &os, const orgQhull::PointCoordinates &p);
+std::ostream &          operator<<(std::ostream &os, const orgQQhull::PointCoordinates &p);
 
 #endif // QHPOINTCOORDINATES_H

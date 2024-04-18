@@ -23,7 +23,7 @@ using std::vector;
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Constructors
 
@@ -117,16 +117,16 @@ count(const QhullFacet &facet) const
     return counter;
 }//count
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::endl;
 using std::ostream;
-using orgQhull::QhullFacet;
-using orgQhull::QhullFacetList;
-using orgQhull::QhullVertex;
-using orgQhull::QhullVertexSet;
+using orgQQhull::QhullFacet;
+using orgQQhull::QhullFacetList;
+using orgQQhull::QhullVertex;
+using orgQQhull::QhullVertexSet;
 
 ostream &
 operator<<(ostream &os, const QhullFacetList::PrintFacetList &pr)

@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! RoadLogEvent -- Record an event for the RoadLog
@@ -72,6 +72,6 @@ private:
 
 };//class RoadLogEvent
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #endif // ROADLOGEVENT_H

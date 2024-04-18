@@ -16,7 +16,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class QhullFacetSet;
@@ -94,11 +94,11 @@ public:
     PrintVertex         print(const char *message) const { return PrintVertex(message, *this); }
 };//class QhullVertex
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name GLobal
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullVertex::PrintVertex &pr);
-inline std::ostream &operator<<(std::ostream &os, const orgQhull::QhullVertex &v) { os << v.print(""); return os; }
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullVertex::PrintVertex &pr);
+inline std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullVertex &v) { os << v.print(""); return os; }
 
 #endif // QHULLVERTEX_H

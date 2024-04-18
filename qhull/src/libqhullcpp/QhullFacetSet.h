@@ -14,7 +14,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class Qhull;
@@ -86,12 +86,12 @@ public:
 
 };//class QhullFacetSet
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name == Global namespace =========================================
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacetSet &fs);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacetSet::PrintFacetSet &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacetSet::PrintIdentifiers &p);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacetSet &fs);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacetSet::PrintFacetSet &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacetSet::PrintIdentifiers &p);
 
 #endif // QHULLFACETSET_H

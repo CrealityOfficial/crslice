@@ -18,7 +18,7 @@
 #include <vector>
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class Qhull;
@@ -94,13 +94,13 @@ public:
     PrintVertices       printVertices() const { return PrintVertices(*this); }
 };//class QhullFacetList
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name == Global namespace =========================================
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacetList::PrintFacetList &p);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacetList::PrintFacets &p);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacetList::PrintVertices &p);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullFacetList &fs);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacetList::PrintFacetList &p);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacetList::PrintFacets &p);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacetList::PrintVertices &p);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullFacetList &fs);
 
 #endif // QHULLFACETLIST_H

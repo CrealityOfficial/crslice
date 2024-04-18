@@ -17,7 +17,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     class QhullPoint;  //!<  QhullPoint as a pointer and dimension to shared memory
@@ -125,12 +125,12 @@ public:
 
 QHULL_DECLARE_SEQUENTIAL_ITERATOR(QhullPoint, coordT)
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullPoint::PrintPoint &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullPoint &p);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullPoint::PrintPoint &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullPoint &p);
 
 #endif // QHPOINT_H
 

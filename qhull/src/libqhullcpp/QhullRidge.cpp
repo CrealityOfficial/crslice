@@ -19,7 +19,7 @@
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Class objects
 ridgeT QhullRidge::
@@ -77,14 +77,14 @@ nextRidge3d(const QhullFacet &f, QhullVertex *nextVertex) const
     return QhullRidge(qh_qh, ridge);
 }//nextRidge3d
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
 using std::endl;
 using std::ostream;
-using orgQhull::QhullRidge;
-using orgQhull::QhullVertex;
+using orgQQhull::QhullRidge;
+using orgQQhull::QhullVertex;
 
 ostream &
 operator<<(ostream &os, const QhullRidge &r)

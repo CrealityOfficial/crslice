@@ -18,7 +18,7 @@
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//! Coordinates -- vector of coordT (normally double)
 
@@ -175,7 +175,7 @@ removeAll(const coordT &t)
     }
 }//removeAll
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
@@ -184,7 +184,7 @@ using std::istream;
 using std::ostream;
 using std::string;
 using std::ws;
-using orgQhull::Coordinates;
+using orgQQhull::Coordinates;
 
 ostream &
 operator<<(ostream &os, const Coordinates &cs)

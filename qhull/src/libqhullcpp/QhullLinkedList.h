@@ -24,7 +24,7 @@
 #include <vector>
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! QhullLinkedList<T> -- A linked list modeled on QLinkedList.
@@ -369,15 +369,15 @@ findPrevious(const T &t)
     return false;
 }//findNext
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
 template <typename T>
 std::ostream &
-operator<<(std::ostream &os, const orgQhull::QhullLinkedList<T> &qs)
+operator<<(std::ostream &os, const orgQQhull::QhullLinkedList<T> &qs)
 {
-    typename orgQhull::QhullLinkedList<T>::const_iterator i;
+    typename orgQQhull::QhullLinkedList<T>::const_iterator i;
     for(i= qs.begin(); i != qs.end(); ++i){
         os << *i;
     }

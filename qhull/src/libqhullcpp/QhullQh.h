@@ -46,7 +46,7 @@
     } \
     if(!QH_TRY_status)
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! QhullQh -- Qhull's global data structure, qhT, as a C++ class
@@ -105,6 +105,6 @@ public:
 
 };//class QhullQh
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #endif // QHULLQH_H

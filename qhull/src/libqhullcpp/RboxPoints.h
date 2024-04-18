@@ -20,7 +20,7 @@
 #include <ostream>
 #include <sstream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Defined here
     //! RboxPoints -- generate random PointCoordinates for Qhull
@@ -64,6 +64,6 @@ public:
     void                reservePoints() { reserveCoordinates((count()+newCount())*dimension()); }
 };//class RboxPoints
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #endif // RBOXPOINTS_H

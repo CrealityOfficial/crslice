@@ -16,7 +16,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class Qhull;
@@ -112,12 +112,12 @@ public:
 
 QHULL_DECLARE_SEQUENTIAL_ITERATOR(QhullHyperplane, coordT)
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullHyperplane::PrintHyperplane &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullHyperplane &p);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullHyperplane::PrintHyperplane &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullHyperplane &p);
 
 #endif // QHHYPERPLANE_H
 

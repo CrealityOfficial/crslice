@@ -16,7 +16,7 @@
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Class objects
 
@@ -58,5 +58,5 @@ count(const setT *set)
     return size;
 }//count
 
-}//namespace orgQhull
+}//namespace orgQQhull
 

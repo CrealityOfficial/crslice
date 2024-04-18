@@ -22,7 +22,7 @@ using std::string;
 #ifdef _MSC_VER  // Microsoft Visual C++ -- warning level 4
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Conversion
 string RoadLogEvent::
@@ -118,5 +118,5 @@ firstExtraCode(std::ostream &os, char c, char *extraCode){
     return true;
 }//firstExtraCode
 
-}//namespace orgQhull
+}//namespace orgQQhull
 

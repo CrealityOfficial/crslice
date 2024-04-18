@@ -1290,7 +1290,7 @@ indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
 
     if (! pts.empty()) {
         // The qhull call:
-        orgQhull::Qhull qhull;
+        orgQQhull::Qhull qhull;
         qhull.disableOutputStream(); // we want qhull to be quiet
     #if ! REALfloat
         std::vector<realT> src_vertices;
@@ -1320,11 +1320,11 @@ indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
             centroid += pt;
         centroid /= float(pts.size());
     #endif // NDEBUG
-        for (const orgQhull::QhullFacet &facet : qhull.facetList()) {
+        for (const orgQQhull::QhullFacet &facet : qhull.facetList()) {
             // Collect face vertices first, allocate unique vertices in dst_vertices based on QHull's vertex ID.
             Vec3i  indices;
             int    cnt = 0;
-            for (const orgQhull::QhullVertex vertex : facet.vertices()) {
+            for (const orgQQhull::QhullVertex vertex : facet.vertices()) {
                 int id = vertex.id();
                 assert(id >= 0);
                 if (id >= int(map_dst_vertices.size()))
@@ -1333,7 +1333,7 @@ indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
                     // Allocate a new vertex.
                     i = int(dst_vertices.size());
                     map_dst_vertices[id] = i;
-                    orgQhull::QhullPoint pt(vertex.point());
+                    orgQQhull::QhullPoint pt(vertex.point());
                     dst_vertices.emplace_back(pt[0], pt[1], pt[2]);
                     indices[cnt] = i;
                 } else {

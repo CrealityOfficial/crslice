@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name defined here
     //! QhullStat -- Qhull's statistics, qhstatT, as a C++ class
@@ -44,6 +44,6 @@ public:
 #//!\name Access
 };//class QhullStat
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #endif // QHULLSTAT_H

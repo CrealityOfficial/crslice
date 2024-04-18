@@ -20,7 +20,7 @@
 #pragma warning( disable : 4996)  // function was declared deprecated(strcpy, localtime, etc.)
 #endif
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Class objects
 vertexT QhullVertex::
@@ -55,7 +55,7 @@ neighborFacets() const
     return QhullFacetSet(qh_qh, qh_vertex->neighbors);
 }//neighborFacets
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global functions
 
@@ -63,11 +63,11 @@ using std::endl;
 using std::ostream;
 using std::string;
 using std::vector;
-using orgQhull::QhullPoint;
-using orgQhull::QhullFacet;
-using orgQhull::QhullFacetSet;
-using orgQhull::QhullFacetSetIterator;
-using orgQhull::QhullVertex;
+using orgQQhull::QhullPoint;
+using orgQQhull::QhullFacet;
+using orgQQhull::QhullFacetSet;
+using orgQQhull::QhullFacetSetIterator;
+using orgQQhull::QhullVertex;
 
 //! Duplicate of qh_printvertex [io_r.c]
 ostream &

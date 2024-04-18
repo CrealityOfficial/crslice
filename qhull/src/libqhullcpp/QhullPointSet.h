@@ -15,7 +15,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
     class Qhull;
@@ -67,11 +67,11 @@ public:
 
 typedef QhullSetIterator<QhullPoint>  QhullPointSetIterator;
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullPointSet::PrintIdentifiers &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullPointSet::PrintPointSet &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullPointSet::PrintIdentifiers &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullPointSet::PrintPointSet &pr);
 
 #endif // QHULLPOINTSET_H

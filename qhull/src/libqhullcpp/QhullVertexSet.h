@@ -14,7 +14,7 @@
 
 #include <ostream>
 
-namespace orgQhull {
+namespace orgQQhull {
 
 #//!\name Used here
 
@@ -75,12 +75,12 @@ public:
 
 };//class QhullVertexSet
 
-}//namespace orgQhull
+}//namespace orgQQhull
 
 #//!\name Global
 
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullVertexSet::PrintVertexSet &pr);
-std::ostream &operator<<(std::ostream &os, const orgQhull::QhullVertexSet::PrintIdentifiers &p);
-inline std::ostream &operator<<(std::ostream &os, const orgQhull::QhullVertexSet &vs) { os << vs.print(""); return os; }
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullVertexSet::PrintVertexSet &pr);
+std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullVertexSet::PrintIdentifiers &p);
+inline std::ostream &operator<<(std::ostream &os, const orgQQhull::QhullVertexSet &vs) { os << vs.print(""); return os; }
 
 #endif // QHULLVERTEXSET_H
