@@ -125,6 +125,8 @@ namespace gcode
 		std::vector <GcodeLayerInfo> m_gcodeLayerInfos;  //层高、线宽设置值
 		std::vector<int> m_layerInfoIndex;  //层高、线宽 步进索引
 
+		std::vector<float> m_layerHeights;
+
 		std::map<int,float> m_layerTimes;  //每层时间
 		//std::map<int, float> m_layerTimeLogs;  //每层时间对数
 
@@ -145,6 +147,7 @@ namespace gcode
 		void setZ_from_gcode(float z);
 		void setE(float e);
 		void setWidth(float width);
+		void setLayerHeight(float height);
 		void setTime(float time);
 		void getNotPath();
 		void setNozzleColorList(std::string& colorList);

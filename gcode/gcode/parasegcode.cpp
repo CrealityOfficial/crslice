@@ -2981,6 +2981,13 @@ namespace gcode
                     kvs.erase(iter);
                 }
 
+                iter = kvs.find("Z_HEIGHT");
+                if (iter != kvs.end())
+                {
+                    pathData->setLayerHeight(std::atof(iter->second.c_str()));
+                    kvs.erase(iter);
+                }
+
                 //relative extrusion
                 if (cmd.command == "M83" || cmd.command == "G91")
                 {

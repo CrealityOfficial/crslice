@@ -133,6 +133,7 @@ namespace gcode
 		virtual void setZ(float z, float h = -1) = 0;
 		virtual void setE(float e) = 0;
 		virtual void setWidth(float width) = 0;
+		virtual void setLayerHeight(float height) = 0;
 		virtual void getNotPath() = 0;
 		virtual void set_data_gcodelayer(int layer, const std::string& gcodelayer) = 0;
 		virtual void setNozzleColorList(std::string& colorList) = 0;

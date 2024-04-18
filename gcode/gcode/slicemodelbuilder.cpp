@@ -1516,6 +1516,11 @@ namespace gcode
         m_gcodeLayerInfos.push_back(gcodeLayerInfo);
     }
 
+    void GCodeStruct::setLayerHeight(float height)
+    {
+        m_layerHeights.push_back(height);
+    }
+
     void GCodeStruct::setTime(float time)
     {
         float temp = time - tempCurrentTime;
