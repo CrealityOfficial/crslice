@@ -329,7 +329,7 @@ void FillQuarter::_fill_surface_single(
     {
         for (auto& _p : poly)
         {
-            _p -= offset;
+            //_p -= offset;
             _p.x() *= 1000;
             _p.y() *= 1000;
         }
