@@ -13,7 +13,7 @@
 #include <queue>
 #include <mutex>
 #include <utility>
-
+#include <fstream>
 
 
 #include <tbb/parallel_for.h>
@@ -2001,6 +2001,107 @@ Polygons slice_mesh(
     return layers.front();
 }
 
+#ifdef DEBUG
+
+static void writeDebug(const std::string &filename, const indexed_triangle_set& mesh,const std::vector<float>& zs,const MeshSlicingParamsEx& params,const std::vector<ExPolygons>& layers)
+{
+	std::ofstream ostrm(filename);
+
+	if (!ostrm.is_open()) 
+    {
+		return;
+	}
+
+	// write vertices
+	ostrm << "vertices" << std::endl;
+	for (int i = 0; i < mesh.vertices.size(); i++) 
+    {
+		ostrm << mesh.vertices[i][0] << "," << mesh.vertices[i][1] << "," << mesh.vertices[i][2] << std::endl;
+	}
+
+	ostrm << "----------------------------" << std::endl;
+
+	// write facets
+	ostrm << "indices" << std::endl;
+	for (int i = 0; i < mesh.indices.size(); i++) 
+    {
+		ostrm << mesh.indices[i][0] << "," << mesh.indices[i][1] << "," << mesh.indices[i][2] << std::endl;
+	}
+
+	ostrm << "----------------------------" << std::endl;
+
+	// write z position
+	ostrm << "slice z" << std::endl;
+	for (int i = 0; i < zs.size(); i++) 
+    {
+		ostrm << zs[i] << std::endl;
+	}
+
+	ostrm << "----------------------------" << std::endl;
+
+	// write slice parameters
+	ostrm << "slice parameters" << std::endl;
+	ostrm << params.closing_radius << std::endl;
+	ostrm << params.extra_offset << std::endl;
+	ostrm << params.resolution << std::endl;
+	ostrm << (int)params.mode << std::endl;
+	ostrm << (int)params.mode_below << std::endl;
+	ostrm << params.slicing_mode_normal_below_layer << std::endl;
+	ostrm << params.trafo(0, 0) << std::endl;
+	ostrm << params.trafo(0, 1) << std::endl;
+	ostrm << params.trafo(0, 2) << std::endl;
+	ostrm << params.trafo(0, 3) << std::endl;
+	ostrm << params.trafo(1, 0) << std::endl;
+	ostrm << params.trafo(1, 1) << std::endl;
+	ostrm << params.trafo(1, 2) << std::endl;
+	ostrm << params.trafo(1, 3) << std::endl;
+	ostrm << params.trafo(2, 0) << std::endl;
+	ostrm << params.trafo(2, 1) << std::endl;
+	ostrm << params.trafo(2, 2) << std::endl;
+	ostrm << params.trafo(2, 3) << std::endl;
+	ostrm << params.trafo(3, 0) << std::endl;
+	ostrm << params.trafo(3, 1) << std::endl;
+	ostrm << params.trafo(3, 2) << std::endl;
+	ostrm << params.trafo(3, 3) << std::endl;
+
+	ostrm << "----------------------------" << std::endl;
+
+	// write layer
+	for (int i = 0; i < layers.size(); i++) 
+    {
+		ostrm << "layer " << i << std::endl;
+		const ExPolygons& explys = layers[i];
+		for (int j = 0; j < explys.size(); j++) 
+        {
+			ostrm << "ExPolygon " << j << std::endl;
+			const ExPolygon& exply = explys[j];
+			// contour
+			if (!exply.contour.points.empty()) 
+            {
+				ostrm << "contour " << std::endl;
+				const Polygon& contour = exply.contour;
+				for (int k = 0; k < contour.points.size(); k++) 
+                {
+					ostrm << contour.points[k][0] << "," << contour.points[k][1] << std::endl;
+				}
+			}
+
+			// holes
+			for (int k = 0; k < exply.holes.size(); k++) 
+            {
+				const Polygon& hole = exply.holes[k];
+				ostrm << "hole " << k << std::endl;
+				for (int m = 0; m < hole.points.size(); m++) 
+                {
+					ostrm << hole.points[m][0] << "," << hole.points[m][1] << std::endl;
+				}
+			}
+		}
+	}
+}
+
+#endif
+
 std::vector<ExPolygons> slice_mesh_ex(
     const indexed_triangle_set       &mesh,
     const std::vector<float>         &zs,
@@ -2046,6 +2147,10 @@ std::vector<ExPolygons> slice_mesh_ex(
             }
         });
 //    BOOST_LOG_TRIVIAL(debug) << "slice_mesh make_expolygons in parallel - end";
+
+#ifdef DEBUG
+    writeDebug("D://section_data.txt",mesh, zs, params, layers);
+#endif
 
     return layers;
 }
