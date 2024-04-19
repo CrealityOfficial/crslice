@@ -646,7 +646,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
             auto& curr = layers_sorted[i];
             auto& higr = layers_sorted[i + 1];
             // "Rounding" suspicious top/bottom contacts
-            if (curr->layer_type == sltTopContact || curr->layer_type == sltBottomContact) {
+            // todo: bug: ID1026971 
+            if (/*curr->layer_type == sltTopContact ||*/ curr->layer_type == sltBottomContact) {
                 // Check adjacent-layer print_z diffs
                 coordf_t height_low = curr->print_z - lowr->print_z;
                 coordf_t height_high = higr->print_z - curr->print_z;
