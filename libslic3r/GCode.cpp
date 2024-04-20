@@ -2067,6 +2067,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
       // CONFIG_BLOCK_START and CONFIG_BLOCK_END. The delimiters are structured
       // as configuration key / value pairs to be parsable by older versions of
       // PrusaSlicer G-code viewer.
+    if (is_bbl_printers)
     {
         //add Thumbnails
         if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
