@@ -3357,6 +3357,7 @@ namespace gcode
             float weight = f.second * filament_density * 0.001;
             pathParam.flush_per_filament.push_back(std::pair(f.first, used_filament));
             pathParam.flush_per_filament.push_back(std::pair(f.first, weight));
+            pathParam.weight += weight;
         }
         for (auto& f : gcodeProcessor.m_used_filaments.volumes_per_tower)
         {
