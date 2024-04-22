@@ -662,7 +662,8 @@
         "label": "Bed type",
         "options": {
             "High Temp Plate": "Smooth PEI Plate / High Temp Plate",
-            "Textured PEI Plate": "Textured PEI Plate"
+            "Textured PEI Plate": "Textured PEI Plate",
+            "Cool Plate": "Cool Plate"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",
