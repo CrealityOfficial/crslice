@@ -1140,7 +1140,6 @@ namespace gcode
 		{
 			float minFlow = FLT_MAX, maxFlow = FLT_MIN;
 			float minWidth = FLT_MAX, maxWidth = FLT_MIN;
-			float minHeight = FLT_MAX, maxHeight = FLT_MIN;
 
 			for (GcodeLayerInfo& info : m_gcodeLayerInfos)
 			{
@@ -1150,23 +1149,49 @@ namespace gcode
 					maxFlow = fmaxf(info.flow, maxFlow);
 				}
 
-				if (info.width > 0.0)
-				{
-					minWidth = fminf(info.width, minWidth);
-					maxWidth = fmaxf(info.width, maxWidth);
-				}
+                if (info.width > 0.0)
+                {
+                    minWidth = fminf(info.width, minWidth);
+                    maxWidth = fmaxf(info.width, maxWidth);
+                }
 
-				minHeight = fminf(info.layerHight, minHeight);
-				maxHeight = fmaxf(info.layerHight, maxHeight);
 			}
 			tempBaseInfo.minFlowOfStep = minFlow;
 			tempBaseInfo.maxFlowOfStep = maxFlow;
 			tempBaseInfo.minLineWidth = minWidth;
 			tempBaseInfo.maxLineWidth = maxWidth;
-			tempBaseInfo.minLayerHeight = minHeight;
-			tempBaseInfo.maxLayerHeight = maxHeight;
-
 		}
+
+        {
+            float minHeight = FLT_MAX, maxHeight = FLT_MIN;
+
+            if (m_layerInfoIndex.size() == m_moves.size())
+            {
+                for (int i = 0; i < m_moves.size(); i++)
+                {
+                    const GCodeMove& move = m_moves.at(i);
+                    SliceLineType type = move.type;
+                    if (type == SliceLineType::Travel || type == SliceLineType::MoveCombing || type == SliceLineType::React || type == SliceLineType::erWipeTower || type == SliceLineType::Wipe || type == SliceLineType::Unretract)
+                    {
+                        continue;
+                    }
+
+                    int idx = m_layerInfoIndex.at(i);
+                    if (idx < m_gcodeLayerInfos.size())
+                    {
+                        const GcodeLayerInfo& info = m_gcodeLayerInfos.at(idx);
+                        minHeight = fminf(info.layerHight, minHeight);
+                        maxHeight = fmaxf(info.layerHight, maxHeight);
+                    }
+                }
+
+                tempBaseInfo.minLayerHeight = minHeight;
+                tempBaseInfo.maxLayerHeight = maxHeight;
+            }
+            else {
+                printf("m_layerInfoIndex size not equal to m_moves\n");
+            }
+        }
 
 		{
 			float minTime = FLT_MAX, maxTime = FLT_MIN;
@@ -1228,7 +1253,6 @@ namespace gcode
         {
             float minFlow = FLT_MAX, maxFlow = FLT_MIN;
             float minWidth = FLT_MAX, maxWidth = FLT_MIN;
-            float minHeight = FLT_MAX, maxHeight = FLT_MIN;
 
             for (GcodeLayerInfo& info : m_gcodeLayerInfos)
             {
@@ -1244,16 +1268,43 @@ namespace gcode
                     maxWidth = fmaxf(info.width, maxWidth);
                 }
 
-                minHeight = fminf(info.layerHight, minHeight);
-                maxHeight = fmaxf(info.layerHight, maxHeight);
             }
             tempBaseInfo.minFlowOfStep = minFlow;
             tempBaseInfo.maxFlowOfStep = maxFlow;
             tempBaseInfo.minLineWidth = minWidth;
             tempBaseInfo.maxLineWidth = maxWidth;
-            tempBaseInfo.minLayerHeight = minHeight;
-            tempBaseInfo.maxLayerHeight = maxHeight;
 
+        }
+
+        {
+            float minHeight = FLT_MAX, maxHeight = FLT_MIN;
+
+            if (m_layerInfoIndex.size() == m_moves.size())
+            {
+                for (int i = 0; i < m_moves.size(); i++)
+                {
+                    const GCodeMove& move = m_moves.at(i);
+                    SliceLineType type = move.type;
+                    if (type == SliceLineType::Travel || type == SliceLineType::MoveCombing || type == SliceLineType::React || type == SliceLineType::erWipeTower || type == SliceLineType::Wipe || type == SliceLineType::Unretract)
+                    {
+                        continue;
+                    }
+
+                    int idx = m_layerInfoIndex.at(i);
+                    if (idx < m_gcodeLayerInfos.size())
+                    {
+                        const GcodeLayerInfo& info = m_gcodeLayerInfos.at(idx);
+                        minHeight = fminf(info.layerHight, minHeight);
+                        maxHeight = fmaxf(info.layerHight, maxHeight);
+                    }
+                }
+
+                tempBaseInfo.minLayerHeight = minHeight;
+                tempBaseInfo.maxLayerHeight = maxHeight;
+            }
+            else {
+                printf("m_layerInfoIndex size not equal to m_moves\n");
+            }
         }
 
         {
