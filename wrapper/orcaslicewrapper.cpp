@@ -422,6 +422,30 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	}
 }
 
+bool detectAutoTemperature(const Slic3r::DynamicPrintConfig& config, ccglobal::Tracer* tracer)
+{
+	int cnt = 0;
+	const Slic3r::ConfigOptionBool* _config1 = config.option<Slic3r::ConfigOptionBool>("material_flow_dependent_temperature");
+	bool material_flow_dependent_temperature = _config1 == nullptr ? false : _config1->getBool();
+	//bool material_flow_dependent_temperature = config.option<Slic3r::ConfigOptionBool>("material_flow_dependent_temperature")->getBool();
+	if (material_flow_dependent_temperature)
+	{
+		const Slic3r::ConfigOptionStrings* _config2 = config.option<Slic3r::ConfigOptionStrings>("default_filament_colour");
+		std::vector<std::string> values = _config2 == nullptr ? std::vector<std::string>() : _config2->vserialize();
+		for (auto& value : values)
+		{
+			if (!value.empty()) {
+				cnt++;
+			}
+		}
+		if (cnt > 1)
+		{
+			tracer->message("@@Multi color slicing has turned off automatic temperature.");
+			return true;
+		}
+	}
+	return false;
+}
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config,
 	const TempParamater& tp, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
@@ -452,6 +476,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	Slic3r::Print print;
 	print.set_callback(callback);
 
+	print.setMultiColor(detectAutoTemperature(config, tracer));
 	print.set_calib_params(_calibParams);
 	print.apply(model, config);
 
