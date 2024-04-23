@@ -954,6 +954,9 @@ public:
     // Unset types are just ignored.
     static int get_compatible_filament_type(const std::set<int>& types);
 
+    void setMultiColor(bool multiColor) { m_isMultiColor = multiColor; }
+    bool getMultiColor() const { return m_isMultiColor; }
+
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
@@ -979,6 +982,8 @@ private:
     
     //SoftFever
     bool m_isBBLPrinter;
+
+    bool m_isMultiColor;
 
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;
