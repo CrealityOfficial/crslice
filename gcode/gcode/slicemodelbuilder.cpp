@@ -173,6 +173,7 @@ namespace gcode
         , tempNozzleIndex(0)
         , tempCurrentE(0.0f)
         , tempSpeed(0.0f)
+        , tempAcc(0.0f)
         , layerNumberParseSuccess(true)
         , m_tracer(nullptr)
         , nIndex(0)
@@ -613,6 +614,7 @@ namespace gcode
                 tempSpeed = tempSpeed > tempSpeedMax ? tempSpeedMax : tempSpeed;
             }
             move.speed = tempSpeed;
+            move.acc = tempAcc;
             if (!fromGcode)
                 move.e = tempEndE - tempCurrentE;
             else
@@ -1511,6 +1513,10 @@ namespace gcode
     }
     void GCodeStruct::setSpeed(float s){
         tempSpeed = s;
+    }
+    void GCodeStruct::setAcc(float acc)
+    {
+        tempAcc = acc;
     }
     void GCodeStruct::setTEMP(float temp){
         GcodeTemperature gcodeTemperature = m_temperatures.size() > 0 ? m_temperatures.back() : GcodeTemperature();

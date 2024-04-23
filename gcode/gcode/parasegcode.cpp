@@ -2447,6 +2447,46 @@ namespace gcode
         }
     }
 
+    std::string removeTrailingNewline(std::string str) {
+        if (!str.empty() && str[str.size() - 1] == '\n') {
+            if (str.size() > 1 && str[str.size() - 2] == '\r') {
+                str.erase(str.size() - 2); // È¥³ý"\r\n"
+            }
+            else {
+                str.erase(str.size() - 1); // Ö»È¥³ý"\n"
+            }
+        }
+        return str;
+    }
+
+    void process_M204(parsed_command& cmd, GcodeTracer* pathData)
+    {
+        //ACC
+        {
+            //M204 S500
+            std::vector<std::string> _kvs;
+            Stringsplit(cmd.gcode, ' ', _kvs);
+            for (size_t i = 0; i < _kvs.size(); i++)
+            {
+                if (_kvs[i].length() > 1 )
+                {
+                    if (_kvs[i][0] == 'S' || _kvs[i][0] == 's' || _kvs[i][0] == 'P' || _kvs[i][0] == 'T' || _kvs[i][0] == 'R')
+                    {
+                        std::string _value = _kvs[i].substr(1, _kvs[i].length());
+                        _value = removeTrailingNewline(_value);
+                        pathData->setAcc(atof(_value.c_str()));
+                    }
+                }
+            }
+            //for (auto& p : cmd.parameters)
+            //{
+            //    //"S" "P" acceleration ;  "R"retract_acceleration ; "T" travel_acceleration
+            //    if (p.name == "S" || p.name == "s" || p.name == "P" || p.name == "T" || p.name == "R")
+            //        pathData->setAcc(p.double_value);
+            //}
+        }
+    }
+
     void process_M106(parsed_command& cmd, GcodeTracer* pathData)
     {
         //BBS: for Bambu machine ,we both use M106 P1 and M106 to indicate the part cooling fan
@@ -2616,6 +2656,28 @@ namespace gcode
         }
     }
 
+    void getACCEL(const std::string& comment, GCodeProcessor& pathParam, GcodeTracer* pathData)
+    {
+        if (comment.find("SET_VELOCITY_LIMIT") != std::string::npos)
+        {
+            std::vector<std::string> _kvs;
+            Stringsplit(comment, ' ', _kvs);
+            for (std::string& str : _kvs)
+            {
+                if (str.find("ACCEL") != std::string::npos)
+                {
+                    std::vector<std::string> kvs;
+                    Stringsplit(str, '=', kvs);
+                    if (kvs.size() > 1)
+                    {
+                        pathData->setAcc(atoi(kvs[1].c_str()));
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     void parese_manual_tool_change(parsed_command& cmd)
     {
         if (cmd.comment.find("MANUAL_TOOL_CHANGE") != std::string::npos)
@@ -2642,6 +2704,9 @@ namespace gcode
         //START_PRINT EXTRUDER_TEMP=220 BED_TEMP=60
         if (!cmd.gcode.empty() && !pathParam.have_start_print)
             getDefineTEMP(cmd.gcode, pathParam,pathData);
+
+        if (!cmd.gcode.empty())
+            getACCEL(cmd.gcode, pathParam, pathData);
 
         parese_manual_tool_change(cmd);
 
@@ -2761,7 +2826,7 @@ namespace gcode
                             switch (cmd.command[3]) {
                             //case '1': { process_M201(line); break; } // Set max printing acceleration
                             //case '3': { process_M203(line); break; } // Set maximum feedrate
-                            //case '4': { process_M204(line); break; } // Set default acceleration
+                            case '4': { process_M204(cmd, pathData); break; } // Set default acceleration
                             //case '5': { process_M205(line); break; } // Advanced settings
                             default: break;
                             }

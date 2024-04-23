@@ -100,6 +100,7 @@ namespace gcode
 	{
 		int start;
 		float speed;
+		float acc;
 		SliceLineType type;
 		float e;  //流量
 		int extruder;
@@ -140,6 +141,7 @@ namespace gcode
 		void setParam(gcode::GCodeParseInfo& pathParam);
 		void setLayer(int layer);
 		void setSpeed(float s);
+		void setAcc(float acc);
 		void setTEMP(float temp);
 		void setExtruder(int nr);
 		void setFan(float fan);
@@ -174,6 +176,7 @@ namespace gcode
 		float belowZ{ 0.0f };//上层层高
 		trimesh::vec3 tempCurrentPos;
 		float tempSpeed;
+		float tempAcc;
 		float tempSpeedMax{ 0.0f };//最大速度限制
 		int tempTempIndex{ 0 };; //当前温度索引
 		bool layerNumberParseSuccess;

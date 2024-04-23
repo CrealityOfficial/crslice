@@ -126,6 +126,7 @@ namespace gcode
 		virtual void setLayer(int layer) = 0;
 		virtual void setLayers(int layer) = 0;
 		virtual void setSpeed(float s) = 0;
+		virtual void setAcc(float acc) = 0;
 		virtual void setTEMP(float temp) = 0;
 		virtual void setExtruder(int nr) = 0;
 		virtual void setTime(float time) = 0;
