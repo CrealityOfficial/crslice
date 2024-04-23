@@ -831,6 +831,7 @@ namespace gcode
             //kvs.insert(std::make_pair("TIME_ELAPSED", "0"));
            
             changeKey("FEATURE", "TYPE", kvs);
+            changeKey("Z", "Z_HEIGHT", kvs);
             //if (iter != kvs.end())
             //{
             //    if (iter->second == "Outer wall"
@@ -1237,6 +1238,8 @@ namespace gcode
             changeKey("LAYER_CHANGE", "LAYER", kvs);
             changeKey("CHANGE_LAYER", "LAYER", kvs);
             changeKey("FEATURE", "TYPE", kvs);
+
+            changeKey("Z", "Z_HEIGHT", kvs);
 
             auto iter = kvs.find("TYPE");
             if (iter != kvs.end())
