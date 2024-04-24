@@ -490,7 +490,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	const Slic3r::ConfigOptionInts* bed_temp_opt = config.option<Slic3r::ConfigOptionInts>(bed_key);
 #endif
 
-	print.is_BBL_printer() = tp.is_bbl_printer;
+	print.is_BBL_printer() = print.getMultiColor();
 	print.set_plate_origin(tp.plate_origin);
 
 	print.set_plate_index(tp.plate_index);
