@@ -2628,7 +2628,7 @@ void FffGcodeWriter::addMeshLayerToGCode(const SliceDataStorage& storage, const 
 {
     if (gcode_layer.getLayerNr() > mesh.layer_nr_max_filled_layer)
     {
-		gcode_layer.setPrimeTowerIsPlanned(extruder_nr);
+		//gcode_layer.setPrimeTowerIsPlanned(extruder_nr);
         return;
     }
 
