@@ -422,27 +422,45 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	}
 }
 
-bool detectAutoTemperature(const Slic3r::DynamicPrintConfig& config, ccglobal::Tracer* tracer)
+bool detect_multi_color_slie(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer)
 {
 	int cnt = 0;
+	const Slic3r::ConfigOptionStrings* _config2 = config.option<Slic3r::ConfigOptionStrings>("default_filament_colour");
+	std::vector<std::string> values = _config2 == nullptr ? std::vector<std::string>() : _config2->vserialize();
+	for (auto& value : values)
+	{
+		if (!value.empty()) {
+			cnt++;
+		}
+	}
+	if (cnt > 1)
+	{
+		return true;
+	}
+
+	if (model.plates_custom_gcodes.size() > 0)
+	{
+		const Slic3r::CustomGCode::Info& info = model.plates_custom_gcodes.begin()->second;
+		int cnt = 0;
+		for (const Slic3r::CustomGCode::Item& item : info.gcodes)
+			if (item.type == Slic3r::CustomGCode::ColorChange
+				|| item.type == Slic3r::CustomGCode::ToolChange)
+				++cnt;
+		if (cnt > 0)
+			return true;
+
+	}
+	return false;
+}
+
+bool detect_auto_temperature(const Slic3r::DynamicPrintConfig& config, const Slic3r::Print& print, ccglobal::Tracer* tracer)
+{
 	const Slic3r::ConfigOptionBool* _config1 = config.option<Slic3r::ConfigOptionBool>("material_flow_dependent_temperature");
 	bool material_flow_dependent_temperature = _config1 == nullptr ? false : _config1->getBool();
 	//bool material_flow_dependent_temperature = config.option<Slic3r::ConfigOptionBool>("material_flow_dependent_temperature")->getBool();
-	if (material_flow_dependent_temperature)
+	if (material_flow_dependent_temperature && print.getMultiColor())
 	{
-		const Slic3r::ConfigOptionStrings* _config2 = config.option<Slic3r::ConfigOptionStrings>("default_filament_colour");
-		std::vector<std::string> values = _config2 == nullptr ? std::vector<std::string>() : _config2->vserialize();
-		for (auto& value : values)
-		{
-			if (!value.empty()) {
-				cnt++;
-			}
-		}
-		if (cnt > 1)
-		{
-			tracer->message("@@Multi color slicing has turned off automatic temperature.");
-			return true;
-		}
+		tracer->message("@@Multi color slicing has turned off automatic temperature.");
 	}
 	return false;
 }
@@ -476,7 +494,9 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	Slic3r::Print print;
 	print.set_callback(callback);
 
-	print.setMultiColor(detectAutoTemperature(config, tracer));
+	print.setMultiColor(detect_multi_color_slie(config, model, tracer));
+	detect_auto_temperature(config, print, tracer);
+
 	print.set_calib_params(_calibParams);
 	print.apply(model, config);
 
