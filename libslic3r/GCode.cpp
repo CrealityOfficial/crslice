@@ -2006,7 +2006,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_smoothSpeedAcc->init_limit(print.full_print_config());
 
     //ÏÞÖÆÎÂ¶È 
-    if (print.config().material_flow_dependent_temperature.value && print.getMultiColor()){
+    if (print.config().material_flow_dependent_temperature.value && !print.getMultiColor()){
         m_smoothTemp->init_limit(print.config().material_flow_temp_graph.value);
     }
 
@@ -2955,7 +2955,7 @@ void GCode::process_layers(
 			float layerTime = processor.layer_time();
             std::string strLayerTemp = "";
 
-            if (print.config().material_flow_dependent_temperature && print.getMultiColor() && !first_layer) {
+            if (print.config().material_flow_dependent_temperature && !print.getMultiColor() && !first_layer) {
                 if (m_temperature <= 0)
                 {
                     m_temperature = m_config.nozzle_temperature.get_at(m_currentExtruder);
@@ -3352,7 +3352,7 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
         if (temp_by_gcode >= 0 && temp_by_gcode < 1000)
             temp = temp_by_gcode;
 
-        if (print.config().material_flow_dependent_temperature && print.getMultiColor()) {
+        if (print.config().material_flow_dependent_temperature && !print.getMultiColor()) {
             m_temperature = temp;
         }
         m_writer.set_temperature(temp, wait, first_printing_extruder_id);
@@ -3363,7 +3363,7 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
             int temp = print.config().nozzle_temperature_initial_layer.get_at(first_printing_extruder_id);
             if (temp > 0)
             {
-                if (print.config().material_flow_dependent_temperature && print.getMultiColor()) {
+                if (print.config().material_flow_dependent_temperature && !print.getMultiColor()) {
                     m_temperature = temp;
                 }
                 file.write(m_writer.set_temperature(temp, wait, first_printing_extruder_id));
@@ -3376,7 +3376,7 @@ void GCode::_print_first_layer_extruder_temperatures(GCodeOutputStream &file, Pr
                     temp += print.config().standby_temperature_delta.value;
                 if (temp > 0)
                 {
-                    if (print.config().material_flow_dependent_temperature && print.getMultiColor()) {
+                    if (print.config().material_flow_dependent_temperature && !print.getMultiColor()) {
                         m_temperature = temp;
                     }
                     file.write(m_writer.set_temperature(temp, wait, tool_id));
@@ -3890,7 +3890,7 @@ LayerResult GCode::process_layer(
             int temperature = print.config().nozzle_temperature.get_at(extruder.id());
             if (temperature > 0 && temperature != print.config().nozzle_temperature_initial_layer.get_at(extruder.id()))
             {
-                if (print.config().material_flow_dependent_temperature && print.getMultiColor()) {
+                if (print.config().material_flow_dependent_temperature && !print.getMultiColor()) {
                     m_temperature = temperature;
                 }
                 gcode += m_writer.set_temperature(temperature, false, extruder.id());
