@@ -482,7 +482,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 			alreadyShow = _status.percent;
 			tracer->progress((float)_status.percent * 0.01);
 			tracer->message(_status.text.c_str());
-
+			
 			if (tracer->interrupt())
 			{
 				throw Slic3r::SlicingError("User Cancelled", 0);
@@ -531,7 +531,9 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	try {
 		print.process();
 
+#if _DEBUG
 		save_slices(tp.temp_directory + "cx_slice.json", print);
+#endif
 	}
 	catch (const Slic3r::SlicingError& e1)
 	{

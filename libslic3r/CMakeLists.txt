@@ -588,6 +588,7 @@ __add_real_target(libslic3r lib
 	INC ${INCS}
 	DEF ${DEFS}
 	FOLDER slice
+	OPENMP
 	)
 	
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})

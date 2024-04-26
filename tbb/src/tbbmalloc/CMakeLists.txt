@@ -19,7 +19,9 @@ __add_real_target(tbbmalloc lib SOURCE
     large_objects.cpp
     tbbmalloc.cpp
     ../tbb/itt_notify.cpp
-	FOLDER slice)
+	FOLDER slice
+	OPENMP
+	)
 
 add_library(TBB::tbbmalloc ALIAS tbbmalloc)
 

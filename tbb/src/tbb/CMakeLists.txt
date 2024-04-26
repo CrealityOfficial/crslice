@@ -41,7 +41,9 @@ __add_real_target(tbb_inner lib SOURCE
     task_group_context.cpp
     version.cpp
     queuing_rw_mutex.cpp
-	FOLDER slice)
+	FOLDER slice
+	OPENMP
+	)
 
 add_library(TBB::tbb_inner ALIAS tbb_inner)
 

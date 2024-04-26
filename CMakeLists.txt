@@ -8,6 +8,7 @@ else()
 endif()
 
 __build_crslice_info_header()
+__enable_openmp()
 
 __cc_find(trimesh2)
 __assert_target(trimesh2)
