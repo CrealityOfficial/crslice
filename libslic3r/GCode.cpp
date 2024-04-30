@@ -3729,6 +3729,14 @@ LayerResult GCode::process_layer(
         sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
         gcode += buf;
     }
+	else if (print.calib_mode() == CalibMode::Calib_Retraction_tower_speed) {
+		auto _speed = print.calib_params().start + std::floor(std::max(0.0, print_z - 0.4)) * print.calib_params().step;
+		DynamicConfig _cfg;
+		_cfg.set_key_value("retraction_speed", new ConfigOptionFloats{ _speed });
+		writer().config.apply(_cfg);
+		sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, speed:%g\n", print_z, _speed);
+		gcode += buf;
+	}
 
     //BBS
     if (first_layer) {
