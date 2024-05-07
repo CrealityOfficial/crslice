@@ -471,6 +471,69 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // buffer line to export only when greater than 64K to reduce writing calls
     std::string export_line;
 
+    auto process_type_time = [&](std::string& ret,const TimeMachine& machine) {
+        Slic3r::PrintEstimatedStatistics::ETimeMode mode = Slic3r::PrintEstimatedStatistics::ETimeMode::Normal;
+
+        char buf1[128];
+        sprintf(buf1, "; total estimated time: %s\n", get_time_dhms(machine.time).c_str());
+        ret += buf1;
+
+        char buf2[128];
+        sprintf(buf2, "; filament used [mm]: %0.2f\n", filament_used);
+        ret += buf2;
+
+        if (this->machines.size() > static_cast<size_t>(mode))
+        {
+            std::vector<std::pair<Slic3r::EMoveType, float>> moves_times;
+            if (mode < PrintEstimatedStatistics::ETimeMode::Count) {
+                for (size_t i = 0; i < this->machines[static_cast<size_t>(mode)].moves_time.size(); ++i) {
+                    float _time = this->machines[static_cast<size_t>(mode)].moves_time[i];
+                    if (_time > 0.0f)
+                        moves_times.push_back({ static_cast<EMoveType>(i), _time });
+                }
+            }
+
+            std::vector<std::pair<Slic3r::ExtrusionRole, float>> roles_times;
+            if (mode < PrintEstimatedStatistics::ETimeMode::Count) {
+                for (size_t i = 0; i < this->machines[static_cast<size_t>(mode)].roles_time.size(); ++i) {
+                    float _time = this->machines[static_cast<size_t>(mode)].roles_time[i];
+                    if (_time > 0.0f)
+                        roles_times.push_back({ static_cast<ExtrusionRole>(i), _time });
+                }
+            }
+
+            float time = (mode < PrintEstimatedStatistics::ETimeMode::Count) ? this->machines[static_cast<size_t>(mode)].time : 0.0f;
+            std::string _moves_times;
+            for (auto& time : moves_times)
+            {
+                _moves_times += std::to_string((int)time.first);
+                _moves_times += ",";
+                _moves_times += std::to_string(time.second);
+                _moves_times += "; ";
+            }
+            std::string _roles_times;
+            for (auto& time : roles_times)
+            {
+                _roles_times += std::to_string((int)time.first);
+                _roles_times += ",";
+                _roles_times += std::to_string(time.second);
+                _roles_times += "; ";
+            }
+
+            ret += "; type_times_1 =  ";
+            ret += _moves_times;
+            ret += "\n";
+
+            ret += "; type_times_2 =  ";
+            ret += _roles_times;
+            ret += "\n";
+
+            char buf5[128];
+            sprintf(buf5, "; type_times_3 =  %.3f\n", time);
+            ret += buf5;
+        }
+    };
+
     // replace placeholder lines with the proper final value
     // gcode_line is in/out parameter, to reduce expensive memory allocation
     auto process_placeholders = [&](std::string& gcode_line) {
@@ -525,14 +588,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
                                 get_time_dhms(machine.time - machine.prepare_time).c_str(),
                                 get_time_dhms(machine.time).c_str());
-
-                        char buf1[128];
-                        char buf2[128];
-                        sprintf(buf1, "; total estimated time: %s\n",get_time_dhms(machine.time).c_str());
-                        sprintf(buf2, "; filament used [mm]: %0.2f\n", filament_used);
-                        ret += buf1;
-                        ret += buf2;
                         }
+                        process_type_time(ret, machine);
+
                         ret += buf;
                     }
                 }
