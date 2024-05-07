@@ -2784,33 +2784,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
    
       file.write("; CONFIG_BLOCK_END\n\n");
     }
-
-    {
-        Slic3r::PrintEstimatedStatistics::ETimeMode mode = Slic3r::PrintEstimatedStatistics::ETimeMode::Normal;
-        const std::vector<std::pair<Slic3r::EMoveType, float>>& moves_times = m_processor.get_moves_time(mode);
-        const std::vector<std::pair<Slic3r::ExtrusionRole, float>>& roles_times = m_processor.get_roles_time(mode);
-        float time = m_processor.get_time(mode);
-        std::string _moves_times;
-        for (auto& time : moves_times)
-        {
-            _moves_times += std::to_string((int)time.first);
-            _moves_times += ",";
-            _moves_times += std::to_string(time.second);
-            _moves_times += "; ";
-        }
-        std::string _roles_times;
-        for (auto& time : roles_times)
-        {
-            _roles_times += std::to_string((int)time.first);
-            _roles_times += ",";
-            _roles_times += std::to_string(time.second);
-            _roles_times += "; ";
-        }
-
-        file.write_format("\n; type_times_1 =  %s\n", _moves_times.c_str());
-        file.write_format("; type_times_2 =  %s\n", _roles_times.c_str());
-        file.write_format("; type_times_3 =  %.3f\n\n", time);
-    }
     file.write("\n");
 
     print.throw_if_canceled();
