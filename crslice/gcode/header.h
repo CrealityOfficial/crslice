@@ -18,6 +18,7 @@ namespace gcode
 		gvt_layerTime,   //层时间
 		gvt_fanSpeed,    //风扇速度
 		gvt_temperature, //温度
+		gvt_acc,         //加速度
 		gvt_num,
 	};
 

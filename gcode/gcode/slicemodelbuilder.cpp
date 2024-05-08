@@ -1166,7 +1166,7 @@ namespace gcode
 
         {
             float minHeight = FLT_MAX, maxHeight = FLT_MIN;
-
+            float minAcc = FLT_MAX, maxAcc = FLT_MIN;
             if (m_layerInfoIndex.size() == m_moves.size())
             {
                 for (int i = 0; i < m_moves.size(); i++)
@@ -1185,10 +1185,16 @@ namespace gcode
                         minHeight = fminf(info.layerHight, minHeight);
                         maxHeight = fmaxf(info.layerHight, maxHeight);
                     }
+
+                    // for acc
+                    minAcc = fminf(move.acc, minAcc);
+                    maxAcc = fmaxf(move.acc, maxAcc);
                 }
 
                 tempBaseInfo.minLayerHeight = minHeight;
                 tempBaseInfo.maxLayerHeight = maxHeight;
+                tempBaseInfo.minAcc = minAcc;
+                tempBaseInfo.maxAcc = maxAcc;
             }
             else {
                 printf("m_layerInfoIndex size not equal to m_moves\n");
@@ -1280,7 +1286,7 @@ namespace gcode
 
         {
             float minHeight = FLT_MAX, maxHeight = FLT_MIN;
-
+            float minAcc = FLT_MAX, maxAcc = FLT_MIN;
             if (m_layerInfoIndex.size() == m_moves.size())
             {
                 for (int i = 0; i < m_moves.size(); i++)
@@ -1299,10 +1305,16 @@ namespace gcode
                         minHeight = fminf(info.layerHight, minHeight);
                         maxHeight = fmaxf(info.layerHight, maxHeight);
                     }
+
+                    // for acc
+                    minAcc = fminf(move.acc, minAcc);
+                    maxAcc = fmaxf(move.acc, maxAcc);
                 }
 
                 tempBaseInfo.minLayerHeight = minHeight;
                 tempBaseInfo.maxLayerHeight = maxHeight;
+                tempBaseInfo.minAcc = minAcc;
+                tempBaseInfo.maxAcc = maxAcc;
             }
             else {
                 printf("m_layerInfoIndex size not equal to m_moves\n");

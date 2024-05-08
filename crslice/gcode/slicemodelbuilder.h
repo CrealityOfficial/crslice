@@ -49,6 +49,9 @@ namespace gcode
 		float minTemperature;
 		float maxTemperature;
 
+		float minAcc;
+		float maxAcc;
+
 		trimesh::box3 gCodeBox;
 		int nNozzle;
 		float speedMin;
@@ -70,7 +73,8 @@ namespace gcode
 			, maxLayerHeight(FLT_MIN)
 			, minTemperature(FLT_MAX)
 			, maxTemperature(FLT_MIN)
-		
+			, minAcc(FLT_MAX)
+			, maxAcc(FLT_MIN)
 		{
 		}
 	};
