@@ -1578,6 +1578,10 @@ namespace gcode
         m_layerHeights.push_back(height);
     }
 
+    void GCodeStruct::setLayerPause(int pause)
+    {
+        m_pause.push_back(pause);
+    }
     void GCodeStruct::setTime(float time)
     {
         float temp = time - tempCurrentTime;

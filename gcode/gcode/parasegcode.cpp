@@ -3043,6 +3043,24 @@ namespace gcode
                     kvs.erase(iter);
                 }
 
+                if (curLayer > 0)
+                {
+                    iter = kvs.find("PAUSE_PRINTING");
+                    if (iter != kvs.end())
+                    {
+                        pathData->setLayerPause(curLayer - 1);
+                        kvs.erase(iter);
+                    }
+                    else
+                    {
+                        iter = kvs.find("PAUSE_PRINT");
+                        if (iter != kvs.end())
+                        {
+                            pathData->setLayerPause(curLayer - 1);
+                            kvs.erase(iter);
+                        }
+                    }
+                }
                 //relative extrusion
                 if (cmd.command == "M83" || cmd.command == "G91")
                 {

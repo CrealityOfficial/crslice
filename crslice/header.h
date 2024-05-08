@@ -36,6 +36,7 @@ namespace crslice
 		void setZ(float z, float h = -1) override {};
 		void setWidth(float width) override {};
 		void setLayerHeight(float height) override {};
+		void setLayerPause(int pause) override {};
 		void setE(float e) override {};
 		void getNotPath() override {};
 		void set_data_gcodelayer(int layer, const std::string& gcodelayer) override {};
