@@ -2483,8 +2483,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Orca: set chamber temperature at the beginning of gcode file
     if (activate_chamber_temp_control && max_chamber_temp > 0)
-        file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
-
+    {
+        if (m_writer.get_printer_model())
+        	file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
+        else
+            file.write(m_writer.set_chamber_temperature(max_chamber_temp, false)); // for creality
+    }
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
 
