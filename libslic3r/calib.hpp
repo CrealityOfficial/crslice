@@ -40,6 +40,7 @@ struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){};
     double    start, end, step;
+    double    highStep;//creality add
     bool      print_numbers;
     CalibMode mode;
 };

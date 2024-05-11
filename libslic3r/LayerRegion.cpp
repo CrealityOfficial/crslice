@@ -920,9 +920,17 @@ void LayerRegion::simplify_entity_collection(ExtrusionEntityCollection* entity_c
 void LayerRegion::simplify_path(ExtrusionPath* path)
 {
     const auto print_config = this->layer()->object()->print()->config();
+    auto obj_config = this->layer()->object()->print()->default_object_config();
+    auto  regin_config = this->layer()->object()->print()->default_region_config();
     const bool spiral_mode = print_config.spiral_mode;
     const bool enable_arc_fitting = print_config.enable_arc_fitting;
-    const auto scaled_resolution = scaled<double>(print_config.resolution.value);
+    /*const*/ auto scaled_resolution = scaled<double>(print_config.resolution.value);
+
+    Calib_Params calibParam = this->layer()->object()->print()->calib_params();
+	if (calibParam.mode == CalibMode::Calib_Arc2Lerance)
+	{
+		scaled_resolution = this->m_region->config().arc_tolerance * 1000;
+	}
 
     if (enable_arc_fitting &&
         !spiral_mode) {

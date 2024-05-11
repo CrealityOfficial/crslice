@@ -382,6 +382,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		_calibParams.start = scene->m_calibParams.start;
 		_calibParams.end = scene->m_calibParams.end;
 		_calibParams.step = scene->m_calibParams.step;
+		_calibParams.highStep = scene->m_calibParams.highStep;
 		_calibParams.print_numbers = scene->m_calibParams.print_numbers;
 		_calibParams.mode = (Slic3r::CalibMode)scene->m_calibParams.mode;
 	}

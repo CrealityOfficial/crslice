@@ -3714,7 +3714,36 @@ LayerResult GCode::process_layer(
 		sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, speed:%g\n", print_z, _speed);
 		gcode += buf;
 	}
-
+    else if (print.calib_mode() == CalibMode::Calib_Limit_Speed || print.calib_mode() == CalibMode::Calib_Speed_Tower) {
+        auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
+        m_calib_config.set_key_value("inner_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+        m_calib_config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+        m_calib_config.set_key_value("sparse_infill_speed", new ConfigOptionFloat(std::round(_speed)));
+        m_calib_config.set_key_value("gap_infill_speed", new ConfigOptionFloat(std::round(_speed)));
+    }
+	else if (print.calib_mode() == CalibMode::Calib_Limit_Acceleration || print.calib_mode() == CalibMode::Calib_Acceleration_Tower) {
+		auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
+		m_calib_config.set_key_value("inner_wall_acceleration", new ConfigOptionFloat(std::round(_speed)));
+		m_calib_config.set_key_value("outer_wall_acceleration", new ConfigOptionFloat(std::round(_speed)));
+		m_calib_config.set_key_value("default_acceleration", new ConfigOptionFloat(std::round(_speed)));
+        m_calib_config.set_key_value("sparse_infill_acceleration", new ConfigOptionFloatOrPercent(100,true));
+	}
+	else if (print.calib_mode() == CalibMode::Calib_Accel2Decel) {
+		int _speed = print.calib_params().start - std::floor(print_z / print.calib_params().highStep) * print.calib_params().step;
+		m_calib_config.set_key_value("accel_to_decel_factor", new ConfigOptionPercent(_speed));
+	}
+	else if (print.calib_mode() == CalibMode::Calib_X_Y_Jerk) {
+		auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
+		m_calib_config.set_key_value("outer_wall_jerk", new ConfigOptionFloat(std::round(_speed)));
+		m_calib_config.set_key_value("inner_wall_jerk", new ConfigOptionFloat(std::round(_speed)));
+		m_calib_config.set_key_value("top_surface_jerk", new ConfigOptionFloat(std::round(_speed)));
+		m_calib_config.set_key_value("infill_jerk", new ConfigOptionFloat(std::round(_speed)));
+	}
+	else if (print.calib_mode() == CalibMode::Calib_Fan_Speed) {
+		int _speed = print.calib_params().start + std::floor(print_z / 7.8) * print.calib_params().step;
+		m_calib_config.set_key_value("additional_cooling_fan_speed", new ConfigOptionInts(2,_speed));
+	}
+    
     //BBS
     if (first_layer) {
         // Orca: we don't need to optimize the Klipper as only set once

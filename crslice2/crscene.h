@@ -33,6 +33,7 @@ namespace crslice2
 	{
 		Calib_Params() {}
 		double start, end, step;
+		double highStep;
 		bool print_numbers=false;
 		CalibMode mode;
 	};

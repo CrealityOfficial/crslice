@@ -905,6 +905,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     
     ((ConfigOptionEnum<WallSequence>,  wall_sequence))
     ((ConfigOptionBool,                is_infill_first))
+    ((ConfigOptionInt,               arc_tolerance))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
