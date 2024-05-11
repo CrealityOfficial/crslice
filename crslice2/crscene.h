@@ -108,7 +108,8 @@ namespace crslice2
 		void setSceneJsonFile(const std::string& fileName);
 		void addSceneParameter(const std::string& key, const std::string& value);
 		void setTempDirectory(const std::string& directory);
-
+		void setSliceBLDirectory(const std::string& directory);
+		void setBLCompareErrorDirectory(const std::string& directory);
 		void release();
 		CrGroup* getGroupsIndex(int groupID);
 
@@ -143,6 +144,8 @@ namespace crslice2
 		std::string m_antiSeamFile;
 	
 		std::string m_tempDirectory;
+		std::string m_sliceBLDirectory;
+		std::string m_BLCompareErrorDirectory;
 		std::vector<std::string> m_Object_Exclude_FileName;
 		Calib_Params m_calibParams;
 
@@ -152,6 +155,7 @@ namespace crslice2
 
 		bool m_isBBLPrinter;
 		int m_plate_index;
+		int m_unittest_type;   //0:none,1:ganerate,2:compare,3:update
 	};
 
 	class SceneCreator

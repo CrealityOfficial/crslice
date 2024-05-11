@@ -77,6 +77,7 @@ namespace crslice2
 		m_settings.reset(new Settings());
 		machine_center_is_zero = false;
 		m_isBBLPrinter = false;
+		m_unittest_type = 0;
 	}
 
 	CrScene::~CrScene()
@@ -227,7 +228,14 @@ namespace crslice2
 	{
 		m_tempDirectory = directory;
 	}
-
+	void CrScene::setSliceBLDirectory(const std::string& directory)
+	{
+		m_sliceBLDirectory = directory;
+	}
+	void CrScene::setBLCompareErrorDirectory(const std::string& directory)
+	{
+		m_BLCompareErrorDirectory = directory;
+	}
 	void CrScene::release()
 	{
 		for (CrGroup* group : m_groups)

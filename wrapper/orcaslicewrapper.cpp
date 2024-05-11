@@ -29,7 +29,12 @@
 #include "ccglobal/log.h"
 
 #include <sstream>
-
+#include "baseline.h"
+#include <filesystem>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include "baselineorcinput.h"
 namespace cereal
 {
 	// Let cereal know that there are load / save non-member functions declared for ModelObject*, ignore serialization of pointers triggering
@@ -42,15 +47,6 @@ namespace cereal
 	template <class Archive> struct specialize<Archive, std::shared_ptr<Slic3r::TriangleMesh>, cereal::specialization::non_member_load_save> {};
 }
 
-struct TempParamater
-{
-	bool is_bbl_printer = false;
-	int plate_index = 0;
-	Slic3r::Vec3d plate_origin = Slic3r::Vec3d(0.0, 0.0, 0.0);
-	std::string outFile;
-	std::string temp_directory;
-	int extruderCount = 1;
-};
 
 void save_nlohmann_json(const std::string& fileName, const nlohmann::ordered_json& j)
 {
@@ -683,7 +679,60 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	tp.temp_directory = scene->m_tempDirectory;
 	tp.extruderCount = (int)scene->m_extruders.size();
 
+	
+	
 	slice_impl(model, config, tp, calibParams, thumbnailData, tracer);
+
+	//---start baseline test 
+	cxbaseline::BaseLineUtils::SetRootDirectory(scene->m_sliceBLDirectory);
+	std::string error_text = "";
+	switch (scene->m_unittest_type)
+	{
+	case 0:
+		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::NormalRun);
+		break;
+	case 1:
+		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Generate);
+		error_text = "${UnitTest}" + std::string("BaseLine Generate Failed");
+		break;
+	case 2:
+		cxbaseline::BaseLineUtils::SetCompareDirectory(scene->m_BLCompareErrorDirectory);
+		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Compare);
+		error_text = "${UnitTest}" + std::string("BaseLine Compare has error");
+		break;
+	case 3:
+		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Update);
+		error_text = "${UnitTest}" + std::string("BaseLine Update Failed");
+		break;
+	default:
+		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::NormalRun);
+		break;
+	}
+	if (cxbaseline::BaseLineUtils::IsRunBaselineEnable())
+	{
+		cxbaseline::Baseline* baseline = cxbaseline::BaseLineUtils::CreateBaseline(BaseLineOrcaInputName);
+
+		auto orca_inpute_baseline = dynamic_cast<cxbaseline::BaselineOrcaInput*>(baseline);
+		orca_inpute_baseline->Add(&model);
+		orca_inpute_baseline->Add(&config);
+		orca_inpute_baseline->Add(&tp);
+		orca_inpute_baseline->Add(&calibParams);
+		orca_inpute_baseline->Add(&thumbnailData);
+
+		bool ret =  cxbaseline::BaseLineUtils::RunBaseline(baseline);
+		if (!ret)
+		{
+			tracer->message(error_text.c_str());
+		}
+		else
+		{
+			tracer->message("${UnitTest}Unit Test Success");
+		}
+		
+		cxbaseline::BaseLineUtils::RemoveBaseline(baseline);
+	}
+	//--end baseline test
+
 }
 
 void orca_slice_from_arch_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
