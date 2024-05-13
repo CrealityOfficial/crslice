@@ -1087,9 +1087,9 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_result.filament_costs[i]      = static_cast<float>(config.filament_cost.get_at(i));
     }
 
-    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfRepRapFirmware) {
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfCrealityOS || m_flavor == gcfRepRapFirmware) {
         m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
-        if (m_flavor == gcfMarlinLegacy || m_flavor == gcfKlipper) {
+        if (m_flavor == gcfMarlinLegacy || m_flavor == gcfKlipper || m_flavor == gcfCrealityOS) {
             // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
             m_time_processor.machine_limits.machine_max_acceleration_travel = m_time_processor.machine_limits.machine_max_acceleration_extruding;
         }
@@ -1320,7 +1320,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (machine_unload_filament_time != nullptr)
         m_time_processor.filament_unload_times = static_cast<float>(machine_unload_filament_time->value);
 
-    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper) {
+    if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfCrealityOS) {
         const ConfigOptionFloats* machine_max_acceleration_x = config.option<ConfigOptionFloats>("machine_max_acceleration_x");
         if (machine_max_acceleration_x != nullptr)
             m_time_processor.machine_limits.machine_max_acceleration_x.values = machine_max_acceleration_x->values;
@@ -1379,7 +1379,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
 
         // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
-        const ConfigOptionFloats* machine_max_acceleration_travel = config.option<ConfigOptionFloats>(m_flavor == gcfMarlinLegacy || m_flavor == gcfKlipper
+        const ConfigOptionFloats* machine_max_acceleration_travel = config.option<ConfigOptionFloats>(m_flavor == gcfMarlinLegacy || m_flavor == gcfKlipper || m_flavor == gcfCrealityOS
                                                                                                     ? "machine_max_acceleration_extruding"
                                                                                                     : "machine_max_acceleration_travel");
         if (machine_max_acceleration_travel != nullptr)
@@ -1894,7 +1894,7 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
     m_start_position = m_end_position;
 
     const std::string_view cmd = line.cmd();
-    if (m_flavor == gcfKlipper)
+    if (m_flavor == gcfKlipper || m_flavor == gcfCrealityOS)
     {
         if (boost::iequals(cmd, "SET_VELOCITY_LIMIT"))
         {
@@ -4007,7 +4007,7 @@ void GCodeProcessor::process_M203(const GCodeReader::GCodeLine& line)
 
     // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
     // http://smoothieware.org/supported-g-codes
-    float factor = (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfSmoothie || m_flavor == gcfKlipper) ? 1.0f : MMMIN_TO_MMSEC;
+    float factor = (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfSmoothie || m_flavor == gcfKlipper || m_flavor == gcfCrealityOS) ? 1.0f : MMMIN_TO_MMSEC;
 
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         if (static_cast<PrintEstimatedStatistics::ETimeMode>(i) == PrintEstimatedStatistics::ETimeMode::Normal ||

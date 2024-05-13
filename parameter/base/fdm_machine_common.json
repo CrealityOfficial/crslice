@@ -2058,7 +2058,8 @@
             "marlin": "Marlin(legacy)",
             "klipper": "Klipper",
             "reprapfirmware": "RepRapFirmware",
-            "marlin2": "Marlin 2"
+            "marlin2": "Marlin 2",
+			"crealityos": "Creality OS"
         },
         "settable_globally": "false",
         "settable_per_extruder": "false",

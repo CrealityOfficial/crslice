@@ -2414,7 +2414,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
     }
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
-    if (print.config().gcode_flavor != gcfKlipper) {
+    if (print.config().gcode_flavor != gcfKlipper && print.config().gcode_flavor != gcfCrealityOS) {
         // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
         this->_print_first_layer_bed_temperature(file, print, machine_start_gcode, initial_extruder_id, true);
         // Set extruder(s) temperature before and after start G-code.
@@ -2465,7 +2465,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                                                       m_config.during_print_exhaust_fan_speed.get_at(extruder.id()));
     }
     if (activate_air_filtration)
-        file.write(m_writer.set_exhaust_fan(during_print_exhaust_fan_speed, true));
+        file.write(m_writer.set_exhaust_fan(print.config().gcode_flavor,during_print_exhaust_fan_speed, true));
 
     print.throw_if_canceled();
 
@@ -2734,7 +2734,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         for (const auto& extruder : m_writer.extruders())
             if (m_config.activate_air_filtration.get_at(extruder.id()))
                 complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
-        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
+        file.write(m_writer.set_exhaust_fan(print.config().gcode_flavor,complete_print_exhaust_fan_speed, true));
     }
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
@@ -4191,7 +4191,7 @@ LayerResult GCode::process_layer(
                             _encode_label_ids_to_base64({instance_to_print.label_object_id}) + "\n");
                     } else {
                         const auto gflavor = print.config().gcode_flavor.value;
-                        if (gflavor == gcfKlipper) {
+                        if (gflavor == gcfKlipper || gflavor == gcfCrealityOS) {
                             m_writer.set_object_start_str(std::string("EXCLUDE_OBJECT_START NAME=") +
                                                           get_instance_name(&instance_to_print.print_object, inst.id) + "\n");
                         }
@@ -4348,7 +4348,7 @@ LayerResult GCode::process_layer(
                                                     "M625\n");
                     } else {
                         const auto gflavor = print.config().gcode_flavor.value;
-                        if (gflavor == gcfKlipper) {
+                        if (gflavor == gcfKlipper || gflavor == gcfCrealityOS) {
                             m_writer.set_object_end_str(std::string("EXCLUDE_OBJECT_END NAME=") +
                                                         get_instance_name(&instance_to_print.print_object, inst.id) + "\n");
                         } else if (gflavor == gcfMarlinLegacy || gflavor == gcfMarlinFirmware || gflavor == gcfRepRapFirmware) {
@@ -5003,7 +5003,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         }
     }
 
-    if (m_writer.get_gcode_flavor() == gcfKlipper) {
+    if (m_writer.get_gcode_flavor() == gcfKlipper || m_writer.get_gcode_flavor() == gcfCrealityOS) {
         gcode += m_writer.set_accel_and_jerk(acceleration_i, jerk);
 
     } else {
@@ -5555,7 +5555,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             jerk_to_set = m_config.travel_jerk.value;
         }
     }
-    if (m_writer.get_gcode_flavor() == gcfKlipper) {
+    if (m_writer.get_gcode_flavor() == gcfKlipper || m_writer.get_gcode_flavor() == gcfCrealityOS) {
         gcode += m_writer.set_accel_and_jerk(acceleration_to_set, jerk_to_set);
     } else {
         gcode += m_writer.set_travel_acceleration(acceleration_to_set);
@@ -6050,7 +6050,7 @@ inline std::string polygon_to_string(const Polygon &polygon, Print *print, bool 
 std::string GCode::set_object_info(Print *print) {
     const auto gflavor = print->config().gcode_flavor.value;
     if ((print->is_BBL_printer() && m_writer.get_printer_model()) ||
-        (gflavor != gcfKlipper && gflavor != gcfMarlinLegacy && gflavor != gcfMarlinFirmware && gflavor != gcfRepRapFirmware))
+        (gflavor != gcfKlipper && gflavor != gcfCrealityOS && gflavor != gcfMarlinLegacy && gflavor != gcfMarlinFirmware && gflavor != gcfRepRapFirmware))
         return "";
     std::ostringstream gcode;
     size_t object_id = 0;
@@ -6077,7 +6077,7 @@ std::string GCode::set_object_info(Print *print) {
                 auto bbox      = inst.get_bounding_box();
                 auto center    = print->translate_to_print_space(Vec2d(bbox.center().x(), bbox.center().y()));
                 auto inst_name = get_instance_name(object, inst);
-                if (gflavor == gcfKlipper) {
+                if (gflavor == gcfKlipper || gflavor == gcfCrealityOS) {
                     gcode << "EXCLUDE_OBJECT_DEFINE NAME=" << inst_name << " CENTER=" << center.x() << "," << center.y()
                           << " POLYGON=" << polygon_to_string(inst.get_convex_hull_2d(), print) << "\n";
                 } else if (gflavor == gcfMarlinLegacy || gflavor == gcfMarlinFirmware || gflavor == gcfRepRapFirmware) {
