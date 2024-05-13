@@ -2522,7 +2522,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                                                       m_config.during_print_exhaust_fan_speed.get_at(extruder.id()));
     }
     if (activate_air_filtration)
-        file.write(m_writer.set_exhaust_fan(print.config().gcode_flavor,during_print_exhaust_fan_speed, true));
+        file.write(m_writer.set_exhaust_fan(during_print_exhaust_fan_speed, true,print.getCrealityOS()));
 
     print.throw_if_canceled();
 
@@ -2791,7 +2791,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         for (const auto& extruder : m_writer.extruders())
             if (m_config.activate_air_filtration.get_at(extruder.id()))
                 complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
-        file.write(m_writer.set_exhaust_fan(print.config().gcode_flavor,complete_print_exhaust_fan_speed, true));
+        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true,print.getCrealityOS()));
     }
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());

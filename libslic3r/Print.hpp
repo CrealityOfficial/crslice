@@ -957,6 +957,8 @@ public:
     void setMultiColor(bool multiColor) { m_isMultiColor = multiColor; }
     bool getMultiColor() const { return m_isMultiColor; }
 
+    void setCrealityOS(bool isCrealityOS) { m_isCrealityOS= isCrealityOS; }
+    bool getCrealityOS() const { return m_isCrealityOS; }
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
@@ -984,6 +986,7 @@ private:
     bool m_isBBLPrinter;
 
     bool m_isMultiColor;
+    bool m_isCrealityOS;
 
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;

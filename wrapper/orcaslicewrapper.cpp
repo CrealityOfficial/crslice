@@ -419,7 +419,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	}
 }
 
-bool detect_multi_color_slie(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer)
+bool detect_multi_color_slice(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer)
 {
 	int cnt = 0;
 	const Slic3r::ConfigOptionStrings* _config2 = config.option<Slic3r::ConfigOptionStrings>("default_filament_colour");
@@ -446,6 +446,21 @@ bool detect_multi_color_slie(const Slic3r::DynamicPrintConfig& config, const Sli
 		if (cnt > 0)
 			return true;
 
+	}
+	return false;
+}
+
+bool detect_creality_os(const Slic3r::DynamicPrintConfig& config, ccglobal::Tracer* tracer)
+{
+	int cnt = 0;
+	const Slic3r::ConfigOptionString* _config = config.option<Slic3r::ConfigOptionString>("printer_model");
+	if (_config)
+	{
+		std::string printer_model = _config->serialize();
+		if ( "K1C" == printer_model || "K2 Plus" == printer_model || "K1 Max" == printer_model || "K1" == printer_model)
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -491,8 +506,10 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	Slic3r::Print print;
 	print.set_callback(callback);
 
-	print.setMultiColor(detect_multi_color_slie(config, model, tracer));
+	print.setMultiColor(detect_multi_color_slice(config, model, tracer));
 	detect_auto_temperature(config, print, tracer);
+	
+	print.setCrealityOS(detect_creality_os(config, tracer));
 
 	print.set_calib_params(_calibParams);
 	print.apply(model, config);
