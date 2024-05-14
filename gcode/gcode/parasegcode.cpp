@@ -2216,6 +2216,11 @@ namespace gcode
                 curType = SliceLineType::erMixed;
                 lastType = curType;
             }
+            else if (role == "Internal Bridge")
+            {
+                curType = SliceLineType::erInternalBridgeInfill;
+                lastType = curType;
+            }
 
 
             //pathData->setLayer(std::atoi(iter->second.c_str()));
