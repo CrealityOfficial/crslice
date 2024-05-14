@@ -1727,7 +1727,7 @@ void BaselineOrcaInput::_BuildEntityFacetsAnnotation(nlohmann::json& json_object
     {
         support_facet_group.emplace_back(support_facets.first[i].first);
         support_facet_group.emplace_back(support_facets.first[i].second);
-        support_facet_group.emplace_back(support_facets.second[i]);
+        support_facet_group.emplace_back(support_facets.second[i] ? 1 : 0);
     }
     _BuildObjectGroup(json_object_group, support_facet_group);
 }

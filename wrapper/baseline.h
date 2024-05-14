@@ -155,7 +155,7 @@ namespace cxbaseline
 		BaselineFactoryUtilEx(const std::string& name, const std::vector<std::string>& modules, int startVersion)
 		{
 			m_baseline_factory = std::make_unique<BaselineFactoryHelper<T>>(name, modules);
-			BaseLineUtils::RegisterBaseline(m_baseline_factory.get(), startVersion);
+			BaseLineUtils::RegisterBaselineFactory(m_baseline_factory.get(), startVersion);
 		}
 		~BaselineFactoryUtilEx()
 		{

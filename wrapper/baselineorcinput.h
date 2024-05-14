@@ -1020,7 +1020,7 @@ namespace cxbaseline
             BLReturnBoolen(true);
         }
 
-        template<typename T, typename std::enable_if<std::is_integral<T>::value> ::type* = nullptr>
+        template<typename T, typename std::enable_if<std::is_integral<T>::value && !std::is_same<T, bool>::value> ::type* = nullptr>
         static inline bool _CompareValue(T value1, T value2)
         {
             BLReturnBoolen(value1 == value2);
@@ -1033,6 +1033,11 @@ namespace cxbaseline
         }
 
         static inline bool _CompareValue(const std::string& value1, const std::string& value2)
+        {
+            BLReturnBoolen(value1 == value2);
+        }
+
+        static inline bool _CompareValue(bool value1, bool value2)
         {
             BLReturnBoolen(value1 == value2);
         }
