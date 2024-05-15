@@ -31,7 +31,13 @@ namespace crslice2
 
 	struct Calib_Params
 	{
-		Calib_Params() {}
+		Calib_Params() {
+			start = 0;
+			end = 0;
+			step = 0;
+			print_numbers = false;
+			mode = CalibMode::Calib_None;
+		}
 		double start, end, step;
 		double highStep;
 		bool print_numbers=false;
@@ -110,6 +116,7 @@ namespace crslice2
 		void setTempDirectory(const std::string& directory);
 		void setSliceBLDirectory(const std::string& directory);
 		void setBLCompareErrorDirectory(const std::string& directory);
+		void setBLName(const std::string&name);
 		void release();
 		CrGroup* getGroupsIndex(int groupID);
 
@@ -146,6 +153,7 @@ namespace crslice2
 		std::string m_tempDirectory;
 		std::string m_sliceBLDirectory;
 		std::string m_BLCompareErrorDirectory;
+		std::string m_blName = "";
 		std::vector<std::string> m_Object_Exclude_FileName;
 		Calib_Params m_calibParams;
 

@@ -306,7 +306,10 @@ std::string Baseline::GetName() const
 {
 	return m_name;
 }
-
+void Baseline::SetName(const std::string& name)
+{
+	m_name = name;
+}
 std::vector<std::string> Baseline::GetModules() const
 {
 	return m_modules;

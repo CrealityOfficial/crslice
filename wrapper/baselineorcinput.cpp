@@ -304,10 +304,16 @@ bool BaselineOrcaFileHelper::CreateBaselineFile(nlohmann::json& json, const std:
     std::string path = BaselineOrcaFileUtils::CreateBaselineFile(root_dir, name, module_group);
     if (path.empty())
         BLReturnBoolen(false);
-    boost::nowide::ofstream stream;
-    stream.open(path.c_str(), std::ios::out | std::ios::trunc);
-    stream << std::setw(4) << json << std::endl;
 
+    //boost::nowide::ofstream stream;
+    //stream.open(path.c_str(), std::ios::out | std::ios::trunc);
+    //stream << std::setw(4) << json << std::endl;
+
+    std::ofstream  outstream(path);
+    if (outstream.is_open())
+    {
+        outstream << std::setw(4) << json << std::endl;
+    }
     BLReturnBoolen(true);
 }
 
@@ -317,9 +323,16 @@ bool BaselineOrcaFileHelper::UpdateBaselineFile(nlohmann::json& json, const std:
     if (path.empty())
         BLReturnBoolen(false);
 
-    boost::nowide::ofstream stream;
-    stream.open(path.c_str(), std::ios::out | std::ios::trunc);
-    stream << std::setw(4) << json << std::endl;
+    //boost::nowide::ofstream stream;
+    //stream.open(path.c_str(), std::ios::out | std::ios::trunc);
+    //stream << std::setw(4) << json << std::endl;
+    //BLReturnBoolen(true);
+
+    std::ofstream  outstream(path);
+    if (outstream.is_open())
+    {
+        outstream << std::setw(4) << json << std::endl;
+    }
     BLReturnBoolen(true);
 }
 
@@ -341,7 +354,6 @@ BaselineOrcaInput::BaselineOrcaInput(const std::string& name, const std::vector<
 {
 
 }
-
 bool BaselineOrcaInput::Generate()
 {
     using namespace nlohmann;
@@ -457,16 +469,31 @@ bool BaselineOrcaInput::_CompareBaseline(const nlohmann::json& json_root)
     logger.m_error_msg = "";
     err &= _CompareBlockThumbnail(json_root, BLName_Val(thumbnail), *m_elem_thumbnail, logger);
     err_text += logger.ErrorMsg() + "\n";
+    if (json_root.empty())
+    {
+        err_text = "json is empty";
+    }
     std::string dir = BaseLineUtils::GetCompareDirectory();
-    std::string name = "compare_error.txt";
+    std::string name = GetName() + "_compare_error.txt";
     std::string path = BaselineOrcaFileUtils::CreateCompareEorrorFile(dir, name, err);
     if (!path.empty())
     {
-        boost::nowide::ofstream stream;
-        stream.open(path.c_str(), std::ios::out | std::ios::trunc);
-        stream << std::setw(4) << err_text << std::endl;
-    }
-    BLReturnBoolen(err);
+        //boost::nowide::ofstream stream;
+        //stream.open(path.c_str(), std::ios::out | std::ios::trunc);
+        //stream << std::setw(4) << err_text << std::endl;
+
+        std::ofstream  outstream(path);
+        if (outstream.is_open())
+        {
+            outstream << std::setw(4) << err_text << std::endl;
+        }
+        //  build json
+        nlohmann::json newroot = nlohmann::json::object();
+        std::string newname = GetName() + "_compare_json";
+        _GenerateBaseline(newroot);
+        BaselineOrcaFileHelper::CreateBaselineFile(newroot, dir, newname, {});
+        BLReturnBoolen(err);
+    } 
 }
 
 void BaselineOrcaInput::_BuildEntityModel(nlohmann::json& json_model, const Slic3r::Model& model)
