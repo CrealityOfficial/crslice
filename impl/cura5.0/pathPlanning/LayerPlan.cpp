@@ -3076,12 +3076,16 @@ void LayerPlan::writeGCode(GCodeExport& gcode)
 							} 
 							else
 							{
-								if (application->sceneSettings().get<EGCodeFlavor>("machine_gcode_flavor")!=EGCodeFlavor::PLC)
+								if (application->sceneSettings().get<EGCodeFlavor>("machine_gcode_flavor")==EGCodeFlavor::PLC)
 								{
-                                    speed *= path.speed_back_pressure_factor;
+                                    gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
 								}
+                                else
+                                {
+                                    gcode.writeExtrusion(path.points[point_idx], speed*path.speed_back_pressure_factor, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+                                }
 
-								gcode.writeExtrusion(path.points[point_idx], speed, path.getExtrusionMM3perMM(), path.config->type, update_extrusion_offset);
+								
 							}
                         }
                     }
