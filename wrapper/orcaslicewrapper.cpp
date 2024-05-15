@@ -696,8 +696,9 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	tp.temp_directory = scene->m_tempDirectory;
 	tp.extruderCount = (int)scene->m_extruders.size();
 
-	
-	
+	fs::path path = scene->m_gcodeFileName;
+	const std::string baseline_orcal_inputname = scene->m_blName;// path.stem().string() + "_baseline";
+
 	slice_impl(model, config, tp, calibParams, thumbnailData, tracer);
 
 	//---start baseline test 
@@ -730,6 +731,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 		cxbaseline::Baseline* baseline = cxbaseline::BaseLineUtils::CreateBaseline(BaseLineOrcaInputName);
 
 		auto orca_inpute_baseline = dynamic_cast<cxbaseline::BaselineOrcaInput*>(baseline);
+		orca_inpute_baseline->SetName(baseline_orcal_inputname);
 		orca_inpute_baseline->Add(&model);
 		orca_inpute_baseline->Add(&config);
 		orca_inpute_baseline->Add(&tp);

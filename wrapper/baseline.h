@@ -15,6 +15,7 @@ namespace cxbaseline
 		virtual ~Baseline();
 
 		std::string GetName() const;
+		void SetName(const std::string& name);
 
 		std::vector<std::string> GetModules() const;
 

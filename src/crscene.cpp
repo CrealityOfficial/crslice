@@ -232,6 +232,10 @@ namespace crslice2
 	{
 		m_sliceBLDirectory = directory;
 	}
+	void CrScene::setBLName(const std::string& name)
+	{
+		m_blName = name;
+	}
 	void CrScene::setBLCompareErrorDirectory(const std::string& directory)
 	{
 		m_BLCompareErrorDirectory = directory;
