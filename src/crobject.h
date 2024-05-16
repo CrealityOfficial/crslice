@@ -27,6 +27,8 @@ namespace crslice2
 		std::string m_objectName;
 		std::vector<double> m_layerHeight;
 
+		int modelType;
+
 		//column major
 		trimesh::xform m_xform;
 	};

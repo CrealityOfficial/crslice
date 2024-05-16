@@ -47,7 +47,8 @@ namespace crslice2
 		, const std::vector<std::string>& seam2Facets
 		, const std::vector<std::string>& support2Facets
 		, const std::string& objectName
-		, const std::vector<double>& layerHeight)
+		, const std::vector<double>& layerHeight
+		, const int modelType)
 	{
 		if (objectID < 0 || objectID >= (int)m_objects.size())
 		{
@@ -63,7 +64,7 @@ namespace crslice2
 		object.m_support2Facets = support2Facets;
 		object.m_objectName = objectName;
 		object.m_layerHeight = layerHeight;
-
+		object.modelType = modelType;
 		//for (int i = 0; i < 16; i++)
 		//{
 		//	object.m_xform[i] = xform[i];
