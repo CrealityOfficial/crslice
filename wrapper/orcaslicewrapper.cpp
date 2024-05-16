@@ -344,6 +344,7 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 			Slic3r::TriangleMesh mesh;
 			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
 			Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
+			v->set_type(static_cast<Slic3r::ModelVolumeType>(aObject.modelType));
 			v->set_transformation(t);
 			currentObject->layer_height_profile.set(aObject.m_layerHeight);
 			if (aObject.m_mesh->faces.size() == aObject.m_colors2Facets.size())
