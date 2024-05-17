@@ -140,6 +140,7 @@ namespace gcode
 		virtual void getNotPath() = 0;
 		virtual void set_data_gcodelayer(int layer, const std::string& gcodelayer) = 0;
 		virtual void setNozzleColorList(std::string& colorList) = 0;
+		virtual void writeImages(const std::vector<std::pair<trimesh::ivec2, std::vector<unsigned char>>>& images) =0;
 
 		//for cloud : preview image
 		virtual void onSupports(int layerIdx, float z, float thickness, const std::vector<std::vector<trimesh::vec3>>& paths) = 0;

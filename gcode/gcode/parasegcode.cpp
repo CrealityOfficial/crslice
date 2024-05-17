@@ -5,6 +5,7 @@
 #include "crslice/gcode/parasegcode.h"
 #include "gcodeprocesslib/gcode_position.h"
 #include "gcodeprocesslib/gcode_parser.h"
+#include "crslice/gcode/thumbnail.h"
 #include "gcode/sliceline.h"
 #include "ccglobal/platform.h"
 
@@ -175,6 +176,10 @@ namespace gcode
         trimesh::vec3 current_v;
 
         std::set <int> extruders;
+
+        std::vector<std::pair<trimesh::ivec2, std::string>> images;
+
+        bool writeImage{false};
 
         //seam
         SeamsDetector m_seams_detector;
@@ -2275,6 +2280,76 @@ namespace gcode
         }
     }
 
+    void _detect_image(GCodeProcessor& gcodeProcessor, const std::string& comment)
+    {
+        if (comment.find("png end") != std::string::npos
+            || comment.find("jpg end") != std::string::npos
+            || comment.find("bmp end") != std::string::npos
+            || comment.find("thumbnail end") != std::string::npos
+            || comment.find("thumbnail_JPG end") != std::string::npos
+            || comment.find("thumbnail_QOI end") != std::string::npos
+            || comment.find("thumbnail_QOI end") != std::string::npos
+            || comment.find("THUMBNAIL_BLOCK_START") != std::string::npos
+            ) {
+            gcodeProcessor.writeImage = false;
+        }
+
+        if (gcodeProcessor.writeImage)
+        {
+            //gcodeProcessor.images.push_back(std::pair<trimesh::ivec2, std::string>(imageSize, ""));
+            std::string _comment = comment;
+            removeSpace(_comment);
+            gcodeProcessor.images.back().second += _comment;
+        }
+
+        if (comment.find("png begin") != std::string::npos
+            || comment.find("jpg begin") != std::string::npos
+            || comment.find("bmp begin") != std::string::npos
+            || comment.find("thumbnail begin") != std::string::npos
+            || comment.find("thumbnail_JPG begin") != std::string::npos
+            || comment.find("thumbnail_QOI begin") != std::string::npos
+            || comment.find("thumbnail_QOI begin") != std::string::npos
+            ) {
+            // std::vector<std::pair<trimesh::ivec2, std::string>> images;
+            trimesh::ivec2 imageSize(0, 0);
+
+            std::vector<std::string> vs;
+            Stringsplit(comment, ' ', vs);
+            if (!vs.empty())
+            {
+                for (auto& v : vs)
+                {
+                    if (v.find("*") != std::string::npos)
+                    {
+                        std::vector<std::string> _vs;
+                        Stringsplit(v, '*', _vs);
+                        if (_vs.size() > 1)
+                        {
+                            imageSize.x = std::atoi(_vs[0].c_str());
+                            imageSize.y = std::atoi(_vs[1].c_str());
+                        }
+
+                        break;
+                    }
+                    if (v.find("x") != std::string::npos)
+                    {
+                        std::vector<std::string> _vs;
+                        Stringsplit(v, '*', _vs);
+                        if (_vs.size() > 1)
+                        {
+                            imageSize.x = std::atoi(_vs[0].c_str());
+                            imageSize.y = std::atoi(_vs[1].c_str());
+                        }
+
+                        break;
+                    }
+                }
+            }
+            gcodeProcessor.images.push_back(std::pair<trimesh::ivec2, std::string>(imageSize, ""));
+            gcodeProcessor.writeImage = true;
+        }
+    }
+
     bool detectZSeam(GCodeProcessor& gcodeProcessor,trimesh::vec3& v, trimesh::vec3& vp)
     {
         bool detect = false;
@@ -2980,6 +3055,8 @@ namespace gcode
                 getKvs(cmd.comment, sliceCompany, kvs);
                 _paraseKvs(gcodeProcessor, gcodeProcessor.box,true);
 
+                _detect_image(gcodeProcessor,cmd.comment);
+
                 _detect_gcode_company(is_get_company, cmd.comment, sliceCompany);
 
                 if (curLayer <= 0 
@@ -3172,6 +3249,21 @@ namespace gcode
         }
         gcodeProcessor.m_used_filaments.process_extruder_cache(gcodeProcessor.m_extruder_id);
         //process_role_cache
+
+        if (!gcodeProcessor.images.empty())
+        {
+            std::vector<std::pair<trimesh::ivec2, std::vector<unsigned char>>> images;
+
+            std::vector<std::string> inPrevData;
+            for (auto& str : gcodeProcessor.images)
+            {
+                inPrevData.push_back(str.second);
+                images.push_back(std::pair<trimesh::ivec2, std::vector<unsigned char>>(str.first, std::vector<unsigned char>()));
+                gcode::thumbnail_base2image(inPrevData, images.back().second);
+            }
+            pathData->writeImages(images);
+            gcodeProcessor.images.clear();
+        }
 
 
         if (gcode_file)
