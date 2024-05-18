@@ -25,7 +25,7 @@ namespace crslice2
 		}
 
 		int version() override { // 100 - 200
-			return 100;
+			return 101;
 		}
 
 		bool save(std::fstream& out, ccglobal::Tracer* tracer) override {

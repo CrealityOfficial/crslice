@@ -5,6 +5,9 @@
 
 namespace crslice2
 {
+	void loadXForm(trimesh::xform& xf, std::fstream& in);
+	void saveXForm(const trimesh::xform& xf, std::fstream& out);
+
 	class CrObject
 	{
 	public:

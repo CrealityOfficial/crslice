@@ -123,6 +123,9 @@ namespace crslice2
 			m_objects.resize(objectCount);
 		for (int i = 0; i < objectCount; ++i)
 			m_objects.at(i).load(in, version);
+
+		if (version >= 101)
+			loadXForm(m_groupTransform, in);
 	}
 
 	void CrGroup::save(std::fstream& out, int version)
@@ -132,6 +135,9 @@ namespace crslice2
 		ccglobal::cxndSaveT(out, objectCount);
 		for (int i = 0; i < objectCount; ++i)
 			m_objects.at(i).save(out, version);
+
+		if (version >= 101)
+			saveXForm(m_groupTransform, out);
 	}
 
 	void CrGroup::setGroupTransform(trimesh::xform gxform)
