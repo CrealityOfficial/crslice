@@ -5,6 +5,16 @@
 
 namespace crslice2
 {
+	void loadXForm(trimesh::xform& xf, std::fstream& in)
+	{
+		in.read((char*)xf.data(), 16 * sizeof(double));
+	}
+
+	void saveXForm(const trimesh::xform& xf, std::fstream& out)
+	{
+		out.write((const char*)xf.data(), 16 * sizeof(double));
+	}
+
 	CrObject::CrObject()
 	{
 		m_settings.reset(new Settings());
@@ -59,6 +69,14 @@ namespace crslice2
 				ccglobal::cxndLoadVectorT(in, m_mesh->flags);
 			}
 		}
+
+		if (version >= 101)
+		{
+			loadXForm(m_xform, in);
+			ccglobal::cxndLoadStrs(in, m_colors2Facets);
+			ccglobal::cxndLoadStrs(in, m_support2Facets);
+			ccglobal::cxndLoadStrs(in, m_seam2Facets);
+		}
 	}
 
 	void CrObject::save(std::fstream& out, int version)
@@ -76,6 +94,14 @@ namespace crslice2
 			{
 				ccglobal::cxndSaveVectorT(out, m_mesh->flags);
 			}
+		}
+
+		if (version >= 101)
+		{
+			saveXForm(m_xform, out);
+			ccglobal::cxndSaveStrs(out, m_colors2Facets);
+			ccglobal::cxndSaveStrs(out, m_support2Facets);
+			ccglobal::cxndSaveStrs(out, m_seam2Facets);
 		}
 	}
 }
