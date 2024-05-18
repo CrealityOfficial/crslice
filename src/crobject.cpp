@@ -16,6 +16,7 @@ namespace crslice2
 	}
 
 	CrObject::CrObject()
+		:modelType(0)
 	{
 		m_settings.reset(new Settings());
 		m_xform = trimesh::xform();
@@ -72,6 +73,7 @@ namespace crslice2
 
 		if (version >= 101)
 		{
+			ccglobal::cxndLoadT(in, modelType);
 			loadXForm(m_xform, in);
 			ccglobal::cxndLoadStrs(in, m_colors2Facets);
 			ccglobal::cxndLoadStrs(in, m_support2Facets);
@@ -98,6 +100,7 @@ namespace crslice2
 
 		if (version >= 101)
 		{
+			ccglobal::cxndSaveT(out, modelType);
 			saveXForm(m_xform, out);
 			ccglobal::cxndSaveStrs(out, m_colors2Facets);
 			ccglobal::cxndSaveStrs(out, m_support2Facets);
