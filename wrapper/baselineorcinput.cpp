@@ -55,9 +55,6 @@ void BaseLineLogger::LogError(const std::string& msg)
 }
 std::string BaselineOrcaFileUtils::CreateCompareEorrorFile(const std::string& root_dir, const std::string& name, const bool error)
 {
-    if (!_IsDirExist(root_dir))
-        return std::string();
-
     if (!_IsDirExist(root_dir) && !_CreateDir(root_dir))
         return std::string();
     std::filesystem::path file_path(root_dir);
@@ -471,10 +468,10 @@ bool BaselineOrcaInput::_CompareBaseline(const nlohmann::json& json_root)
     err_text += logger.ErrorMsg() + "\n";
     if (json_root.empty())
     {
-        err_text = "json is empty";
+        err_text = "error:json file is empty";
     }
     std::string dir = BaseLineUtils::GetCompareDirectory();
-    std::string name = GetName() + "_compare_error.txt";
+    std::string name = GetName() + "_compare.errtxt";
     std::string path = BaselineOrcaFileUtils::CreateCompareEorrorFile(dir, name, err);
     if (!path.empty())
     {
@@ -489,7 +486,7 @@ bool BaselineOrcaInput::_CompareBaseline(const nlohmann::json& json_root)
         }
         //  build json
         nlohmann::json newroot = nlohmann::json::object();
-        std::string newname = GetName() + "_compare_json";
+        std::string newname = GetName() + "_compare";
         _GenerateBaseline(newroot);
         BaselineOrcaFileHelper::CreateBaselineFile(newroot, dir, newname, {});
         BLReturnBoolen(err);
