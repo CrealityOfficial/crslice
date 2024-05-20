@@ -224,6 +224,9 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 		indexedTriangleSet.indices.at(i) = faceIndex;
 	}
 
+#if 1
+	tmesh = Slic3r::TriangleMesh(indexedTriangleSet);
+#else
 	stl_file stl;
 	stl.stats.type = inmemory;
 	// count facets and allocate memory
@@ -249,7 +252,8 @@ void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tm
 	}
 
 	stl_get_size(&stl);
-	tmesh.from_stl(stl,true);
+	tmesh.from_stl(stl, true);
+#endif
 }
 
 Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::ConfigOptionDef* cDef)
@@ -852,6 +856,15 @@ void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, c
 	Slic3r::Semver             file_version;
 
 	Slic3r::Model model = Slic3r::Model::read_from_archive(file, &config, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets, &file_version);
+	if (config.empty())
+	{
+		const Slic3r::t_config_option_keys keys = config.def()->keys();
+		for (const Slic3r::t_config_option_key& key : keys)
+		{
+			config.optptr(key, true);
+		}
+	}
+
 	for (Slic3r::ModelObject* object : model.objects)
 	{
 		for (Slic3r::ModelInstance* instance : object->instances)

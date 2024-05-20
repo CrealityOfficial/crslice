@@ -957,12 +957,14 @@ public:
     void setMultiColor(bool multiColor) { m_isMultiColor = multiColor; }
     bool getMultiColor() const { return m_isMultiColor; }
 
+    void setDebug(bool debug) { m_debug = debug; }
+
     void setCrealityOS(bool isCrealityOS) { m_isCrealityOS= isCrealityOS; }
     bool getCrealityOS() const { return m_isCrealityOS; }
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
-
+    void debug(const std::string& name);
 private:
     //BBS
     static StringObjectException check_multi_filament_valid(const Print &print);
@@ -984,7 +986,8 @@ private:
     
     //SoftFever
     bool m_isBBLPrinter;
-
+    
+    bool m_debug{false};
     bool m_isMultiColor;
     bool m_isCrealityOS;
 
