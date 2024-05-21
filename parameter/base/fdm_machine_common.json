@@ -1036,6 +1036,19 @@
         "type": "coBool",
         "unit": ""
     },
+    "arc_tolerance": {
+        "default_value": "0.012",
+        "description": "Fitting an arc",
+        "enabled": "true",
+        "label": "Arc tolerance",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm"
+    },
     "enable_filament_ramming": {
         "default_value": "1",
         "description": "Enable filament ramming",

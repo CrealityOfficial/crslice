@@ -2430,6 +2430,15 @@ def = this->add("filament_loading_speed", coFloats);
                      "And the fitting tolerance is same with resolution");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(0));
+    //crality add
+	def = this->add("arc_tolerance", coInt);
+	def->label = L("Arc tolerance");
+	def->tooltip = L("Arc tolerance");
+    def->category = L("Quality");
+	def->min = 0;
+	def->mode = comAdvanced;
+	def->set_default_value(new ConfigOptionInt(12));
+
     // BBS
     def = this->add("gcode_add_line_number", coBool);
     def->label = L("Add line number");

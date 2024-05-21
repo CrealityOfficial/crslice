@@ -153,6 +153,7 @@
         "detect_narrow_internal_solid_infill",
         "gcode_add_line_number",
         "enable_arc_fitting",
+        "arc_tolerance",
         "infill_combination",
         "support_bottom_interface_spacing",
         "enable_overhang_speed",
