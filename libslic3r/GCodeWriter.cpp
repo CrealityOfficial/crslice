@@ -29,7 +29,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     this->config.apply(print_config, true);
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
     bool use_mach_limits = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware ||
-                           print_config.gcode_flavor.value == gcfKlipper || print_config.gcode_flavor.value == gcfRepRapFirmware;
+                           print_config.gcode_flavor.value == gcfKlipper || print_config.gcode_flavor.value == gcfCrealityOS || print_config.gcode_flavor.value == gcfRepRapFirmware;
     m_max_acceleration = std::lrint(use_mach_limits ? print_config.machine_max_acceleration_extruding.values.front() : 0);
     m_max_travel_acceleration = static_cast<unsigned int>(
         std::round((use_mach_limits && supports_separate_travel_acceleration(print_config.gcode_flavor.value)) ?
@@ -70,7 +70,8 @@ std::string GCodeWriter::preamble()
         FLAVOR_IS(gcfTeacup) ||
         FLAVOR_IS(gcfRepetier) ||
         FLAVOR_IS(gcfSmoothie) ||
-        FLAVOR_IS(gcfKlipper))
+        FLAVOR_IS(gcfKlipper) ||
+        FLAVOR_IS(gcfCrealityOS))
     {
         if (this->config.use_relative_e_distances) {
             gcode << "M83 ; use relative distances for extrusion\n";
@@ -250,7 +251,7 @@ std::string GCodeWriter::set_acceleration_internal(Acceleration type, unsigned i
         gcode << (separate_travel ? "M202 X" : "M201 X") << acceleration << " Y" << acceleration;
     else if (FLAVOR_IS(gcfRepRapFirmware) || FLAVOR_IS(gcfMarlinFirmware))
         gcode << (separate_travel ? "M204 T" : "M204 P") << acceleration;
-    else if (FLAVOR_IS(gcfKlipper)) {
+    else if (FLAVOR_IS(gcfKlipper) || FLAVOR_IS(gcfCrealityOS)) {
         gcode << "SET_VELOCITY_LIMIT ACCEL=" << acceleration;
         if (this->config.accel_to_decel_enable) {
             gcode << " ACCEL_TO_DECEL=" << acceleration * this->config.accel_to_decel_factor / 100;
@@ -279,7 +280,7 @@ std::string GCodeWriter::set_jerk_xy(double jerk)
     m_last_jerk = jerk;
     
     std::ostringstream gcode;
-    if(FLAVOR_IS(gcfKlipper))
+    if(FLAVOR_IS(gcfKlipper) || FLAVOR_IS(gcfCrealityOS))
         gcode << "SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=" << jerk;
     else
         gcode << "M205 X" << jerk << " Y" << jerk;
@@ -297,7 +298,7 @@ std::string GCodeWriter::set_jerk_xy(double jerk)
 std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double jerk)
 {
     // Only Klipper supports setting acceleration and jerk at the same time. Throw an error if we try to do this on other flavours.
-    if(FLAVOR_IS_NOT(gcfKlipper))
+    if(FLAVOR_IS_NOT(gcfKlipper)&& FLAVOR_IS_NOT(gcfCrealityOS))
         throw std::runtime_error("set_accel_and_jerk() is only supported by Klipper");
 
     // Clamp the acceleration to the allowed maximum.
@@ -346,7 +347,7 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
         gcode << "M900 K" <<std::setprecision(4)<< pa << " L1000 M10 ; Override pressure advance value\n";
     }
     else{
-        if (FLAVOR_IS(gcfKlipper))
+        if (FLAVOR_IS(gcfKlipper) || FLAVOR_IS(gcfCrealityOS))
             gcode << "SET_PRESSURE_ADVANCE ADVANCE=" << std::setprecision(4) << pa << "; Override pressure advance value\n";
         else if(FLAVOR_IS(gcfRepRapFirmware))
             gcode << ("M572 D0 S") << std::setprecision(4) << pa << "; Override pressure advance value\n";
@@ -901,10 +902,13 @@ std::string GCodeWriter::set_additional_fan(unsigned int speed)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_exhaust_fan( int speed,bool add_eol)
+std::string GCodeWriter::set_exhaust_fan(const GCodeFlavor& gcode_flavor, int speed, bool add_eol)
 {
     std::ostringstream gcode;
-    gcode << "M106" << " P3" << " S" << (int)(speed / 100.0 * 255);
+    if(gcode_flavor == gcfCrealityOS)
+        gcode << "M106" << " P1" << " S" << (int)(speed / 100.0 * 255);
+    else
+        gcode << "M106" << " P3" << " S" << (int)(speed / 100.0 * 255);
 
     if(add_eol)
         gcode << "\n";

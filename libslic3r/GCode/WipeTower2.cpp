@@ -106,7 +106,7 @@ public:
     WipeTowerWriter2&            disable_linear_advance() {
         if (m_gcode_flavor == gcfRepRapSprinter || m_gcode_flavor == gcfRepRapFirmware)
             m_gcode += (std::string("M572 D") + std::to_string(m_current_tool) + " S0\n");
-        else if (m_gcode_flavor == gcfKlipper)
+        else if (m_gcode_flavor == gcfKlipper || m_gcode_flavor == gcfCrealityOS)
             m_gcode += "SET_PRESSURE_ADVANCE ADVANCE=0\n";
         else
             m_gcode += "M900 K0\n";
@@ -377,7 +377,7 @@ public:
 	// Set digital trimpot motor
 	WipeTowerWriter2& set_extruder_trimpot(int current)
 	{
-        if (m_gcode_flavor == gcfKlipper)
+        if (m_gcode_flavor == gcfKlipper || m_gcode_flavor == gcfCrealityOS)
             return *this;
         if (m_gcode_flavor == gcfRepRapSprinter || m_gcode_flavor == gcfRepRapFirmware)
             m_gcode += "M906 E";

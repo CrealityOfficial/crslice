@@ -128,6 +128,7 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
     { "smoothie",       gcfSmoothie },
     { "mach3",          gcfMach3 },
     { "machinekit",     gcfMachinekit },
+    { "crealityos",     gcfCrealityOS },
     { "no-extrusion",   gcfNoExtrusion }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
@@ -2581,6 +2582,7 @@ def = this->add("filament_loading_speed", coFloats);
     //def->enum_values.push_back("teacup");
     //def->enum_values.push_back("makerware");
     def->enum_values.push_back("marlin2");
+    def->enum_values.push_back("crealityos");
     //def->enum_values.push_back("sailfish");
     //def->enum_values.push_back("mach3");
     //def->enum_values.push_back("machinekit");
@@ -2594,6 +2596,7 @@ def = this->add("filament_loading_speed", coFloats);
     //def->enum_labels.push_back("Teacup");
     //def->enum_labels.push_back("MakerWare (MakerBot)");
     def->enum_labels.push_back("Marlin 2");
+    def->enum_labels.push_back("Creality OS");
     //def->enum_labels.push_back("Sailfish (MakerBot)");
     //def->enum_labels.push_back("Mach3/LinuxCNC");
     //def->enum_labels.push_back("Machinekit");
@@ -6343,6 +6346,7 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
 
     if (cfg.use_firmware_retraction.value &&
         cfg.gcode_flavor.value != gcfKlipper &&
+        cfg.gcode_flavor.value != gcfCrealityOS &&
         cfg.gcode_flavor.value != gcfSmoothie &&
         cfg.gcode_flavor.value != gcfRepRapSprinter &&
         cfg.gcode_flavor.value != gcfRepRapFirmware &&

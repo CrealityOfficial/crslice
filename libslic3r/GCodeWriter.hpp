@@ -94,7 +94,7 @@ public:
     std::string set_fan(unsigned int speed) const;
     //BBS: set additional fan speed for BBS machine only
     static std::string set_additional_fan(unsigned int speed);
-    static std::string set_exhaust_fan(int speed,bool add_eol);
+    static std::string set_exhaust_fan(const GCodeFlavor& gcode_flavor,int speed,bool add_eol);
     //BBS
     void set_object_start_str(std::string start_string) { m_gcode_label_objects_start = start_string; }
     bool is_object_start_str_empty() { return m_gcode_label_objects_start.empty(); }
