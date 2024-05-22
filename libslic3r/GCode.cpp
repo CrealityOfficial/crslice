@@ -2424,16 +2424,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
+
+    // Write the custom start G-code
+    file.writeln(machine_start_gcode);
+
+    //
     // Orca: set chamber temperature at the beginning of gcode file
     if (activate_chamber_temp_control && max_chamber_temp > 0)
     {
         if (m_writer.get_printer_model())
-        	file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
+            file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
         else
             file.write(m_writer.set_chamber_temperature(max_chamber_temp, false)); // for creality
     }
-    // Write the custom start G-code
-    file.writeln(machine_start_gcode);
 
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
