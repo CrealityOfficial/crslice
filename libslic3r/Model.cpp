@@ -200,6 +200,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     bool result = false;
     bool is_cb_cancel = false;
     std::string message;
+
+#ifndef MINIMAL_ENGINE
     if (boost::algorithm::iends_with(input_file, ".stp") ||
         boost::algorithm::iends_with(input_file, ".step"))
         result = load_step(input_file.c_str(), &model, is_cb_cancel, stepFn, stepIsUtf8Fn);
@@ -214,7 +216,9 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else if (boost::algorithm::iends_with(input_file, ".amf"))
         //BBS: is_xxx is used for is_inches when load amf
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, is_xxx);
-    else if (boost::algorithm::iends_with(input_file, ".3mf"))
+    else
+#endif
+        if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore
         //FIXME options & LoadStrategy::CheckVersion ?

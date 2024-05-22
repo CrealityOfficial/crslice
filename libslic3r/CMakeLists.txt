@@ -6,6 +6,7 @@ string(TIMESTAMP COMPILE_TIME %Y%m%d-%H%M%S)
 set(SLIC3R_BUILD_TIME ${COMPILE_TIME})
 
 #configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
+set(OPTIMIZE_SOURCE 1)
 
 __enable_bigobj()
 
@@ -17,8 +18,6 @@ endif()
 set(lisbslic3r_sources
     ArcFitter.cpp
     ArcFitter.hpp
-    #pchheader.cpp
-    #pchheader.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
     AABBMesh.hpp
@@ -133,20 +132,6 @@ set(lisbslic3r_sources
     Format/3mf.hpp
     Format/bbs_3mf.cpp
     Format/bbs_3mf.hpp
-    Format/AMF.cpp
-    Format/AMF.hpp
-    Format/OBJ.cpp
-    Format/OBJ.hpp
-    Format/objparser.cpp
-    Format/objparser.hpp
-    Format/STEP.cpp
-    Format/STEP.hpp
-    Format/STL.cpp
-    Format/STL.hpp
-    Format/SL1.hpp
-    Format/SL1.cpp
-	Format/svg.hpp
-    Format/svg.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/CoolingBuffer.cpp
@@ -299,23 +284,6 @@ set(lisbslic3r_sources
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
     SlicingAdaptive.hpp
-    Support/SupportCommon.cpp
-    Support/SupportCommon.hpp
-    Support/SupportDebug.cpp
-    Support/SupportDebug.hpp
-    Support/SupportLayer.hpp
-    # Support/SupportMaterial.cpp
-    # Support/SupportMaterial.hpp
-    Support/SupportParameters.cpp
-    Support/SupportParameters.hpp
-    Support/OrganicSupport.cpp
-    Support/OrganicSupport.hpp
-    Support/TreeSupport.cpp
-    Support/TreeSupport.hpp
-    Support/TreeSupportCommon.cpp
-    Support/TreeSupportCommon.hpp
-    Support/TreeModelVolumes.cpp
-    Support/TreeModelVolumes.hpp
     SupportMaterial.cpp
     SupportMaterial.hpp
     PrincipalComponents2D.cpp
@@ -372,41 +340,6 @@ set(lisbslic3r_sources
     Optimize/Optimizer.hpp
     Optimize/NLoptOptimizer.hpp
     Optimize/BruteforceOptimizer.hpp
-    SLA/Pad.hpp
-    SLA/Pad.cpp
-    SLA/SupportTreeBuilder.hpp
-    SLA/SupportTreeMesher.hpp
-    SLA/SupportTreeMesher.cpp
-    SLA/SupportTreeBuildsteps.hpp
-    SLA/SupportTreeBuildsteps.cpp
-    SLA/SupportTreeBuilder.cpp
-    SLA/Concurrency.hpp
-    SLA/SupportTree.hpp
-    SLA/SupportTree.cpp
-#    SLA/SupportTreeIGL.cpp
-    SLA/Rotfinder.hpp
-    SLA/Rotfinder.cpp
-    SLA/BoostAdapter.hpp
-    SLA/SpatIndex.hpp
-    SLA/SpatIndex.cpp
-    SLA/RasterBase.hpp
-    SLA/RasterBase.cpp
-    SLA/AGGRaster.hpp
-    SLA/RasterToPolygons.hpp
-    SLA/RasterToPolygons.cpp
-    SLA/ConcaveHull.hpp
-    SLA/ConcaveHull.cpp
-    #SLA/Hollowing.hpp
-    #SLA/Hollowing.cpp
-    SLA/JobController.hpp
-    SLA/SupportPoint.hpp
-    SLA/SupportPointGenerator.hpp
-    SLA/SupportPointGenerator.cpp
-    SLA/IndexedMesh.hpp
-    SLA/IndexedMesh.cpp
-    SLA/Clustering.hpp
-    SLA/Clustering.cpp
-    SLA/ReprojectPointsOnMesh.hpp
     Arachne/BeadingStrategy/BeadingStrategy.hpp
     Arachne/BeadingStrategy/BeadingStrategy.cpp
     Arachne/BeadingStrategy/BeadingStrategyFactory.hpp
@@ -487,15 +420,13 @@ endif ()
 
 list(APPEND lisbslic3r_sources
     	CutSurface.hpp
-	CutSurface.cpp
+		CutSurface.cpp
     	IntersectionPoints.hpp
-	IntersectionPoints.cpp
-    	#MeshBoolean.hpp
-	#MeshBoolean.cpp
+		IntersectionPoints.cpp
     	TryCatchSignal.hpp
-	TryCatchSignal.cpp
+		TryCatchSignal.cpp
     	Triangulation.hpp
-	Triangulation.cpp
+		Triangulation.cpp
 	)
 	
 __cc_find(boost_static)
@@ -504,7 +435,6 @@ __cc_find(admesh)
 __cc_find(clipper2)
 __cc_find(png_static)
 __cc_find(openssl)
-__cc_find(opencascade_static)
 __cc_find(nlopt_static)
 __cc_find(expat)
 __cc_find(cgal)
@@ -538,48 +468,129 @@ if(TARGET tbb_inner)
 	list(APPEND ILIBS tbb_inner tbbmalloc)
 endif()
 
-set(OLIBS TKernel
-		 TKMath
-		 TKG2d
-		 TKG3d
-		 TKGeomBase
-		 TKBRep
-		 TKGeomAlgo
-		 TKTopAlgo
-		 TKPrim
-		 TKBO
-		 TKShHealing
-		 TKBool
-		 TKHLR
-		 TKMesh
-		 TKService
-		 TKV3d
-		 TKCDF
-		 TKLCAF
-		 TKCAF
-		 TKBinL
-		 TKXmlL
-		 TKBin
-		 TKXml
-		 TKVCAF
-		 TKXSBase
-		 TKSTEPBase
-		 TKSTEPAttr
-		 TKSTEP209
-		 TKSTEP
-		 TKIGES
-		 TKXCAF
-		 TKXDE
-		 TKXDEIGES
-		 TKXDESTEP
-		 TKSTL
-		 TKVRML
-		 TKRWMesh
-		 TKXmlXCAF
-		 TKBinXCAF     
+set(INTERFACE_DEFS )
+if(OPTIMIZE_SOURCE)
+	list(APPEND DEFS MINIMAL_ENGINE)
+	list(APPEND INTERFACE_DEFS MINIMAL_ENGINE)
+	
+else()
+	list(APPEND lisbslic3r_sources
+			#MeshBoolean.hpp
+			#MeshBoolean.cpp
+			Format/AMF.cpp
+			Format/AMF.hpp
+			Format/OBJ.cpp
+			Format/OBJ.hpp
+			Format/objparser.cpp
+			Format/objparser.hpp
+			Format/STEP.cpp
+			Format/STEP.hpp
+			Format/STL.cpp
+			Format/STL.hpp
+			Format/SL1.hpp
+			Format/SL1.cpp
+			Format/svg.hpp
+			Format/svg.cpp
+			
+			SLA/Pad.hpp
+			SLA/Pad.cpp
+			SLA/SupportTreeBuilder.hpp
+			SLA/SupportTreeMesher.hpp
+			SLA/SupportTreeMesher.cpp
+			SLA/SupportTreeBuildsteps.hpp
+			SLA/SupportTreeBuildsteps.cpp
+			SLA/SupportTreeBuilder.cpp
+			SLA/Concurrency.hpp
+			SLA/SupportTree.hpp
+			SLA/SupportTree.cpp
+			#SLA/SupportTreeIGL.cpp
+			SLA/Rotfinder.hpp
+			SLA/Rotfinder.cpp
+			SLA/BoostAdapter.hpp
+			SLA/SpatIndex.hpp
+			SLA/SpatIndex.cpp
+			SLA/RasterBase.hpp
+			SLA/RasterBase.cpp
+			SLA/AGGRaster.hpp
+			SLA/RasterToPolygons.hpp
+			SLA/RasterToPolygons.cpp
+			SLA/ConcaveHull.hpp
+			SLA/ConcaveHull.cpp
+			#SLA/Hollowing.hpp
+			#SLA/Hollowing.cpp
+			SLA/JobController.hpp
+			SLA/SupportPoint.hpp
+			SLA/SupportPointGenerator.hpp
+			SLA/SupportPointGenerator.cpp
+			SLA/IndexedMesh.hpp
+			SLA/IndexedMesh.cpp
+			SLA/Clustering.hpp
+			SLA/Clustering.cpp
+			SLA/ReprojectPointsOnMesh.hpp
+			
+			Support/SupportCommon.cpp
+			Support/SupportCommon.hpp
+			Support/SupportDebug.cpp
+			Support/SupportDebug.hpp
+			Support/SupportLayer.hpp
+			# Support/SupportMaterial.cpp
+			# Support/SupportMaterial.hpp
+			Support/SupportParameters.cpp
+			Support/SupportParameters.hpp
+			Support/OrganicSupport.cpp
+			Support/OrganicSupport.hpp
+			Support/TreeSupport.cpp
+			Support/TreeSupport.hpp
+			Support/TreeSupportCommon.cpp
+			Support/TreeSupportCommon.hpp
+			Support/TreeModelVolumes.cpp
+			Support/TreeModelVolumes.hpp
 		)
-list(REVERSE OLIBS)  # for linux build
-list(APPEND ILIBS ${OLIBS})
+
+	__cc_find(opencascade_static)
+	set(OLIBS TKernel
+			TKMath
+			TKG2d
+			TKG3d
+			TKGeomBase
+			TKBRep
+			TKGeomAlgo
+			TKTopAlgo
+			TKPrim
+			TKBO
+			TKShHealing
+			TKBool
+			TKHLR
+			TKMesh
+			TKService
+			TKV3d
+			TKCDF
+			TKLCAF
+			TKCAF
+			TKBinL
+			TKXmlL
+			TKBin
+			TKXml
+			TKVCAF
+			TKXSBase
+			TKSTEPBase
+			TKSTEPAttr
+			TKSTEP209
+			TKSTEP
+			TKIGES
+			TKXCAF
+			TKXDE
+			TKXDEIGES
+			TKXDESTEP
+			TKSTL
+			TKVRML
+			TKRWMesh
+			TKXmlXCAF
+			TKBinXCAF     
+			)
+	list(REVERSE OLIBS)  # for linux build
+	list(APPEND ILIBS ${OLIBS})
+endif()
 
 __add_real_target(libslic3r lib 
 	SOURCE ${lisbslic3r_sources} ${OpenVDBUtils_SOURCES} ${EXTRA_SOURCES}
@@ -587,6 +598,7 @@ __add_real_target(libslic3r lib
 	INTERFACE ${INTERFACES}
 	INC ${INCS}
 	DEF ${DEFS}
+	INTERFACE_DEF ${INTERFACE_DEFS}
 	FOLDER slice
 	OPENMP
 	)
