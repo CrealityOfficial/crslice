@@ -837,52 +837,6 @@ namespace gcode
            
             changeKey("FEATURE", "TYPE", kvs);
             changeKey("Z", "Z_HEIGHT", kvs);
-            //if (iter != kvs.end())
-            //{
-            //    if (iter->second == "Outer wall"
-            //        || iter->second == "Overhang wall"
-            //        || iter->second == "Bridge")
-            //    {
-            //        iter->second = "WALL-OUTER";
-            //    }
-            //    else if (iter->second == "Inner wall")
-            //    {
-            //        iter->second = "WALL-INNER";
-            //    }
-            //    else if (iter->second == "Bottom surface"
-            //        || iter->second == "Top surface"
-            //        || iter->second == "Top solid infill"
-            //        || iter->second == "Bottom solid infill")
-            //    {
-            //        iter->second = "SKIN";
-            //    }
-            //    else if (iter->second == "Support"
-            //        || iter->second == "Support interface"
-            //        || iter->second == "Support transition")
-            //    {
-            //        iter->second = "SUPPORT";
-            //    }
-            //    else if (iter->second == "Skirt"
-            //        || iter->second == "Brim")
-            //    {
-            //        iter->second = "SKIRT";
-            //    }
-            //    else if (iter->second == "Internal solid infill"
-            //        || iter->second == "Gap infill"
-            //        || iter->second == "Bridge infill"
-            //        || iter->second == "Sparse infill")
-            //    {
-            //        iter->second = "FILL";
-            //    }
-            //    else if (iter->second == "Prime tower")
-            //    {
-            //        iter->second = "PRIME-TOWER";
-            //    }
-            //    else if (iter->second == "Ironing")
-            //    {
-            //        iter->second = "Ironing";
-            //    }
-            //}
 
             changeKey("filament_diameter", "material_diameter", kvs);
             changeKey("filament_density", "material_density", kvs);
@@ -924,8 +878,23 @@ namespace gcode
         {
             std::vector<std::string> _kvs;
             Stringsplit(iter->second, ' ', _kvs);
-            if (_kvs.size() > 2) {
-                if (_kvs[0].length()>1 && _kvs[1].length() > 1 && _kvs[2].length() > 1)
+            if (_kvs.size() == 1)
+            {
+                int strS = atoi(_kvs[0].substr(0, _kvs[0].length() - 1).c_str());
+                int time = strS;
+                iter->second = std::to_string(time);
+            }
+            else if (_kvs.size() == 2) {
+                if (_kvs[0].length() > 1 && _kvs[1].length() > 1)
+                {
+                    int strM = atoi(_kvs[0].substr(0, _kvs[0].length() - 1).c_str());
+                    int strS = atoi(_kvs[1].substr(0, _kvs[1].length() - 1).c_str());
+                    int time = strM * 60 + strS;
+                    iter->second = std::to_string(time);
+                }
+            }
+            else if (_kvs.size() > 2) {
+                if (_kvs[0].length() > 1 && _kvs[1].length() > 1 && _kvs[2].length() > 1)
                 {
                     int strH = atoi(_kvs[0].substr(0, _kvs[0].length() - 1).c_str());
                     int strM = atoi(_kvs[1].substr(0, _kvs[1].length() - 1).c_str());
@@ -2871,11 +2840,19 @@ namespace gcode
                         switch (cmd.command[2]) {
                         case '0':
                             switch (cmd.command[3]) {
-                            case '4': { process_M104(cmd, pathData); break; } // Set extruder temperature
-                            case '6': { process_M106(cmd, pathData); break; } // Set fan speed
+                            case '4': { 
+                                if (pathParam.curType != SliceLineType::erCustom)
+                                    process_M104(cmd, pathData); 
+                                break; 
+                            } // Set extruder temperature
+                            case '6': {  process_M106(cmd, pathData); break;  } // Set fan speed
                             //case '7': { process_M107(line); break; } // Disable fan
                             //case '8': { process_M108(line); break; } // Set tool (Sailfish)
-                            case '9': { process_M104(cmd, pathData); break; } // Set extruder temperature and wait
+                            case '9': {                                 
+                                if (pathParam.curType != SliceLineType::erCustom)
+                                    process_M104(cmd, pathData);
+                                break;
+                            } // Set extruder temperature
                             default: break;
                             }
                             break;
