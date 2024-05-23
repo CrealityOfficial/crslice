@@ -1596,6 +1596,12 @@ namespace gcode
     }
     void GCodeStruct::setTime(float time)
     {
+        if (time <= 0)
+        {
+            m_layerTimes.insert(std::pair<int, float>(tempBaseInfo.layerNumbers.back() - 1, 0));
+            return;
+
+        }
         float temp = time - tempCurrentTime;
         float templog = 0.0f;
         
