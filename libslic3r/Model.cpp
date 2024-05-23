@@ -3,13 +3,18 @@
 #include "BuildVolume.hpp"
 #include "Exception.hpp"
 #include "Model.hpp"
+
+#ifndef MINIMAL_ENGINE
 #include "ModelArrange.hpp"
 #include "Arrange.hpp"
+#endif
+
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 
+#ifndef MINIMAL_ENGINE
 #include "Format/AMF.hpp"
 #include "Format/OBJ.hpp"
 #include "Format/STL.hpp"
@@ -17,6 +22,7 @@
 #include "Format/svg.hpp"
 // BBS
 #include "FaceDetector.hpp"
+#endif
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
 
@@ -33,8 +39,11 @@
 #include <Eigen/Dense>
 #include "GCodeWriter.hpp"
 
+#ifndef MINIMAL_ENGINE
 // BBS: for segment
 #include "MeshBoolean.hpp"
+#endif
+
 #include "Format/3mf.hpp"
 
 // Transtltion
@@ -3018,6 +3027,7 @@ double ModelInstance::get_auto_brim_width() const
     return get_auto_brim_width(DeltaT, adhcoeff);
 }
 
+#ifndef MINIMAL_ENGINE
 void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConfig &config_global) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
@@ -3069,6 +3079,7 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
 }
+#endif
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const
 {

@@ -1340,6 +1340,7 @@ public:
     Polygon convex_hull_2d();
     void invalidate_convex_hull_2d();
 
+#ifndef MINIMAL_ENGINE
     // Getting the input polygon for arrange
     // We use void* as input type to avoid including Arrange.hpp in Model.hpp.
     void get_arrange_polygon(void *arrange_polygon, const Slic3r::DynamicPrintConfig &config = Slic3r::DynamicPrintConfig()) const;
@@ -1353,6 +1354,7 @@ public:
         set_offset(Y, unscale<double>(offs(Y)));
         this->object->invalidate_bounding_box();
     }
+#endif
 
 protected:
     friend class Print;

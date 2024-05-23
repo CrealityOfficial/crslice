@@ -30,8 +30,6 @@ set(lisbslic3r_sources
     BoundingBox.hpp
     BridgeDetector.cpp
     BridgeDetector.hpp
-    FaceDetector.cpp
-    FaceDetector.hpp
     Brim.cpp
     Brim.hpp
     BuildVolume.cpp
@@ -171,8 +169,6 @@ set(lisbslic3r_sources
     GCode.hpp
     GCodeReader.cpp
     GCodeReader.hpp
-    # GCodeSender.cpp
-    # GCodeSender.hpp
     GCodeWriter.cpp
     GCodeWriter.hpp
     Geometry.cpp
@@ -201,23 +197,12 @@ set(lisbslic3r_sources
     Line.hpp
     LocalesUtils.cpp
     LocalesUtils.hpp
-    CutUtils.cpp
-    CutUtils.hpp
     Model.cpp
     Model.hpp
-    ModelArrange.hpp
-    ModelArrange.cpp
     MultiMaterialSegmentation.cpp
     MultiMaterialSegmentation.hpp
-    Measure.hpp
-    Measure.cpp
-    MeasureUtils.hpp
     CustomGCode.cpp
     CustomGCode.hpp
-    Arrange.hpp
-    Arrange.cpp
-    NormalUtils.cpp
-    NormalUtils.hpp
     Orient.hpp
     Orient.cpp
     MultiPoint.cpp
@@ -231,16 +216,12 @@ set(lisbslic3r_sources
     PerimeterGenerator.hpp
     PlaceholderParser.cpp
     PlaceholderParser.hpp
-    Platform.cpp
-    Platform.hpp
     Point.cpp
     Point.hpp
     Polygon.cpp
     Polygon.hpp
     MutablePolygon.cpp
     MutablePolygon.hpp
-    PolygonTrimmer.cpp
-    PolygonTrimmer.hpp
     Polyline.cpp
     Polyline.hpp
     Preset.cpp
@@ -263,19 +244,11 @@ set(lisbslic3r_sources
     PrintObject.cpp
     PrintObjectSlice.cpp
     PrintRegion.cpp
-    PNGReadWrite.hpp
-    PNGReadWrite.cpp
-    QuadricEdgeCollapse.cpp
-    QuadricEdgeCollapse.hpp
     Semver.cpp
     ShortEdgeCollapse.cpp
     ShortEdgeCollapse.hpp
     ShortestPath.cpp
     ShortestPath.hpp
-    SLAPrint.cpp
-    SLAPrintSteps.cpp
-    SLAPrintSteps.hpp
-    SLAPrint.hpp
     Slicing.cpp
     Slicing.hpp
     SlicesToTriangleMesh.hpp
@@ -296,8 +269,6 @@ set(lisbslic3r_sources
 	Support/SupportDebug.cpp
 	Support/SupportDebug.hpp
 	Support/SupportLayer.hpp
-	# Support/SupportMaterial.cpp
-	# Support/SupportMaterial.hpp
 	Support/SupportParameters.cpp
 	Support/SupportParameters.hpp
 	Support/OrganicSupport.cpp
@@ -344,8 +315,8 @@ set(lisbslic3r_sources
     MTUtils.hpp
     VariableWidth.cpp
     VariableWidth.hpp
-    Zipper.hpp
-    Zipper.cpp
+	NormalUtils.cpp
+	NormalUtils.hpp
     MinAreaBoundingBox.hpp
     MinAreaBoundingBox.cpp
     miniz_extension.hpp
@@ -416,8 +387,8 @@ set(EXTRA_SOURCES
     ../admesh/stl_io.cpp
     ../admesh/stlinit.cpp
     ../admesh/util.cpp
-	../extra/miniz.h
-	../extra/miniz.c
+	miniz.h
+	miniz.c
 	../qoi/qoi.h
 	../qoi/qoilib.c
 	)
@@ -435,8 +406,6 @@ if (APPLE)
 endif ()
 
 list(APPEND lisbslic3r_sources
-    	CutSurface.hpp
-		CutSurface.cpp
     	IntersectionPoints.hpp
 		IntersectionPoints.cpp
     	Triangulation.hpp
@@ -451,7 +420,6 @@ __cc_find(png_static)
 __cc_find(openssl)
 __cc_find(nlopt_static)
 __cc_find(expat)
-__cc_find(cgal)
 
 __assert_target(clipper2)
 __assert_target(eigen)
@@ -473,7 +441,7 @@ if(WIN32)
 endif()
 
 list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thread imgui
-			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess cgal)
+			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
 
@@ -482,6 +450,10 @@ if(TARGET tbb_inner)
 	list(APPEND ILIBS tbb_inner tbbmalloc)
 endif()
 
+__cc_find(cgal)
+__assert_target(cgal)
+list(APPEND ILIBS cgal)
+	
 set(INTERFACE_DEFS )
 if(OPTIMIZE_SOURCE)
 	list(APPEND DEFS MINIMAL_ENGINE)
@@ -489,6 +461,12 @@ if(OPTIMIZE_SOURCE)
 	
 else()
 	list(APPEND lisbslic3r_sources
+			QuadricEdgeCollapse.cpp
+			QuadricEdgeCollapse.hpp
+			CutUtils.cpp
+			CutUtils.hpp
+			CutSurface.hpp
+			CutSurface.cpp
 			#MeshBoolean.hpp
 			#MeshBoolean.cpp
 			Format/AMF.cpp
@@ -506,6 +484,22 @@ else()
 			Format/svg.hpp
 			Format/svg.cpp
 			
+			Measure.hpp
+			Measure.cpp
+			MeasureUtils.hpp
+			PolygonTrimmer.cpp
+			PolygonTrimmer.hpp
+			FaceDetector.cpp
+			FaceDetector.hpp
+			Arrange.hpp
+			Arrange.cpp
+			ModelArrange.hpp
+			ModelArrange.cpp
+	
+			SLAPrint.cpp
+			SLAPrintSteps.cpp
+			SLAPrintSteps.hpp
+			SLAPrint.hpp
 			SLA/Pad.hpp
 			SLA/Pad.cpp
 			SLA/SupportTreeBuilder.hpp
@@ -545,12 +539,20 @@ else()
 			Shape/TextShape.hpp
 			Shape/TextShape.cpp
 	
+			Zipper.hpp
+			Zipper.cpp
+			Platform.cpp
+			Platform.hpp
+			PNGReadWrite.hpp
+			PNGReadWrite.cpp
+			GCodeSender.cpp
+			GCodeSender.hpp
 			TryCatchSignal.hpp
 			TryCatchSignal.cpp	
 			BlacklistedLibraryCheck.cpp
 			BlacklistedLibraryCheck.hpp
 		)
-
+	
 	__cc_find(opencascade_static)
 	set(OLIBS TKernel
 			TKMath
