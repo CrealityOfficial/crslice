@@ -199,8 +199,6 @@ set(lisbslic3r_sources
     libslic3r.h
     Line.cpp
     Line.hpp
-    BlacklistedLibraryCheck.cpp
-    BlacklistedLibraryCheck.hpp
     LocalesUtils.cpp
     LocalesUtils.hpp
     CutUtils.cpp
@@ -290,8 +288,27 @@ set(lisbslic3r_sources
     PrincipalComponents2D.hpp
     SupportSpotsGenerator.cpp
     SupportSpotsGenerator.hpp
-    TreeSupport.hpp 
+    
+	TreeSupport.hpp 
     TreeSupport.cpp
+	Support/SupportCommon.cpp
+	Support/SupportCommon.hpp
+	Support/SupportDebug.cpp
+	Support/SupportDebug.hpp
+	Support/SupportLayer.hpp
+	# Support/SupportMaterial.cpp
+	# Support/SupportMaterial.hpp
+	Support/SupportParameters.cpp
+	Support/SupportParameters.hpp
+	Support/OrganicSupport.cpp
+	Support/OrganicSupport.hpp
+	Support/TreeSupport.cpp
+	Support/TreeSupport.hpp
+	Support/TreeSupportCommon.cpp
+	Support/TreeSupportCommon.hpp
+	Support/TreeModelVolumes.cpp
+	Support/TreeModelVolumes.hpp
+			
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
     Surface.cpp
@@ -380,12 +397,11 @@ set(lisbslic3r_sources
     Arachne/SkeletalTrapezoidationJoint.hpp
     Arachne/WallToolPaths.hpp
     Arachne/WallToolPaths.cpp
-    Shape/TextShape.hpp
-    Shape/TextShape.cpp
     calib.hpp
     calib.cpp
     GCode/Thumbnails.cpp
     GCode/Thumbnails.hpp	
+	NanoSVGImpl.cpp
 )
 
 set(EXTRA_SOURCES 	
@@ -423,8 +439,6 @@ list(APPEND lisbslic3r_sources
 		CutSurface.cpp
     	IntersectionPoints.hpp
 		IntersectionPoints.cpp
-    	TryCatchSignal.hpp
-		TryCatchSignal.cpp
     	Triangulation.hpp
 		Triangulation.cpp
 	)
@@ -528,23 +542,13 @@ else()
 			SLA/Clustering.cpp
 			SLA/ReprojectPointsOnMesh.hpp
 			
-			Support/SupportCommon.cpp
-			Support/SupportCommon.hpp
-			Support/SupportDebug.cpp
-			Support/SupportDebug.hpp
-			Support/SupportLayer.hpp
-			# Support/SupportMaterial.cpp
-			# Support/SupportMaterial.hpp
-			Support/SupportParameters.cpp
-			Support/SupportParameters.hpp
-			Support/OrganicSupport.cpp
-			Support/OrganicSupport.hpp
-			Support/TreeSupport.cpp
-			Support/TreeSupport.hpp
-			Support/TreeSupportCommon.cpp
-			Support/TreeSupportCommon.hpp
-			Support/TreeModelVolumes.cpp
-			Support/TreeModelVolumes.hpp
+			Shape/TextShape.hpp
+			Shape/TextShape.cpp
+	
+			TryCatchSignal.hpp
+			TryCatchSignal.cpp	
+			BlacklistedLibraryCheck.cpp
+			BlacklistedLibraryCheck.hpp
 		)
 
 	__cc_find(opencascade_static)

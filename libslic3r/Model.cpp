@@ -295,8 +295,10 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
             result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project);
         }
     }
+#ifndef MINIMAL_ENGINE
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, &is_bbl_3mf);
+#endif
     else
         throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .3mf or .zip.amf extension."));
 
@@ -1104,6 +1106,7 @@ void ModelObject::assign_new_unique_ids_recursive()
 // BBS: production extension
 int ModelObject::get_backup_id() const { return m_model ? get_model()->get_object_backup_id(*this) : -1; }
 
+#ifndef MINIMAL_ENGINE
 // BBS: Boolean Operations impl. - MusangKing
 bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boolean_opts)
 {
@@ -1116,7 +1119,7 @@ bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boole
 
     const TriangleMesh &cut_mesh = cut_object->mesh();
     //remove boolean
-    //MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
+    MeshBoolean::mcut::make_boolean(this->mesh(), cut_mesh, new_meshes, boolean_opts);
 
     this->clear_volumes();
     int i = 1;
@@ -1126,6 +1129,7 @@ bool ModelObject::make_boolean(ModelObject *cut_object, const std::string &boole
     }
     return true;
 }
+#endif
 
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {
@@ -1847,6 +1851,7 @@ static void invalidate_translations(ModelObject* object, const ModelInstance* sr
     }
 }
 
+#ifndef MINIMAL_ENGINE
 void ModelObject::split(ModelObjectPtrs* new_objects)
 {
     std::vector<TriangleMesh> all_meshes;
@@ -1985,6 +1990,7 @@ void ModelObject::merge()
     if (!vol)
         return;
 }
+#endif
 
 ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
 {

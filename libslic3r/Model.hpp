@@ -519,11 +519,13 @@ public:
     void delete_connectors();
     void clone_for_cut(ModelObject **obj);
 
+#ifndef MINIMAL_ENGINE
     void split(ModelObjectPtrs*new_objects);
     void merge();
 
     // BBS: Boolean opts - Musang King
     bool make_boolean(ModelObject *cut_object, const std::string &boolean_opts);
+#endif
 
     ModelObjectPtrs merge_volumes(std::vector<int>& vol_indeces);//BBS
     // Support for non-uniform scaling of instances. If an instance is rotated by angles, which are not multiples of ninety degrees,
