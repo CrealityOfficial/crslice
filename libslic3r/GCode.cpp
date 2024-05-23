@@ -2874,7 +2874,7 @@ void GCode::process_layers(
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
         [this, &first_layer,&print,&output_stream,&processor = this->m_processor](std::string s) {
 
-            //output_stream.write(s);
+            output_stream.write(s);
 			float layerTime = processor.layer_time();
             std::string strLayerTemp = "";
 
@@ -2900,9 +2900,13 @@ void GCode::process_layers(
             m_last_flow = processor.layer_flow();
             m_last_time = layerTime;
             first_layer = false;
-
-            s += ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
-			output_stream.write(s); }
+            if (!s.empty())
+			{
+				std::string strTime = ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
+                output_stream.write(strTime);
+            }
+            
+			 }
     );
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
