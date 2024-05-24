@@ -20,8 +20,6 @@ set(lisbslic3r_sources
     ArcFitter.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
-    AABBMesh.hpp
-    AABBMesh.cpp
     Algorithm/PathSorting.hpp
     Algorithm/RegionExpansion.hpp
     Algorithm/RegionExpansion.cpp
@@ -461,6 +459,8 @@ if(OPTIMIZE_SOURCE)
 	
 else()
 	list(APPEND lisbslic3r_sources
+			AABBMesh.hpp
+			AABBMesh.cpp
 			QuadricEdgeCollapse.cpp
 			QuadricEdgeCollapse.hpp
 			CutUtils.cpp

@@ -761,88 +761,11 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 
 void orca_slice_from_arch_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
 {
-	std::ifstream in(file, std::ios::in | std::ios::binary);
-	if (!in.is_open())
-	{
-		in.close();
-		return;
-	}
+	crslice2::CrScenePtr scene = std::make_shared<crslice2::CrScene>();
+	scene->load(file);
+	scene->m_gcodeFileName = out;
 
-	TempParamater tp;
-	tp.temp_directory = "cx_parameter.json";
-	tp.outFile = out;
-
-	Slic3r::Model model;
-	Slic3r::DynamicPrintConfig config;
-
-#if 1
-	cereal::BinaryInputArchive iarchive(in);
-	iarchive(tp.is_bbl_printer);
-	iarchive(tp.plate_origin);
-	size_t count;
-	iarchive(count);
-
-	std::vector<Slic3r::ModelObject*> objects;
-	for (size_t i = 0; i < count; ++i) {
-		objects.push_back(model.add_object());
-	}
-	for (size_t i = 0; i < count; ++i) {
-		Slic3r::ModelObject* o = objects.at(i);
-
-		iarchive(o->name, o->module_name, o->config, o->layer_config_ranges, o->layer_height_profile, o->printable,
-			o->origin_translation);
-
-		size_t i_count = o->instances.size();
-		iarchive(i_count);
-		for (size_t j = 0; j < i_count; ++j) {
-			o->add_instance();
-		}
-		for (size_t j = 0; j < i_count; ++j) {
-			iarchive(*o->instances.at(j));
-			int order = 0;
-			iarchive(order);
-			o->instances.at(j)->arrange_order = order;
-		}
-
-		size_t v_count = o->volumes.size();
-		iarchive(v_count);
-
-		std::vector<Slic3r::TriangleMesh> meshes;
-		if (v_count > 0)
-			meshes.resize(v_count);
-		for (size_t j = 0; j < v_count; ++j) {
-			Slic3r::TriangleMesh mesh;
-			iarchive(mesh);
-
-			Slic3r::ModelVolume* v = o->add_volume(mesh);
-			iarchive(v->config);
-			iarchive(v->supported_facets);
-			iarchive(v->seam_facets);
-			iarchive(v->mmu_segmentation_facets);
-		}
-	}
-	iarchive >> config;
-#endif 
-
-#if 0
-	//in.seekg(0, std::ios::end);
-	//int len = in.tellg();
-	//in.seekg(0, std::ios::beg);
-	//std::vector<size_t> buff(len / sizeof(size_t));
-	//in.read((char*)buff.data(), len);
-
-	//size_t cnt;
-	//iarchive(cnt);
-	//for (size_t i = 0; i < cnt; ++i) {
-	//	size_t serialization_key_ordinal;
-	//	iarchive(serialization_key_ordinal);
-	//	std::cout << serialization_key_ordinal << std::endl;
-	//}
-#endif
-	Slic3r::Calib_Params calibParams;
-	Slic3r::ThumbnailsList thumbnailDatas;
-
-	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer);
+	orca_slice_impl(scene, tracer);
 }
 
 void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
