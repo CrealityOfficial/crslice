@@ -824,6 +824,7 @@ public:
     //return 0 means successful
     int                 export_cached_data(const std::string& dir_path, bool with_space=false);
     int                 load_cached_data(const std::string& directory);
+    void debug(const std::string& name);
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }
@@ -958,13 +959,13 @@ public:
     bool getMultiColor() const { return m_isMultiColor; }
 
     void setDebug(bool debug) { m_debug = debug; }
+    void setDebugDirectory(const std::string& directory) { m_debug_directory = directory; }
 
     void setCrealityOS(bool isCrealityOS) { m_isCrealityOS= isCrealityOS; }
     bool getCrealityOS() const { return m_isCrealityOS; }
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
-    void debug(const std::string& name);
 private:
     //BBS
     static StringObjectException check_multi_filament_valid(const Print &print);
@@ -988,6 +989,8 @@ private:
     bool m_isBBLPrinter;
     
     bool m_debug{false};
+    std::string m_debug_directory;
+
     bool m_isMultiColor;
     bool m_isCrealityOS;
 

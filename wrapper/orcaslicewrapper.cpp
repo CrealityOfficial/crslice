@@ -511,6 +511,12 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	Slic3r::Print print;
 	print.set_callback(callback);
 
+	if (tp.debug)
+	{
+		print.setDebug(true);
+		print.setDebugDirectory(tp.temp_directory);
+	}
+
 	print.setMultiColor(detect_multi_color_slice(config, model, tracer));
 	detect_auto_temperature(config, print, tracer);
 	
@@ -549,6 +555,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	try {
 		print.process();
+		print.debug("");
 
 #if _DEBUG
 		save_slices(tp.temp_directory + "cx_slice.json", print);
@@ -700,6 +707,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	tp.outFile = scene->m_gcodeFileName;
 	tp.temp_directory = scene->m_tempDirectory;
 	tp.extruderCount = (int)scene->m_extruders.size();
+	tp.debug = scene->m_settings->has("visual_debug");
 
 	fs::path path = scene->m_gcodeFileName;
 	const std::string baseline_orcal_inputname = scene->m_blName;// path.stem().string() + "_baseline";

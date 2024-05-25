@@ -46,6 +46,8 @@ struct TempParamater
     std::string outFile;
     std::string temp_directory;
     int extruderCount = 1;
+
+    bool debug = false;
 };
 
 class ScopeGuard
