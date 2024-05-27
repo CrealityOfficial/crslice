@@ -25,7 +25,10 @@ namespace crslice2
 		std::string minimum_value_warning;
 		std::string maximum_value_warning;
 
+		std::string settable_globally;
+		std::string settable_per_extruder;
 		std::string settable_per_mesh;
+		std::string settable_per_meshgroup;
 
 		std::vector<std::pair<std::string, std::string> > options;
 	};
