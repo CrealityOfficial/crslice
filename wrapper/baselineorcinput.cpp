@@ -445,33 +445,33 @@ bool BaselineOrcaInput::_CompareBaseline(const nlohmann::json& json_root)
     err_text += "CompareObject:\n";
     logger.m_error_msg = "";
     err &= _CompareObject(json_root, BLName_Val(model), m_elem_model, logger, _CompareEntityModel);
-    err_text += logger.ErrorMsg() + "\n";
+    err_text += logger.ErrorMsg();
 
     err_text += "_CompareBlockDynamicPrintConfig:\n";
     logger.m_error_msg = "";
     err &= _CompareBlockDynamicPrintConfig(json_root, BLName_Val(dynamic_print_config), *m_elem_dynamic_print_config, logger);
-    err_text += logger.ErrorMsg() + "\n";
+    err_text += logger.ErrorMsg() ;
 
     err_text += "_CompareBlockTempParam:\n";
     logger.m_error_msg = "";
     err &= _CompareBlockTempParam(json_root, BLName_Val(temp_param), *m_elem_temp_param, logger);
-    err_text += logger.ErrorMsg() + "\n";
+    err_text += logger.ErrorMsg();
 
     err_text += "_CompareBlockCalibParam:\n";
     logger.m_error_msg = "";
     err &= _CompareBlockCalibParam(json_root, BLName_Val(calib_param), *m_elem_calib_param, logger);
-    err_text += logger.ErrorMsg() + "\n";
+    err_text += logger.ErrorMsg();
 
     err_text += "_CompareBlockThumbnail:\n";
     logger.m_error_msg = "";
     err &= _CompareBlockThumbnail(json_root, BLName_Val(thumbnail), *m_elem_thumbnail, logger);
-    err_text += logger.ErrorMsg() + "\n";
+    err_text += logger.ErrorMsg();
     if (json_root.empty())
     {
-        err_text = "error:json file is empty";
+        err_text = "error:3mf file is error\n";
     }
     std::string dir = BaseLineUtils::GetCompareDirectory();
-    std::string name = GetName() + "_compare.errtxt";
+    std::string name = "result.errtxt";
     std::string path = BaselineOrcaFileUtils::CreateCompareEorrorFile(dir, name, err);
     if (!path.empty())
     {
