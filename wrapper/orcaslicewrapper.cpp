@@ -1073,6 +1073,9 @@ void export_metas_impl()
 	{
 		ordered_json j;
 		std::vector<std::string> printer_keys = Preset::print_options();
+		PrintRegionConfig printRegionConfig;
+		PrintObjectConfig printObjectConfig;
+		PrintConfig printConfig;
 
 		//record all the key-values
 		for (const std::string& opt_key : _def->keys())
@@ -1168,10 +1171,10 @@ void export_metas_impl()
 			{
 				item["minimum_value"] = std::to_string(optDef->min);
 			}
-			item["settable_globally"] = is_print_key ? "true" : "false";
+			item["settable_globally"] = printConfig.has(opt_key) ? "true" : "false";
 			item["settable_per_extruder"] = is_print_key ? "true" : "false";
-			item["settable_per_mesh"] = is_print_key ? "true" : "false";
-			item["settable_per_meshgroup"] = "false";
+			item["settable_per_mesh"] = printObjectConfig.has(opt_key) ? "true" : "false";
+			item["settable_per_meshgroup"] = printRegionConfig.has(opt_key) ? "true" : "false";
 
 			item["type"] = type;
 			item["unit"] = optDef->sidetext;
