@@ -26,6 +26,9 @@ namespace crslice2
 		void sliceFromScene(CrScenePtr scene, ccglobal::Tracer* tracer = nullptr);
 
         SliceResult sliceResult;
+
+        std::map<std::string, std::string> extraSliceWarningDetails;
+
 	};
 
     CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality);

@@ -503,7 +503,7 @@ bool detect_auto_temperature(const Slic3r::DynamicPrintConfig& config, const Sli
 }
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config,
-	const TempParamater& tp, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
+	const TempParamater& tp, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer, Slic3r::GCodeProcessorResult* outResult)
 {
 #if 1
 	if (!tp.temp_directory.empty())
@@ -527,7 +527,6 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 		}
 	};
 
-	Slic3r::GCodeProcessorResult result;
 	Slic3r::Print print;
 	print.set_callback(callback);
 
@@ -563,7 +562,6 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	//BBS: reset the gcode before reload_print in slicing_completed event processing
 	//FIX the gcode rename failed issue
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: will start slicing, reset gcode_result firstly") % __LINE__;
-	result.reset();
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process") % __LINE__;
 
@@ -590,7 +588,8 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	try
 	{
-		print.export_gcode(tp.outFile, &result, thumbnail_cb);
+		if(outResult)
+			print.export_gcode(tp.outFile, outResult, thumbnail_cb);
 	}
 	catch (const std::exception& ex)
 	{
@@ -686,7 +685,7 @@ std::vector<double> orca_update_layer_height_profile(crslice2::SettingsPtr setti
 	return m_profile;
 }
 
-void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
+void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3r::GCodeProcessorResult* outResult)
 {
 	if (!scene)
 		return;
@@ -715,7 +714,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	fs::path path = scene->m_gcodeFileName;
 	const std::string baseline_orcal_inputname = scene->m_blName;// path.stem().string() + "_baseline";
 
-	slice_impl(model, config, tp, calibParams, thumbnailData, tracer);
+	slice_impl(model, config, tp, calibParams, thumbnailData, tracer, outResult);
 
 	//---start baseline test 
 	cxbaseline::BaseLineUtils::SetRootDirectory(scene->m_sliceBLDirectory);
@@ -852,8 +851,9 @@ void orca_slice_from_arch_impl(const std::string& file, const std::string& out, 
 #endif
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
+	Slic3r::GCodeProcessorResult outGcodeProcessResult;
 
-	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer);
+	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer, &outGcodeProcessResult);
 }
 
 void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
@@ -890,8 +890,9 @@ void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, c
 	
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
+	Slic3r::GCodeProcessorResult outGcodeProcessResult;
 
-	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer);
+	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer, &outGcodeProcessResult);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)

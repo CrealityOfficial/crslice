@@ -2,6 +2,8 @@
 #include "wrapper/orcaslicewrapper.h"
 
 #include "ccglobal/log.h"
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/I18N.hpp"
 
 namespace crslice2
 {
@@ -24,7 +26,24 @@ namespace crslice2
 			return;
 		}
 
-		orca_slice_impl(scene, tracer);
+		Slic3r::GCodeProcessorResult gcodeProcessResult;
+		gcodeProcessResult.reset();
+
+		orca_slice_impl(scene, tracer, &gcodeProcessResult);
+
+		// check slice warning details
+		if (gcodeProcessResult.conflict_result.has_value())
+		{
+			static std::string text;
+			std::string objName1 = gcodeProcessResult.conflict_result.value()._objName1;
+			std::string objName2 = gcodeProcessResult.conflict_result.value()._objName2;
+			double      height = gcodeProcessResult.conflict_result.value()._height;
+			text = (boost::format(_u8L("Conflicts of gcode paths have been found at height$ %f $ Please separate the conflicted objects further@ (%s <-> %s).")) % height %
+				  objName1 % objName2)
+				.str();
+
+			extraSliceWarningDetails["Path_Conflict"] = text;
+		}
 	}
 
 	CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality)

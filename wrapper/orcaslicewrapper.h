@@ -5,7 +5,7 @@
 #include "crslice2/base/parametermeta.h"
 #include "libslic3r/Print.hpp"
 
-void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer);
+void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3r::GCodeProcessorResult* outResult);
 std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality);
 std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile, unsigned int radius, bool keep_min);
