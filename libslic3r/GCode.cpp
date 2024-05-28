@@ -2481,16 +2481,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
+
+    // Write the custom start G-code
+    file.writeln(machine_start_gcode);
+
+    //
     // Orca: set chamber temperature at the beginning of gcode file
     if (activate_chamber_temp_control && max_chamber_temp > 0)
     {
         if (m_writer.get_printer_model())
-        	file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
+            file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
         else
             file.write(m_writer.set_chamber_temperature(max_chamber_temp, false)); // for creality
     }
-    // Write the custom start G-code
-    file.writeln(machine_start_gcode);
 
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
@@ -2928,7 +2931,7 @@ void GCode::process_layers(
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
         [this, &first_layer,&print,&output_stream,&processor = this->m_processor](std::string s) {
 
-            //output_stream.write(s);
+            output_stream.write(s);
 			float layerTime = processor.layer_time();
             std::string strLayerTemp = "";
 
@@ -2954,9 +2957,13 @@ void GCode::process_layers(
             m_last_flow = processor.layer_flow();
             m_last_time = layerTime;
             first_layer = false;
-
-            s += ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
-			output_stream.write(s); }
+            if (!s.empty())
+			{
+				std::string strTime = ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
+                output_stream.write(strTime);
+            }
+            
+			 }
     );
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,

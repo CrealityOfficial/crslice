@@ -332,45 +332,65 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 		{
 			currentObject->config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
 		}
-		for (crslice2::CrObject aObject : aCrgroup->m_objects)
+
+		auto sort_obj = [](std::vector<crslice2::CrObject>& objects, std::vector<crslice2::CrObject*>& sorted_objects){
+			if (!objects.empty()){
+				std::vector<crslice2::CrObject*> sorted_objects_negative;
+				for (crslice2::CrObject& aObject : objects){
+					if (aObject.modelType != 1)
+						sorted_objects.push_back(&aObject);
+					else
+						sorted_objects_negative.push_back(&aObject);
+				}
+				if (!sorted_objects_negative.empty()){
+					sorted_objects.insert(sorted_objects.end(), sorted_objects_negative.begin(), sorted_objects_negative.end());
+					sorted_objects_negative.clear();
+				}
+			}
+		};
+		//sort
+		std::vector<crslice2::CrObject*> sorted_objects;
+		sort_obj(aCrgroup->m_objects, sorted_objects);
+
+		for (crslice2::CrObject* aObject : sorted_objects)
 		{
 			Slic3r::Transform3d t3d;
 			for (int i = 0; i < 4; i++)
 			{
 				for (int j = 0; j < 4; j++)
 				{
-					t3d(i, j) = aObject.m_xform[i + j * 4];
+					t3d(i, j) = aObject->m_xform[i + j * 4];
 				}
 
 			}
 			Slic3r::Geometry::Transformation t(t3d);
 
 			Slic3r::TriangleMesh mesh;
-			trimesh2Slic3rTriangleMesh(aObject.m_mesh.get(), mesh);
+			trimesh2Slic3rTriangleMesh(aObject->m_mesh.get(), mesh);
 			Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
-			v->set_type(static_cast<Slic3r::ModelVolumeType>(aObject.modelType));
+			v->set_type(static_cast<Slic3r::ModelVolumeType>(aObject->modelType));
 			v->set_transformation(t);
-			currentObject->layer_height_profile.set(aObject.m_layerHeight);
-			if (aObject.m_mesh->faces.size() == aObject.m_colors2Facets.size())
-				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
-					if (!aObject.m_colors2Facets[i].empty())
-						v->mmu_segmentation_facets.set_triangle_from_string(i, aObject.m_colors2Facets[i]);
+			currentObject->layer_height_profile.set(aObject->m_layerHeight);
+			if (aObject->m_mesh->faces.size() == aObject->m_colors2Facets.size())
+				for (size_t i = 0; i < aObject->m_mesh->faces.size(); i++) {
+					if (!aObject->m_colors2Facets[i].empty())
+						v->mmu_segmentation_facets.set_triangle_from_string(i, aObject->m_colors2Facets[i]);
 				}
 
-			if (aObject.m_mesh->faces.size() == aObject.m_seam2Facets.size())
-				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
-					if (!aObject.m_seam2Facets[i].empty())
-						v->seam_facets.set_triangle_from_string(i, aObject.m_seam2Facets[i]);
+			if (aObject->m_mesh->faces.size() == aObject->m_seam2Facets.size())
+				for (size_t i = 0; i < aObject->m_mesh->faces.size(); i++) {
+					if (!aObject->m_seam2Facets[i].empty())
+						v->seam_facets.set_triangle_from_string(i, aObject->m_seam2Facets[i]);
 				}
 
-			if (aObject.m_mesh->faces.size() == aObject.m_support2Facets.size())
-				for (size_t i = 0; i < aObject.m_mesh->faces.size(); i++) {
-					if (!aObject.m_support2Facets[i].empty())
-						v->supported_facets.set_triangle_from_string(i, aObject.m_support2Facets[i]);
+			if (aObject->m_mesh->faces.size() == aObject->m_support2Facets.size())
+				for (size_t i = 0; i < aObject->m_mesh->faces.size(); i++) {
+					if (!aObject->m_support2Facets[i].empty())
+						v->supported_facets.set_triangle_from_string(i, aObject->m_support2Facets[i]);
 				}
 
 			//v->config.assign_config(currentObject->config);
-			for (const std::pair<std::string, std::string> pair : aObject.m_settings->settings)
+			for (const std::pair<std::string, std::string> pair : aObject->m_settings->settings)
 			{
 				v->config.set_key_value(pair.first, _set_key_value(pair.second, _def->get(pair.first)));
 			}
@@ -984,6 +1004,9 @@ void export_metas_impl()
 	{
 		ordered_json j;
 		std::vector<std::string> printer_keys = Preset::print_options();
+		PrintRegionConfig printRegionConfig;
+		PrintObjectConfig printObjectConfig;
+		PrintConfig printConfig;
 
 		//record all the key-values
 		for (const std::string& opt_key : _def->keys())
@@ -1079,10 +1102,10 @@ void export_metas_impl()
 			{
 				item["minimum_value"] = std::to_string(optDef->min);
 			}
-			item["settable_globally"] = is_print_key ? "true" : "false";
+			item["settable_globally"] = printConfig.has(opt_key) ? "true" : "false";
 			item["settable_per_extruder"] = is_print_key ? "true" : "false";
-			item["settable_per_mesh"] = is_print_key ? "true" : "false";
-			item["settable_per_meshgroup"] = "false";
+			item["settable_per_mesh"] = printObjectConfig.has(opt_key) ? "true" : "false";
+			item["settable_per_meshgroup"] = printRegionConfig.has(opt_key) ? "true" : "false";
 
 			item["type"] = type;
 			item["unit"] = optDef->sidetext;

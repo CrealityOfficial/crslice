@@ -92,8 +92,14 @@ namespace crslice2
         if (value.HasMember("maximum_value_warning"))
             meta.maximum_value_warning = (value["maximum_value_warning"].GetString());
 
+        if (value.HasMember("settable_globally"))
+            meta.settable_globally = value["settable_globally"].GetString();
+        if (value.HasMember("settable_per_extruder"))
+            meta.settable_per_extruder = value["settable_per_extruder"].GetString();
         if (value.HasMember("settable_per_mesh"))
             meta.settable_per_mesh = value["settable_per_mesh"].GetString();
+        if (value.HasMember("settable_per_meshgroup"))
+            meta.settable_per_meshgroup = value["settable_per_meshgroup"].GetString();
 
         if (value.HasMember(META_VALUE))
             meta.value = (value[META_VALUE].GetString());
