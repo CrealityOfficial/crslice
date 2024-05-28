@@ -6,12 +6,12 @@
 #include "libslic3r/Print.hpp"
 
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer);
-std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, float quality);
-std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality);
+std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile, unsigned int radius, bool keep_min);
-std::vector<double> orca_generate_object_layers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+std::vector<double> orca_generate_object_layers(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile);
-std::vector<double> orca_update_layer_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+std::vector<double> orca_update_layer_height_profile(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile);
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer = nullptr);
 void parse_metas_map_impl(crslice2::MetasMap& datas);
