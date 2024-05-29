@@ -19,6 +19,8 @@
 
 #include "FillRectilinear.hpp"
 
+#include "../EdgeGrid.hpp"
+//#include "test.h"
 // #define SLIC3R_DEBUG
 // #define INFILL_DEBUG_OUTPUT
 
@@ -2736,6 +2738,100 @@ static void polylines_from_paths(const std::vector<MonotonicRegionLink> &path, c
     }
 }
 
+
+
+coordf_t  get_sdf(coord_t x, coord_t y, EdgeGrid::Grid& grid, coord_t& new_base_x0, coord_t& new_base_y0, coord_t& line_spacing)
+{
+	coord_t cur_x = new_base_x0 - x * line_spacing;
+	coord_t cur_y = new_base_y0 - y * line_spacing;
+	const Point pt(cur_x, cur_y);
+	coordf_t sdf = grid.signed_distance_bilinear(pt);
+	return sdf;
+}
+
+void recursion_process_grid(
+	coord_t grid_x0,
+	coord_t grid_y0,
+	coord_t grid_edge_len,
+	coord_t level,
+	std::vector<coord_t>& thresholds,
+	EdgeGrid::Grid& grid,
+	coord_t& new_base_x0,
+	coord_t& new_base_y0,
+	coord_t& line_spacing,
+	std::vector<coord_t>& out_x_deletes,
+	std::vector<coord_t>& out_y_deletes)
+{
+	if (level <= 0)
+	{
+		return;
+	}
+
+    if (grid_x0 < 0 || grid_y0 < 0 )
+    {
+        int x = 0;
+        x++;
+    }
+
+	coordf_t sdf00 = get_sdf(grid_x0, grid_y0, grid, new_base_x0, new_base_y0, line_spacing);
+	coordf_t sdf01 = get_sdf(grid_x0, grid_y0 + grid_edge_len, grid, new_base_x0, new_base_y0, line_spacing);
+	coordf_t sdf11 = get_sdf(grid_x0 + grid_edge_len, grid_y0 + grid_edge_len, grid, new_base_x0, new_base_y0, line_spacing);
+	coordf_t sdf10 = get_sdf(grid_x0 + grid_edge_len, grid_y0, grid, new_base_x0, new_base_y0, line_spacing);
+	if (sdf00 < thresholds[level] &&
+		sdf01 < thresholds[level] &&
+		sdf11 < thresholds[level] &&
+		sdf10 < thresholds[level])
+	{
+		for (coord_t k = grid_x0 + 1; k <= grid_x0 + grid_edge_len - 1; k++)
+		{
+			for (coord_t m = grid_y0 + 1; m <= grid_y0 + grid_edge_len - 1; m++)
+			{
+				out_x_deletes.push_back(k);
+				out_y_deletes.push_back(m);
+			}
+		}
+		return;
+	}
+
+	if (level <= 1)
+	{
+		return;
+	}
+
+	std::vector < coord_t> gd_xs; gd_xs.resize(4);
+	std::vector < coord_t> gd_ys; gd_ys.resize(4);
+	gd_xs[0] = grid_x0;
+	gd_ys[0] = grid_y0;
+
+	gd_xs[1] = grid_x0 + (grid_edge_len / 2);
+	gd_ys[1] = grid_y0;
+
+	gd_xs[2] = grid_x0 + (grid_edge_len / 2);
+	gd_ys[2] = grid_y0 + (grid_edge_len / 2);
+
+	gd_xs[3] = grid_x0;
+	gd_ys[3] = grid_y0 + (grid_edge_len / 2);
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		recursion_process_grid(
+			gd_xs[i],
+			gd_ys[i],
+			grid_edge_len / 2,
+			level - 1,
+			thresholds,
+			grid,
+			new_base_x0,
+			new_base_y0,
+			line_spacing,
+			out_x_deletes,
+			out_y_deletes);
+	}
+
+
+}
+
+
 bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillParams &params, float angleBase, float pattern_shift, Polylines &polylines_out)
 {
     // At the end, only the new polylines will be rotated back.
@@ -2883,6 +2979,597 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
         assert(! polyline.has_duplicate_points());
 #endif /* SLIC3R_DEBUG */
 
+
+
+    //add by wxj start
+    if (polylines_out.size()>0 && params.extrusion_role== erInternalInfill)
+    {
+        {
+			bool is_vaild_flag = true;
+            Polylines fill_lines2;
+			std::map<size_t, std::set<coord_t>> map_flid_deletes;//每条填充线-内部会被删除的连续栅格点集
+			std::map<size_t, std::pair<coord_t, coord_t>> map_flid_deltas;//每条填充线，的头尾和模型轮廓交点--到--外面一个栅格距离。
+			std::map<size_t, coord_t> map_flid_lens;
+			std::vector<size_t> fill_lines_counts;
+
+            Polylines polylines_out2 = polylines_out;
+
+			//testout(poly_with_offset.polygons_inner);
+			//testout(poly_with_offset.polygons_outer);
+
+            std::for_each(polylines_out2.begin(), polylines_out2.end(), [&](Polyline& pl) {pl.rotate(-rotate_vector.first); });            
+
+            for (auto pl:polylines_out2)
+            {
+                //testout(pl);
+            }
+
+            //填充线块 排序.
+			std::sort(polylines_out2.begin(), polylines_out2.end(), [](const Polyline& a, const Polyline& b) {
+				return (a.points[0].x() < b.points[0].x() || a.points[a.points.size() - 1].x() < b.points[b.points.size() - 1].x());
+				});
+
+            //到此: poly_with_offset  和 polylines_out2 和 segs  都是已经旋转到正确的 竖直填充 姿态
+
+			std::unordered_map<int64_t, size_t> map_coords_fl_id;//建立hashmap
+            unsigned int lineid = 0;
+            for (const SegmentedIntersectionLine& vline : segs)
+            {
+                for (auto it = vline.intersections.begin(); it != vline.intersections.end();it++) {
+                     coord_t x = vline.pos;
+                     coord_t y = it->pos();
+					 int64_t combined_key = static_cast<int64_t>(x) << 32 | static_cast<uint32_t>(y);                    
+                    map_coords_fl_id[combined_key] = lineid;
+
+                }
+                lineid++;
+            }
+
+            Polylines fill_lines_shuzi;
+            size_t testcount = 0;
+            auto itr_end = map_coords_fl_id.end();
+
+            //精度误差处理
+            auto get_itr = [&](coord_t& x, coord_t& y) {
+                for (auto i : {0,-1,1})//,-2,2
+                {
+                    for (auto j : { 0,-1,1})//,-2,2
+                    {
+						int64_t combined_key1 = static_cast<int64_t>(x+i) << 32 | static_cast<uint32_t>(y+j);
+						auto itr1 = map_coords_fl_id.find(combined_key1);
+						if (itr1 != map_coords_fl_id.end())
+						{
+							return itr1;
+						}
+                    }
+                }
+                return map_coords_fl_id.end();
+            };
+            //提取 单独的填充线
+            for (size_t m = 0; m < polylines_out2.size(); m++)
+            {
+                Polyline& pol = polylines_out2[m];
+                for (size_t k = pol.points.size() - 1; k >=1; k--)
+                {
+                    coord_t x1 = pol.points[k][0];
+                    coord_t y1 = pol.points[k][1];
+                    coord_t x2 = pol.points[k - 1][0];
+                    coord_t y2 = pol.points[k - 1][1];
+
+                    auto itr1 = get_itr(x1,y1);
+                    auto itr2 = get_itr(x2, y2);
+                    if (itr1!= itr_end && itr2 != itr_end && itr1->second == itr2->second)
+                    {
+                        if (pol.points[k].y()> pol.points[k - 1].y())
+                        {
+                            fill_lines_shuzi.emplace_back( pol.points[k], pol.points[k - 1]);
+                        }
+                        else
+                        {
+                            fill_lines_shuzi.emplace_back( pol.points[k-1], pol.points[k ]);
+                        }
+                        testcount++;
+                    }
+                }
+            }
+
+            //排序 单独的填充线 
+			std::sort(fill_lines_shuzi.begin(), fill_lines_shuzi.end(), [](const Polyline& a, const Polyline& b) {
+				return (a.points[0].x() > b.points[0].x() );
+				});
+
+
+            //testout(fill_lines_shuzi);
+            fill_lines_counts.push_back(fill_lines_shuzi.size());
+
+            Polylines fill_lines_shuiping;
+			const size_t  n_h_segments = (bounding_box.max.y() - bounding_box.min.y() + line_spacing - 1) / line_spacing;
+            coord_t addy0 = (n_h_segments* line_spacing - (bounding_box.max.y() - bounding_box.min.y())) / 2;
+            coord_t y0 = bounding_box.max.y()+ addy0;
+            //让虚构的y单位格子全局对齐
+            y0 = (y0+(line_spacing/2)) / line_spacing *line_spacing;
+            coord_t x0 = bounding_box.min.x();
+            coord_t xn = bounding_box.max.x();
+			for (coord_t i = 0; i <= coord_t(n_h_segments); ++i) {
+                coord_t yi = y0 - i * line_spacing;
+                fill_lines_shuiping.emplace_back(Point(x0,yi),Point(xn,yi));
+			}
+            //testout(fill_lines_shuiping);
+            fill_lines_counts.push_back(fill_lines_shuzi.size()+ fill_lines_shuiping.size());
+
+
+
+			if (is_vaild_flag)
+			{
+				//竖直切线
+				Polylines polylines1 = std::move(fill_lines_shuzi);
+				//水平切线
+				Polylines polylines2 = std::move(fill_lines_shuiping);
+
+				const coord_t& base_x0 = polylines1[0].points[0].x();
+				const coord_t& base_xn = polylines1[polylines1.size() - 1].points[0].x();
+				const coord_t& base_y0 = polylines2[0].points[0].y();
+				const coord_t& base_yn = polylines2[polylines2.size() - 1].points[0].y();
+
+				size_t ori_gird_shuzhi_count;
+				size_t ori_gird_shuiping_count;
+				std::map<size_t, std::vector<size_t>> grid_line_id_map_flids;
+				std::vector<size_t> flid_map_gridid;
+				flid_map_gridid.resize(fill_lines_counts[1]);
+				size_t glid = 0;
+				coord_t pre_x = polylines1[0].points[0].x();
+				for (size_t i = 0; i < fill_lines_counts[0]; i++)
+				{
+					coord_t dy0 = polylines1[i].points[0].y() - base_y0;
+					coord_t dyn = polylines1[i].points[1].y() - base_yn;
+					map_flid_deltas[i] = { dy0,dyn };
+					map_flid_lens[i] = polylines1[i].points[0].y() - polylines1[i].points[1].y();
+
+					coord_t cur_x = polylines1[i].points[0].x();
+
+					if (std::abs(cur_x - pre_x) > 100)//10-4误差内认为相等
+					{
+						pre_x = cur_x;
+						glid++;
+					}
+					grid_line_id_map_flids[glid].push_back(i);
+					flid_map_gridid[i] = glid;
+				}
+
+				coord_t pre_y = polylines2[0].points[0].y();
+				glid++;
+				ori_gird_shuzhi_count = glid;
+				for (size_t i = 0; i < fill_lines_counts[1] - fill_lines_counts[0]; i++)
+				{
+					coord_t dx0 = polylines2[i].points[0].x() - base_xn;
+					coord_t dxn = polylines2[i].points[1].x() - base_x0;
+					map_flid_deltas[i + fill_lines_counts[0]] = { dx0,dxn };
+					map_flid_lens[i + fill_lines_counts[0]] = polylines2[i].points[1].x() - polylines2[i].points[0].x();
+
+					coord_t cur_y = polylines2[i].points[0].y();
+					if (std::abs(cur_y - pre_y) > 100)
+					{
+						pre_y = cur_y;
+						glid++;
+					}
+					grid_line_id_map_flids[glid].push_back(i + fill_lines_counts[0]);
+					flid_map_gridid[i + fill_lines_counts[0]] = glid;
+				}
+				ori_gird_shuiping_count = glid + 1 - ori_gird_shuzhi_count;
+
+                coord_t x_segcount = ori_gird_shuzhi_count + 1;//(abs(base_xn - base_x0) + 0.5 * line_spacing) / line_spacing + 2;
+                coord_t y_segcount = ori_gird_shuiping_count + 1;//(abs(base_yn - base_y0) + 0.5 * line_spacing) / line_spacing + 2;
+
+
+				coord_t new_base_x0 = base_x0 + line_spacing;
+				coord_t new_base_y0 = base_y0 + line_spacing;
+
+
+
+                ExPolygonWithOffset& poly_with_offset_base_with_rotate= poly_with_offset;
+
+				//testout(poly_with_offset_base_with_rotate.polygons_outer);
+
+				EdgeGrid::Grid grid;
+				grid.set_bbox(get_extents(poly_with_offset_base_with_rotate.polygons_outer).inflated(SCALED_EPSILON));
+				grid.create(poly_with_offset_base_with_rotate.polygons_outer, coord_t(scale_(10.)));
+				grid.calculate_sdf();
+
+
+
+				//std::vector<coord_t> thresholds = { -10000000 , -20000000, -30000000 };
+				std::vector<coord_t> thresholds = { -1000000 , -1500000, -3000000,-5000000 };
+
+				//test		
+				std::vector<std::vector<float>> sdf_values(x_segcount + 1, std::vector<float>(y_segcount + 1, 1));
+				for (size_t x = 0; x <= x_segcount; x++)
+				{
+					for (size_t y = 0; y <= y_segcount; y++)
+					{
+						coord_t cur_x = new_base_x0 - x * line_spacing;
+						coord_t cur_y = new_base_y0 - y * line_spacing;
+						const Point pt(cur_x, cur_y);
+						float sdf = grid.signed_distance_bilinear(pt);
+						sdf_values[x][y] = sdf / 1000000.0f;
+					}
+				}
+				//testout_csv(sdf_values);
+
+
+				std::vector<coord_t> out_x_deletes; out_x_deletes.clear();
+				std::vector<coord_t> out_y_deletes; out_y_deletes.clear();
+				coord_t maxlevel = 0;
+				coord_t root_grid_x = 0;
+				coord_t root_grid_y = 0;
+				coord_t root_grid_edge_len = 0;
+				size_t totalsize = thresholds.size();
+				for (auto it = thresholds.rbegin(); it != thresholds.rend(); ++it) {
+					size_t posi = --totalsize;
+					coordf_t grid_edge_len = std::pow(2, posi);
+					if (std::min(std::ceil(x_segcount / grid_edge_len), std::ceil(y_segcount / grid_edge_len)) >= 3
+						&& line_spacing * grid_edge_len < 10 * 1000000)
+					{
+						maxlevel = posi;
+						root_grid_x = std::ceil(x_segcount / grid_edge_len);
+						root_grid_y = std::ceil(y_segcount / grid_edge_len);
+						root_grid_edge_len = grid_edge_len;
+						break;
+					}
+				}
+
+                coord_t add_x = (root_grid_x * root_grid_edge_len - x_segcount) / 2.0;
+                coord_t add_y = (root_grid_y * root_grid_edge_len - y_segcount) / 2.0;
+
+				//全局对齐网格
+				if (root_grid_edge_len != 0)
+				{
+                    if (this->layer_id == 2)
+                    {
+                        int x = 0;
+                        x++;
+                    }
+					coord_t base_xpos = new_base_x0 + add_x * line_spacing;
+					coord_t base_ypos = new_base_y0 + add_y * line_spacing;
+					coord_t tmp_gridx_count = (base_xpos + (line_spacing / 2)) / line_spacing;
+					coord_t tmp_root_gridx_count = tmp_gridx_count / root_grid_edge_len;
+					coord_t movex_count = tmp_gridx_count - tmp_root_gridx_count * root_grid_edge_len;
+					if (movex_count > root_grid_edge_len / 2)
+					{
+						add_x += root_grid_edge_len - movex_count;
+					}
+					else
+					{
+						add_x -= movex_count;
+					}
+					coord_t tmp_gridy_count = (base_ypos + (line_spacing / 2)) / line_spacing;
+					coord_t tmp_root_gridy_count = tmp_gridy_count / root_grid_edge_len;
+					coord_t movey_count = tmp_gridy_count - tmp_root_gridy_count * root_grid_edge_len;
+					if (movey_count > root_grid_edge_len / 2)
+					{
+						add_y += root_grid_edge_len - movey_count;
+					}
+					else
+					{
+						add_y -= movey_count;
+					}
+				}
+
+
+				//这里是构造的虚拟网格,递归计算出需要删除的栅格点
+				for (size_t gridi = 0; gridi < root_grid_x; gridi++)
+				{
+					for (size_t gridj = 0; gridj < root_grid_y; gridj++)
+					{
+						recursion_process_grid(
+							-add_x + (gridi * root_grid_edge_len),
+							-add_y + (gridj * root_grid_edge_len),
+							root_grid_edge_len,
+							maxlevel,
+							thresholds,
+							grid,
+							new_base_x0,
+							new_base_y0,
+							line_spacing,
+							out_x_deletes,
+							out_y_deletes);
+					}
+				}
+
+				//test
+				std::vector< Point> ptsout2;
+				for (size_t k = 0; k < out_x_deletes.size(); k++)
+				{
+					int i = out_x_deletes[k];
+					int j = out_y_deletes[k];
+					coord_t cur_x = new_base_x0 - i * line_spacing;
+					coord_t cur_y = new_base_y0 - j * line_spacing;
+					ptsout2.push_back(Point(cur_x, cur_y));
+				}
+				//testout(ptsout2);
+
+				auto get_fild_by_gridid = [&](size_t& grid_i, size_t& grid_j) {
+					std::vector<size_t>& fildsi = grid_line_id_map_flids[grid_i];
+					std::vector<size_t>& fildsj = grid_line_id_map_flids[ori_gird_shuzhi_count + grid_j];
+					assert(fildsi.size() > 0 && fildsj.size() > 0);
+					coord_t cur_y = base_y0 - grid_j * line_spacing;
+					coord_t re_i = -1;
+					for (auto i : fildsi)
+					{
+                        if (i<0 || i>polylines1.size() - 1)
+                        {
+                            continue;
+                        }
+						coord_t yi0_big = polylines1[i].points[0].y();
+						coord_t yi1_samll = polylines1[i].points[1].y();
+						if (cur_y <= yi0_big && cur_y >= yi1_samll)
+						{
+							re_i = i;
+							break;
+						}
+					}
+
+					coord_t cur_x = base_x0 - grid_i * line_spacing;
+					coord_t re_j = -1;
+					for (auto j : fildsj)
+					{
+						if (j - fill_lines_counts[0]<0 || j - fill_lines_counts[0] >polylines2.size() - 1)
+						{
+							continue;
+						}
+						coord_t xj0_big = polylines2[j - fill_lines_counts[0]].points[1].x();
+						coord_t xj1_samll = polylines2[j - fill_lines_counts[0]].points[0].x();
+						if (cur_x <= xj0_big && cur_x >= xj1_samll)
+						{
+							re_j = j;
+							break;
+						}
+					}
+
+					return std::pair<coord_t, coord_t>(re_i, re_j);
+				};
+
+				for (size_t k = 0; k < out_x_deletes.size(); k++)
+				{
+                    coord_t i = out_x_deletes[k];
+                    coord_t j = out_y_deletes[k];
+					//assert(i > 0 && j > 0);
+                    if(i <=0 || i > ori_gird_shuzhi_count-1 || j<=0 || j> ori_gird_shuiping_count-1)
+                        continue;
+
+					size_t grid_i = i - 1;
+					size_t grid_j = j - 1;
+
+					auto [fid_i, fid_j] = get_fild_by_gridid(grid_i, grid_j);
+					if (fid_i == -1 || fid_j == -1)
+					{
+						continue;
+					}
+					for (size_t m = 0; m < 3; m++)
+					{
+						map_flid_deletes[fid_i].insert(j - 1 - 1 + m);
+					}
+
+					for (size_t m = 0; m < 3; m++)
+					{
+						map_flid_deletes[fid_j].insert(i - 1 - 1 + m);
+					}
+				}
+
+                fill_lines2.insert(fill_lines2.end(), 
+                    std::make_move_iterator(polylines1.begin()), std::make_move_iterator(polylines1.end()));
+				fill_lines2.insert(fill_lines2.end(),
+					std::make_move_iterator(polylines2.begin()), std::make_move_iterator(polylines2.end()));
+				std::for_each(fill_lines2.begin(), fill_lines2.end(), [&](Polyline& pl) {pl.rotate(rotate_vector.first); });
+
+
+			}
+            // 
+			if (is_vaild_flag)
+			{
+                polylines_out2.clear();
+                polylines_out2.swap(std::vector<Polyline>());
+				using coords_pair = std::pair<std::pair<coord_t, coord_t>, std::pair<coord_t, coord_t>>;
+				std::map<coords_pair, size_t> map_coords_fl_id;//建立hashmap
+				for (size_t m = 0; m < fill_lines2.size(); m++)
+				{
+					Polyline& p1 = fill_lines2[m];
+					coord_t x = p1.points[0][0];
+					coord_t y = p1.points[0][1];
+					coord_t x2 = p1.points[1][0];
+					coord_t y2 = p1.points[1][1];
+					coords_pair key1 = { {x, y}, { x2, y2 } };
+					coords_pair key2 = { {x2, y2}, { x, y } };
+					coords_pair key = x < x2 ? key1 : (x > x2 ? key2 : (y <= y2 ? key1 : key2));
+					map_coords_fl_id[key] = m;
+				}
+
+				//在polylines_out里面查找 fill_lines2 线段，如果需要则切割分段。
+
+				auto cal_new_point = [&](coord_t& d_0, coord_t& d_n,
+					Point& p0, Point& p1,
+					size_t& fl_id, coord_t& curVal, bool is_vertical_shuzhi_line) {
+
+						//break the segment
+						Point newp0;
+						coord_t keepa = ((curVal * line_spacing) + (is_vertical_shuzhi_line ? d_0 : d_n));
+						if (keepa < 0) {
+							keepa *= -1.;
+						}
+						double keepa_d = static_cast<double>(keepa) / static_cast<double>(map_flid_lens[fl_id]);
+						Point dir = (is_vertical_shuzhi_line ? (p1 - p0) : (p0 - p1));
+
+						newp0 = is_vertical_shuzhi_line ? Point(p0.x() + keepa_d * static_cast<double>(dir[0]), p0.y() + keepa_d * static_cast<double>(dir[1]))
+							: Point(p1.x() + keepa_d * static_cast<double>(dir[0]), p1.y() + keepa_d * static_cast<double>(dir[1]));
+
+						return newp0;
+				};
+
+				auto cal_init_statas = [&](coord_t& x, coord_t& y, coord_t& x2, coord_t& y2, size_t& fl_id, Point** p0, Point** p1) {
+
+					bool is_vertical_shuzhi_line = fl_id < fill_lines_counts[0];
+					bool is_orign_order = true;
+					if (is_vertical_shuzhi_line == true)//竖线
+					{
+						if (y2 > y)
+						{
+							is_orign_order = false;//线段的两个点顺序颠倒
+						}
+					}
+					else//横线
+					{
+						if (x2 < x)
+						{
+							is_orign_order = false;//线段的两个点顺序颠倒
+						}
+					}
+					bool is_need_swap = false;
+					if (is_vertical_shuzhi_line != is_orign_order)//异或
+					{
+						is_need_swap = true;
+					}
+					*p0 = &fill_lines2[fl_id].points[0];  //上点 或者 左点
+					*p1 = &fill_lines2[fl_id].points[1];  //下点 或者 右点
+					auto [d_0, d_n] = map_flid_deltas[fl_id];
+					return std::make_tuple(is_vertical_shuzhi_line, is_need_swap, d_0, d_n);
+				};
+
+				for (size_t m = 0; m < polylines_out.size(); m++)
+				{
+					Polyline& pol = polylines_out[m];
+					Polyline pol_new;
+					std::set<size_t> new_ks;
+					for (size_t k = 0; k < pol.points.size() - 1; k++)
+					{
+						coord_t x = pol.points[k][0];
+						coord_t y = pol.points[k][1];
+						coord_t x2 = pol.points[k + 1][0];
+						coord_t y2 = pol.points[k + 1][1];
+						coords_pair key1 = { {x, y}, { x2, y2 } };
+						coords_pair key2 = { {x2, y2}, { x, y } };
+						coords_pair key = x < x2 ? key1 : (x > x2 ? key2 : (y <= y2 ? key1 : key2));
+						bool is_keepsame = false;
+						auto itr = map_coords_fl_id.find(key);
+
+						if (itr == map_coords_fl_id.end()) {
+							is_keepsame = true;// 走到这里表示： 在fill_lines2里面没有找到 该线段。
+						}
+						else {
+							auto fl_id = itr->second;
+							if (map_flid_deletes.find(fl_id) == map_flid_deletes.end())
+							{								
+                                is_keepsame = true;
+							}
+							else //切割当前线段
+							{
+								bool is_vertical_shuzhi_line = false;
+								bool is_need_swap = false;
+								Point* p00, * p11;
+								coord_t d_0, d_n;
+								std::tie(is_vertical_shuzhi_line, is_need_swap, d_0, d_n) = cal_init_statas(x, y, x2, y2, fl_id, &p00, &p11);
+								Point& p0 = *p00;
+								Point& p1 = *p11;
+
+                                is_need_swap = !is_need_swap;
+								//删除点集,点的顺序是：从上到下 或者 "从右到左" 这里的顺序要特别注意
+								std::set<coord_t>& tmpset = map_flid_deletes[fl_id];
+                                coord_t minVal = *tmpset.begin();
+                                coord_t maxVal = *std::prev(tmpset.end());
+
+								Point newp0 = cal_new_point(d_0, d_n, p0, p1, fl_id, minVal, is_vertical_shuzhi_line);
+								Point newp1 = cal_new_point(d_0, d_n, p0, p1, fl_id, maxVal, is_vertical_shuzhi_line);
+								if (is_need_swap)//异或
+								{
+									std::swap(newp0, newp1);
+								}
+
+								new_ks.insert(k);
+								for (auto it = new_ks.begin(); it != new_ks.end(); ++it) {
+									pol_new.points.push_back(pol.points[*it]);
+								}
+								new_ks.clear();
+								pol_new.points.push_back(newp0);
+								polylines_out2.push_back(pol_new);
+
+								pol_new.points.clear();
+
+								//处理一个gridline上面分段情况,删除的点集是不连续的，也就是中间某些线段是不需要删除。
+								if (maxVal - minVal + 1 != tmpset.size())
+								{
+									std::vector<std::pair<coord_t, coord_t>> intervals;
+                                    coord_t start = *tmpset.begin();
+                                    coord_t end = start;
+									for (auto it = std::next(tmpset.begin()); it != tmpset.end(); ++it) {
+										if (*it == end + 1) {
+											end = *it;
+										}
+										else {
+											if (end - start >= 2) {
+												intervals.push_back(std::make_pair(start, end));
+											}
+											start = end = *it;
+										}
+									}
+									if (end - start >= 2) {
+										intervals.push_back(std::make_pair(start, end));
+									}
+									std::vector<std::pair<coord_t, coord_t>> intervals2;
+									for (int i = 0; i < intervals.size() - 1; i++)
+									{
+										intervals2.push_back(std::make_pair(intervals[i].second, intervals[i + 1].first));
+									}
+
+									for (auto curpair : intervals2)
+									{
+										Point np0 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.first, is_vertical_shuzhi_line);
+										Point np1 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.second, is_vertical_shuzhi_line);
+										if (is_need_swap)//异或
+										{
+											std::swap(np0, np1);
+										}
+										pol_new.points.push_back(np0);
+										pol_new.points.push_back(np1);
+										polylines_out2.push_back(pol_new);
+										pol_new.points.clear();
+									}
+								}
+								//break the segment               
+
+
+
+								new_ks.clear();
+								pol_new.points.clear();
+								pol_new.points.push_back(newp1);
+								new_ks.insert(k + 1);
+							}
+						}
+						if (is_keepsame == true) {
+							new_ks.insert(k);
+							new_ks.insert(k + 1);
+						}
+					}
+
+					for (auto it = new_ks.begin(); it != new_ks.end(); ++it) {
+						pol_new.points.push_back(pol.points[*it]);
+					}
+					new_ks.clear();
+					polylines_out2.push_back(pol_new);
+					pol_new.points.clear();
+				}
+			}
+
+			if (!polylines_out2.empty())
+			{
+				polylines_out = polylines_out2;
+                //testout(polylines_out);
+                //testout(std::move(polylines_out));
+			}
+			//add by wxj end
+        }
+        
+    }
+    
+    //add by wxj end
+
     return true;
 }
 
@@ -2941,11 +3628,331 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     coord_t line_width   = coord_t(scale_(this->spacing));
     coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
     std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
-    for (const SweepParams &sweep : sweep_params) {
+    Polylines fill_lines2;//备份一份，因为 fill_lines 会被connect_infill 修改。
+    std::vector<size_t> fill_lines_counts;//记录下每种扫略类型的填充线条数。比如grid是两种(具体都是最初竖直线，然后通过旋转角度，来构造成新类型)
+    for (const SweepParams& sweep : sweep_params) {
         // Rotate polygons so that we can work with vertical lines here
         float angle = rotate_vector.first + sweep.angle_base;
-        make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, - angle), rotate_vector.second.rotated(-angle), angle, line_width + coord_t(SCALED_EPSILON), line_spacing, coord_t(scale_(sweep.pattern_shift)), fill_lines);
+        make_fill_lines(ExPolygonWithOffset(poly_with_offset_base, -angle), rotate_vector.second.rotated(-angle), angle, line_width + coord_t(SCALED_EPSILON), line_spacing, coord_t(scale_(sweep.pattern_shift)), fill_lines);
+        fill_lines_counts.push_back(fill_lines.size());
     }
+
+
+    //add by wxj start
+    bool is_vaild_flag = params.extrusion_role == erInternalInfill && sweep_params.size()==2 && fill_lines_counts[1]> fill_lines_counts[0] && fill_lines.size() > 4;
+    std::map<size_t, std::set<coord_t>> map_flid_deletes;//每条填充线-内部会被删除的连续栅格点集
+    std::map<size_t, std::set<coord_t>> map_flid_splits;
+    std::map<size_t, std::pair<coord_t, coord_t>> map_flid_deltas;//每条填充线，的头尾和模型轮廓交点--到--外面一个栅格距离。
+    std::map<size_t, coord_t> map_flid_lens;
+	Polylines polylines_out2;//替换 polylines_out 作为最终输出
+    if (is_vaild_flag)
+    {
+        //竖直切线
+        Polylines polylines1; polylines1.clear();
+        polylines1.insert(polylines1.end(), fill_lines.begin(), fill_lines.begin() + fill_lines_counts[0]);
+        std::for_each(polylines1.begin(), polylines1.end(), [](Polyline& pl) {pl.rotate(45. / 180. * PI); });
+
+        //testout(polylines1);
+
+        //水平切线
+        Polylines polylines2; polylines2.clear();
+        polylines2.insert(polylines2.end(), fill_lines.begin() + fill_lines_counts[0], fill_lines.end());
+        std::for_each(polylines2.begin(), polylines2.end(), [](Polyline& pl) {pl.rotate(45. / 180. * PI); });
+
+        //testout(polylines2);
+
+        const coord_t& base_x0 = polylines1[0].points[0].x();
+        const coord_t& base_xn = polylines1[polylines1.size() - 1].points[0].x();
+        const coord_t& base_y0 = polylines2[0].points[0].y();
+        const coord_t& base_yn = polylines2[polylines2.size() - 1].points[0].y();
+        
+        size_t ori_gird_shuzhi_count;
+        size_t ori_gird_shuiping_count;
+        std::map<size_t,std::vector<size_t>> grid_line_id_map_flids;
+        std::vector<size_t> flid_map_gridid;
+        flid_map_gridid.resize(fill_lines_counts[1]);
+        size_t glid = 0;
+        coord_t pre_x = polylines1[0].points[0].x();
+        for (size_t i = 0; i < fill_lines_counts[0]; i++)
+        {
+            coord_t dy0 = polylines1[i].points[0].y() - base_y0;
+            coord_t dyn = polylines1[i].points[1].y() - base_yn;
+            map_flid_deltas[i] = { dy0,dyn };
+            map_flid_lens[i] = polylines1[i].points[0].y() - polylines1[i].points[1].y();
+
+            coord_t cur_x = polylines1[i].points[0].x();
+
+             if (std::abs(cur_x - pre_x) > 100)//10-4误差内认为相等
+            {
+                pre_x = cur_x;
+                glid++;
+            }
+			grid_line_id_map_flids[glid].push_back(i);
+            flid_map_gridid[i] = glid;
+        }
+
+        coord_t pre_y = polylines2[0].points[0].y();
+        glid++;
+        ori_gird_shuzhi_count = glid;
+        for (size_t i = 0; i < fill_lines_counts[1] - fill_lines_counts[0]; i++)
+        {
+            coord_t dx0 = polylines2[i].points[0].x() - base_xn;
+            coord_t dxn = polylines2[i].points[1].x() - base_x0;
+            map_flid_deltas[i + fill_lines_counts[0]] = { dx0,dxn };
+            map_flid_lens[i + fill_lines_counts[0]] = polylines2[i].points[1].x() - polylines2[i].points[0].x();
+
+			coord_t cur_y = polylines2[i].points[0].y();
+			if (std::abs(cur_y - pre_y)>100)
+			{
+                pre_y = cur_y;
+				glid++;
+			}
+			grid_line_id_map_flids[glid].push_back(i+ fill_lines_counts[0]);
+            flid_map_gridid[i + fill_lines_counts[0]] = glid;
+        }
+        ori_gird_shuiping_count = glid+1 - ori_gird_shuzhi_count;
+
+        coord_t x_segcount = ori_gird_shuzhi_count + 1;//(abs(base_xn - base_x0) + 0.5 * line_spacing) / line_spacing + 2;
+        coord_t y_segcount = ori_gird_shuiping_count + 1; //(abs(base_yn - base_y0) + 0.5 * line_spacing) / line_spacing + 2;
+
+
+        coord_t new_base_x0 = base_x0 + line_spacing;
+        coord_t new_base_y0 = base_y0 + line_spacing;
+
+
+
+        ExPolygonWithOffset& poly_with_offset_base_with_rotate = ExPolygonWithOffset(poly_with_offset_base, 45. / 180. * PI);
+
+        //testout(poly_with_offset_base_with_rotate.polygons_outer);
+
+        EdgeGrid::Grid grid;
+        grid.set_bbox(get_extents(poly_with_offset_base_with_rotate.polygons_outer).inflated(SCALED_EPSILON));
+        grid.create(poly_with_offset_base_with_rotate.polygons_outer, coord_t(scale_(10.)));
+        grid.calculate_sdf();
+
+
+
+        //std::vector<coord_t> thresholds = { -10000000 , -20000000, -30000000 };
+        std::vector<coord_t> thresholds = { -1000000 , -1500000, -3000000,-5000000 };
+
+        //test		
+		std::vector<std::vector<float>> sdf_values(x_segcount + 1, std::vector<float>(y_segcount + 1, 1));
+		for (size_t x = 0; x <= x_segcount; x++)
+		{
+			for (size_t y = 0; y <= y_segcount; y++)
+			{
+				coord_t cur_x = new_base_x0 - x * line_spacing;
+				coord_t cur_y = new_base_y0 - y * line_spacing;
+				const Point pt(cur_x, cur_y);
+				float sdf = grid.signed_distance_bilinear(pt);
+				sdf_values[x][y] = sdf / 1000000.0f;
+			}
+		}
+		//testout_csv(sdf_values);
+
+
+        std::vector<coord_t> out_x_deletes; out_x_deletes.clear();
+        std::vector<coord_t> out_y_deletes; out_y_deletes.clear();
+        coord_t maxlevel = 0;
+        coord_t root_grid_x = 0;
+        coord_t root_grid_y = 0;
+        coord_t root_grid_edge_len = 0;
+        size_t totalsize = thresholds.size();
+        for (auto it = thresholds.rbegin(); it != thresholds.rend(); ++it) {
+            size_t posi = --totalsize;
+            coordf_t grid_edge_len = std::pow(2, posi);
+            if (std::min(std::ceil(x_segcount / grid_edge_len), std::ceil(y_segcount / grid_edge_len)) >= 3
+                && line_spacing* grid_edge_len < 10*1000000)
+            {
+                maxlevel = posi;
+                root_grid_x = std::ceil(x_segcount / grid_edge_len);
+                root_grid_y = std::ceil(y_segcount / grid_edge_len);
+                root_grid_edge_len = grid_edge_len;
+                break;
+            }
+        }
+
+        coord_t add_x = (root_grid_x * root_grid_edge_len - x_segcount) / 2.0;
+        coord_t add_y = (root_grid_y * root_grid_edge_len - y_segcount) / 2.0;
+
+        //全局对齐网格
+        if (root_grid_edge_len != 0)
+        {
+            this->layer_id;
+            coord_t base_xpos = new_base_x0 + add_x * line_spacing;
+            coord_t base_ypos = new_base_y0 + add_y * line_spacing;
+            coord_t tmp_gridx_count = (base_xpos+(line_spacing/2)) / line_spacing;
+            coord_t tmp_root_gridx_count = tmp_gridx_count / root_grid_edge_len;
+            coord_t movex_count = tmp_gridx_count - tmp_root_gridx_count * root_grid_edge_len;
+            if (movex_count > root_grid_edge_len / 2)
+            {
+                add_x += root_grid_edge_len - movex_count;
+            }
+            else
+            {
+                add_x -= movex_count;
+            }
+            coord_t tmp_gridy_count = (base_ypos + (line_spacing / 2)) / line_spacing;
+            coord_t tmp_root_gridy_count = tmp_gridy_count / root_grid_edge_len;
+            coord_t movey_count = tmp_gridy_count - tmp_root_gridy_count * root_grid_edge_len;
+            if (movey_count > root_grid_edge_len / 2)
+            {
+                add_y += root_grid_edge_len - movey_count;
+            }
+            else
+            {
+                add_y -= movey_count;
+            }
+        }
+
+
+        //这里是构造的虚拟网格,递归计算出需要删除的栅格点
+        for (size_t gridi = 0; gridi < root_grid_x; gridi++)
+        {
+            for (size_t gridj = 0; gridj < root_grid_y; gridj++)
+            {
+                recursion_process_grid(
+                    -add_x + (gridi * root_grid_edge_len),
+                    -add_y + (gridj * root_grid_edge_len),
+                    root_grid_edge_len,
+                    maxlevel,
+                    thresholds,
+                    grid,
+                    new_base_x0,
+                    new_base_y0,
+                    line_spacing,
+                    out_x_deletes,
+                    out_y_deletes);
+            }
+        }
+
+        //test
+		std::vector< Point> ptsout2;
+		for (size_t k = 0; k < out_x_deletes.size(); k++)
+		{
+			int i = out_x_deletes[k];
+			int j = out_y_deletes[k];
+			coord_t cur_x = new_base_x0 - i * line_spacing;
+			coord_t cur_y = new_base_y0 - j * line_spacing;
+			ptsout2.push_back(Point(cur_x, cur_y));
+		}
+		//testout(ptsout2);
+
+        auto get_fild_by_gridid = [&](coord_t& grid_i, coord_t& grid_j) {
+            std::vector<size_t>& fildsi = grid_line_id_map_flids[grid_i];
+            std::vector<size_t>& fildsj = grid_line_id_map_flids[ori_gird_shuzhi_count + grid_j];
+            assert(fildsi.size() > 0 && fildsj.size() > 0);
+            coord_t cur_y = base_y0 - grid_j * line_spacing;
+            coord_t re_i = -1;
+            for (auto i : fildsi)
+            {
+				if (i<0 || i>polylines1.size() - 1)
+				{
+					continue;
+				}
+                coord_t yi0_big = polylines1[i].points[0].y();
+                coord_t yi1_samll = polylines1[i].points[1].y();
+                if (cur_y <= yi0_big && cur_y >= yi1_samll)
+                {
+                    re_i = i;
+                    break;
+                }
+            }
+
+            coord_t cur_x = base_x0 - grid_i * line_spacing;
+            coord_t re_j = -1;
+            for (auto j : fildsj)
+            {
+				if (j - fill_lines_counts[0]<0 || j - fill_lines_counts[0] >polylines2.size() - 1)
+				{
+					continue;
+				}
+                coord_t xj0_big = polylines2[j - fill_lines_counts[0]].points[1].x();
+                coord_t xj1_samll = polylines2[j - fill_lines_counts[0]].points[0].x();
+                if (cur_x <= xj0_big && cur_x >= xj1_samll)
+                {
+                    re_j = j;
+                    break;
+                }
+            }
+
+            return std::pair<coord_t, coord_t>(re_i, re_j);
+        };
+
+        for (size_t k = 0; k < out_x_deletes.size(); k++)
+        {
+            coord_t i = out_x_deletes[k];
+            coord_t j = out_y_deletes[k];
+			//assert(i > 0 && j > 0);
+			if (i <= 0 || i > ori_gird_shuzhi_count - 1 || j <= 0 || j > ori_gird_shuiping_count - 1)
+				continue;
+            coord_t grid_i = i - 1;
+            coord_t grid_j = j - 1;
+
+            auto [fid_i, fid_j] = get_fild_by_gridid(grid_i, grid_j);
+            if (fid_i==-1 || fid_j==-1)
+            {
+                continue;
+            }
+            for (size_t m = 0; m < 3; m++)
+            {
+                map_flid_deletes[fid_i].insert(j - 1 - 1 + m);
+            }
+
+            for (size_t m = 0; m < 3; m++)
+            {
+                map_flid_deletes[fid_j].insert(i - 1 - 1 + m);
+            }
+        }
+
+        //记录分裂点，为后面的TSP使用
+        for (auto itr = map_flid_deletes.begin(); itr != map_flid_deletes.end(); itr++)
+        {
+            size_t fid = itr->first;
+            std::set<coord_t>& tmpset = map_flid_deletes[fid];
+            coord_t minVal = *tmpset.begin();
+            coord_t maxVal = *std::prev(tmpset.end());
+            bool is_vertical_shuzhi_line = fid < fill_lines_counts[0];
+            coord_t grid_id = flid_map_gridid[fid];
+            if (is_vertical_shuzhi_line)
+            {
+				auto [fid_i, fid_j] = get_fild_by_gridid(grid_id, minVal);
+				if (fid_j != -1)
+				{
+                    map_flid_splits[fid_j].insert(grid_id);
+				}
+                {
+                    auto [fid_i, fid_j] = get_fild_by_gridid(grid_id, maxVal);
+                    if (fid_j != -1)
+                    {
+                        map_flid_splits[fid_j].insert(grid_id);
+                    }
+                }
+            }
+            else
+            {
+                grid_id -= ori_gird_shuzhi_count;
+
+				auto [fid_i, fid_j] = get_fild_by_gridid(minVal,grid_id );
+				if (fid_i != -1)
+				{
+					map_flid_splits[fid_i].insert(grid_id);
+				}
+                {
+                    auto [fid_i, fid_j] = get_fild_by_gridid(maxVal, grid_id);
+                    if (fid_i != -1)
+                    {
+                        map_flid_splits[fid_i].insert(grid_id);
+                    }
+                }
+            }
+        }
+
+
+
+        fill_lines2 = fill_lines;//备份
+    }
+    //add by wxj end
 
     if (params.dont_connect() || fill_lines.size() <= 1) {
         if (fill_lines.size() > 1)
@@ -2953,6 +3960,245 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         append(polylines_out, std::move(fill_lines));
     } else
         connect_infill(std::move(fill_lines), poly_with_offset_base.polygons_outer, get_extents(surface->expolygon.contour), polylines_out, this->spacing, params);
+
+    //add by wxj start
+    if (is_vaild_flag)
+    {
+        using coords_pair = std::pair<std::pair<coord_t, coord_t>, std::pair<coord_t, coord_t>>;
+        std::map<coords_pair, size_t> map_coords_fl_id;//建立hashmap
+        for (size_t m = 0; m < fill_lines2.size(); m++)
+        {
+            Polyline& p1 = fill_lines2[m];
+            coord_t x = p1.points[0][0];
+            coord_t y = p1.points[0][1];
+            coord_t x2 = p1.points[1][0];
+            coord_t y2 = p1.points[1][1];
+            coords_pair key1 = { {x, y}, { x2, y2 } };
+            coords_pair key2 = { {x2, y2}, { x, y } };
+            coords_pair key = x < x2 ? key1 : (x > x2 ? key2 : (y <= y2 ? key1 : key2));
+            map_coords_fl_id[key] = m;
+        }
+
+        //在polylines_out里面查找 fill_lines2 线段，如果需要则切割分段。
+
+        auto cal_new_point = [&](coord_t& d_0, coord_t& d_n,
+            Point& p0, Point& p1, 
+            size_t& fl_id, coord_t& curVal, bool is_vertical_shuzhi_line) {
+
+			//break the segment
+			Point newp0;
+			coord_t keepa = ((curVal * line_spacing) + (is_vertical_shuzhi_line ? d_0 : d_n));
+			if (keepa < 0) {
+				keepa *= -1.;
+			}
+			double keepa_d = static_cast<double>(keepa) / static_cast<double>(map_flid_lens[fl_id]);
+			Point dir = (is_vertical_shuzhi_line ? (p1 - p0) : (p0 - p1));
+
+			newp0 = is_vertical_shuzhi_line ? Point(p0.x() + keepa_d * static_cast<double>(dir[0]), p0.y() + keepa_d * static_cast<double>(dir[1]))
+				: Point(p1.x() + keepa_d * static_cast<double>(dir[0]), p1.y() + keepa_d * static_cast<double>(dir[1]));
+
+            return newp0;        
+        };
+
+        auto cal_init_statas = [&](coord_t& x,coord_t& y,coord_t& x2,coord_t& y2, size_t& fl_id, Point** p0, Point** p1) {
+
+			bool is_vertical_shuzhi_line = fl_id < fill_lines_counts[0];
+			bool is_orign_order = true;
+			if (is_vertical_shuzhi_line == true)//竖线
+			{
+				if (y2 > y)
+				{
+					is_orign_order = false;//线段的两个点顺序颠倒
+				}
+			}
+			else//横线
+			{
+				if (x2 < x)
+				{
+					is_orign_order = false;//线段的两个点顺序颠倒
+				}
+			}
+			bool is_need_swap = false;
+			if (is_vertical_shuzhi_line != is_orign_order)//异或
+			{
+				is_need_swap = true;
+			}
+			*p0 = &fill_lines2[fl_id].points[0];  //上点 或者 左点
+			*p1 = &fill_lines2[fl_id].points[1];  //下点 或者 右点
+			auto [d_0, d_n] = map_flid_deltas[fl_id];
+            return std::make_tuple(is_vertical_shuzhi_line, is_need_swap, d_0, d_n);
+        };
+
+        for (size_t m = 0; m < polylines_out.size(); m++)
+        {
+            Polyline& pol = polylines_out[m];
+            Polyline pol_new;
+            std::set<size_t> new_ks;
+            for (size_t k = 0; k < pol.points.size() - 1; k++)
+            {
+                coord_t x = pol.points[k][0];
+                coord_t y = pol.points[k][1];
+                coord_t x2 = pol.points[k + 1][0];
+                coord_t y2 = pol.points[k + 1][1];
+                coords_pair key1 = { {x, y}, { x2, y2 } };
+                coords_pair key2 = { {x2, y2}, { x, y } };
+                coords_pair key = x < x2 ? key1 : (x > x2 ? key2 : (y <= y2 ? key1 : key2));
+                bool is_keepsame = false;
+                auto itr = map_coords_fl_id.find(key);
+
+                if (itr == map_coords_fl_id.end()) {
+                    is_keepsame = true;// 走到这里表示： 在fill_lines2里面没有找到 该线段。
+                }
+                else {
+                    auto fl_id = itr->second;
+                    if (map_flid_deletes.find(fl_id) == map_flid_deletes.end())
+                    {
+                        //纯分裂
+                        auto itr_split = map_flid_splits.find(fl_id);
+                        if (itr_split == map_flid_splits.end())
+                        {
+                            is_keepsame = true;
+                        }
+                        else{
+                            bool is_vertical_shuzhi_line=false;
+                            bool is_need_swap = false;
+                            Point*p00, *p11;
+                            coord_t d_0, d_n;
+                            std::tie(is_vertical_shuzhi_line, is_need_swap, d_0, d_n) = cal_init_statas(x, y, x2, y2, fl_id, &p00,&p11);
+                            Point& p0 = *p00;
+                            Point& p1 = *p11;
+
+							new_ks.insert(k);
+							for (auto it = new_ks.begin(); it != new_ks.end(); ++it) {
+								pol_new.points.push_back(pol.points[*it]);
+							}
+							new_ks.clear();
+							
+
+                            
+							std::set<coord_t>& tmpset = itr_split->second;
+							std::vector<coord_t> tmpvec(tmpset.begin(), tmpset.end());
+                            if (is_need_swap)
+                            {
+                                std::sort(tmpvec.begin(), tmpvec.end(), std::greater<int>());
+                            }
+                            for (auto seti : tmpvec)
+                            {
+                                Point newp0 = cal_new_point(d_0, d_n, p0, p1, fl_id, seti, is_vertical_shuzhi_line);
+								pol_new.points.push_back(newp0);
+								polylines_out2.push_back(pol_new);
+								pol_new.points.clear();
+                                pol_new.points.push_back(newp0);
+                            }
+
+							new_ks.insert(k + 1);
+							
+                        }
+                        
+                    }
+					else //切割当前线段
+                    {
+						bool is_vertical_shuzhi_line = false;
+						bool is_need_swap = false;
+						Point* p00, * p11;
+						coord_t d_0, d_n;
+						std::tie(is_vertical_shuzhi_line, is_need_swap, d_0, d_n) = cal_init_statas(x, y, x2, y2, fl_id, &p00, &p11);
+						Point& p0 = *p00;
+						Point& p1 = *p11;
+
+
+                        //删除点集,点的顺序是：从上到下 或者 "从右到左" 这里的顺序要特别注意
+                        std::set<coord_t>& tmpset = map_flid_deletes[fl_id];
+                        coord_t minVal = *tmpset.begin();
+                        coord_t maxVal = *std::prev(tmpset.end());
+
+						Point newp0 = cal_new_point(d_0, d_n, p0, p1, fl_id, minVal, is_vertical_shuzhi_line);
+						Point newp1 = cal_new_point(d_0, d_n, p0, p1, fl_id, maxVal, is_vertical_shuzhi_line);
+						if (is_need_swap)//异或
+						{
+							std::swap(newp0, newp1);
+						}
+
+						new_ks.insert(k);
+						for (auto it = new_ks.begin(); it != new_ks.end(); ++it) {
+							pol_new.points.push_back(pol.points[*it]);
+						}
+						new_ks.clear();
+						pol_new.points.push_back(newp0);
+						polylines_out2.push_back(pol_new);
+
+						pol_new.points.clear();
+
+                        //处理一个gridline上面分段情况,删除的点集是不连续的，也就是中间某些线段是不需要删除。
+                        if (maxVal-minVal+1 != tmpset.size())
+                        {
+							std::vector<std::pair<coord_t, coord_t>> intervals;
+                            coord_t start = *tmpset.begin();
+                            coord_t end = start;
+							for (auto it = std::next(tmpset.begin()); it != tmpset.end(); ++it) {
+								if (*it == end + 1) {
+									end = *it;
+								}
+								else {
+									if (end - start >= 2) {
+										intervals.push_back(std::make_pair(start, end));
+									}
+									start = end = *it;
+								}
+							}
+							if (end - start >= 2) {
+								intervals.push_back(std::make_pair(start, end));
+							}
+                            std::vector<std::pair<coord_t, coord_t>> intervals2;
+                            for (int i=0;i< intervals.size()-1;i++)
+                            {
+                                intervals2.push_back(std::make_pair(intervals[i].second, intervals[i+1].first));
+                            }
+
+                            for (auto curpair : intervals2)
+                            {
+								Point np0 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.first, is_vertical_shuzhi_line);
+								Point np1 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.second, is_vertical_shuzhi_line);
+								if (is_need_swap)//异或
+								{
+									std::swap(np0, np1);
+								}
+                                pol_new.points.push_back(np0);
+                                pol_new.points.push_back(np1);
+								polylines_out2.push_back(pol_new);
+								pol_new.points.clear();
+                            }
+                        }
+                        //break the segment               
+
+
+
+                        new_ks.clear();
+                        pol_new.points.clear();
+                        pol_new.points.push_back(newp1);
+                        new_ks.insert(k + 1);
+                    }
+                }
+                if (is_keepsame == true) {
+                    new_ks.insert(k);
+                    new_ks.insert(k + 1);
+                }
+            }
+
+            for (auto it = new_ks.begin(); it != new_ks.end(); ++it) {
+                pol_new.points.push_back(pol.points[*it]);
+            }
+            new_ks.clear();
+            polylines_out2.push_back(pol_new);
+            pol_new.points.clear();
+        }
+    }
+
+    if (!polylines_out2.empty())
+    {
+        polylines_out = polylines_out2;
+    }
+    //add by wxj end
 
     return true;
 }
