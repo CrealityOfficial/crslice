@@ -6,6 +6,9 @@
 #include "libslic3r/Print.hpp"
 
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer);
+void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList& thumbnailData);
+bool detect_multi_color_slice(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer);
+
 std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, float quality);
 std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
 	const std::vector<double>& profile, unsigned int radius, bool keep_min);
