@@ -3444,7 +3444,7 @@ namespace gcode
     }
 
     //设置参数
-    void _setParam(GCodeProcessor& gcodeProcessor)
+    void _setParam(GCodeProcessor& gcodeProcessor, GcodeTracer* pathData)
     {
         std::unordered_map<std::string, std::string>& kvs = gcodeProcessor.kvs;
 
@@ -3455,6 +3455,50 @@ namespace gcode
             pathParam.producer = GProducer::OrcaSlicer;
         }
         pathParam.printTime = std::atof(getValue(kvs,"print_time").c_str());
+
+        //; printable_area = 0x0, 220x0, 220x220, 0x220
+        //; printable_height = 250
+        trimesh::box box;
+        box.clear();
+        std::string printable_area = getValue(kvs, "printable_area");
+        std::string printable_height = getValue(kvs, "printable_height");
+        if (!printable_height.empty())
+        {
+            box.min.z = 0;
+            box.max.z = std::atof(printable_height.c_str());
+        }
+        if (!printable_area.empty())
+        {
+            std::vector<std::string> printable_areas;
+            Stringsplit(printable_area, ',', printable_areas);
+            for (size_t i = 0; i < printable_areas.size(); i++)
+            {
+                std::vector<std::string> values;
+                Stringsplit(printable_areas[i], 'x', values);
+                if (0 == i)
+                {
+                    values.size() > 0 ? box.min.x = std::atof(values[0].c_str()) : 0;
+                    values.size() > 1 ? box.min.x = std::atof(values[1].c_str()) : 0;
+                }
+                if (1 == i)
+                {
+                    values.size() > 0 ? box.max.x = std::atof(values[0].c_str()) : 0;
+                }
+                if (3 == i)
+                {
+                    values.size() > 1 ? box.max.y = std::atof(values[1].c_str()) : 0;
+                }
+            }
+        }
+
+        if (!printable_height.empty() && !printable_area.empty())
+        {
+            pathData->setSceneBox(box);
+            pathParam.machine_width = box.max.x - box.min.x;
+            pathParam.machine_depth = box.max.y - box.min.y;
+            pathParam.machine_height = box.max.z - box.min.z;
+        }
+
         //float machine_height;
         //float machine_width;
         //float machine_depth;
@@ -3627,7 +3671,7 @@ namespace gcode
         _paraseKvs(gcodeProcessor, box);
 
         //设置参数
-        _setParam(gcodeProcessor);
+        _setParam(gcodeProcessor, pathData);
         pathData->setParam(gcodeProcessor.gcodeParaseInfo);
     }
 }
