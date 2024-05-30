@@ -446,7 +446,7 @@ std::string GCodeWriter::set_speed(double F, const std::string &comment, const s
     return w.string();
 }
 
-std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment)
+std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment,const double limitSpeed)
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
@@ -459,13 +459,17 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     w.emit_xy(point_on_plate);
     auto speed = m_is_first_layer
         ? this->config.get_abs_value("initial_layer_travel_speed") : this->config.travel_speed.value;
+    if (limitSpeed > 0.0f)
+    {
+        speed = std::min(speed, limitSpeed);
+    }
     w.emit_f(speed * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
     return w.string();
 }
 
-std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment)
+std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment,const double limitSpeed)
 {
     // FIXME: This function was not being used when travel_speed_z was separated (bd6badf).
     // Calculation of feedrate was not updated accordingly. If you want to use
@@ -480,6 +484,10 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     Vec3d dest_point = point;
     auto travel_speed =
         m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed") : this->config.travel_speed.value;
+    if (limitSpeed > 0.0f)
+    {
+        travel_speed = std::min(travel_speed, limitSpeed);
+    }
     //BBS: a z_hop need to be handle when travel
     if (std::abs(m_to_lift) > EPSILON) {
         assert(std::abs(m_lifted) < EPSILON);
@@ -508,7 +516,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
                 Vec2d ij_offset = radius * delta_no_z.normalized();
                 ij_offset = { -ij_offset(1), ij_offset(0) };
-                slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
+                slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z", limitSpeed);
             }
             //BBS: LazyLift
             else if (m_to_lift_type == LiftType::LazyLift &&
@@ -527,7 +535,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 slop_move = w0.string();
             }
             else if (m_to_lift_type == LiftType::NormalLift) {
-                slop_move = _travel_to_z(target.z(), "normal lift Z");
+                slop_move = _travel_to_z(target.z(), "normal lift Z", limitSpeed);
             }
         }
 
@@ -544,7 +552,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 w0.emit_xy(Vec2d(target.x(), target.y()));
                 w0.emit_f(travel_speed * 60.0);
                 w0.emit_comment(GCodeWriter::full_gcode_comment, comment);
-                xy_z_move = w0.string() + _travel_to_z(target.z(), comment);
+                xy_z_move = w0.string() + _travel_to_z(target.z(), comment, limitSpeed);
             }
         }
         m_pos = dest_point;
@@ -560,7 +568,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             m_lifted = 0.;
         //BBS
         this->set_current_position_clear(true);
-        return this->travel_to_xy(to_2d(point));
+        return this->travel_to_xy(to_2d(point),"",limitSpeed);
     }
     else {
         /*  In all the other cases, we perform an actual XYZ move and cancel
@@ -572,17 +580,22 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     Vec3d point_on_plate = { dest_point(0) - m_x_offset, dest_point(1) - m_y_offset, dest_point(2) };
     std::string out_string;
     GCodeG1Formatter w;
+    double speed = this->config.travel_speed.value;
+    if (limitSpeed > 0.0f)
+    {
+        speed = std::min(speed, limitSpeed);
+    }
     if (!this->is_current_position_clear())
     {
         //force to move xy first then z after filament change
         w.emit_xy(Vec2d(point_on_plate.x(), point_on_plate.y()));
-        w.emit_f(this->config.travel_speed.value * 60.0);
+        w.emit_f(speed * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-        out_string = w.string() + _travel_to_z(point_on_plate.z(), comment);
+        out_string = w.string() + _travel_to_z(point_on_plate.z(), comment, limitSpeed);
     } else {
         GCodeG1Formatter w;
         w.emit_xyz(point_on_plate);
-        w.emit_f(this->config.travel_speed.value * 60.0);
+        w.emit_f(speed * 60.0);
         w.emit_comment(GCodeWriter::full_gcode_comment, comment);
         out_string = w.string();
     }
@@ -592,7 +605,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
     return out_string;
 }
 
-std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
+std::string GCodeWriter::travel_to_z(double z, const std::string &comment,const double limitSpeed)
 {
     /*  If target Z is lower than current Z but higher than nominal Z
         we don't perform the move but we only adjust the nominal Z by
@@ -608,10 +621,10 @@ std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
     /*  In all the other cases, we perform an actual Z move and cancel
         the lift. */
     m_lifted = 0;
-    return this->_travel_to_z(z, comment);
+    return this->_travel_to_z(z, comment, limitSpeed);
 }
 
-std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
+std::string GCodeWriter::_travel_to_z(double z, const std::string &comment,const double limitSpeed)
 {
     m_pos(2) = z;
 
@@ -620,7 +633,10 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
         speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
                                  : this->config.travel_speed.value;
     }
-    
+    if (limitSpeed > 0.0f)
+    {
+        speed = std::min(speed, limitSpeed);
+    }
     GCodeG1Formatter w;
     w.emit_z(z);
     w.emit_f(speed * 60.0);
@@ -629,7 +645,7 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
     return w.string();
 }
 
-std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment)
+std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment, const double limitSpeed)
 {
     m_pos(2) = z;
 
@@ -641,6 +657,10 @@ std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, c
     
     std::string output = "G17\n";
     GCodeG2G3Formatter w(true);
+    if (limitSpeed > 0.0f)
+    {
+        speed = std::min(speed, limitSpeed);
+    }
     w.emit_z(z);
     w.emit_ij(ij_offset);
     w.emit_string(" P1 ");
@@ -811,7 +831,7 @@ std::string GCodeWriter::unretract()
 /*  If this method is called more than once before calling unlift(),
     it will not perform subsequent lifts, even if Z was raised manually
     (i.e. with travel_to_z()) and thus _lifted was reduced. */
-std::string GCodeWriter::lift(LiftType lift_type, bool spiral_vase)
+std::string GCodeWriter::lift(LiftType lift_type, bool spiral_vase,const double limitSpeed)
 {
     // check whether the above/below conditions are met
     double target_lift = 0;
@@ -825,7 +845,7 @@ std::string GCodeWriter::lift(LiftType lift_type, bool spiral_vase)
     if (m_lifted == 0 && m_to_lift == 0 && target_lift > 0) {
         if (spiral_vase) {
             m_lifted = target_lift;
-            return this->_travel_to_z(m_pos(2) + target_lift, "lift Z");
+            return this->_travel_to_z(m_pos(2) + target_lift, "lift Z", limitSpeed);
         }
         else {
             m_to_lift = target_lift;
@@ -835,11 +855,11 @@ std::string GCodeWriter::lift(LiftType lift_type, bool spiral_vase)
     return "";
 }
 
-std::string GCodeWriter::unlift()
+std::string GCodeWriter::unlift(const double limitSpeed)
 {
     std::string gcode;
     if (m_lifted > 0) {
-        gcode += this->_travel_to_z(m_pos(2) - m_lifted, "restore layer Z");
+        gcode += this->_travel_to_z(m_pos(2) - m_lifted, "restore layer Z", limitSpeed);
         m_lifted = 0;
     }
     m_to_lift = 0.;

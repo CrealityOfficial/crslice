@@ -1512,6 +1512,28 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
+double GCode::getLimitSpeed()
+{
+    double limitSpeed = 0.0f;
+    if (m_config.acceleration_limit_mess_enable
+        || m_config.speed_limit_to_height_enable)
+    {
+        double weight = 0.0f;
+        weight = DoExport::update_total_weight(m_writer.extruders());
+        if (m_config.acceleration_limit_mess_enable
+            || m_config.speed_limit_to_height_enable)
+        {
+            double F = std::numeric_limits<int>::max();
+            m_smoothSpeedAcc->detect_speed(F, weight, m_last_layer_z);
+            if (F < std::numeric_limits<int>::max() && F > 0.0f)
+            {
+                limitSpeed = F;
+            }
+        }
+    }
+    return limitSpeed;
+}
+
 void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     PROFILE_CLEAR();
@@ -4497,6 +4519,7 @@ std::string GCode::preamble()
 // called by GCode::process_layer()
 std::string GCode::change_layer(coordf_t print_z)
 {
+    double limitSpeed = getLimitSpeed();
     std::string gcode;
     if (m_layer_count > 0)
         // Increment a progress bar indicator.
@@ -4515,7 +4538,7 @@ std::string GCode::change_layer(coordf_t print_z)
         //BBS: force to normal lift immediately in spiral vase mode
         std::ostringstream comment;
         comment << "move to next layer (" << m_layer_index << ")";
-        gcode += m_writer.travel_to_z(z, comment.str());
+        gcode += m_writer.travel_to_z(z, comment.str(), limitSpeed);
     }
     else {
         //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
@@ -4927,6 +4950,8 @@ static std::map<int, std::string> overhang_speed_key_map =
 
 std::string GCode::_extrude(const ExtrusionPath &path, std::string description, double speed)
 {
+    double limitSpeed = getLimitSpeed();
+
     std::string gcode;
 
     if (is_bridge(path.role()))
@@ -4949,7 +4974,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     m_writer.add_object_change_labels(gcode);
 
     // compensate retraction
-    gcode += this->unretract();
+    gcode += this->unretract(limitSpeed);
     m_config.apply(m_calib_config);
 
     double weight = 0.0f;
@@ -5562,6 +5587,23 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             jerk_to_set = m_config.travel_jerk.value;
         }
     }
+
+    
+    if (m_config.acceleration_limit_mess_enable
+        || m_config.speed_limit_to_height_enable)
+    {
+        double weight = 0.0f;
+        weight = DoExport::update_total_weight(m_writer.extruders());
+        if (m_config.acceleration_limit_mess_enable
+            || m_config.speed_limit_to_height_enable)
+        {
+            double acc = acceleration_to_set;
+            m_smoothSpeedAcc->detect_acc(acc, weight, m_last_layer_z);
+            acceleration_to_set = acc;
+        }
+    }
+    double limitSpeed = getLimitSpeed();
+
     if (m_writer.get_gcode_flavor() == gcfKlipper || m_writer.get_gcode_flavor() == gcfCrealityOS) {
         gcode += m_writer.set_accel_and_jerk(acceleration_to_set, jerk_to_set);
     } else {
@@ -5619,9 +5661,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             if (i == 1 && !m_spiral_vase) {
                 Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                 Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
-                gcode += m_writer.travel_to_xyz(dest3d, comment+" travel_to_xyz");
+                gcode += m_writer.travel_to_xyz(dest3d, comment+" travel_to_xyz", limitSpeed);
             } else {
-                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment+" travel_to_xy");
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment+" travel_to_xy", limitSpeed);
             }
         }
         this->set_last_pos(travel.points.back());
@@ -5771,6 +5813,8 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
 
 std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type)
 {
+    double limitSpeed = getLimitSpeed();
+
     std::string gcode;
 
     if (m_writer.extruder() == nullptr)
@@ -5817,7 +5861,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
     if (needs_lift && can_lift) {
         size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
+        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift,false, limitSpeed);
     }
 
     return gcode;
