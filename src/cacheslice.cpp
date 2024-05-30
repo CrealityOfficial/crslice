@@ -1,9 +1,26 @@
 #include "crslice2/cacheslice.h"
 #include "crslice2/crscene.h"
 #include "../wrapper/orcaslicewrapper.h"
+#include "conv.h"
 
 namespace crslice2
 {
+	void debug_expolygons(const Slic3r::ExPolygons& polys, ccglobal::VisualDebugger* debugger)
+	{
+		float out_width = 2.0f;
+		float in_width = 1.0f;
+		trimesh::vec3 out_color = trimesh::vec3(1.0f, 0.0f, 0.0f);
+		trimesh::vec3 in_color = trimesh::vec3(0.0f, 1.0f, 0.0f);
+		for (const Slic3r::ExPolygon& poly : polys)
+		{
+			debugger->visual_polygon(convert(poly.contour), out_color, out_width);
+			for (const Slic3r::Polygon& pol : poly.holes)
+			{
+				debugger->visual_polygon(convert(pol), in_color, in_width);
+			}
+		}
+	}
+
 	class CacheSliceImpl
 	{
 	public:
@@ -105,5 +122,23 @@ namespace crslice2
 		convert_scene_2_orca(scene, model, config, calibParams, thumbnailData);
 
 		m_impl->slice(scene, param, model, config, tracer);
+	}
+
+	void CacheSlice::visual_raw_slices(int layer, ccglobal::VisualDebugger* debugger)
+	{
+		if (!debugger)
+			return;
+
+		Slic3r::PrintObjectPtrs objs = m_impl->print.objects_mutable();
+		int size = (int)objs.size();
+		for (int i = 0; i < size; ++i)
+		{
+			Slic3r::PrintObject* obj = objs.at(i);
+			Slic3r::Layer* layer = obj->get_layer(i);
+			if (!layer)
+				continue;
+
+			debug_expolygons(layer->lslices, debugger);
+		}
 	}
 }

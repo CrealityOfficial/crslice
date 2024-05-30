@@ -1,6 +1,7 @@
 #ifndef CRSLICE_CACHE_SLICE_H_2
 #define CRSLICE_CACHE_SLICE_H_2
 #include "crslice2/header.h"
+#include "ccglobal/debugger.h"
 
 namespace crslice2
 {
@@ -19,6 +20,7 @@ namespace crslice2
 
 		void slice(const CacheSliceParam& param, ccglobal::Tracer* tracer = nullptr);
 
+		void visual_raw_slices(int layer, ccglobal::VisualDebugger* debugger);
 	protected:
 		CacheSliceImpl* m_impl;
 	};
