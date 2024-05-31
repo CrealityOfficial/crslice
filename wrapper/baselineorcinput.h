@@ -101,6 +101,7 @@ constexpr char* BaseLineOrcaOutputName = "orca_output";
 
 #define BLReturnBoolen(expr) {bool __err__ = expr; /*assert(__err__);*/ return __err__;}
 
+BLName_Def(slicer);
 BLName_Def(model);
 BLName_Def(dynamic_print_config);
 BLName_Def(temp_param);
@@ -400,6 +401,7 @@ namespace cxbaseline
     private:
         void _GenerateBaseline(nlohmann::json& json_root);
         bool _CompareBaseline(const nlohmann::json& json_file);
+        void writeResultData(const std::string& message,bool cache = false);
 
     private:
         static void _BuildEntityModel(nlohmann::json& json_object, const Slic3r::Model& model);

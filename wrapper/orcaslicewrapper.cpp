@@ -718,6 +718,7 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3
 
 	//---start baseline test 
 	cxbaseline::BaseLineUtils::SetRootDirectory(scene->m_sliceBLDirectory);
+	cxbaseline::BaseLineUtils::SetCompareDirectory(scene->m_BLCompareErrorDirectory);
 	std::string error_text = "";
 	switch (scene->m_unittest_type)
 	{
@@ -729,7 +730,6 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3
 		error_text = "${UnitTest}" + std::string("BaseLine Generate Failed");
 		break;
 	case 2:
-		cxbaseline::BaseLineUtils::SetCompareDirectory(scene->m_BLCompareErrorDirectory);
 		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Compare);
 		error_text = "${UnitTest}" + std::string("BaseLine Compare has error");
 		break;
