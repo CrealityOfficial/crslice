@@ -7,7 +7,14 @@ else()
 	set(USE_CACHE 0)
 endif()
 
-__build_crslice_info_header()
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+ if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/crsliceinfo.h")
+ 	__build_crslice_info_header()
+ endif()
+else()
+	__build_crslice_info_header()
+endif()
+
 
 __cc_find(trimesh2)
 __assert_target(trimesh2)
