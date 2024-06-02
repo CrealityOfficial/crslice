@@ -775,7 +775,8 @@ void orca_slice_from_arch_impl(const std::string& file, const std::string& out, 
 	scene->load(file);
 	scene->m_gcodeFileName = out;
 
-	orca_slice_impl(scene, tracer);
+	Slic3r::GCodeProcessorResult outResult;
+	orca_slice_impl(scene, tracer, &outResult);
 }
 
 void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
