@@ -361,9 +361,14 @@ bool BaselineOrcaInput::Generate()
 
     std::string dir = BaseLineUtils::GetRootDirectory();
     std::string name = GetName();
-    BaselineOrcaFileHelper::CreateBaselineFile(root, dir, name, {});
-
-    BLReturnBoolen(true);
+    bool ret = BaselineOrcaFileHelper::CreateBaselineFile(root, dir, name, {});
+    if (!ret)
+    {
+        std::string message = "error:baseline file generate failed!";
+        writeResultData(message, false);
+    }
+    
+    BLReturnBoolen(ret);
 }
 bool BaselineOrcaInput::Compare()
 {
@@ -393,9 +398,13 @@ bool BaselineOrcaInput::Update()
     // update version
     std::string dir = BaseLineUtils::GetRootDirectory();
     std::string name = GetName();
-    BaselineOrcaFileHelper::UpdateBaselineFile(root, dir, name, {});
-
-    BLReturnBoolen(true);
+    bool ret = BaselineOrcaFileHelper::UpdateBaselineFile(root, dir, name, {});
+    if (!ret)
+    {
+        std::string message = "error:baseline file update failed!";
+        writeResultData(message, false);
+    }
+    BLReturnBoolen(ret);
 }
 
 void BaselineOrcaInput::Add(const Slic3r::Model* model)
@@ -422,75 +431,98 @@ void BaselineOrcaInput::Add(const Slic3r::ThumbnailsList* thumbnailData)
 {
     m_elem_thumbnail = thumbnailData;
 }
-
 void BaselineOrcaInput::_GenerateBaseline(nlohmann::json& json_root)
 {
-    _BuildObject(json_root[BLName_Val(model)], m_elem_model, _BuildEntityModel);
+    nlohmann::json childer_json;
+    _BuildObject(childer_json[BLName_Val(model)], m_elem_model, _BuildEntityModel);
 
-    _BuildBlockDynamicPrintConfig(json_root[BLName_Val(dynamic_print_config)], *m_elem_dynamic_print_config);
+    _BuildBlockDynamicPrintConfig(childer_json[BLName_Val(dynamic_print_config)], *m_elem_dynamic_print_config);
 
-    _BuildBlockTempParam(json_root[BLName_Val(temp_param)], *m_elem_temp_param);
+    _BuildBlockTempParam(childer_json[BLName_Val(temp_param)], *m_elem_temp_param);
 
-    _BuildBlockCalibParam(json_root[BLName_Val(calib_param)], *m_elem_calib_param);
+    _BuildBlockCalibParam(childer_json[BLName_Val(calib_param)], *m_elem_calib_param);
 
-    _BuildBlockThumbnail(json_root[BLName_Val(thumbnail)], *m_elem_thumbnail);
+    _BuildBlockThumbnail(childer_json[BLName_Val(thumbnail)], *m_elem_thumbnail);
+
+    _BuildObject(json_root[BLName_Val(slicer)], childer_json,
+        [](nlohmann::json& json_param, const nlohmann::json& json)
+        {
+            json_param = json;
+        });
 }
-
+void BaselineOrcaInput::writeResultData(const std::string& message, bool cache)
+{
+    std::string dir = BaseLineUtils::GetCompareDirectory();
+    std::string name = "result.errtxt";
+    std::string path = BaselineOrcaFileUtils::CreateCompareEorrorFile(dir, name,false);
+    if (!path.empty())
+    {
+        std::ofstream  outstream(path);
+        if (outstream.is_open())
+        {
+            outstream << std::setw(4) << message << std::endl;
+        }
+        //  build json
+        if (cache)
+        {
+            nlohmann::json newroot = nlohmann::json::object();
+            std::string newname = GetName() + "_compare";
+            _GenerateBaseline(newroot);
+            BaselineOrcaFileHelper::CreateBaselineFile(newroot, dir, newname, {});
+        }
+        
+    }
+}
 bool BaselineOrcaInput::_CompareBaseline(const nlohmann::json& json_root)
 {
     BaseLineLogger logger;
 
     bool err = true;
     std::string err_text = "";
+    if (json_root.empty())
+    {
+        err_text = "error:baseline is no find or cxbl is empty\n";
+        writeResultData(err_text);
+        BLReturnBoolen(false);
+    }
+
+    auto iter = json_root.find(BLName_Val(slicer));
+    if (iter == json_root.end())
+    {
+        err_text = "error:slice object ont find\n";
+
+        writeResultData(err_text);
+        BLReturnBoolen(false);
+    } 
+    const nlohmann::json& childer_json = json_root.find(BLName_Val(slicer)).value();
+
     err_text += "CompareObject:\n";
     logger.m_error_msg = "";
-    err &= _CompareObject(json_root, BLName_Val(model), m_elem_model, logger, _CompareEntityModel);
+    err &= _CompareObject(childer_json, BLName_Val(model), m_elem_model, logger, _CompareEntityModel);
     err_text += logger.ErrorMsg();
 
     err_text += "_CompareBlockDynamicPrintConfig:\n";
     logger.m_error_msg = "";
-    err &= _CompareBlockDynamicPrintConfig(json_root, BLName_Val(dynamic_print_config), *m_elem_dynamic_print_config, logger);
+    err &= _CompareBlockDynamicPrintConfig(childer_json, BLName_Val(dynamic_print_config), *m_elem_dynamic_print_config, logger);
     err_text += logger.ErrorMsg() ;
 
     err_text += "_CompareBlockTempParam:\n";
     logger.m_error_msg = "";
-    err &= _CompareBlockTempParam(json_root, BLName_Val(temp_param), *m_elem_temp_param, logger);
+    err &= _CompareBlockTempParam(childer_json, BLName_Val(temp_param), *m_elem_temp_param, logger);
     err_text += logger.ErrorMsg();
 
     err_text += "_CompareBlockCalibParam:\n";
     logger.m_error_msg = "";
-    err &= _CompareBlockCalibParam(json_root, BLName_Val(calib_param), *m_elem_calib_param, logger);
+    err &= _CompareBlockCalibParam(childer_json, BLName_Val(calib_param), *m_elem_calib_param, logger);
     err_text += logger.ErrorMsg();
 
     err_text += "_CompareBlockThumbnail:\n";
     logger.m_error_msg = "";
-    err &= _CompareBlockThumbnail(json_root, BLName_Val(thumbnail), *m_elem_thumbnail, logger);
+    err &= _CompareBlockThumbnail(childer_json, BLName_Val(thumbnail), *m_elem_thumbnail, logger);
     err_text += logger.ErrorMsg();
-    if (json_root.empty())
-    {
-        err_text = "error:3mf file is error\n";
-    }
-    std::string dir = BaseLineUtils::GetCompareDirectory();
-    std::string name = "result.errtxt";
-    std::string path = BaselineOrcaFileUtils::CreateCompareEorrorFile(dir, name, err);
-    if (!path.empty())
-    {
-        //boost::nowide::ofstream stream;
-        //stream.open(path.c_str(), std::ios::out | std::ios::trunc);
-        //stream << std::setw(4) << err_text << std::endl;
-
-        std::ofstream  outstream(path);
-        if (outstream.is_open())
-        {
-            outstream << std::setw(4) << err_text << std::endl;
-        }
-        //  build json
-        nlohmann::json newroot = nlohmann::json::object();
-        std::string newname = GetName() + "_compare";
-        _GenerateBaseline(newroot);
-        BaselineOrcaFileHelper::CreateBaselineFile(newroot, dir, newname, {});
-        BLReturnBoolen(err);
-    } 
+    if(!err)
+        writeResultData(err_text, true);
+    
 }
 
 void BaselineOrcaInput::_BuildEntityModel(nlohmann::json& json_model, const Slic3r::Model& model)

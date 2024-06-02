@@ -503,7 +503,7 @@ bool detect_auto_temperature(const Slic3r::DynamicPrintConfig& config, const Sli
 }
 
 void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config,
-	const TempParamater& tp, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer)
+	const TempParamater& tp, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList thumbnailDatas, ccglobal::Tracer* tracer, Slic3r::GCodeProcessorResult* outResult)
 {
 #if 1
 	if (!tp.temp_directory.empty())
@@ -527,15 +527,8 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 		}
 	};
 
-	Slic3r::GCodeProcessorResult result;
 	Slic3r::Print print;
 	print.set_callback(callback);
-
-	if (tp.debug)
-	{
-		print.setDebug(true);
-		print.setDebugDirectory(tp.temp_directory);
-	}
 
 	print.setMultiColor(detect_multi_color_slice(config, model, tracer));
 	detect_auto_temperature(config, print, tracer);
@@ -569,13 +562,11 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	//BBS: reset the gcode before reload_print in slicing_completed event processing
 	//FIX the gcode rename failed issue
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: will start slicing, reset gcode_result firstly") % __LINE__;
-	result.reset();
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process") % __LINE__;
 
 	try {
 		print.process();
-		print.debug("");
 
 #if _DEBUG
 		save_slices(tp.temp_directory + "cx_slice.json", print);
@@ -597,7 +588,8 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 
 	try
 	{
-		print.export_gcode(tp.outFile, &result, thumbnail_cb);
+		if(outResult)
+			print.export_gcode(tp.outFile, outResult, thumbnail_cb);
 	}
 	catch (const std::exception& ex)
 	{
@@ -635,74 +627,65 @@ void fixFlyingInstance(Slic3r::ModelObject* instance)
 	}
 }
 
-std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, float quality)
+void make_object_from_meshs(Slic3r::Model& model, std::vector<TriMeshPtr> triMeshs)
 {
-	if (!triMesh)
-		return std::vector<double>();
-
-	Slic3r::TriangleMesh mesh;
-	trimesh2Slic3rTriangleMesh(triMesh, mesh);
-	Slic3r::Model model;
-	Slic3r::ModelObject* currentObject = model.add_object();
-	currentObject->add_instance();
-	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
-	fixFlyingInstance(currentObject);
-
-	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
-	return Slic3r::layer_height_profile_adaptive(m_slicing_params, *currentObject, quality);
+	Slic3r::ModelObject* object = model.add_object();
+	object->add_instance();
+	for (TriMeshPtr mesh : triMeshs)
+	{
+		Slic3r::TriangleMesh tmesh;
+		trimesh2Slic3rTriangleMesh(mesh.get(), tmesh);
+		Slic3r::ModelVolume* volume = object->add_volume(tmesh);
+	}
+	fixFlyingInstance(object);
 }
 
-std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality)
+{
+	if (triMesh.empty())
+		return std::vector<double>();
+	Slic3r::Model model;
+	make_object_from_meshs(model, triMesh);
+
+	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, model.objects.front());
+	return Slic3r::layer_height_profile_adaptive(m_slicing_params, *model.objects.front(), quality);
+}
+
+std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile, unsigned int radius, bool keep_min)
 {
-	Slic3r::TriangleMesh mesh;
-	trimesh2Slic3rTriangleMesh(triMesh, mesh);
 	Slic3r::Model model;
-	Slic3r::ModelObject* currentObject = model.add_object();
-	currentObject->add_instance();
-	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
-	fixFlyingInstance(currentObject);
+	make_object_from_meshs(model, triMesh);
 
-	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
+	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, model.objects.front());
 	Slic3r::HeightProfileSmoothingParams smoothing_params_orca(radius, keep_min);
 
 	return Slic3r::smooth_height_profile(profile, m_slicing_params, smoothing_params_orca);
 }
 
-std::vector<double> orca_generate_object_layers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+std::vector<double> orca_generate_object_layers(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile)
 {
-	Slic3r::TriangleMesh mesh;
-	trimesh2Slic3rTriangleMesh(triMesh, mesh);
 	Slic3r::Model model;
-	Slic3r::ModelObject* currentObject = model.add_object();
-	currentObject->add_instance();
-	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
-	fixFlyingInstance(currentObject);
+	make_object_from_meshs(model, triMesh);
 
-	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
-
+	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, model.objects.front());
 	return Slic3r::generate_object_layers(m_slicing_params, profile);
 }
 
-std::vector<double> orca_update_layer_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+std::vector<double> orca_update_layer_height_profile(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile)
 {
-	Slic3r::TriangleMesh mesh;
-	trimesh2Slic3rTriangleMesh(triMesh, mesh);
 	Slic3r::Model model;
-	Slic3r::ModelObject* currentObject = model.add_object();
-	currentObject->add_instance();
-	Slic3r::ModelVolume* v = currentObject->add_volume(mesh);
-	fixFlyingInstance(currentObject);
+	make_object_from_meshs(model, triMesh);
 
-	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, currentObject);
+	Slic3r::SlicingParameters m_slicing_params = getSliceParam(settings, model.objects.front());
 	std::vector<double> m_profile = profile;
-	Slic3r::PrintObject::update_layer_height_profile(*currentObject, m_slicing_params, m_profile);
+	Slic3r::PrintObject::update_layer_height_profile(*model.objects.front(), m_slicing_params, m_profile);
 	return m_profile;
 }
 
-void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
+void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3r::GCodeProcessorResult* outResult)
 {
 	if (!scene)
 		return;
@@ -727,15 +710,15 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 	tp.outFile = scene->m_gcodeFileName;
 	tp.temp_directory = scene->m_tempDirectory;
 	tp.extruderCount = (int)scene->m_extruders.size();
-	tp.debug = scene->m_settings->has("visual_debug");
 
 	fs::path path = scene->m_gcodeFileName;
 	const std::string baseline_orcal_inputname = scene->m_blName;// path.stem().string() + "_baseline";
 
-	slice_impl(model, config, tp, calibParams, thumbnailData, tracer);
+	slice_impl(model, config, tp, calibParams, thumbnailData, tracer, outResult);
 
 	//---start baseline test 
 	cxbaseline::BaseLineUtils::SetRootDirectory(scene->m_sliceBLDirectory);
+	cxbaseline::BaseLineUtils::SetCompareDirectory(scene->m_BLCompareErrorDirectory);
 	std::string error_text = "";
 	switch (scene->m_unittest_type)
 	{
@@ -747,7 +730,6 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer)
 		error_text = "${UnitTest}" + std::string("BaseLine Generate Failed");
 		break;
 	case 2:
-		cxbaseline::BaseLineUtils::SetCompareDirectory(scene->m_BLCompareErrorDirectory);
 		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Compare);
 		error_text = "${UnitTest}" + std::string("BaseLine Compare has error");
 		break;
@@ -830,8 +812,9 @@ void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, c
 	
 	Slic3r::Calib_Params calibParams;
 	Slic3r::ThumbnailsList thumbnailDatas;
+	Slic3r::GCodeProcessorResult outGcodeProcessResult;
 
-	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer);
+	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer, &outGcodeProcessResult);
 }
 
 void orca_slice_fromfile_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)

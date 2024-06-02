@@ -26,14 +26,17 @@ namespace crslice2
 		void sliceFromScene(CrScenePtr scene, ccglobal::Tracer* tracer = nullptr);
 
         SliceResult sliceResult;
+
+        std::map<std::string, std::string> extraSliceWarningDetails;
+
 	};
 
-    CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh, float quality);
-    CRSLICE2_API std::vector<double> smooth_height_profile(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+    CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality);
+    CRSLICE2_API std::vector<double> smooth_height_profile(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
         const std::vector<double>& profile, unsigned int radius, bool keep_min);
-    CRSLICE2_API std::vector<double> generateObjectLayers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+    CRSLICE2_API std::vector<double> generateObjectLayers(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
         const std::vector<double>& profile);
-    CRSLICE2_API std::vector<double> updateObjectLayers(crslice2::SettingsPtr settings, trimesh::TriMesh* triMesh,
+    CRSLICE2_API std::vector<double> updateObjectLayers(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
         const std::vector<double>& profile);
     CRSLICE2_API void orcaSliceFromFile(const std::string& file, const std::string& out, ccglobal::Tracer* tracer = nullptr);
 }

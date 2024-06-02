@@ -225,9 +225,11 @@ public:
     std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment, double z = DBL_MAX);
     bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
     std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::NormalLift);
-    std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
+    std::string     unretract(const double limitSpeed = 0.0f) { return m_writer.unlift(limitSpeed) + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z, bool by_object=false);
     bool is_BBL_Printer();
+
+    double getLimitSpeed();
 
     // SoftFever
     std::string set_object_info(Print* print);
