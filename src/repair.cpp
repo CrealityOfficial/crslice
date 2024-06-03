@@ -172,8 +172,8 @@ namespace crslice2
 
 
 		Slic3r::Model tmpmodel;
-		const char* name;
-		const char* path;
+		const char* name = "";
+		const char* path = "";
 		Slic3r::ModelObject* mo = tmpmodel.add_object(name, path, mesh);
 
 		std::string sidebar_info;
