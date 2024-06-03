@@ -3,11 +3,6 @@
 
 #include <string>
 #include "crslice2/header.h"
-//#include "../GUI/Widgets/ProgressDialog.hpp"
-
-#define  HAS_WIN10SDK
-
-//class ProgressDialog;
 
 namespace Slic3r {
 
@@ -26,7 +21,7 @@ extern bool fix_model_by_win10_sdk_gui(Slic3r::ModelObject &model_object, int vo
 
 inline bool is_windows10() { return false; }
 // returt false, if fixing was canceled
-inline bool fix_model_by_win10_sdk_gui(ModelObject &, int, GUI::ProgressDialog &, const wxString &, std::string &) { return false; }
+inline bool fix_model_by_win10_sdk_gui(ModelObject &, int, std::string& fix_result, ccglobal::Tracer* tracer) { return false; }
 
 #endif /* HAS_WIN10SDK */
 

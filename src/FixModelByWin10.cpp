@@ -2,7 +2,7 @@
 ///|/
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
 ///|/
-//#ifndef HAS_WIN10SDK 
+#ifdef HAS_WIN10SDK 
 
 #ifndef NOMINMAX
 # define NOMINMAX
@@ -12,9 +12,7 @@
 // for ComPtr
 #include <wrl/client.h>
 
-// from C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/
 #include <winrt/robuffer.h>
-//#include <robuffer.h>
 #include <winrt/windows.storage.provider.h>
 #include <winrt/windows.graphics.printing3d.h>
 
@@ -467,4 +465,4 @@ bool fix_model_by_win10_sdk_gui(Slic3r::ModelObject &model_object, int volume_id
 
 } // namespace Slic3r
 
-//#endif /* HAS_WIN10SDK */
+#endif /* HAS_WIN10SDK */
