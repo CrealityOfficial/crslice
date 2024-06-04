@@ -26,7 +26,7 @@
 #include "crgroup.h"
 #include "crobject.h"
 #include "ccglobal/log.h"
-
+#include "libslic3r/Utils.hpp"
 using namespace cxbaseline;
 
 void BaseLineLogger::PushKey(const std::string& key)
@@ -1002,9 +1002,9 @@ void BaselineOrcaInput::_BuildEntityModelObject(nlohmann::json& json_object, con
     using namespace nlohmann;
 
     // std::string             name
-    json_object[BLName_Val(name)] = object.name;
+    json_object[BLName_Val(name)] = Slic3r::decode_path(object.name.c_str());
     // std::string             module_name
-    json_object[BLName_Val(module_name)] = object.module_name;
+    json_object[BLName_Val(module_name)] = Slic3r::decode_path(object.module_name.c_str());
     // std::string             input_file
     _BuildEntityPath(json_object[BLName_Val(input_file)], object.input_file);
     // ModelInstancePtrs       instances
