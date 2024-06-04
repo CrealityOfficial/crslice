@@ -361,11 +361,12 @@ void GCodeExport::writeSpecialModelAndMeshConfig()
     *output_stream << tmp.str();
 }
 
-std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used, const Duration* print_time, const std::vector<double>& filament_used, const std::vector<std::string>& mat_ids)
+std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used, const Duration* print_time, const std::vector<double>& filament_used, const std::vector<std::string>& mat_ids, SliceResult& sliceResult)
 {
     std::ostringstream prefix;
 	Settings* setting = &application->currentGroup()->settings;
 	Settings* extruderSettings = &application->extruders()[0].settings;
+	sliceResult.layer_count = layer_nr;
     gcode::GCodeParseInfo pathParam;
     const size_t extruder_count = application->extruderCount();
     switch (flavor)
@@ -410,6 +411,8 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         {
             prefix << ";PRINT.TIME:" << static_cast<int>(*print_time) << new_line;
             pathParam.printTime = print_time->value;
+
+            sliceResult.print_time = print_time->value;
         }
 
         prefix << ";PRINT.GROUPS:" << application->groupCount() << new_line;
@@ -427,6 +430,10 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";PRINT.SIZE.MAX.Y:" << INT2MM(total_bounding_box.max.y) << new_line;
         prefix << ";PRINT.SIZE.MAX.Z:" << INT2MM(total_bounding_box.max.z) << new_line;
 
+        sliceResult.x = INT2MM(total_bounding_box.max.x - total_bounding_box.min.x);
+        sliceResult.y = INT2MM(total_bounding_box.max.y - total_bounding_box.min.y);
+        sliceResult.z = INT2MM(total_bounding_box.max.z - total_bounding_box.min.z);
+
         std::string slice_uuid = boost::uuids::to_string(boost::uuids::random_generator()());
         prefix << ";SLICE_UUID:" << slice_uuid << new_line;
         prefix << ";END_OF_HEADER" << new_line;
@@ -438,6 +445,8 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         if (print_time)
         {
             pathParam.printTime = print_time->value;
+
+            sliceResult.print_time = print_time->value;
         }
         if (flavor == EGCodeFlavor::ULTIGCODE)
         {
@@ -469,6 +478,7 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
                         pathParam.materialLenth += filament_used[i];
                     }
                 }
+                sliceResult.filament_len = pathParam.materialLenth;
             }
             else
             {
@@ -506,6 +516,10 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
         prefix << ";MAXY:" << INT2MM(total_bounding_box.max.y) << new_line;
         prefix << ";MAXZ:" << INT2MM(total_bounding_box.max.z) << new_line;
 
+        sliceResult.x = INT2MM(total_bounding_box.max.x - total_bounding_box.min.x);
+        sliceResult.y = INT2MM(total_bounding_box.max.y - total_bounding_box.min.y);
+        sliceResult.z = INT2MM(total_bounding_box.max.z - total_bounding_box.min.z);
+
         //各个区域的时间段
         writeTimePartsComment(prefix);
         //
@@ -535,6 +549,23 @@ std::string GCodeExport::getFileHeader(const std::vector<bool>& extruder_is_used
             if(application->debugger())
                 application->debugger()->setParam(pathParam);
         }
+    }
+
+    if (extruder_count)
+    {
+        const Settings& settings = application->extruders()[0].settings;
+        const double PI = 3.14159;
+        float radius = settings.get<double>("material_diameter") / 2.0;
+        float density = settings.get<double>("material_density");
+        sliceResult.filament_volume = PI * radius * radius * density * sliceResult.filament_len;
+    }
+    else
+    {
+        //PLA  Density:1.24g/cm3    DIameter:1.75mm  ??:3.14159
+        const double PI = 3.14159;
+        float radius = 1.75 / 2.0;
+        float density = 1.24;
+        sliceResult.filament_volume = PI * radius * radius * density * sliceResult.filament_len;
     }
 
     return prefix.str();
@@ -2732,10 +2763,11 @@ void GCodeExport::finalize()
         extruder_is_used.push_back(getExtruderIsUsed(extruder_nr));
     }
 
-    std::string prefix = getFileHeader(extruder_is_used, &print_time, filament_used, material_ids);
+    SliceResult result;
+    std::string prefix = getFileHeader(extruder_is_used, &print_time, filament_used, material_ids, result);
 
     //get cloud result
-    SliceResult result = getFileHeaderC(extruder_is_used, &print_time, filament_used, material_ids);
+    //SliceResult result = getFileHeaderC(extruder_is_used, &print_time, filament_used, material_ids);
     application->setResult(result);
 
     {

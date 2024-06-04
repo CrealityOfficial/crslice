@@ -21,6 +21,7 @@
 #include "utils/IntPoint.h"
 #include "tools/NoCopy.h"
 #include "utils/smoothspeedacc.h"
+#include "communication/slicecontext.h"
 
 namespace cura52
 {
@@ -213,7 +214,7 @@ namespace cura52
         std::string getFileHeader(const std::vector<bool>& extruder_is_used,
             const Duration* print_time = nullptr,
             const std::vector<double>& filament_used = std::vector<double>(),
-            const std::vector<std::string>& mat_ids = std::vector<std::string>());
+            const std::vector<std::string>& mat_ids = std::vector<std::string>(), SliceResult& sliceResult = SliceResult());
 
         //for cloud result
         SliceResult getFileHeaderC(const std::vector<bool>& extruder_is_used,
