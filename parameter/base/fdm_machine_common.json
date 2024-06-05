@@ -6441,5 +6441,17 @@
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": "mm"
+    },
+    "ai_infill": {
+        "label": "AI Infill",
+        "description": "AI Infill",
+        "unit": "",
+        "type": "coBool",
+        "default_value": "0",
+        "enabled": "true",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false"
     }
 }
