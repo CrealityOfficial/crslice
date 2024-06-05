@@ -2982,7 +2982,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 
 
     //add by wxj start
-    if (polylines_out.size()>0 && params.extrusion_role== erInternalInfill)
+    if (params.config && params.config->ai_infill.value == true && polylines_out.size()>0 && params.extrusion_role== erInternalInfill )
     {
         {
 			bool is_vaild_flag = true;
@@ -3639,7 +3639,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
 
     //add by wxj start
-    bool is_vaild_flag = params.extrusion_role == erInternalInfill && sweep_params.size()==2 && fill_lines_counts[1]> fill_lines_counts[0] && fill_lines.size() > 4;
+    bool is_vaild_flag = params.config && params.config->ai_infill.value == true && params.extrusion_role == erInternalInfill && sweep_params.size()==2 && fill_lines_counts[1]> fill_lines_counts[0] && fill_lines.size() > 4;
     std::map<size_t, std::set<coord_t>> map_flid_deletes;//每条填充线-内部会被删除的连续栅格点集
     std::map<size_t, std::set<coord_t>> map_flid_splits;
     std::map<size_t, std::pair<coord_t, coord_t>> map_flid_deltas;//每条填充线，的头尾和模型轮廓交点--到--外面一个栅格距离。

@@ -2061,6 +2061,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back(L("tetrahedral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
+    def = this->add("ai_infill", coBool);
+    def->label = L("AI Infill");
+    def->category = L("Strength");
+    def->tooltip = L("Active the AI Infill On the basis of the original sparse filling.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{ false });
+
     auto def_infill_anchor_min = def = this->add("infill_anchor", coFloatOrPercent);
     def->label = L("Sparse infill anchor length");
     def->category = L("Strength");
