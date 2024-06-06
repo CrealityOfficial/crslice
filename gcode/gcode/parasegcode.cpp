@@ -3001,12 +3001,32 @@ namespace gcode
             bool is_get_company = false;
             std::string gcode_layer_data = "";
             bool isToolChange = false;
-            char _line[1024] = { '\0' };
+            char _line[2048] = { '\0' };
 
+            std::string line;
+            bool endLine = true;
             while (!feof(gcode_file))
             {
-                fgets(_line, 1024, gcode_file);
-                std::string line(_line);
+                fgets(_line, 2048, gcode_file);
+                std::string __line(_line);
+                if (!__line.empty())
+                {
+                    if (__line.length() == 2047 && __line.at(__line.length() - 1) != '\n')
+                    {
+                        line += __line;
+                        endLine = false;
+                        continue;
+                    }
+                    else if (!endLine)
+                    {
+                        line += __line;
+                        endLine = true;
+                    }
+                    else
+                        line = __line;
+                }
+                else
+                    line = __line;
 
                 lines_processed_++;
                 bool isLayer = false;
