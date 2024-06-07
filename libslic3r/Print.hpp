@@ -559,7 +559,7 @@ struct FakeWipeTower
     // generate fake extrusion
     Vec2f pos;
     float width;
-    float height;
+    float height = - FLT_MAX;
     float layer_height;
     float depth;
     std::vector<std::pair<float, float>> z_and_depth_pairs;
