@@ -263,17 +263,29 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
         const void *ptr1           = conflict[0].first._obj1;
         const void *ptr2           = conflict[0].first._obj2;
         float       conflictPrintZ = conflict[0].second;
+        int layer = -1;
         if (wtdptr.has_value()) {
             const FakeWipeTower *wtdp = wtdptr.value();
             if (ptr1 == wtdp || ptr2 == wtdp) {
                 if (ptr2 == wtdp) { std::swap(ptr1, ptr2); }
                 const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
-                return std::make_optional<ConflictResult>("WipeTower", obj2->model_object()->name, conflictPrintZ, nullptr, ptr2);
+                const Slic3r::Layer* theLayer = obj2->get_layer_at_printz(conflictPrintZ, EPSILON);
+                if (theLayer)
+                {
+                    layer = theLayer->id();
+                }
+                return std::make_optional<ConflictResult>("WipeTower", obj2->model_object()->name, conflictPrintZ, layer, nullptr, ptr2);
             }
         }
         const PrintObject *obj1 = reinterpret_cast<const PrintObject *>(ptr1);
         const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(ptr2);
-        return std::make_optional<ConflictResult>(obj1->model_object()->name, obj2->model_object()->name, conflictPrintZ, ptr1, ptr2);
+        
+        const Slic3r::Layer* theLayer = obj2->get_layer_at_printz(conflictPrintZ, EPSILON);
+        if (theLayer)
+        {
+            layer = theLayer->id();
+        }
+        return std::make_optional<ConflictResult>(obj1->model_object()->name, obj2->model_object()->name, conflictPrintZ, layer, ptr1, ptr2);
     } else
         return {};
 }

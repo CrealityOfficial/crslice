@@ -105,8 +105,8 @@ namespace Slic3r {
         const void *_obj1; // nullptr means wipe tower
         const void *_obj2;
         int                layer = -1;
-        ConflictResult(const std::string &objName1, const std::string &objName2, double height, const void *obj1, const void *obj2)
-            : _objName1(objName1), _objName2(objName2), _height(height), _obj1(obj1), _obj2(obj2)
+        ConflictResult(const std::string &objName1, const std::string &objName2, double height, int layerVal, const void *obj1, const void *obj2)
+            : _objName1(objName1), _objName2(objName2), _height(height), layer(layerVal), _obj1(obj1), _obj2(obj2)
         {}
         ConflictResult() = default;
     };

@@ -38,7 +38,8 @@ namespace crslice2
 			std::string objName1 = gcodeProcessResult.conflict_result.value()._objName1;
 			std::string objName2 = gcodeProcessResult.conflict_result.value()._objName2;
 			double      height = gcodeProcessResult.conflict_result.value()._height;
-			text = (boost::format(_u8L("Conflicts of gcode paths have been found at height$ %f $ Please separate the conflicted objects further@ (%s <-> %s).")) % height %
+			int  layer = gcodeProcessResult.conflict_result.value().layer;
+			text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer# %d, #height$ %.2f mm.$ Please separate the conflicted objects further@ (%s <-> %s).")) % layer % height %
 				  objName1 % objName2)
 				.str();
 
