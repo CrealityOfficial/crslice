@@ -141,4 +141,184 @@ namespace crslice2
 			debug_expolygons(layer->lslices, debugger);
 		}
 	}
+
+	//cache interface
+	class CrSlicePrintImpl
+	{
+	public:
+		CrSlicePrintImpl() {
+
+		}
+
+		~CrSlicePrintImpl() {
+
+		}
+
+		Slic3r::Print print;
+	};
+
+	CrSlicePrint::CrSlicePrint()
+		:impl(new CrSlicePrintImpl())
+	{
+	}
+
+	CrSlicePrint::~CrSlicePrint()
+	{
+		delete impl;
+		impl = nullptr;
+	}
+
+	class CrSliceModelImpl
+	{
+	public:
+		CrSliceModelImpl() {
+
+		}
+
+		~CrSliceModelImpl() {
+
+		}
+
+		Slic3r::Model model;
+		Slic3r::DynamicPrintConfig config;
+	};
+
+	CrSliceModel::CrSliceModel()
+		:impl(new CrSliceModelImpl())
+	{
+	}
+
+	CrSliceModel::~CrSliceModel()
+	{
+		delete impl;
+		impl = nullptr;
+	}
+
+	CrSliceObject* CrSliceModel::add_object()
+	{
+		CrSliceObject* object = new CrSliceObject();
+		return object;
+	}
+
+	void CrSliceModel::setParameter(const std::string& key, const std::string& value)
+	{
+
+	}
+
+	class CrSliceObjectImpl
+	{
+	public:
+		CrSliceObjectImpl() {
+
+		}
+
+		~CrSliceObjectImpl() {
+
+		}
+
+	};
+
+	CrSliceObject::CrSliceObject()
+		:impl(new CrSliceObjectImpl())
+	{
+	}
+
+	CrSliceObject::~CrSliceObject()
+	{
+
+	}
+
+	void CrSliceObject::setParameter(const std::string& key, const std::string& value)
+	{
+
+	}
+
+	void CrSliceObject::setMatrix(const trimesh::xform& matrix)
+	{
+
+	}
+
+	CrSliceVolume* CrSliceObject::add_volume()
+	{
+		return nullptr;
+	}
+
+	class CrSliceVolumeImpl
+	{
+	public:
+		CrSliceVolumeImpl() {
+
+		}
+
+		~CrSliceVolumeImpl() {
+
+		}
+	};
+
+	CrSliceVolume::CrSliceVolume()
+		:impl(new CrSliceVolumeImpl())
+	{
+	}
+
+	CrSliceVolume::~CrSliceVolume()
+	{
+	};
+
+	void CrSliceVolume::setParameter(const std::string& key, const std::string& value)
+	{
+
+	}
+
+	void CrSliceVolume::setMatrix(const trimesh::xform& matrix)
+	{
+
+	}
+
+	void CrSliceVolume::setMeshData(TriMeshPtr mesh)
+	{
+
+	}
+
+	void CrSliceVolume::setSpreadColor(const std::vector<std::string>& colors)
+	{
+
+	}
+
+	void CrSliceVolume::setSpreadSeam(const std::vector<std::string>& seams)
+	{
+
+	}
+
+	void CrSliceVolume::setSpreadSupport(const std::vector<std::string>& supports)
+	{
+
+	}
+
+	void CrSliceVolume::setName(const std::string& name)
+	{
+
+	}
+
+	void CrSliceVolume::setLayerHeight(const std::vector<double>& layer_heights)
+	{
+
+	}
+
+	void CrSliceVolume::setModelType(const int model_type)
+	{
+
+	}
+
+	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::string& out_file, ccglobal::Tracer* tracer)
+	{
+		CrSliceResult result;
+
+		OrcaResult orca_result;
+		Slic3r::Calib_Params calib_params;
+		auto f = [&](const Slic3r::ThumbnailsParams&) { return Slic3r::ThumbnailsList(); };
+		Slic3r::ThumbnailsGeneratorCallback thumbnail_callback = f;
+		orca_slice_impl(print.impl->print, model.impl->model, model.impl->config, out_file, thumbnail_callback, calib_params, orca_result, tracer);
+
+		return result;
+	}
 }

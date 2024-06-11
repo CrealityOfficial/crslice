@@ -451,6 +451,12 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	}
 }
 
+void orca_slice_impl(Slic3r::Print& print, const Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, OrcaResult& result,
+	ccglobal::Tracer* tracer)
+{
+
+}
+
 bool detect_multi_color_slice(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer)
 {
 	int cnt = 0;
@@ -608,6 +614,68 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	}
 	
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
+}
+
+void orca_slice_impl(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file
+	, Slic3r::ThumbnailsGeneratorCallback thumbnail_callback, Slic3r::Calib_Params& calib_params
+	, OrcaResult& result, ccglobal::Tracer* tracer)
+{
+	int alreadyShow = 0;
+	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow](const Slic3r::PrintBase::SlicingStatus& _status) {
+		if (tracer && alreadyShow <= _status.percent)
+		{
+			alreadyShow = _status.percent;
+			tracer->progress((float)_status.percent * 0.01);
+			tracer->message(_status.text.c_str());
+
+			if (tracer->interrupt())
+			{
+				throw Slic3r::SlicingError("User Cancelled", 0);
+			}
+		}
+	};
+	print.set_callback(callback);
+
+	print.setMultiColor(detect_multi_color_slice(config, model, tracer));
+	detect_auto_temperature(config, print, tracer);
+
+	print.setCrealityOS(detect_creality_os(config, tracer));
+
+	print.set_calib_params(calib_params);
+	print.apply(model, config);
+
+	//Slic3r::Model::setExtruderParams(config, tp.extruderCount);
+	Slic3r::Model::setPrintSpeedTable(config, print.config());
+
+	print.is_BBL_printer() = print.getMultiColor();
+	print.set_plate_origin(Slic3r::Vec3d(0.0, 0.0, 0.0));
+	print.set_plate_index(0);
+
+	print.validate(&result.warning, &result.polygons, &result.height_polygons);
+
+	try {
+		print.process();
+	}
+	catch (const Slic3r::SlicingError& e1)
+	{
+		return _handle_slice_exception(print, e1.objectId(), e1.what(), tracer);
+	}
+	catch (const Slic3r::SlicingErrors& e2) {
+
+		return  _handle_slice_exception(print, e2.errors_[0].objectId(), e2.errors_[0].what(), tracer);
+	}
+
+	try
+	{
+		print.export_gcode(out_file, &result.gcode_result, thumbnail_callback);
+	}
+	catch (const std::exception& ex)
+	{
+		std::string error = ex.what();
+		error += "@";
+		tracer->failed(error.c_str());
+		return;
+	}
 }
 
 Slic3r::SlicingParameters getSliceParam(crslice2::SettingsPtr settings,  Slic3r::ModelObject* currentObject)

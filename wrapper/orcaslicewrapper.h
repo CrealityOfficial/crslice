@@ -6,6 +6,19 @@
 #include "libslic3r/Print.hpp"
 
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3r::GCodeProcessorResult* outResult);
+
+struct OrcaResult
+{
+	Slic3r::GCodeProcessorResult gcode_result;
+	Slic3r::StringObjectException warning;
+	Slic3r::Polygons polygons;
+	std::vector<std::pair<Slic3r::Polygon, float>> height_polygons;
+};
+
+void orca_slice_impl(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file
+	, Slic3r::ThumbnailsGeneratorCallback callback, Slic3r::Calib_Params& calib_params   
+	, OrcaResult& result, ccglobal::Tracer* tracer);
+
 void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList& thumbnailData);
 bool detect_multi_color_slice(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer);
 
