@@ -2987,8 +2987,8 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
         {
 			bool is_vaild_flag = true;
             Polylines fill_lines2;
-			std::map<size_t, std::set<coord_t>> map_flid_deletes;//Ã¿ÌõÌî³äÏß-ÄÚ²¿»á±»É¾³ýµÄÁ¬ÐøÕ¤¸ñµã¼¯
-			std::map<size_t, std::pair<coord_t, coord_t>> map_flid_deltas;//Ã¿ÌõÌî³äÏß£¬µÄÍ·Î²ºÍÄ£ÐÍÂÖÀª½»µã--µ½--ÍâÃæÒ»¸öÕ¤¸ñ¾àÀë¡£
+			std::map<size_t, std::set<coord_t>> map_flid_deletes;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½Ú²ï¿½ï¿½á±»É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¤ï¿½ï¿½ã¼¯
+			std::map<size_t, std::pair<coord_t, coord_t>> map_flid_deltas;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½Í·Î²ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½--ï¿½ï¿½--ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Õ¤ï¿½ï¿½ï¿½ï¿½ë¡£
 			std::map<size_t, coord_t> map_flid_lens;
 			std::vector<size_t> fill_lines_counts;
 
@@ -3004,14 +3004,14 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
                 //testout(pl);
             }
 
-            //Ìî³äÏß¿é ÅÅÐò.
+            //ï¿½ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½.
 			std::sort(polylines_out2.begin(), polylines_out2.end(), [](const Polyline& a, const Polyline& b) {
 				return (a.points[0].x() < b.points[0].x() || a.points[a.points.size() - 1].x() < b.points[b.points.size() - 1].x());
 				});
 
-            //µ½´Ë: poly_with_offset  ºÍ polylines_out2 ºÍ segs  ¶¼ÊÇÒÑ¾­Ðý×ªµ½ÕýÈ·µÄ ÊúÖ±Ìî³ä ×ËÌ¬
+            //ï¿½ï¿½ï¿½ï¿½: poly_with_offset  ï¿½ï¿½ polylines_out2 ï¿½ï¿½ segs  ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½ ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ ï¿½ï¿½Ì¬
 
-			std::unordered_map<int64_t, size_t> map_coords_fl_id;//½¨Á¢hashmap
+			std::unordered_map<int64_t, size_t> map_coords_fl_id;//ï¿½ï¿½ï¿½ï¿½hashmap
             unsigned int lineid = 0;
             for (const SegmentedIntersectionLine& vline : segs)
             {
@@ -3029,7 +3029,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
             size_t testcount = 0;
             auto itr_end = map_coords_fl_id.end();
 
-            //¾«¶ÈÎó²î´¦Àí
+            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î´¦ï¿½ï¿½
             auto get_itr = [&](coord_t& x, coord_t& y) {
                 for (auto i : {0,-1,1})//,-2,2
                 {
@@ -3045,7 +3045,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
                 }
                 return map_coords_fl_id.end();
             };
-            //ÌáÈ¡ µ¥¶ÀµÄÌî³äÏß
+            //ï¿½ï¿½È¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             for (size_t m = 0; m < polylines_out2.size(); m++)
             {
                 Polyline& pol = polylines_out2[m];
@@ -3073,7 +3073,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
                 }
             }
 
-            //ÅÅÐò µ¥¶ÀµÄÌî³äÏß 
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 			std::sort(fill_lines_shuzi.begin(), fill_lines_shuzi.end(), [](const Polyline& a, const Polyline& b) {
 				return (a.points[0].x() > b.points[0].x() );
 				});
@@ -3086,7 +3086,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 			const size_t  n_h_segments = (bounding_box.max.y() - bounding_box.min.y() + line_spacing - 1) / line_spacing;
             coord_t addy0 = (n_h_segments* line_spacing - (bounding_box.max.y() - bounding_box.min.y())) / 2;
             coord_t y0 = bounding_box.max.y()+ addy0;
-            //ÈÃÐé¹¹µÄyµ¥Î»¸ñ×ÓÈ«¾Ö¶ÔÆë
+            //ï¿½ï¿½ï¿½é¹¹ï¿½ï¿½yï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½È«ï¿½Ö¶ï¿½ï¿½ï¿½
             y0 = (y0+(line_spacing/2)) / line_spacing *line_spacing;
             coord_t x0 = bounding_box.min.x();
             coord_t xn = bounding_box.max.x();
@@ -3101,9 +3101,9 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 
 			if (is_vaild_flag)
 			{
-				//ÊúÖ±ÇÐÏß
+				//ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½
 				Polylines polylines1 = std::move(fill_lines_shuzi);
-				//Ë®Æ½ÇÐÏß
+				//Ë®Æ½ï¿½ï¿½ï¿½ï¿½
 				Polylines polylines2 = std::move(fill_lines_shuiping);
 
 				const coord_t& base_x0 = polylines1[0].points[0].x();
@@ -3127,7 +3127,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 
 					coord_t cur_x = polylines1[i].points[0].x();
 
-					if (std::abs(cur_x - pre_x) > 100)//10-4Îó²îÄÚÈÏÎªÏàµÈ
+					if (std::abs(cur_x - pre_x) > 100)//10-4ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½
 					{
 						pre_x = cur_x;
 						glid++;
@@ -3220,7 +3220,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
                 coord_t add_x = (root_grid_x * root_grid_edge_len - x_segcount) / 2.0;
                 coord_t add_y = (root_grid_y * root_grid_edge_len - y_segcount) / 2.0;
 
-				//È«¾Ö¶ÔÆëÍø¸ñ
+				//È«ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				if (root_grid_edge_len != 0)
 				{
                     if (this->layer_id == 2)
@@ -3255,7 +3255,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 				}
 
 
-				//ÕâÀïÊÇ¹¹ÔìµÄÐéÄâÍø¸ñ,µÝ¹é¼ÆËã³öÐèÒªÉ¾³ýµÄÕ¤¸ñµã
+				//ï¿½ï¿½ï¿½ï¿½ï¿½Ç¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÉ¾ï¿½ï¿½ï¿½ï¿½Õ¤ï¿½ï¿½ï¿½
 				for (size_t gridi = 0; gridi < root_grid_x; gridi++)
 				{
 					for (size_t gridj = 0; gridj < root_grid_y; gridj++)
@@ -3367,9 +3367,10 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 			if (is_vaild_flag)
 			{
                 polylines_out2.clear();
-                polylines_out2.swap(std::vector<Polyline>());
+                std::vector<Polyline> tmp;
+                polylines_out2.swap(tmp);
 				using coords_pair = std::pair<std::pair<coord_t, coord_t>, std::pair<coord_t, coord_t>>;
-				std::map<coords_pair, size_t> map_coords_fl_id;//½¨Á¢hashmap
+				std::map<coords_pair, size_t> map_coords_fl_id;//ï¿½ï¿½ï¿½ï¿½hashmap
 				for (size_t m = 0; m < fill_lines2.size(); m++)
 				{
 					Polyline& p1 = fill_lines2[m];
@@ -3383,7 +3384,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 					map_coords_fl_id[key] = m;
 				}
 
-				//ÔÚpolylines_outÀïÃæ²éÕÒ fill_lines2 Ïß¶Î£¬Èç¹ûÐèÒªÔòÇÐ¸î·Ö¶Î¡£
+				//ï¿½ï¿½polylines_outï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ fill_lines2 ï¿½ß¶Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð¸ï¿½Ö¶Î¡ï¿½
 
 				auto cal_new_point = [&](coord_t& d_0, coord_t& d_n,
 					Point& p0, Point& p1,
@@ -3408,27 +3409,27 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 
 					bool is_vertical_shuzhi_line = fl_id < fill_lines_counts[0];
 					bool is_orign_order = true;
-					if (is_vertical_shuzhi_line == true)//ÊúÏß
+					if (is_vertical_shuzhi_line == true)//ï¿½ï¿½ï¿½ï¿½
 					{
 						if (y2 > y)
 						{
-							is_orign_order = false;//Ïß¶ÎµÄÁ½¸öµãË³Ðòµßµ¹
+							is_orign_order = false;//ï¿½ß¶Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ßµï¿½
 						}
 					}
-					else//ºáÏß
+					else//ï¿½ï¿½ï¿½ï¿½
 					{
 						if (x2 < x)
 						{
-							is_orign_order = false;//Ïß¶ÎµÄÁ½¸öµãË³Ðòµßµ¹
+							is_orign_order = false;//ï¿½ß¶Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ßµï¿½
 						}
 					}
 					bool is_need_swap = false;
-					if (is_vertical_shuzhi_line != is_orign_order)//Òì»ò
+					if (is_vertical_shuzhi_line != is_orign_order)//ï¿½ï¿½ï¿½
 					{
 						is_need_swap = true;
 					}
-					*p0 = &fill_lines2[fl_id].points[0];  //ÉÏµã »òÕß ×óµã
-					*p1 = &fill_lines2[fl_id].points[1];  //ÏÂµã »òÕß ÓÒµã
+					*p0 = &fill_lines2[fl_id].points[0];  //ï¿½Ïµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+					*p1 = &fill_lines2[fl_id].points[1];  //ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Òµï¿½
 					auto [d_0, d_n] = map_flid_deltas[fl_id];
 					return std::make_tuple(is_vertical_shuzhi_line, is_need_swap, d_0, d_n);
 				};
@@ -3451,7 +3452,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 						auto itr = map_coords_fl_id.find(key);
 
 						if (itr == map_coords_fl_id.end()) {
-							is_keepsame = true;// ×ßµ½ÕâÀï±íÊ¾£º ÔÚfill_lines2ÀïÃæÃ»ÓÐÕÒµ½ ¸ÃÏß¶Î¡£
+							is_keepsame = true;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ ï¿½ï¿½fill_lines2ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ï¿½ß¶Î¡ï¿½
 						}
 						else {
 							auto fl_id = itr->second;
@@ -3459,7 +3460,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 							{								
                                 is_keepsame = true;
 							}
-							else //ÇÐ¸îµ±Ç°Ïß¶Î
+							else //ï¿½Ð¸îµ±Ç°ï¿½ß¶ï¿½
 							{
 								bool is_vertical_shuzhi_line = false;
 								bool is_need_swap = false;
@@ -3470,14 +3471,14 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 								Point& p1 = *p11;
 
                                 is_need_swap = !is_need_swap;
-								//É¾³ýµã¼¯,µãµÄË³ÐòÊÇ£º´ÓÉÏµ½ÏÂ »òÕß "´ÓÓÒµ½×ó" ÕâÀïµÄË³ÐòÒªÌØ±ð×¢Òâ
+								//É¾ï¿½ï¿½ï¿½ã¼¯,ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ "ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½" ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½Òªï¿½Ø±ï¿½×¢ï¿½ï¿½
 								std::set<coord_t>& tmpset = map_flid_deletes[fl_id];
                                 coord_t minVal = *tmpset.begin();
                                 coord_t maxVal = *std::prev(tmpset.end());
 
 								Point newp0 = cal_new_point(d_0, d_n, p0, p1, fl_id, minVal, is_vertical_shuzhi_line);
 								Point newp1 = cal_new_point(d_0, d_n, p0, p1, fl_id, maxVal, is_vertical_shuzhi_line);
-								if (is_need_swap)//Òì»ò
+								if (is_need_swap)//ï¿½ï¿½ï¿½
 								{
 									std::swap(newp0, newp1);
 								}
@@ -3492,7 +3493,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 
 								pol_new.points.clear();
 
-								//´¦ÀíÒ»¸ögridlineÉÏÃæ·Ö¶ÎÇé¿ö,É¾³ýµÄµã¼¯ÊÇ²»Á¬ÐøµÄ£¬Ò²¾ÍÊÇÖÐ¼äÄ³Ð©Ïß¶ÎÊÇ²»ÐèÒªÉ¾³ý¡£
+								//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½gridlineï¿½ï¿½ï¿½ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½,É¾ï¿½ï¿½ï¿½Äµã¼¯ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ð¼ï¿½Ä³Ð©ï¿½ß¶ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ÒªÉ¾ï¿½ï¿½ï¿½ï¿½
 								if (maxVal - minVal + 1 != tmpset.size())
 								{
 									std::vector<std::pair<coord_t, coord_t>> intervals;
@@ -3522,7 +3523,7 @@ bool FillRectilinear::fill_surface_by_lines(const Surface *surface, const FillPa
 									{
 										Point np0 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.first, is_vertical_shuzhi_line);
 										Point np1 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.second, is_vertical_shuzhi_line);
-										if (is_need_swap)//Òì»ò
+										if (is_need_swap)//ï¿½ï¿½ï¿½
 										{
 											std::swap(np0, np1);
 										}
@@ -3628,8 +3629,8 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     coord_t line_width   = coord_t(scale_(this->spacing));
     coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
     std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
-    Polylines fill_lines2;//±¸·ÝÒ»·Ý£¬ÒòÎª fill_lines »á±»connect_infill ÐÞ¸Ä¡£
-    std::vector<size_t> fill_lines_counts;//¼ÇÂ¼ÏÂÃ¿ÖÖÉ¨ÂÔÀàÐÍµÄÌî³äÏßÌõÊý¡£±ÈÈçgridÊÇÁ½ÖÖ(¾ßÌå¶¼ÊÇ×î³õÊúÖ±Ïß£¬È»ºóÍ¨¹ýÐý×ª½Ç¶È£¬À´¹¹Ôì³ÉÐÂÀàÐÍ)
+    Polylines fill_lines2;//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ý£ï¿½ï¿½ï¿½Îª fill_lines ï¿½á±»connect_infill ï¿½Þ¸Ä¡ï¿½
+    std::vector<size_t> fill_lines_counts;//ï¿½ï¿½Â¼ï¿½ï¿½Ã¿ï¿½ï¿½É¨ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½gridï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½å¶¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ß£ï¿½È»ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½×ªï¿½Ç¶È£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
     for (const SweepParams& sweep : sweep_params) {
         // Rotate polygons so that we can work with vertical lines here
         float angle = rotate_vector.first + sweep.angle_base;
@@ -3640,21 +3641,21 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
     //add by wxj start
     bool is_vaild_flag = params.config && params.config->ai_infill.value == true && params.extrusion_role == erInternalInfill && sweep_params.size()==2 && fill_lines_counts[1]> fill_lines_counts[0] && fill_lines.size() > 4;
-    std::map<size_t, std::set<coord_t>> map_flid_deletes;//Ã¿ÌõÌî³äÏß-ÄÚ²¿»á±»É¾³ýµÄÁ¬ÐøÕ¤¸ñµã¼¯
+    std::map<size_t, std::set<coord_t>> map_flid_deletes;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-ï¿½Ú²ï¿½ï¿½á±»É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¤ï¿½ï¿½ã¼¯
     std::map<size_t, std::set<coord_t>> map_flid_splits;
-    std::map<size_t, std::pair<coord_t, coord_t>> map_flid_deltas;//Ã¿ÌõÌî³äÏß£¬µÄÍ·Î²ºÍÄ£ÐÍÂÖÀª½»µã--µ½--ÍâÃæÒ»¸öÕ¤¸ñ¾àÀë¡£
+    std::map<size_t, std::pair<coord_t, coord_t>> map_flid_deltas;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ï¿½Í·Î²ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½--ï¿½ï¿½--ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Õ¤ï¿½ï¿½ï¿½ï¿½ë¡£
     std::map<size_t, coord_t> map_flid_lens;
-	Polylines polylines_out2;//Ìæ»» polylines_out ×÷Îª×îÖÕÊä³ö
+	Polylines polylines_out2;//ï¿½æ»» polylines_out ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if (is_vaild_flag)
     {
-        //ÊúÖ±ÇÐÏß
+        //ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½
         Polylines polylines1; polylines1.clear();
         polylines1.insert(polylines1.end(), fill_lines.begin(), fill_lines.begin() + fill_lines_counts[0]);
         std::for_each(polylines1.begin(), polylines1.end(), [](Polyline& pl) {pl.rotate(45. / 180. * PI); });
 
         //testout(polylines1);
 
-        //Ë®Æ½ÇÐÏß
+        //Ë®Æ½ï¿½ï¿½ï¿½ï¿½
         Polylines polylines2; polylines2.clear();
         polylines2.insert(polylines2.end(), fill_lines.begin() + fill_lines_counts[0], fill_lines.end());
         std::for_each(polylines2.begin(), polylines2.end(), [](Polyline& pl) {pl.rotate(45. / 180. * PI); });
@@ -3682,7 +3683,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
             coord_t cur_x = polylines1[i].points[0].x();
 
-             if (std::abs(cur_x - pre_x) > 100)//10-4Îó²îÄÚÈÏÎªÏàµÈ
+             if (std::abs(cur_x - pre_x) > 100)//10-4ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½
             {
                 pre_x = cur_x;
                 glid++;
@@ -3721,7 +3722,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
 
 
-        ExPolygonWithOffset& poly_with_offset_base_with_rotate = ExPolygonWithOffset(poly_with_offset_base, 45. / 180. * PI);
+        ExPolygonWithOffset poly_with_offset_base_with_rotate = ExPolygonWithOffset(poly_with_offset_base, 45. / 180. * PI);
 
         //testout(poly_with_offset_base_with_rotate.polygons_outer);
 
@@ -3775,7 +3776,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         coord_t add_x = (root_grid_x * root_grid_edge_len - x_segcount) / 2.0;
         coord_t add_y = (root_grid_y * root_grid_edge_len - y_segcount) / 2.0;
 
-        //È«¾Ö¶ÔÆëÍø¸ñ
+        //È«ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if (root_grid_edge_len != 0)
         {
             this->layer_id;
@@ -3806,7 +3807,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
         }
 
 
-        //ÕâÀïÊÇ¹¹ÔìµÄÐéÄâÍø¸ñ,µÝ¹é¼ÆËã³öÐèÒªÉ¾³ýµÄÕ¤¸ñµã
+        //ï¿½ï¿½ï¿½ï¿½ï¿½Ç¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½Ý¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÉ¾ï¿½ï¿½ï¿½ï¿½Õ¤ï¿½ï¿½ï¿½
         for (size_t gridi = 0; gridi < root_grid_x; gridi++)
         {
             for (size_t gridj = 0; gridj < root_grid_y; gridj++)
@@ -3905,7 +3906,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
             }
         }
 
-        //¼ÇÂ¼·ÖÁÑµã£¬ÎªºóÃæµÄTSPÊ¹ÓÃ
+        //ï¿½ï¿½Â¼ï¿½ï¿½ï¿½Ñµã£¬Îªï¿½ï¿½ï¿½ï¿½ï¿½TSPÊ¹ï¿½ï¿½
         for (auto itr = map_flid_deletes.begin(); itr != map_flid_deletes.end(); itr++)
         {
             size_t fid = itr->first;
@@ -3950,7 +3951,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
 
 
-        fill_lines2 = fill_lines;//±¸·Ý
+        fill_lines2 = fill_lines;//ï¿½ï¿½ï¿½ï¿½
     }
     //add by wxj end
 
@@ -3965,7 +3966,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
     if (is_vaild_flag)
     {
         using coords_pair = std::pair<std::pair<coord_t, coord_t>, std::pair<coord_t, coord_t>>;
-        std::map<coords_pair, size_t> map_coords_fl_id;//½¨Á¢hashmap
+        std::map<coords_pair, size_t> map_coords_fl_id;//ï¿½ï¿½ï¿½ï¿½hashmap
         for (size_t m = 0; m < fill_lines2.size(); m++)
         {
             Polyline& p1 = fill_lines2[m];
@@ -3979,7 +3980,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
             map_coords_fl_id[key] = m;
         }
 
-        //ÔÚpolylines_outÀïÃæ²éÕÒ fill_lines2 Ïß¶Î£¬Èç¹ûÐèÒªÔòÇÐ¸î·Ö¶Î¡£
+        //ï¿½ï¿½polylines_outï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ fill_lines2 ï¿½ß¶Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ð¸ï¿½Ö¶Î¡ï¿½
 
         auto cal_new_point = [&](coord_t& d_0, coord_t& d_n,
             Point& p0, Point& p1, 
@@ -4004,27 +4005,27 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
 			bool is_vertical_shuzhi_line = fl_id < fill_lines_counts[0];
 			bool is_orign_order = true;
-			if (is_vertical_shuzhi_line == true)//ÊúÏß
+			if (is_vertical_shuzhi_line == true)//ï¿½ï¿½ï¿½ï¿½
 			{
 				if (y2 > y)
 				{
-					is_orign_order = false;//Ïß¶ÎµÄÁ½¸öµãË³Ðòµßµ¹
+					is_orign_order = false;//ï¿½ß¶Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ßµï¿½
 				}
 			}
-			else//ºáÏß
+			else//ï¿½ï¿½ï¿½ï¿½
 			{
 				if (x2 < x)
 				{
-					is_orign_order = false;//Ïß¶ÎµÄÁ½¸öµãË³Ðòµßµ¹
+					is_orign_order = false;//ï¿½ß¶Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ßµï¿½
 				}
 			}
 			bool is_need_swap = false;
-			if (is_vertical_shuzhi_line != is_orign_order)//Òì»ò
+			if (is_vertical_shuzhi_line != is_orign_order)//ï¿½ï¿½ï¿½
 			{
 				is_need_swap = true;
 			}
-			*p0 = &fill_lines2[fl_id].points[0];  //ÉÏµã »òÕß ×óµã
-			*p1 = &fill_lines2[fl_id].points[1];  //ÏÂµã »òÕß ÓÒµã
+			*p0 = &fill_lines2[fl_id].points[0];  //ï¿½Ïµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+			*p1 = &fill_lines2[fl_id].points[1];  //ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Òµï¿½
 			auto [d_0, d_n] = map_flid_deltas[fl_id];
             return std::make_tuple(is_vertical_shuzhi_line, is_need_swap, d_0, d_n);
         };
@@ -4047,13 +4048,13 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
                 auto itr = map_coords_fl_id.find(key);
 
                 if (itr == map_coords_fl_id.end()) {
-                    is_keepsame = true;// ×ßµ½ÕâÀï±íÊ¾£º ÔÚfill_lines2ÀïÃæÃ»ÓÐÕÒµ½ ¸ÃÏß¶Î¡£
+                    is_keepsame = true;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ ï¿½ï¿½fill_lines2ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ï¿½ß¶Î¡ï¿½
                 }
                 else {
                     auto fl_id = itr->second;
                     if (map_flid_deletes.find(fl_id) == map_flid_deletes.end())
                     {
-                        //´¿·ÖÁÑ
+                        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                         auto itr_split = map_flid_splits.find(fl_id);
                         if (itr_split == map_flid_splits.end())
                         {
@@ -4096,7 +4097,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
                         }
                         
                     }
-					else //ÇÐ¸îµ±Ç°Ïß¶Î
+					else //ï¿½Ð¸îµ±Ç°ï¿½ß¶ï¿½
                     {
 						bool is_vertical_shuzhi_line = false;
 						bool is_need_swap = false;
@@ -4107,14 +4108,14 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 						Point& p1 = *p11;
 
 
-                        //É¾³ýµã¼¯,µãµÄË³ÐòÊÇ£º´ÓÉÏµ½ÏÂ »òÕß "´ÓÓÒµ½×ó" ÕâÀïµÄË³ÐòÒªÌØ±ð×¢Òâ
+                        //É¾ï¿½ï¿½ï¿½ã¼¯,ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ "ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½" ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½Òªï¿½Ø±ï¿½×¢ï¿½ï¿½
                         std::set<coord_t>& tmpset = map_flid_deletes[fl_id];
                         coord_t minVal = *tmpset.begin();
                         coord_t maxVal = *std::prev(tmpset.end());
 
 						Point newp0 = cal_new_point(d_0, d_n, p0, p1, fl_id, minVal, is_vertical_shuzhi_line);
 						Point newp1 = cal_new_point(d_0, d_n, p0, p1, fl_id, maxVal, is_vertical_shuzhi_line);
-						if (is_need_swap)//Òì»ò
+						if (is_need_swap)//ï¿½ï¿½ï¿½
 						{
 							std::swap(newp0, newp1);
 						}
@@ -4129,7 +4130,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
 
 						pol_new.points.clear();
 
-                        //´¦ÀíÒ»¸ögridlineÉÏÃæ·Ö¶ÎÇé¿ö,É¾³ýµÄµã¼¯ÊÇ²»Á¬ÐøµÄ£¬Ò²¾ÍÊÇÖÐ¼äÄ³Ð©Ïß¶ÎÊÇ²»ÐèÒªÉ¾³ý¡£
+                        //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½gridlineï¿½ï¿½ï¿½ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½,É¾ï¿½ï¿½ï¿½Äµã¼¯ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ð¼ï¿½Ä³Ð©ï¿½ß¶ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ÒªÉ¾ï¿½ï¿½ï¿½ï¿½
                         if (maxVal-minVal+1 != tmpset.size())
                         {
 							std::vector<std::pair<coord_t, coord_t>> intervals;
@@ -4159,7 +4160,7 @@ bool FillRectilinear::fill_surface_by_multilines(const Surface *surface, FillPar
                             {
 								Point np0 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.first, is_vertical_shuzhi_line);
 								Point np1 = cal_new_point(d_0, d_n, p0, p1, fl_id, curpair.second, is_vertical_shuzhi_line);
-								if (is_need_swap)//Òì»ò
+								if (is_need_swap)//ï¿½ï¿½ï¿½
 								{
 									std::swap(np0, np1);
 								}

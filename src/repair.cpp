@@ -1,3 +1,4 @@
+#ifdef WIN32
 #include "crslice2/repair.h"
 #include "TriangleMesh.hpp"
 #include "libslic3r/Model.hpp"
@@ -267,3 +268,4 @@ namespace crslice2
 		return res;
 	}
 }
+#endif
