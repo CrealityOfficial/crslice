@@ -5,13 +5,13 @@
 #include "crslice2/header.h"
 
 namespace Slic3r {
-
+#ifdef HAS_WIN10SDK
 class Model;
 class ModelObject;
 class Print;
 class ccglobal::Tracer;
 
-#ifdef HAS_WIN10SDK
+
 
 extern bool is_windows10();
 // returt false, if fixing was canceled
