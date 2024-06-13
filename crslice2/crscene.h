@@ -95,6 +95,8 @@ namespace crslice2
 		CrScene();
 		~CrScene();
 
+		std::vector<TriMeshPtr> collectScene();
+
 		int addOneGroup();
 		int addObject2Group(int groupID);
 		void setOjbectMesh(int groupID, int objectID, TriMeshPtr mesh);

@@ -85,6 +85,25 @@ namespace crslice2
 		release();
 	}
 
+	std::vector<TriMeshPtr> CrScene::collectScene()
+	{
+		std::vector<TriMeshPtr> meshes;
+		for (CrGroup* group : m_groups)
+		{
+			trimesh::xform gxf = group->m_groupTransform;
+			for (const CrObject& object : group->m_objects)
+			{
+				trimesh::xform xf = object.m_xform;
+				TriMeshPtr m(new trimesh::TriMesh());
+				*m = *object.m_mesh;
+				trimesh::apply_xform(m.get(), gxf * xf);
+				m->need_bbox();
+				meshes.push_back(m);
+			}
+		}
+		return meshes;
+	}
+
 	int CrScene::addOneGroup()
 	{
 		int groupID = (int)m_groups.size();
