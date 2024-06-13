@@ -538,6 +538,17 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 				throw Slic3r::SlicingError("User Cancelled", 0);
 			}
 		}
+
+		if (_status.percent < 0 && _status.warning_level == Slic3r::PrintStateBase::WarningLevel::NON_CRITICAL)
+		{
+			if (tracer)
+			{
+				if (_status.message_type == Slic3r::PrintStateBase::SlicingNeedSupportOn)
+				{
+					tracer->recordExtraMessage("SlicingNeedSupportOn", _status.text.c_str());
+				}
+			}
+		}
 	};
 
 	Slic3r::Print print;

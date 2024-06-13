@@ -45,6 +45,11 @@ namespace crslice2
 
 			extraSliceWarningDetails["Path_Conflict"] = text;
 		}
+
+		if (tracer && tracer->extraMessageSize() > 0)
+		{
+			extraSliceWarningDetails.merge(tracer->getExtraRecordMessage());
+		}
 	}
 
 	CRSLICE2_API std::vector<double> getLayerHeightProfileAdaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality)
