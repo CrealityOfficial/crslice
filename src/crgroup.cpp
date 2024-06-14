@@ -8,6 +8,7 @@ namespace crslice2
 {
 	CrGroup::CrGroup()
 	{
+		m_sceneObjectId = -1;
 		m_settings.reset(new Settings());
 	}
 
@@ -143,5 +144,10 @@ namespace crslice2
 	void CrGroup::setGroupTransform(trimesh::xform gxform)
 	{
 		m_groupTransform = gxform;
+	}
+
+	void CrGroup::setGroupSceneObjectId(int64_t sceneObjId)
+	{
+		m_sceneObjectId = sceneObjId;
 	}
 }

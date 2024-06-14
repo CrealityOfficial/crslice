@@ -27,7 +27,7 @@ namespace crslice2
 
         SliceResult sliceResult;
 
-        std::map<std::string, std::string> extraSliceWarningDetails;
+        std::map<std::string, std::pair<std::string,int64_t>> extraSliceWarningDetails;
 
 	};
 

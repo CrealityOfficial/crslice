@@ -110,6 +110,7 @@ namespace crslice2
 
 		void setGroupOffset(int groupID, trimesh::vec3 offset);
 		void setGroupTransform(int groupID, trimesh::xform gxform);
+		void setGroupSceneObjectId(int groupID, int64_t sceneObjId);
 
 		void setObjectSettings(int groupID, int objectID, SettingsPtr settings);
 		void setGroupSettings(int groupID, SettingsPtr settings);
@@ -140,6 +141,10 @@ namespace crslice2
 		void savePloygons(const std::vector<std::vector<trimesh::vec2>>& polys, const std::string filename);
 		void setOjbectExclude(int groupID, int objectID, const std::string& fileName, std::vector<trimesh::vec3>& outline_ObjectExclude);
 		void makeSureParameters();
+
+		void recordObjectIdInfo(int64_t sceneObjId, size_t sliceObjId);
+		int64_t getSceneObjectIdBySliceObjId(size_t sliceObjId);
+
 	public:
 		std::vector<CrGroup*> m_groups;
 		SettingsPtr m_settings;
@@ -167,6 +172,8 @@ namespace crslice2
 		bool m_isBBLPrinter;
 		int m_plate_index;
 		int m_unittest_type;   //0:none,1:ganerate,2:compare,3:update
+
+		std::map<int64_t, size_t> m_sceneObjectIdWithSliceObjectIdMap;
 	};
 
 	class SceneCreator

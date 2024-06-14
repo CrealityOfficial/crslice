@@ -671,8 +671,8 @@ void PrintObject::generate_support_material()
                     {SharpTail,L("floating regions")},
                     {Cantilever,L("floating cantilever")},
                     {LargeOverhang,L("large overhangs")} };
-                std::string warning_message = format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
-                    this->model_object()->name, reasons[sntype]);
+                std::string warning_message = format(L("%s#Please re-orient the object or enable support generation."),
+                    reasons[sntype]);
                 this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
 

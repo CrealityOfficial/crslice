@@ -33,11 +33,13 @@ namespace crslice2
 		void save(std::fstream& out, int version);  //for version
 
 		void setGroupTransform(trimesh::xform gxform);
+		void setGroupSceneObjectId(int64_t sceneObjId);
 
 		std::vector<CrObject> m_objects;
 		SettingsPtr m_settings;
 		trimesh::vec3 m_offset;
 		trimesh::xform m_groupTransform;
+		int64_t m_sceneObjectId;
 	};
 }
 

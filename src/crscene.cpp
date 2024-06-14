@@ -193,6 +193,18 @@ namespace crslice2
 		group->setGroupTransform(gxform);
 	}
 
+	void CrScene::setGroupSceneObjectId(int groupID, int64_t sceneObjId)
+	{
+		if (groupID < 0 || groupID >= (int)m_groups.size())
+		{
+			LOGE("CrScene::setGroupTransform [%d] not exist.", groupID);
+			return;
+		}
+
+		CrGroup* group = m_groups.at(groupID);
+		group->setGroupSceneObjectId(sceneObjId);
+	}
+
 	void CrScene::setObjectSettings(int groupID, int objectID, SettingsPtr settings)
 	{
 		if (groupID < 0 || groupID >= (int)m_groups.size())
@@ -427,5 +439,22 @@ namespace crslice2
 			return  m_groups.at(groupID);
 		else
 			return nullptr;
+	}
+
+	void CrScene::recordObjectIdInfo(int64_t sceneObjId, size_t sliceObjId)
+	{
+		m_sceneObjectIdWithSliceObjectIdMap[sceneObjId] = sliceObjId;
+	}
+
+	int64_t CrScene::getSceneObjectIdBySliceObjId(size_t sliceObjId)
+	{
+		auto itr = m_sceneObjectIdWithSliceObjectIdMap.begin();
+		for (; itr != m_sceneObjectIdWithSliceObjectIdMap.end(); itr++)
+		{
+			if (sliceObjId == itr->second)
+				return itr->first;
+		}
+
+		return -1;
 	}
 }

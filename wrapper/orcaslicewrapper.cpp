@@ -35,6 +35,8 @@
 #include <fstream>
 #include <string>
 #include "baselineorcinput.h"
+#include "libslic3r/I18N.hpp"
+
 namespace cereal
 {
 	// Let cereal know that there are load / save non-member functions declared for ModelObject*, ignore serialization of pointers triggering
@@ -318,6 +320,8 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	{
 		Slic3r::ModelObject* currentObject = model.add_object();
 
+		scene->recordObjectIdInfo(aCrgroup->m_sceneObjectId, currentObject->id().id);
+
 		Slic3r::ModelInstance* mi = currentObject->add_instance();
 		Slic3r::Transform3d groupTransform;
 		for (int i = 0; i < 4; i++)
@@ -525,8 +529,9 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	}
 #endif
 
+	Slic3r::Print print;
 	int alreadyShow = 0;
-	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow](const Slic3r::PrintBase::SlicingStatus& _status) {
+	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow, &print](const Slic3r::PrintBase::SlicingStatus& _status) {
 		if (tracer && alreadyShow <= _status.percent)
 		{
 			alreadyShow = _status.percent;
@@ -545,13 +550,20 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 			{
 				if (_status.message_type == Slic3r::PrintStateBase::SlicingNeedSupportOn)
 				{
-					tracer->recordExtraMessage("SlicingNeedSupportOn", _status.text.c_str());
+					Slic3r::PrintObject* pObject = const_cast<Slic3r::PrintObject*>(print.get_object(_status.warning_object_id));
+					size_t sliceObjId = 0;
+					if (pObject && pObject->model_object())
+					{
+						sliceObjId = pObject->model_object()->id().id;
+					}
+
+					tracer->recordExtraMessage("SlicingNeedSupportOn", _status.text.c_str(), sliceObjId);
 				}
 			}
 		}
 	};
 
-	Slic3r::Print print;
+	
 	print.set_callback(callback);
 
 	print.setMultiColor(detect_multi_color_slice(config, model, tracer));

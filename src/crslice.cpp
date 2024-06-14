@@ -38,17 +38,26 @@ namespace crslice2
 			std::string objName1 = gcodeProcessResult.conflict_result.value()._objName1;
 			std::string objName2 = gcodeProcessResult.conflict_result.value()._objName2;
 			double      height = gcodeProcessResult.conflict_result.value()._height;
-			int  layer = gcodeProcessResult.conflict_result.value().layer;
+			int  layer = gcodeProcessResult.conflict_result.value().layer + 1;  // "+1" to align with zslider display layer value
 			text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer# %d, #height$ %.2f mm.$ Please separate the conflicted objects further@ (%s <-> %s).")) % layer % height %
 				  objName1 % objName2)
 				.str();
 
-			extraSliceWarningDetails["Path_Conflict"] = text;
+			extraSliceWarningDetails["Path_Conflict"] = std::make_pair(text, -1);
 		}
 
 		if (tracer && tracer->extraMessageSize() > 0)
 		{
-			extraSliceWarningDetails.merge(tracer->getExtraRecordMessage());
+			std::map< std::string, std::pair<std::string, size_t> > warningInfo = tracer->getExtraRecordMessage();
+			auto itr = warningInfo.begin();
+			for (; itr != warningInfo.end(); itr++)
+			{
+				std::pair pairVal = itr->second;
+				size_t sliceObjId = pairVal.second;
+				int64_t sceneObjId = scene->getSceneObjectIdBySliceObjId(sliceObjId);
+
+				extraSliceWarningDetails[itr->first] = std::make_pair(itr->second.first, sceneObjId);
+			}
 		}
 	}
 
