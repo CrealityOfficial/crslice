@@ -47,6 +47,7 @@ namespace crslice2
 
 		void setParameter(const std::string& key, const std::string& value);
 		CrSliceObject* add_object();
+		void remove_object(CrSliceObject* object);
 
 		CrSliceModelImpl* impl;
 	};
@@ -60,6 +61,8 @@ namespace crslice2
 
 		void setParameter(const std::string& key, const std::string& value);
 		void setMatrix(const trimesh::xform& matrix);
+		void setLayerHeight(const std::vector<double>& layer_heights);
+
 		CrSliceVolume* add_volume();
 
 		CrSliceObjectImpl* impl;
@@ -79,7 +82,6 @@ namespace crslice2
 		void setSpreadSeam(const std::vector<std::string>& seams);
 		void setSpreadSupport(const std::vector<std::string>& supports);
 		void setName(const std::string& name);
-		void setLayerHeight(const std::vector<double>& layer_heights);
 		void setModelType(const int model_type);
 
 		CrSliceVolumeImpl* impl;

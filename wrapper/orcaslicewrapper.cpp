@@ -276,6 +276,21 @@ Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::Con
 	return option;
 }
 
+Slic3r::Geometry::Transformation convert_matrix(const trimesh::xform& xf)
+{
+	Slic3r::Transform3d t3d;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			t3d(i, j) = xf[i + j * 4];
+		}
+
+	}
+	Slic3r::Geometry::Transformation t(t3d);
+	return t;
+}
+
 void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config,Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList& thumbnailData)
 {
 	size_t numGroup = scene->m_groups.size();

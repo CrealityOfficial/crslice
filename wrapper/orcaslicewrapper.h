@@ -5,6 +5,9 @@
 #include "crslice2/base/parametermeta.h"
 #include "libslic3r/Print.hpp"
 
+void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tmesh);
+Slic3r::Geometry::Transformation convert_matrix(const trimesh::xform& xf);
+
 void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3r::GCodeProcessorResult* outResult);
 
 struct OrcaResult

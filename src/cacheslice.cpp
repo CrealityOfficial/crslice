@@ -183,6 +183,34 @@ namespace crslice2
 		Slic3r::DynamicPrintConfig config;
 	};
 
+	class CrSliceVolumeImpl
+	{
+	public:
+		CrSliceVolumeImpl() {
+
+		}
+
+		~CrSliceVolumeImpl() {
+
+		}
+
+		Slic3r::ModelVolume* volume = nullptr;
+	};
+
+	class CrSliceObjectImpl
+	{
+	public:
+		CrSliceObjectImpl() {
+
+		}
+
+		~CrSliceObjectImpl() {
+
+		}
+
+		Slic3r::ModelObject* object = nullptr;
+	};
+
 	CrSliceModel::CrSliceModel()
 		:impl(new CrSliceModelImpl())
 	{
@@ -197,26 +225,23 @@ namespace crslice2
 	CrSliceObject* CrSliceModel::add_object()
 	{
 		CrSliceObject* object = new CrSliceObject();
+		object->impl->object = impl->model.add_object();
 		return object;
+	}
+
+	void CrSliceModel::remove_object(CrSliceObject* object)
+	{
+		if (!object)
+			return;
+
+		impl->model.delete_object(object->impl->object);
+		delete object;
 	}
 
 	void CrSliceModel::setParameter(const std::string& key, const std::string& value)
 	{
 
 	}
-
-	class CrSliceObjectImpl
-	{
-	public:
-		CrSliceObjectImpl() {
-
-		}
-
-		~CrSliceObjectImpl() {
-
-		}
-
-	};
 
 	CrSliceObject::CrSliceObject()
 		:impl(new CrSliceObjectImpl())
@@ -235,25 +260,26 @@ namespace crslice2
 
 	void CrSliceObject::setMatrix(const trimesh::xform& matrix)
 	{
+		if (!impl->object)
+			return;
+
+		impl->object->instances[0]->set_transformation(convert_matrix(matrix));
+	}
+
+	void CrSliceObject::setLayerHeight(const std::vector<double>& layer_heights)
+	{
 
 	}
 
 	CrSliceVolume* CrSliceObject::add_volume()
 	{
-		return nullptr;
+		CrSliceVolume* vol = new CrSliceVolume();
+		if (impl->object)
+		{
+			vol->impl->volume = impl->object->add_volume(Slic3r::TriangleMesh());
+		}
+		return vol;
 	}
-
-	class CrSliceVolumeImpl
-	{
-	public:
-		CrSliceVolumeImpl() {
-
-		}
-
-		~CrSliceVolumeImpl() {
-
-		}
-	};
 
 	CrSliceVolume::CrSliceVolume()
 		:impl(new CrSliceVolumeImpl())
@@ -271,42 +297,78 @@ namespace crslice2
 
 	void CrSliceVolume::setMatrix(const trimesh::xform& matrix)
 	{
+		if (!impl->volume)
+			return;
 
+		impl->volume->set_transformation(convert_matrix(matrix));
 	}
 
 	void CrSliceVolume::setMeshData(TriMeshPtr mesh)
 	{
+		if (!mesh || !impl->volume)
+			return;
 
+		Slic3r::TriangleMesh tmesh;
+		trimesh2Slic3rTriangleMesh(mesh.get(), tmesh);
+		impl->volume->set_mesh(tmesh);
 	}
 
 	void CrSliceVolume::setSpreadColor(const std::vector<std::string>& colors)
 	{
+		if (!impl->volume)
+			return;
 
+		if (impl->volume->mesh().facets_count() == colors.size())
+		{
+			for (size_t i = 0; i < colors.size(); i++) {
+				if (!colors[i].empty())
+					impl->volume->mmu_segmentation_facets.set_triangle_from_string(i, colors[i]);
+			}
+		}
 	}
 
 	void CrSliceVolume::setSpreadSeam(const std::vector<std::string>& seams)
 	{
+		if (!impl->volume)
+			return;
 
+		if (impl->volume->mesh().facets_count() == seams.size())
+		{
+			for (size_t i = 0; i < seams.size(); i++) {
+				if (!seams[i].empty())
+					impl->volume->seam_facets.set_triangle_from_string(i, seams[i]);
+			}
+		}
 	}
 
 	void CrSliceVolume::setSpreadSupport(const std::vector<std::string>& supports)
 	{
+		if (!impl->volume)
+			return;
 
+		if (impl->volume->mesh().facets_count() == supports.size())
+		{
+			for (size_t i = 0; i < supports.size(); i++) {
+				if (!supports[i].empty())
+					impl->volume->supported_facets.set_triangle_from_string(i, supports[i]);
+			}
+		}
 	}
 
 	void CrSliceVolume::setName(const std::string& name)
 	{
+		if (!impl->volume)
+			return;
 
-	}
-
-	void CrSliceVolume::setLayerHeight(const std::vector<double>& layer_heights)
-	{
-
+		impl->volume->name = name;
 	}
 
 	void CrSliceVolume::setModelType(const int model_type)
 	{
+		if (!impl->volume)
+			return;
 
+		impl->volume->set_type(static_cast<Slic3r::ModelVolumeType>(model_type));
 	}
 
 	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::string& out_file, ccglobal::Tracer* tracer)
