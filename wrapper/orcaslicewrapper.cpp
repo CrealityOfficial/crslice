@@ -470,12 +470,6 @@ void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic
 	}
 }
 
-void orca_slice_impl(Slic3r::Print& print, const Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, OrcaResult& result,
-	ccglobal::Tracer* tracer)
-{
-
-}
-
 bool detect_multi_color_slice(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer)
 {
 	int cnt = 0;
@@ -654,10 +648,17 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 
-void orca_slice_impl(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file
+void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file
 	, Slic3r::ThumbnailsGeneratorCallback thumbnail_callback, Slic3r::Calib_Params& calib_params
 	, OrcaResult& result, ccglobal::Tracer* tracer)
 {
+	const Slic3r::t_config_option_keys keys = config.def()->keys();
+	for (const Slic3r::t_config_option_key& key : keys)
+	{
+		if (!config.optptr(key))
+			config.optptr(key, true);
+	}
+
 	int alreadyShow = 0;
 	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow](const Slic3r::PrintBase::SlicingStatus& _status) {
 		if (tracer && alreadyShow <= _status.percent)

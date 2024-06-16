@@ -18,7 +18,7 @@ struct OrcaResult
 	std::vector<std::pair<Slic3r::Polygon, float>> height_polygons;
 };
 
-void orca_slice_impl(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file
+void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file
 	, Slic3r::ThumbnailsGeneratorCallback callback, Slic3r::Calib_Params& calib_params   
 	, OrcaResult& result, ccglobal::Tracer* tracer);
 

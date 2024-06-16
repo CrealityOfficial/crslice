@@ -209,6 +209,7 @@ namespace crslice2
 		}
 
 		Slic3r::ModelObject* object = nullptr;
+		Slic3r::ModelInstance* instacne = nullptr;
 	};
 
 	CrSliceModel::CrSliceModel()
@@ -226,6 +227,7 @@ namespace crslice2
 	{
 		CrSliceObject* object = new CrSliceObject();
 		object->impl->object = impl->model.add_object();
+		object->impl->instacne = object->impl->object->add_instance();
 		return object;
 	}
 
@@ -253,6 +255,14 @@ namespace crslice2
 
 	}
 
+	void CrSliceObject::setName(const std::string& name)
+	{
+		if (!impl->object)
+			return;
+
+		impl->object->name = name;
+	}
+
 	void CrSliceObject::setParameter(const std::string& key, const std::string& value)
 	{
 
@@ -276,9 +286,28 @@ namespace crslice2
 		CrSliceVolume* vol = new CrSliceVolume();
 		if (impl->object)
 		{
+
 			vol->impl->volume = impl->object->add_volume(Slic3r::TriangleMesh());
 		}
 		return vol;
+	}
+
+	void CrSliceObject::remove_volume(CrSliceVolume* volume)
+	{
+		if (!volume)
+			return;
+
+		size_t idx = -1;
+		for (size_t i = 0; i < impl->object->volumes.size(); ++i)
+		{
+			if (impl->object->volumes.at(i) == volume->impl->volume)
+			{
+				idx = i;
+				break;
+			}
+		}
+		impl->object->delete_volume(idx);
+		delete volume;
 	}
 
 	CrSliceVolume::CrSliceVolume()
@@ -311,6 +340,7 @@ namespace crslice2
 		Slic3r::TriangleMesh tmesh;
 		trimesh2Slic3rTriangleMesh(mesh.get(), tmesh);
 		impl->volume->set_mesh(tmesh);
+		impl->volume->calculate_convex_hull();
 	}
 
 	void CrSliceVolume::setSpreadColor(const std::vector<std::string>& colors)
@@ -379,7 +409,7 @@ namespace crslice2
 		Slic3r::Calib_Params calib_params;
 		auto f = [&](const Slic3r::ThumbnailsParams&) { return Slic3r::ThumbnailsList(); };
 		Slic3r::ThumbnailsGeneratorCallback thumbnail_callback = f;
-		orca_slice_impl(print.impl->print, model.impl->model, model.impl->config, out_file, thumbnail_callback, calib_params, orca_result, tracer);
+		orca_slice_impl_result(print.impl->print, model.impl->model, model.impl->config, out_file, thumbnail_callback, calib_params, orca_result, tracer);
 
 		return result;
 	}

@@ -59,11 +59,13 @@ namespace crslice2
 		CrSliceObject();
 		~CrSliceObject();
 
+		void setName(const std::string& name);
 		void setParameter(const std::string& key, const std::string& value);
 		void setMatrix(const trimesh::xform& matrix);
 		void setLayerHeight(const std::vector<double>& layer_heights);
 
 		CrSliceVolume* add_volume();
+		void remove_volume(CrSliceVolume* volume);
 
 		CrSliceObjectImpl* impl;
 	};
