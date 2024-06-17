@@ -371,6 +371,8 @@ set(lisbslic3r_sources
     GCode/Thumbnails.cpp
     GCode/Thumbnails.hpp	
 	NanoSVGImpl.cpp
+	Platform.cpp
+	Platform.hpp
 )
 
 set(EXTRA_SOURCES 	
@@ -541,8 +543,6 @@ else()
 	
 			Zipper.hpp
 			Zipper.cpp
-			Platform.cpp
-			Platform.hpp
 			PNGReadWrite.hpp
 			PNGReadWrite.cpp
 			GCodeSender.cpp
