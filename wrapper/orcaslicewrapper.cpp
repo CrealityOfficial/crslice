@@ -27,6 +27,7 @@
 #include "crgroup.h"
 #include "crobject.h"
 #include "ccglobal/log.h"
+#include "crsliceexception.h"
 
 #include <sstream>
 #include "baseline.h"
@@ -549,7 +550,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 			
 			if (tracer->interrupt())
 			{
-				throw Slic3r::SlicingError("User Cancelled", 0);
+				throw crslice2::CrSliceException("User Cancelled", 0);
 			}
 		}
 
@@ -619,11 +620,27 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	}
 	catch (const Slic3r::SlicingError& e1)
 	{
-		return _handle_slice_exception(print, e1.objectId(), e1.what(), tracer);
+		size_t sliceObjId = 0;
+		Slic3r::ObjectID model_object_id(e1.objectId());
+		const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
+		if (nullptr != mo)
+		{
+			sliceObjId = mo->id().id;
+		}
+
+		throw crslice2::CrSliceException(e1.what(), sliceObjId);
 	}
 	catch (const Slic3r::SlicingErrors& e2) {
 
-		return  _handle_slice_exception(print, e2.errors_[0].objectId(), e2.errors_[0].what(), tracer);
+		size_t sliceObjId = 0;
+		Slic3r::ObjectID model_object_id(e2.errors_[0].objectId());
+		const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
+		if (nullptr != mo)
+		{
+			sliceObjId = mo->id().id;
+		}
+
+		throw crslice2::CrSliceException(e2.errors_[0].what(), sliceObjId);
 	}
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...") % __LINE__;
@@ -828,7 +845,15 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3
 	fs::path path = scene->m_gcodeFileName;
 	const std::string baseline_orcal_inputname = scene->m_blName;// path.stem().string() + "_baseline";
 
-	slice_impl(model, config, tp, calibParams, thumbnailData, tracer, outResult);
+	try
+	{
+		slice_impl(model, config, tp, calibParams, thumbnailData, tracer, outResult);
+	}
+	catch (const crslice2::CrSliceException& e)
+	{
+		return _handle_slice_exception_ex(scene, e.sliceObjectId(), e.what(), tracer);
+	}
+	
 
 	//---start baseline test 
 	cxbaseline::BaseLineUtils::SetRootDirectory(scene->m_sliceBLDirectory);
@@ -1216,7 +1241,6 @@ void export_metas_impl()
 	export_metas_keys();
 }
 
-
 void _handle_slice_exception(const Slic3r::Print& print, size_t objectId, const char* failMsg, ccglobal::Tracer* tracer)
 {
 	std::string failStr;
@@ -1239,4 +1263,27 @@ void _handle_slice_exception(const Slic3r::Print& print, size_t objectId, const 
 	failStr = std::string(failMsg) + "@" + modelObjectName;
 
 	tracer->failed(failStr.c_str());
+}
+
+void _handle_slice_exception_ex(crslice2::CrScenePtr scene, size_t sliceObjectId, const char* failMsg, ccglobal::Tracer* tracer)
+{
+	std::string failStr;
+
+	if (0 == sliceObjectId)
+	{
+		failStr = std::string(failMsg) + "@";
+		tracer->failed(failStr.c_str());
+		return;
+	}
+
+	if (scene.get())
+	{
+		int64_t sceneObjId = -1;
+		sceneObjId = scene->getSceneObjectIdBySliceObjId(sliceObjectId);
+
+		failStr = std::string(failMsg) + "@" + std::to_string(sceneObjId);
+
+		tracer->failed(failStr.c_str());
+	}
+
 }

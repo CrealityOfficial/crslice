@@ -37,4 +37,5 @@ void parse_metas_map_impl(crslice2::MetasMap& datas);
 void get_meta_keys_impl(crslice2::MetaGroup metaGroup, std::vector<std::string>& keys);
 void export_metas_impl();
 void _handle_slice_exception(const Slic3r::Print& print, size_t objectId, const char* failMsg, ccglobal::Tracer* tracer);
+void _handle_slice_exception_ex(crslice2::CrScenePtr scene, size_t sliceObjectId, const char* failMsg, ccglobal::Tracer* tracer);
 #endif // 
