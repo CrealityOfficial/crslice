@@ -622,7 +622,8 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	{
 		size_t sliceObjId = 0;
 		Slic3r::ObjectID model_object_id(e1.objectId());
-		const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
+		const Slic3r::PrintObject* object = print.get_object(model_object_id);
+		const Slic3r::ModelObject* mo = object ? object->model_object() : nullptr;
 		if (nullptr != mo)
 		{
 			sliceObjId = mo->id().id;
