@@ -2841,16 +2841,14 @@ namespace gcode
                         case '0':
                             switch (cmd.command[3]) {
                             case '4': { 
-                                if (pathParam.curType != SliceLineType::erCustom)
-                                    process_M104(cmd, pathData); 
+                                process_M104(cmd, pathData); 
                                 break; 
                             } // Set extruder temperature
                             case '6': {  process_M106(cmd, pathData); break;  } // Set fan speed
                             //case '7': { process_M107(line); break; } // Disable fan
                             //case '8': { process_M108(line); break; } // Set tool (Sailfish)
                             case '9': {                                 
-                                if (pathParam.curType != SliceLineType::erCustom)
-                                    process_M104(cmd, pathData);
+                                process_M104(cmd, pathData);
                                 break;
                             } // Set extruder temperature
                             default: break;
