@@ -38,6 +38,8 @@
 #include "baselineorcinput.h"
 #include "libslic3r/I18N.hpp"
 
+#include "ccglobal/profile.h"
+
 namespace cereal
 {
 	// Let cereal know that there are load / save non-member functions declared for ModelObject*, ignore serialization of pointers triggering
@@ -670,12 +672,14 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 	, Slic3r::ThumbnailsGeneratorCallback thumbnail_callback, Slic3r::Calib_Params& calib_params
 	, OrcaResult& result, ccglobal::Tracer* tracer)
 {
+	SYSTEM_TICK("verify ->");
 	const Slic3r::t_config_option_keys keys = config.def()->keys();
 	for (const Slic3r::t_config_option_key& key : keys)
 	{
 		if (!config.optptr(key))
 			config.optptr(key, true);
 	}
+	SYSTEM_TICK("verify <-");
 
 	int alreadyShow = 0;
 	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow](const Slic3r::PrintBase::SlicingStatus& _status) {
@@ -698,8 +702,10 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 
 	print.setCrealityOS(detect_creality_os(config, tracer));
 
+	SYSTEM_TICK("apply ->");
 	print.set_calib_params(calib_params);
 	print.apply(model, config);
+	SYSTEM_TICK("verify <-");
 
 	//Slic3r::Model::setExtruderParams(config, tp.extruderCount);
 	Slic3r::Model::setPrintSpeedTable(config, print.config());
@@ -708,10 +714,14 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 	print.set_plate_origin(Slic3r::Vec3d(0.0, 0.0, 0.0));
 	print.set_plate_index(0);
 
+	SYSTEM_TICK("validate ->");
 	print.validate(&result.warning, &result.polygons, &result.height_polygons);
+	SYSTEM_TICK("validate <-");
 
 	try {
+		SYSTEM_TICK("process ->");
 		print.process();
+		SYSTEM_TICK("process <-");
 	}
 	catch (const Slic3r::SlicingError& e1)
 	{
@@ -724,7 +734,9 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 
 	try
 	{
+		SYSTEM_TICK("export_gcode ->");
 		print.export_gcode(out_file, &result.gcode_result, thumbnail_callback);
+		SYSTEM_TICK("export_gcode <-");
 	}
 	catch (const std::exception& ex)
 	{

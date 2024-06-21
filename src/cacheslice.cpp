@@ -3,6 +3,8 @@
 #include "../wrapper/orcaslicewrapper.h"
 #include "conv.h"
 
+#include "ccglobal/profile.h"
+
 namespace crslice2
 {
 	void debug_expolygons(const Slic3r::ExPolygons& polys, ccglobal::VisualDebugger* debugger)
@@ -49,8 +51,10 @@ namespace crslice2
 
 	void CacheSlice::slice(const CacheSliceParam& param, ccglobal::Tracer* tracer)
 	{
+		SYSTEM_TICK("load scene->");
 		CrScenePtr scene(new crslice2::CrScene());
 		scene->load(param.fileName);
+		SYSTEM_TICK("load scene<-");
 
 		Slic3r::Model model;
 		Slic3r::DynamicPrintConfig config;
@@ -62,7 +66,9 @@ namespace crslice2
 		calibParams.print_numbers = false;
 		Slic3r::ThumbnailsList thumbnailData;
 
+		SYSTEM_TICK("convert ->");
 		convert_scene_2_orca(scene, model, config, calibParams, thumbnailData);
+		SYSTEM_TICK("convert <-");
 
 		OrcaResult orca_result;
 		Slic3r::Calib_Params calib_params;
