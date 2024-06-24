@@ -394,9 +394,7 @@ namespace crslice2
 		return sceneObjId;
 	}
 
-	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::vector<ThumbnailData>& thumbnails, 
-		const std::vector<trimesh::dvec2>& shapes, double height,
-		const std::string& out_file, ccglobal::Tracer* tracer)
+	void update_print_volume_state(CrSliceModel& model, const std::vector<trimesh::dvec2>& shapes, double height)
 	{
 		//update models inside or outside
 		std::vector<Slic3r::Vec2d> shape;
@@ -404,7 +402,11 @@ namespace crslice2
 			shape.push_back(Slic3r::Vec2d(v.x, v.y));
 		Slic3r::BuildVolume build_volume(shape, height);
 		model.impl->model.update_print_volume_state(build_volume);
+	}
 
+	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::vector<ThumbnailData>& thumbnails,
+		const std::string& out_file, ccglobal::Tracer* tracer)
+	{
 		CrSliceResult result;
 
 		OrcaResult orca_result;
