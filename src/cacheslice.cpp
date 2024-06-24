@@ -197,7 +197,7 @@ namespace crslice2
 
 	void CrSliceModel::setParameter(const std::string& key, const std::string& value)
 	{
-
+		set_key_value(&impl->config, key, value);
 	}
 
 	CrSliceObject::CrSliceObject()
@@ -220,7 +220,7 @@ namespace crslice2
 
 	void CrSliceObject::setParameter(const std::string& key, const std::string& value)
 	{
-
+		set_key_value(&impl->object->config, key, value);
 	}
 
 	void CrSliceObject::setMatrix(const trimesh::xform& matrix)
@@ -276,7 +276,7 @@ namespace crslice2
 
 	void CrSliceVolume::setParameter(const std::string& key, const std::string& value)
 	{
-
+		set_key_value(&impl->volume->config, key, value);
 	}
 
 	void CrSliceVolume::setMatrix(const trimesh::xform& matrix)

@@ -279,6 +279,24 @@ Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::Con
 	return option;
 }
 
+void set_key_value(Slic3r::DynamicConfig* config, const std::string& key, const std::string& value)
+{
+	if (!config)
+		return;
+
+	const Slic3r::ConfigDef* _def = config->def();
+	config->set_key_value(key, _set_key_value(value, _def->get(key)));
+}
+
+void set_key_value(Slic3r::ModelConfig* config, const std::string& key, const std::string& value)
+{
+	if (!config)
+		return;
+
+	const Slic3r::ConfigDef* _def = &Slic3r::print_config_def;
+	config->set_key_value(key, _set_key_value(value, _def->get(key)));
+}
+
 Slic3r::Geometry::Transformation convert_matrix(const trimesh::xform& xf)
 {
 	Slic3r::Transform3d t3d;

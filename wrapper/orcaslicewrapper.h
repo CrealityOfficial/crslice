@@ -25,6 +25,10 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 void convert_scene_2_orca(crslice2::CrScenePtr scene, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, Slic3r::Calib_Params& _calibParams, Slic3r::ThumbnailsList& thumbnailData);
 bool detect_multi_color_slice(const Slic3r::DynamicPrintConfig& config, const Slic3r::Model& model, ccglobal::Tracer* tracer);
 
+Slic3r::ConfigOption* _set_key_value(const std::string& value, const Slic3r::ConfigOptionDef* cDef);
+void set_key_value(Slic3r::DynamicConfig* config, const std::string& key, const std::string& value);
+void set_key_value(Slic3r::ModelConfig* config, const std::string& key, const std::string& value);
+
 std::vector<double> orca_layer_height_profile_adaptive(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh, float quality);
 std::vector<double> orca_smooth_height_profile(crslice2::SettingsPtr settings, std::vector<TriMeshPtr> triMesh,
 	const std::vector<double>& profile, unsigned int radius, bool keep_min);
