@@ -1,8 +1,11 @@
 #include "crslice2/cacheslice.h"
 #include "crslice2/crscene.h"
 #include "../wrapper/orcaslicewrapper.h"
+#include "libslic3r/I18N.hpp"
+
 #include "conv.h"
 
+#include "crsliceexception.h"
 #include "ccglobal/profile.h"
 
 namespace crslice2
@@ -74,7 +77,15 @@ namespace crslice2
 		Slic3r::Calib_Params calib_params;
 		auto f = [&](const Slic3r::ThumbnailsParams&) { return Slic3r::ThumbnailsList(); };
 		Slic3r::ThumbnailsGeneratorCallback thumbnail_callback = f;
-		orca_slice_impl_result(m_impl->print, model, config, param.outName, thumbnail_callback, calib_params, orca_result, tracer);
+
+		try
+		{
+			orca_slice_impl_result(m_impl->print, model, config, param.outName, thumbnail_callback, calib_params, orca_result, tracer);
+		}
+		catch (const crslice2::CrSliceException& e)
+		{
+			return _handle_slice_exception_ex(scene, e.sliceObjectId(), e.what(), tracer);
+		}
 
 		(void)orca_result;
 	}
@@ -150,6 +161,7 @@ namespace crslice2
 		}
 
 		Slic3r::ModelVolume* volume = nullptr;
+		int64_t host_id = -1;
 	};
 
 	class CrSliceObjectImpl
@@ -165,6 +177,7 @@ namespace crslice2
 
 		Slic3r::ModelObject* object = nullptr;
 		Slic3r::ModelInstance* instacne = nullptr;
+		int64_t host_id = -1;
 	};
 
 	CrSliceModel::CrSliceModel()
@@ -183,6 +196,7 @@ namespace crslice2
 		CrSliceObject* object = new CrSliceObject();
 		object->impl->object = impl->model.add_object();
 		object->impl->instacne = object->impl->object->add_instance();
+		m_objects.push_back(object);
 		return object;
 	}
 
@@ -192,6 +206,7 @@ namespace crslice2
 			return;
 
 		impl->model.delete_object(object->impl->object);
+		m_objects.erase(std::find(m_objects.begin(), m_objects.end(), object));
 		delete object;
 	}
 
@@ -236,12 +251,16 @@ namespace crslice2
 
 	}
 
+	void CrSliceObject::setHostID(int64_t id)
+	{
+		impl->host_id = id;
+	}
+
 	CrSliceVolume* CrSliceObject::add_volume()
 	{
 		CrSliceVolume* vol = new CrSliceVolume();
 		if (impl->object)
 		{
-
 			vol->impl->volume = impl->object->add_volume(Slic3r::TriangleMesh());
 		}
 		return vol;
@@ -356,6 +375,24 @@ namespace crslice2
 		impl->volume->set_type(static_cast<Slic3r::ModelVolumeType>(model_type));
 	}
 
+	void CrSliceVolume::setHostID(int64_t id)
+	{
+		impl->host_id = id;
+	}
+
+	int64_t find_host_id(CrSliceModel& model, size_t id) {
+		int64_t sceneObjId = -1;
+		for (CrSliceObject* object : model.m_objects)
+		{
+			if (object->impl->object->id() == id)
+			{
+				sceneObjId = object->impl->host_id;
+				break;
+			}
+		}
+		return sceneObjId;
+	}
+
 	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::string& out_file, ccglobal::Tracer* tracer)
 	{
 		CrSliceResult result;
@@ -364,7 +401,63 @@ namespace crslice2
 		Slic3r::Calib_Params calib_params;
 		auto f = [&](const Slic3r::ThumbnailsParams&) { return Slic3r::ThumbnailsList(); };
 		Slic3r::ThumbnailsGeneratorCallback thumbnail_callback = f;
-		orca_slice_impl_result(print.impl->print, model.impl->model, model.impl->config, out_file, thumbnail_callback, calib_params, orca_result, tracer);
+
+		try
+		{
+			orca_slice_impl_result(print.impl->print, model.impl->model, model.impl->config, out_file, thumbnail_callback, calib_params, orca_result, tracer);
+		}
+		catch (const crslice2::CrSliceException& e)
+		{
+			size_t sliceObjectId = e.sliceObjectId();
+			std::string failStr;
+
+			if (0 == sliceObjectId)
+			{
+				failStr = std::string(e.what()) + "@";
+				tracer->failed(failStr.c_str());
+			}
+			else {
+				int64_t sceneObjId = find_host_id(model, sliceObjectId);
+
+				failStr = std::string(e.what()) + "@" + std::to_string(sceneObjId);
+				tracer->failed(failStr.c_str());
+			}
+
+			result.success = false;
+		}
+
+		if (orca_result.gcode_result.conflict_result.has_value())
+		{
+			const Slic3r::GCodeProcessorResult& process_result = orca_result.gcode_result;
+			static std::string text;
+			std::string objName1 = process_result.conflict_result.value()._objName1;
+			std::string objName2 = process_result.conflict_result.value()._objName2;
+			double      height = process_result.conflict_result.value()._height;
+			int  layer = process_result.conflict_result.value().layer + 1;  // "+1" to align with zslider display layer value
+			size_t sliceObj2Id = process_result.conflict_result.value()._sliceObject2Id;
+
+			text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer# %d, #height$ %.2f mm.$ Please separate the conflicted objects further@%s")) % layer % height % objName1).str();
+
+			int64_t sceneObjId = find_host_id(model, sliceObj2Id);
+			result.warnings["Path_Conflict"] = std::make_pair(text, sceneObjId);
+		}
+
+		if (tracer && tracer->extraMessageSize() > 0)
+		{
+			std::map< std::string, std::pair<std::string, size_t> > warningInfo = tracer->getExtraRecordMessage();
+			auto itr = warningInfo.begin();
+			for (; itr != warningInfo.end(); itr++)
+			{
+				std::pair pairVal = itr->second;
+				size_t sliceObjId = pairVal.second;
+				int64_t sceneObjId = find_host_id(model, sliceObjId);
+
+				result.warnings[itr->first] = std::make_pair(itr->second.first, sceneObjId);
+			}
+		}
+
+		if (result.warnings.size() > 0)
+			result.success = false;
 
 		return result;
 	}

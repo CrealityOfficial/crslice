@@ -743,11 +743,28 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 	}
 	catch (const Slic3r::SlicingError& e1)
 	{
-		return _handle_slice_exception(print, e1.objectId(), e1.what(), tracer);
+		size_t sliceObjId = 0;
+		Slic3r::ObjectID model_object_id(e1.objectId());
+		const Slic3r::PrintObject* object = print.get_object(model_object_id);
+		const Slic3r::ModelObject* mo = object ? object->model_object() : nullptr;
+		if (nullptr != mo)
+		{
+			sliceObjId = mo->id().id;
+		}
+
+		throw crslice2::CrSliceException(e1.what(), sliceObjId);
 	}
 	catch (const Slic3r::SlicingErrors& e2) {
 
-		return  _handle_slice_exception(print, e2.errors_[0].objectId(), e2.errors_[0].what(), tracer);
+		size_t sliceObjId = 0;
+		Slic3r::ObjectID model_object_id(e2.errors_[0].objectId());
+		const Slic3r::ModelObject* mo = print.get_object(model_object_id)->model_object();
+		if (nullptr != mo)
+		{
+			sliceObjId = mo->id().id;
+		}
+
+		throw crslice2::CrSliceException(e2.errors_[0].what(), sliceObjId);
 	}
 
 	try

@@ -50,6 +50,7 @@ namespace crslice2
 		void remove_object(CrSliceObject* object);
 
 		CrSliceModelImpl* impl;
+		std::list<CrSliceObject*> m_objects;
 	};
 
 	class CrSliceObjectImpl;
@@ -63,6 +64,7 @@ namespace crslice2
 		void setParameter(const std::string& key, const std::string& value);
 		void setMatrix(const trimesh::xform& matrix);
 		void setLayerHeight(const std::vector<double>& layer_heights);
+		void setHostID(int64_t id);
 
 		CrSliceVolume* add_volume();
 		void remove_volume(CrSliceVolume* volume);
@@ -85,13 +87,15 @@ namespace crslice2
 		void setSpreadSupport(const std::vector<std::string>& supports);
 		void setName(const std::string& name);
 		void setModelType(const int model_type);
+		void setHostID(int64_t id);
 
 		CrSliceVolumeImpl* impl;
 	};
 
 	struct CrSliceResult
 	{
-
+		bool success = true;
+		std::map<std::string, std::pair<std::string, int64_t>> warnings;
 	};
 
 	CRSLICE2_API CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::string& out_file, ccglobal::Tracer* tracer = nullptr);
