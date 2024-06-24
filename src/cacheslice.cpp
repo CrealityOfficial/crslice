@@ -393,13 +393,34 @@ namespace crslice2
 		return sceneObjId;
 	}
 
-	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::string& out_file, ccglobal::Tracer* tracer)
+	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::vector<ThumbnailData>& thumbnails, 
+		const std::string& out_file, ccglobal::Tracer* tracer)
 	{
 		CrSliceResult result;
 
 		OrcaResult orca_result;
 		Slic3r::Calib_Params calib_params;
-		auto f = [&](const Slic3r::ThumbnailsParams&) { return Slic3r::ThumbnailsList(); };
+		auto f = [&](const Slic3r::ThumbnailsParams&) { 
+			Slic3r::ThumbnailsList nails;
+			int size = (int)thumbnails.size();
+			if (size > 0)
+			{
+				nails.resize(size);
+				for (int i = 0; i < size; ++i)
+				{
+					Slic3r::ThumbnailData& data = nails.at(i);
+					const crslice2::ThumbnailData& thunm = thumbnails.at(i);
+					data.height = thunm.height;
+					data.width = thunm.width;
+					data.pixels = thunm.pixels;
+					data.pos_s = thunm.pos_s; //for cr_png
+					data.pos_e = thunm.pos_e; //for cr_png
+					data.pos_h = thunm.pos_h; //for cr_png
+				}
+			}
+
+			return nails;
+		};
 		Slic3r::ThumbnailsGeneratorCallback thumbnail_callback = f;
 
 		try
