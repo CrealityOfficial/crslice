@@ -2,6 +2,7 @@
 #include "crslice2/crscene.h"
 #include "../wrapper/orcaslicewrapper.h"
 #include "libslic3r/I18N.hpp"
+#include "libslic3r/BuildVolume.hpp"
 
 #include "conv.h"
 
@@ -394,8 +395,16 @@ namespace crslice2
 	}
 
 	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::vector<ThumbnailData>& thumbnails, 
+		const std::vector<trimesh::dvec2>& shapes, double height,
 		const std::string& out_file, ccglobal::Tracer* tracer)
 	{
+		//update models inside or outside
+		std::vector<Slic3r::Vec2d> shape;
+		for (const trimesh::dvec2& v : shapes)
+			shape.push_back(Slic3r::Vec2d(v.x, v.y));
+		Slic3r::BuildVolume build_volume(shape, height);
+		model.impl->model.update_print_volume_state(build_volume);
+
 		CrSliceResult result;
 
 		OrcaResult orca_result;

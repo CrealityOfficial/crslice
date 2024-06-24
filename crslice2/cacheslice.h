@@ -99,6 +99,7 @@ namespace crslice2
 	};
 
 	CRSLICE2_API CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::vector<ThumbnailData>& thumbnails,
+		const std::vector<trimesh::dvec2>& shapes, double height,
 		const std::string& out_file, ccglobal::Tracer* tracer = nullptr);
 }
 #endif  // MSIMPLIFY_SIMPLIFY_H
