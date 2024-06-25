@@ -1487,7 +1487,7 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
 }
 
 void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool external_first,
-                            const Point &last_pos, float& overhang) const {
+                            const Point &last_pos, float& overhang, float seam_slope_min_length,bool is_seam_slope_gap) const {
   using namespace SeamPlacerImpl;
   const PrintObject *po = layer->object();
   // Must not be called with supprot layer.
@@ -1505,6 +1505,17 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool extern
     }
     current.foot_pt = loop.paths[current.path_idx].polyline.points[current.segment_idx];
     return current;
+  };
+  auto get_prev_loop_point = [loop](ExtrusionLoop::ClosestPathPoint current) {
+	  if (current.segment_idx == 0){
+		  current.path_idx = prev_idx_modulo(current.path_idx, loop.paths.size());
+		  current.segment_idx = loop.paths[current.path_idx].polyline.points.size() - 1;
+	  }
+      else{
+          current.segment_idx -= 1;
+      }
+	  current.foot_pt = loop.paths[current.path_idx].polyline.points[current.segment_idx];
+	  return current;
   };
 
   const PrintObjectSeamData::LayerSeams &layer_perimeters =
@@ -1590,21 +1601,41 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool extern
     //lastly, for internal perimeters, do the staggering if requested
     if (po->config().staggered_inner_seams && loop.length() > 0.0) {
       //fix depth, it is sometimes strongly underestimated
-      depth = std::max(loop.paths[projected_point.path_idx].width, depth);
 
-      while (depth > 0.0f) {
-        auto next_point = get_next_loop_point(projected_point);
-        Vec2f a = unscale(projected_point.foot_pt).cast<float>();
-        Vec2f b = unscale(next_point.foot_pt).cast<float>();
-        float dist = (a - b).norm();
-        if (dist > depth) {
-          Vec2f final_pos = a + (b - a) * depth / dist;
-          next_point.foot_pt = Point::new_scale(final_pos.x(), final_pos.y());
+        if (is_seam_slope_gap)
+        {
+			depth = seam_slope_min_length;
+			while (depth > 0.0f) {
+				auto prev_point = get_prev_loop_point(projected_point);
+				Vec2f a = unscale(projected_point.foot_pt).cast<float>();
+				Vec2f b = unscale(prev_point.foot_pt).cast<float>();
+				float dist = (a - b).norm();
+				if (dist > depth) {
+					Vec2f final_pos = a + (b - a) * depth / dist;
+                    prev_point.foot_pt = Point::new_scale(final_pos.x(), final_pos.y());
+				}
+				depth -= dist;
+				projected_point = prev_point;
+			}
+			seam_point = projected_point.foot_pt;
         }
-        depth -= dist;
-        projected_point = next_point;
-      }
-      seam_point = projected_point.foot_pt;
+        else
+        {
+			depth = std::max(loop.paths[projected_point.path_idx].width, depth);
+			while (depth > 0.0f) {
+				auto next_point = get_next_loop_point(projected_point);
+				Vec2f a = unscale(projected_point.foot_pt).cast<float>();
+				Vec2f b = unscale(next_point.foot_pt).cast<float>();
+				float dist = (a - b).norm();
+				if (dist > depth) {
+					Vec2f final_pos = a + (b - a) * depth / dist;
+					next_point.foot_pt = Point::new_scale(final_pos.x(), final_pos.y());
+				}
+				depth -= dist;
+				projected_point = next_point;
+			}
+			seam_point = projected_point.foot_pt;
+        }
     }
   }
 
