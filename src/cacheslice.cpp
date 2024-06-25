@@ -81,7 +81,7 @@ namespace crslice2
 
 		try
 		{
-			orca_slice_impl_result(m_impl->print, model, config, param.outName, thumbnail_callback, calib_params, orca_result, tracer);
+			orca_slice_impl_result(m_impl->print, model, config, param.outName, param.tempDirectory, thumbnail_callback, calib_params, orca_result, tracer);
 		}
 		catch (const crslice2::CrSliceException& e)
 		{
@@ -325,6 +325,7 @@ namespace crslice2
 
 		if (impl->volume->mesh().facets_count() == colors.size())
 		{
+			impl->volume->mmu_segmentation_facets.reset();
 			for (size_t i = 0; i < colors.size(); i++) {
 				if (!colors[i].empty())
 					impl->volume->mmu_segmentation_facets.set_triangle_from_string(i, colors[i]);
@@ -339,6 +340,7 @@ namespace crslice2
 
 		if (impl->volume->mesh().facets_count() == seams.size())
 		{
+			impl->volume->seam_facets.reset();
 			for (size_t i = 0; i < seams.size(); i++) {
 				if (!seams[i].empty())
 					impl->volume->seam_facets.set_triangle_from_string(i, seams[i]);
@@ -353,6 +355,7 @@ namespace crslice2
 
 		if (impl->volume->mesh().facets_count() == supports.size())
 		{
+			impl->volume->supported_facets.reset();
 			for (size_t i = 0; i < supports.size(); i++) {
 				if (!supports[i].empty())
 					impl->volume->supported_facets.set_triangle_from_string(i, supports[i]);
@@ -405,7 +408,7 @@ namespace crslice2
 	}
 
 	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::vector<ThumbnailData>& thumbnails,
-		const std::string& out_file, ccglobal::Tracer* tracer)
+		const CacheSliceParam& param, ccglobal::Tracer* tracer)
 	{
 		CrSliceResult result;
 
@@ -436,7 +439,7 @@ namespace crslice2
 
 		try
 		{
-			orca_slice_impl_result(print.impl->print, model.impl->model, model.impl->config, out_file, thumbnail_callback, calib_params, orca_result, tracer);
+			orca_slice_impl_result(print.impl->print, model.impl->model, model.impl->config, param.outName, param.tempDirectory, thumbnail_callback, calib_params, orca_result, tracer);
 		}
 		catch (const crslice2::CrSliceException& e)
 		{

@@ -686,7 +686,7 @@ void slice_impl(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& co
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": export gcode finished");
 }
 
-void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file
+void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file, const std::string& temp_directory
 	, Slic3r::ThumbnailsGeneratorCallback thumbnail_callback, Slic3r::Calib_Params& calib_params
 	, OrcaResult& result, ccglobal::Tracer* tracer)
 {
@@ -698,6 +698,9 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 			config.optptr(key, true);
 	}
 	SYSTEM_TICK("verify <-");
+
+	if(!temp_directory.empty())
+		save_parameter_2_json(temp_directory + "cx_parameter.json", model, config);
 
 	int alreadyShow = 0;
 	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow](const Slic3r::PrintBase::SlicingStatus& _status) {
