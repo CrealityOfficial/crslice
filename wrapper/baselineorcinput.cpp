@@ -522,6 +522,7 @@ bool BaselineOrcaInput::_CompareBaseline(const nlohmann::json& json_root)
     err_text += logger.ErrorMsg();
     if(!err)
         writeResultData(err_text, true);
+    BLReturnBoolen(err);
     
 }
 
@@ -880,6 +881,10 @@ void BaselineOrcaInput::_BuildBlockDynamicPrintConfig(nlohmann::json& json_confi
     std::map<std::string, const Slic3r::ConfigOption*> options;
     for (auto& key : config.keys())
     {
+        if (key == "software_version")
+        {
+            continue;
+        }   
         options[key] = config.optptr(key);
     }
     _BuildObjectMap(json_config, options,
@@ -894,6 +899,10 @@ bool BaselineOrcaInput::_CompareBlockDynamicPrintConfig(const nlohmann::json& js
     std::map<std::string, const Slic3r::ConfigOption*> options;
     for (auto& key : config.keys())
     {
+        if (key == "software_version")
+        {
+            continue;
+        }  
         options[key] = config.optptr(key);
     }
     BLReturnBoolen(_CompareObjectMap(json_config, name, options, log,
@@ -908,6 +917,10 @@ bool BaselineOrcaInput::_CompareEntityDynamicPrintConfig(const nlohmann::json& j
     std::map<std::string, const Slic3r::ConfigOption*> options;
     for (auto& key : config.keys())
     {
+        if (key == "software_version")
+        {
+            continue;
+        }  
         options[key] = config.optptr(key);
     }
     BLReturnBoolen(_CompareEntityMap(json_config, options, log,
@@ -1095,9 +1108,9 @@ bool BaselineOrcaInput::_CompareEntityModelObject(const nlohmann::json& json_obj
     bool err = true;
 
     // std::string             name
-    err &= _CompareObject(json_object, BLName_Val(name), object.name, log);
+    err &= _CompareObject(json_object, BLName_Val(name), Slic3r::decode_path(object.name.c_str()), log);
     // std::string             module_name
-    err &= _CompareObject(json_object, BLName_Val(module_name), object.module_name, log);
+    err &= _CompareObject(json_object, BLName_Val(module_name),Slic3r::decode_path(object.module_name.c_str()), log);
     // std::string             input_file
     err &= _CompareObjectPath(json_object, BLName_Val(input_file), object.input_file, log);
     // ModelInstancePtrs       instances
