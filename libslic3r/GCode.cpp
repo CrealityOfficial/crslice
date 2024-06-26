@@ -4738,7 +4738,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         bool is_outer_wall_first = m_config.wall_sequence == WallSequence::OuterInner;
          
         bool is_seam_slope_gap = (m_config.seam_slope_type.value != SeamScarfType::None && !m_config.seam_slope_entire_loop.value);
-        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos(), seam_overhang,m_config.seam_slope_min_length.value,is_seam_slope_gap);
+        float _length = m_config.wipe_distance.size() > 0 ? m_config.seam_slope_min_length.value + m_config.wipe_distance.values[0] : m_config.seam_slope_min_length.value;
+        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos(), seam_overhang, _length,is_seam_slope_gap);
     } else
         loop.split_at(last_pos, false);
 
