@@ -4736,10 +4736,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (!m_config.spiral_mode && description == "perimeter") {
         assert(m_layer != nullptr);
         bool is_outer_wall_first = m_config.wall_sequence == WallSequence::OuterInner;
-         
-        bool is_seam_slope_gap = (m_config.seam_slope_type.value != SeamScarfType::None && !m_config.seam_slope_entire_loop.value);
-        float _length = m_config.wipe_distance.size() > 0 ? m_config.seam_slope_min_length.value + m_config.wipe_distance.values[0] : m_config.seam_slope_min_length.value;
-        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos(), seam_overhang, _length,is_seam_slope_gap);
+        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos(), seam_overhang, 0,false);
     } else
         loop.split_at(last_pos, false);
 
@@ -4757,6 +4754,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         const auto _line_width = loop.role() == erExternalPerimeter ? m_config.outer_wall_line_width.get_abs_value(nozzle_diameter) :
                                                                       m_config.inner_wall_line_width.get_abs_value(nozzle_diameter);
         enable_seam_slope      = seam_overhang < m_config.scarf_overhang_threshold.value * 0.01f * _line_width;
+    }
+    if (enable_seam_slope)
+    {
+        bool is_outer_wall_first = m_config.wall_sequence == WallSequence::OuterInner;
+		float _length = m_config.wipe_distance.size() > 0 ? m_config.seam_slope_min_length.value + m_config.wipe_distance.values[0] : m_config.seam_slope_min_length.value;
+		m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos(), seam_overhang, _length, true);
     }
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
