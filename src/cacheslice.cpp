@@ -192,6 +192,27 @@ namespace crslice2
 		impl = nullptr;
 	}
 
+	void CrSliceModel::setPlateInfo(const PlateInfo& plate)
+	{
+		Slic3r::CustomGCode::Info info;
+		info.mode = Slic3r::CustomGCode::Mode(plate.mode);
+		for (const Plate_Item& item : plate.gcodes)
+		{
+			Slic3r::CustomGCode::Item _item;
+			_item.color = item.color;
+			_item.print_z = item.print_z;
+			_item.type = Slic3r::CustomGCode::Type(item.type);
+			_item.extruder = item.extruder;
+			_item.color = item.color;
+			_item.extra = item.extra;
+			info.gcodes.push_back(_item);
+		}
+
+		impl->model.curr_plate_index = 0;
+		impl->model.plates_custom_gcodes.clear();
+		impl->model.plates_custom_gcodes.emplace(0, info);
+	}
+
 	CrSliceObject* CrSliceModel::add_object()
 	{
 		CrSliceObject* object = new CrSliceObject();

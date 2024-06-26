@@ -3,6 +3,8 @@
 #include "crslice2/header.h"
 #include "ccglobal/debugger.h"
 
+#include <list>
+
 namespace crslice2
 {
 	struct CacheSliceParam
@@ -48,6 +50,7 @@ namespace crslice2
 		~CrSliceModel();
 
 		void setParameter(const std::string& key, const std::string& value);
+		void setPlateInfo(const PlateInfo& plate);
 		CrSliceObject* add_object();
 		void remove_object(CrSliceObject* object);
 
