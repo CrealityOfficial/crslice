@@ -70,6 +70,7 @@ namespace crslice2
 		void setMatrix(const trimesh::xform& matrix);
 		void setLayerHeight(const std::vector<double>& layer_heights);
 		void setHostID(int64_t id);
+		void setVisible(bool visible);
 
 		CrSliceVolume* add_volume();
 		void remove_volume(CrSliceVolume* volume);

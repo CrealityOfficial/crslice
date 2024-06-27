@@ -284,6 +284,11 @@ namespace crslice2
 		impl->host_id = id;
 	}
 
+	void CrSliceObject::setVisible(bool visible)
+	{
+		impl->object->instances[0]->printable = visible;
+	}
+
 	CrSliceVolume* CrSliceObject::add_volume()
 	{
 		CrSliceVolume* vol = new CrSliceVolume();
