@@ -270,7 +270,7 @@ namespace crslice2
 
 	void CrSliceObject::setLayerHeight(const std::vector<double>& layer_heights)
 	{
-
+		impl->object->layer_height_profile.set(layer_heights);
 	}
 
 	void CrSliceObject::setHostID(int64_t id)
@@ -431,6 +431,11 @@ namespace crslice2
 	CrSliceResult slice(CrSlicePrint& print, CrSliceModel& model, const std::vector<ThumbnailData>& thumbnails,
 		const CacheSliceParam& param, ccglobal::Tracer* tracer)
 	{
+		if (!param.fileName.empty())
+		{
+			//cache_slice_scene(print.impl->print, model.impl->model, model.impl->config, param.fileName);
+		}
+
 		CrSliceResult result;
 
 		OrcaResult orca_result;
