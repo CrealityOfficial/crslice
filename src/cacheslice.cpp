@@ -53,13 +53,17 @@ namespace crslice2
 		delete m_impl;
 	}
 
-	void CacheSlice::slice(const CacheSliceParam& param, ccglobal::Tracer* tracer)
+	bool CacheSlice::slice(const CacheSliceParam& param, ccglobal::Tracer* tracer)
 	{
 		SYSTEM_TICK("load scene->");
 		CrScenePtr scene(new crslice2::CrScene());
 		scene->load(param.fileName);
 		SYSTEM_TICK("load scene<-");
 
+		if (scene->m_groups.size() == 0)
+		{
+			return false;
+		}
 		Slic3r::Model model;
 		Slic3r::DynamicPrintConfig config;
 
@@ -85,10 +89,12 @@ namespace crslice2
 		}
 		catch (const crslice2::CrSliceException& e)
 		{
-			return _handle_slice_exception_ex(scene, e.sliceObjectId(), e.what(), tracer);
+			_handle_slice_exception_ex(scene, e.sliceObjectId(), e.what(), tracer);
+			return false;
 		}
 
 		(void)orca_result;
+		return true;
 	}
 
 	void CacheSlice::visual_raw_slices(int layer, ccglobal::VisualDebugger* debugger)

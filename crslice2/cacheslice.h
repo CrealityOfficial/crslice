@@ -22,7 +22,7 @@ namespace crslice2
 		CacheSlice();
 		~CacheSlice();
 
-		void slice(const CacheSliceParam& param, ccglobal::Tracer* tracer = nullptr);
+		bool slice(const CacheSliceParam& param, ccglobal::Tracer* tracer = nullptr);
 
 		void visual_raw_slices(int layer, ccglobal::VisualDebugger* debugger);
 	protected:
