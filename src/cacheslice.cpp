@@ -433,7 +433,7 @@ namespace crslice2
 	{
 		if (!param.fileName.empty())
 		{
-			//cache_slice_scene(print.impl->print, model.impl->model, model.impl->config, param.fileName);
+			cache_slice_scene(print.impl->print, model.impl->model, model.impl->config, param.fileName);
 		}
 
 		CrSliceResult result;
