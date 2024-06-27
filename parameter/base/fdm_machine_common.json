@@ -35,7 +35,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coStrings",
-        "unit": "[[kg,kg,mm/s,mm/s\u864f]]"
+        "unit": "[[kg,kg,mm/s,mm/s²]]"
     },
     "acceleration_limit_mess_enable": {
         "default_value": "0",
@@ -3195,7 +3195,7 @@
     },
     "material_flow_temp_graph": {
         "default_value": "[[3.0,210],[10.0,220],[12.0,230]]",
-        "description": "Correspondence between flow rate (mm2/s) and printing temperature (\u63b3C).",
+        "description": "Correspondence between flow rate (mm2/s) and printing temperature (.C).",
         "enabled": "true",
         "label": "Flow Temperature Graph",
         "settable_globally": "true",
@@ -3203,7 +3203,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coStrings",
-        "unit": "[[mm\u9c81,\u63b3C]]"
+        "unit": "[[mm³,.C]]"
     },
     "max_bridge_length": {
         "default_value": "10",
@@ -4996,7 +4996,7 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coStrings",
-        "unit": "[[mm,mm,mm/s,mm/s\u864f]]"
+        "unit": "[[mm,mm,mm/s,mm/s²]]"
     },
     "speed_limit_to_height_enable": {
         "default_value": "0",
