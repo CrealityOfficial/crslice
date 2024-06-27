@@ -105,9 +105,10 @@ void cache_slice_scene(const Slic3r::Print& print, const Slic3r::Model& model, c
 		return;
 	}
 
-	cache_config(config, out);
 	int ver = 101;
 	out.write((const char*)&ver, sizeof(int));
+
+	cache_config(config, out);
 
 	int extruderCount = 0;
 	ccglobal::cxndSaveT(out, extruderCount);
