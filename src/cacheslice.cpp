@@ -503,14 +503,11 @@ namespace crslice2
 			result.warnings["Path_Conflict"] = std::make_pair(text, sceneObjId);
 		}
 
-		if (tracer && tracer->extraMessageSize() > 0)
+		if (orca_result.key_warnings.size() > 0)
 		{
-			std::map< std::string, std::pair<std::string, size_t> > warningInfo = tracer->getExtraRecordMessage();
-			auto itr = warningInfo.begin();
-			for (; itr != warningInfo.end(); itr++)
+			for (auto itr = orca_result.key_warnings.begin(); itr != orca_result.key_warnings.end(); itr++)
 			{
-				std::pair pairVal = itr->second;
-				size_t sliceObjId = pairVal.second;
+				size_t sliceObjId = itr->second.second;
 				int64_t sceneObjId = find_host_id(model, sliceObjId);
 
 				result.warnings[itr->first] = std::make_pair(itr->second.first, sceneObjId);

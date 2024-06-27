@@ -703,7 +703,7 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 		save_parameter_2_json(temp_directory + "cx_parameter.json", model, config);
 
 	int alreadyShow = 0;
-	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow, &print](const Slic3r::PrintBase::SlicingStatus& _status) {
+	Slic3r::PrintBase::status_callback_type callback = [&tracer, &alreadyShow, &print, &result](const Slic3r::PrintBase::SlicingStatus& _status) {
 		if (tracer && alreadyShow <= _status.percent)
 		{
 			alreadyShow = _status.percent;
@@ -718,19 +718,16 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 
 		if (_status.percent < 0 && _status.warning_level == Slic3r::PrintStateBase::WarningLevel::NON_CRITICAL)
 		{
-			if (tracer)
+			if (_status.message_type == Slic3r::PrintStateBase::SlicingNeedSupportOn)
 			{
-				if (_status.message_type == Slic3r::PrintStateBase::SlicingNeedSupportOn)
+				Slic3r::PrintObject* pObject = const_cast<Slic3r::PrintObject*>(print.get_object(_status.warning_object_id));
+				size_t sliceObjId = 0;
+				if (pObject && pObject->model_object())
 				{
-					Slic3r::PrintObject* pObject = const_cast<Slic3r::PrintObject*>(print.get_object(_status.warning_object_id));
-					size_t sliceObjId = 0;
-					if (pObject && pObject->model_object())
-					{
-						sliceObjId = pObject->model_object()->id().id;
-					}
-
-					tracer->recordExtraMessage("SlicingNeedSupportOn", _status.text.c_str(), sliceObjId);
+					sliceObjId = pObject->model_object()->id().id;
 				}
+
+				result.key_warnings["SlicingNeedSupportOn"] = std::make_pair(_status.text, (int64_t)sliceObjId);
 			}
 		}
 	};

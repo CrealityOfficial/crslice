@@ -16,6 +16,8 @@ struct OrcaResult
 	Slic3r::StringObjectException warning;
 	Slic3r::Polygons polygons;
 	std::vector<std::pair<Slic3r::Polygon, float>> height_polygons;
+
+	std::map<std::string, std::pair<std::string, int64_t>> key_warnings;
 };
 
 void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file, const std::string& temp_directory
