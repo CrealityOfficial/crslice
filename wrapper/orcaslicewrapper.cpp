@@ -771,6 +771,17 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3
 
 void orca_slice_from_arch_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
 {
+	crslice2::CrScenePtr scene = std::make_shared<crslice2::CrScene>();
+	scene->load(file);
+	scene->m_gcodeFileName = out;
+
+	if (scene->m_groups.size() == 0)
+		return;
+
+	Slic3r::GCodeProcessorResult outResult;
+	orca_slice_impl(scene, tracer, &outResult);
+
+#if 0
 	std::ifstream in(file, std::ios::in | std::ios::binary);
 	if (!in.is_open())
 	{
@@ -854,6 +865,8 @@ void orca_slice_from_arch_impl(const std::string& file, const std::string& out, 
 	Slic3r::GCodeProcessorResult outGcodeProcessResult;
 
 	slice_impl(model, config, tp, calibParams, thumbnailDatas, tracer, &outGcodeProcessResult);
+
+#endif
 }
 
 void orca_slice_from_3mf_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)

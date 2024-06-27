@@ -377,27 +377,27 @@ namespace crslice2
 		CrSceneSerial serial(this);
 		if (!ccglobal::cxndLoad(serial, fileName))  //version 
 		{
-			std::ifstream in;
-			in.open(fileName, std::ios_base::binary);
-			if (in.is_open())
-			{
-				m_settings->load(in);
-				int extruderCount = templateLoad<int>(in);
-				for (int i = 0; i < extruderCount; ++i)
-				{
-					SettingsPtr setting(new Settings());
-					setting->load(in);
-					m_extruders.push_back(setting);
-				}
-
-				int groupCount = templateLoad<int>(in);
-				for (int i = 0; i < groupCount; ++i)
-				{
-					addOneGroup();
-					m_groups.at(i)->load(in);
-				}
-			}
-			in.close();
+			//std::ifstream in;
+			//in.open(fileName, std::ios_base::binary);
+			//if (in.is_open())
+			//{
+			//	m_settings->load(in);
+			//	int extruderCount = templateLoad<int>(in);
+			//	for (int i = 0; i < extruderCount; ++i)
+			//	{
+			//		SettingsPtr setting(new Settings());
+			//		setting->load(in);
+			//		m_extruders.push_back(setting);
+			//	}
+			//
+			//	int groupCount = templateLoad<int>(in);
+			//	for (int i = 0; i < groupCount; ++i)
+			//	{
+			//		addOneGroup();
+			//		m_groups.at(i)->load(in);
+			//	}
+			//}
+			//in.close();
 		}
 		makeSureParameters();
 	}
