@@ -13,6 +13,7 @@ namespace crslice2
 
 		trimesh::dvec3 get_offset() const ;
 		void set_offset(const trimesh::dvec3& offset);
+		void set_scaling_factor(const trimesh::dvec3& scaling_factor);
 
 		trimesh::dvec3 get_rotation() const;
 		trimesh::dvec3 get_scaling_factor() const;

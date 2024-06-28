@@ -49,6 +49,11 @@ namespace crslice2
 		impl->transform.set_offset(convert(offset));
 	}
 
+	void Matrix::set_scaling_factor(const trimesh::dvec3& scaling_factor)
+	{
+		impl->transform.set_scaling_factor(convert(scaling_factor));
+	}
+
 	trimesh::dvec3 Matrix::get_rotation() const
 	{
 		return convert(impl->transform.get_rotation());
