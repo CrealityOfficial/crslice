@@ -3031,6 +3031,8 @@ void GCode::process_layers(
     // BBS
     const bool                               prime_extruder)
 {
+    bool first_layer = true;
+
     // The pipeline is variable: The vase mode filter is optional.
     size_t layer_to_print_idx = 0;
     const auto generator = tbb::make_filter<void, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
@@ -3078,7 +3080,40 @@ void GCode::process_layers(
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
-        [&output_stream](std::string s) { output_stream.write(s); }
+        [this, &first_layer, &print, &output_stream, &processor = this->m_processor](std::string s) {
+			output_stream.write(s);
+			float layerTime = processor.layer_time();
+			std::string strLayerTemp = "";
+
+			if (print.config().material_flow_dependent_temperature && !print.getMultiColor() && !first_layer) {
+				if (m_temperature <= 0)
+				{
+					m_temperature = m_config.nozzle_temperature.get_at(m_currentExtruder);
+				}
+				if (layerTime - m_last_time > 0.0f)
+				{
+					double avg_flow = (processor.layer_flow() - m_last_flow) / (layerTime - m_last_time);
+					double _temperature = m_smoothTemp->getTemp(avg_flow, m_temperature);
+
+					if (_temperature != m_temperature)
+					{
+						strLayerTemp = m_writer.set_temperatured((float)_temperature, false, m_currentExtruder);
+						m_temperature = _temperature;
+						s = strLayerTemp + s;
+					}
+				}
+			}
+
+			m_last_flow = processor.layer_flow();
+			m_last_time = layerTime;
+			first_layer = false;
+			if (!s.empty())
+			{
+				std::string strTime = ";TIME_ELAPSED:" + std::to_string(layerTime) + "\n\n";
+				output_stream.write(strTime);
+			}
+        
+        }
     );
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
