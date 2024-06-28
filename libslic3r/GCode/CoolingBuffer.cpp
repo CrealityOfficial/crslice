@@ -811,8 +811,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
                                                                {CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START, false},
                                                                {CoolingLine::TYPE_FORCE_RESUME_FAN, false}};
     bool need_set_fan = false;
-
-    bool bcool_special_cds_fan_speed = false;
+    bool need_special_cds_fan_speed = false;
 
     for (const CoolingLine *line : lines) {
         const char *line_start  = gcode.c_str() + line->line_start;
@@ -829,26 +828,31 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 }
             }
             new_gcode.append(line_start, line_end - line_start);
+            need_special_cds_fan_speed = false;
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
             if (overhang_fan_control && !fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
                 need_set_fan = true;
                 fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START] = true;
            }
+            need_special_cds_fan_speed = true;
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_END) {
             if (overhang_fan_control && fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
                 fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START] = false;
             }
             need_set_fan = true;
+            need_special_cds_fan_speed = true;
         } else if (line->type & CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START) {
             if (supp_interface_fan_control && !fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START]) {
                 fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START] = true;
                 need_set_fan = true;
             }
+            need_special_cds_fan_speed = false;
         } else if (line->type & CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_END && fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START]) {
             if (supp_interface_fan_control) {
                 fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START] = false;
             }
             need_set_fan = true;
+            need_special_cds_fan_speed = false;
         } else if (line->type & CoolingLine::TYPE_FORCE_RESUME_FAN) {
             // check if any fan speed change request is active
             if (m_fan_speed != -1 && !std::any_of(fan_speed_change_requests.begin(), fan_speed_change_requests.end(), [](const std::pair<int, bool>& p) { return p.second; })){
@@ -857,9 +861,11 @@ std::string CoolingBuffer::apply_layer_cooldown(
             }
             if (m_additional_fan_speed != -1 && m_config.auxiliary_fan.value)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+            need_special_cds_fan_speed = false;
         }
         else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
             // Just remove this comment.
+            need_special_cds_fan_speed = false;
         } else if (line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE | CoolingLine::TYPE_HAS_F)) {
             // Find the start of a comment, or roll to the end of line.
             const char *end = line_start;
@@ -939,41 +945,54 @@ std::string CoolingBuffer::apply_layer_cooldown(
                     new_gcode.append(end, line_end - end);
                 }
             }
+            need_special_cds_fan_speed = false;
         } else {
             new_gcode.append(line_start, line_end - line_start);
+            need_special_cds_fan_speed = false;
         }
 
-        if (bcool_special_cds_fan_speed && !fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
-            bcool_special_cds_fan_speed = false;
-            m_additional_fan_speed = m_config.cool_special_cds_fan_speed.get_at(m_current_extruder);
+        int addition_fan_speed = m_additional_fan_speed;
+        if (need_special_cds_fan_speed && m_config.enable_overhang_bridge_fan.get_at(m_current_extruder))
+        {
+			if (m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder) > 0.0f
+				&& m_current_pos.size() > 2 ? m_current_pos[2] > m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder) : false)
+			{
+                addition_fan_speed = m_config.cool_special_cds_fan_speed.get_at(m_current_extruder);
+			}
+			else
+			{
+                addition_fan_speed = overhang_fan_speed;
+			}
+        }
+        else if(m_config.enable_overhang_bridge_fan.get_at(m_current_extruder))
+        {
+            addition_fan_speed = m_config.additional_cooling_fan_speed.get_at(m_current_extruder);
+        }
+
+        if (m_additional_fan_speed != addition_fan_speed)
+        {
+            new_gcode += GCodeWriter::set_additional_fan(addition_fan_speed);
+            m_additional_fan_speed = addition_fan_speed;
         }
 
         if (need_set_fan) {
-            if (fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]){
-                if (m_config.enable_overhang_bridge_fan.get_at(m_current_extruder) && m_current_pos.size() > 2)
-                {
-                    if (m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder) >0.0f && m_current_pos[2] > m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder))
-                    {
-                        new_gcode += GCodeWriter::set_additional_fan(m_config.cool_special_cds_fan_speed.get_at(m_current_extruder));
-                        bcool_special_cds_fan_speed = true;
-                    }
-                }
-
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
-                m_current_fan_speed = overhang_fan_speed;
-            }
-            else if (fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START]){
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, supp_interface_fan_speed);
-                m_current_fan_speed = supp_interface_fan_speed;
-            }
-            else if(fan_speed_change_requests[CoolingLine::TYPE_FORCE_RESUME_FAN] && m_current_fan_speed != -1){
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
-                fan_speed_change_requests[CoolingLine::TYPE_FORCE_RESUME_FAN] = false;
-            }
-            else
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
-            need_set_fan = false;
-        }
+			if (fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
+				new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
+				m_current_fan_speed = overhang_fan_speed;
+			}
+		}
+		else if (fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START]) {
+			new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, supp_interface_fan_speed);
+			m_current_fan_speed = supp_interface_fan_speed;
+		}
+		else if (fan_speed_change_requests[CoolingLine::TYPE_FORCE_RESUME_FAN] && m_current_fan_speed != -1) {
+			new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+			fan_speed_change_requests[CoolingLine::TYPE_FORCE_RESUME_FAN] = false;
+		}
+		else
+			new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+		need_set_fan = false;
+		need_special_cds_fan_speed = false;
         pos = line_end;
     }
     const char *gcode_end = gcode.c_str() + gcode.size();
