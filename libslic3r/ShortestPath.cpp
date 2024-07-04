@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cassert>
 
+static constexpr double EX_FACTOR = 1;
 namespace Slic3r {
 
 // Naive implementation of the Traveling Salesman Problem, it works by always taking the next closest neighbor.
@@ -74,8 +75,21 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 	else if (num_segments == 1)
 	{
 		// Just sort the end points so that the first point visited is closest to start_near.
-		out.emplace_back(0, could_reverse_func(0) && start_near != nullptr && 
-            (end_point_func(0, false) - *start_near).template cast<double>().squaredNorm() < (end_point_func(0, true) - *start_near).template cast<double>().squaredNorm());
+		if (start_near == nullptr)
+		{
+			out.emplace_back(0, false);
+		}
+		else
+		{
+			PointType startPoint = end_point_func(0, true) - *start_near;
+			PointType endPoint = end_point_func(0, false) - *start_near;
+			startPoint.x() = startPoint.x()*0.0001;
+			startPoint.y() = startPoint.y() * 0.0001;
+			endPoint.x() = endPoint.x() * 0.0001;
+			endPoint.y() = endPoint.y() * 0.0001;
+			out.emplace_back(0, could_reverse_func(0) &&
+				(startPoint).template cast<double>().squaredNorm() - (endPoint).template cast<double>().squaredNorm() > EX_FACTOR);
+		}
 	} 
 	else
 	{
