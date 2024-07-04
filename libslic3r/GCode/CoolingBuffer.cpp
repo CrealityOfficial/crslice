@@ -951,9 +951,9 @@ std::string CoolingBuffer::apply_layer_cooldown(
             need_special_cds_fan_speed = false;
         }
 
+        int addition_fan_speed = m_additional_fan_speed;
         if (need_special_cds_fan_speed)
         {
-            int addition_fan_speed = m_additional_fan_speed;
             if (m_current_pos.size() > 2 ? m_current_pos[2] > m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder) : false)
             {
                 if (m_config.enable_overhang_bridge_fan.size() > m_current_extruder)
@@ -961,7 +961,17 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 else
                     addition_fan_speed = overhang_fan_speed;
             }
+        }
+        else 
+        {
+            if (m_current_pos.size() > 2 ? m_current_pos[2] > m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder) : false)
+            {
+                addition_fan_speed = 0;
+            }
+        }
 
+        if (m_current_pos.size() > 2 ? m_current_pos[2] > m_config.cool_cds_fan_start_at_height.get_at(m_current_extruder) : false)
+        {
             if (m_additional_fan_speed != addition_fan_speed)
             {
                 new_gcode += GCodeWriter::set_additional_fan(addition_fan_speed);
@@ -991,7 +1001,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
             {
                 if (m_current_fan_speed != m_fan_speed) {
                     new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
-                    m_current_fan_speed = supp_interface_fan_speed;
+                    m_current_fan_speed = m_fan_speed;
                 }
             }             
 		    need_set_fan = false;
