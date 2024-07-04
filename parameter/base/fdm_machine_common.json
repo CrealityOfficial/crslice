@@ -5806,7 +5806,7 @@
         "unit": "mm/s"
     },
     "travel_speed_z": {
-        "default_value": "0",
+        "default_value": "15",
         "description": "",
         "enabled": "true",
         "label": "",

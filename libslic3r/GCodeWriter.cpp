@@ -630,8 +630,9 @@ std::string GCodeWriter::_travel_to_z(double z, const std::string &comment,const
 
     double speed = this->config.travel_speed_z.value;
     if (speed == 0.) {
-        speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
-                                 : this->config.travel_speed.value;
+        speed = 20.0;
+        //speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
+        //                         : this->config.travel_speed.value;
     }
     if (limitSpeed > 0.0f)
     {
@@ -651,8 +652,9 @@ std::string GCodeWriter::_spiral_travel_to_z(double z, const Vec2d &ij_offset, c
 
     double speed = this->config.travel_speed_z.value;
     if (speed == 0.) {
-        speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
-                                 : this->config.travel_speed.value;
+        speed = 20.0;
+        //speed = m_is_first_layer ? this->config.get_abs_value("initial_layer_travel_speed")
+        //                         : this->config.travel_speed.value;
     }
     
     std::string output = "G17\n";

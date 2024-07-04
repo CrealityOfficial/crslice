@@ -747,6 +747,19 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 	Slic3r::Model::setPrintSpeedTable(config, print.config());
 
 	print.is_BBL_printer() = print.getMultiColor();
+	const Slic3r::ConfigOptionString* printer_model = config.option<Slic3r::ConfigOptionString>("printer_model");
+	if (printer_model)
+	{
+		std::string name = printer_model->serialize();
+		
+		if (name._Starts_with("Bambu"))
+			print.is_BBL_printer() = true;
+		else
+		{
+			print.is_BBL_printer() = false;
+		}
+	}
+
 	print.set_plate_origin(Slic3r::Vec3d(0.0, 0.0, 0.0));
 	print.set_plate_index(0);
 
