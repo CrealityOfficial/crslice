@@ -120,8 +120,12 @@ void save_parameter_2_json(const std::string& fileName, const Slic3r::Model& mod
 
 	auto save_dynamic_config = [](const Slic3r::DynamicPrintConfig& config, json& j) {
 		t_config_option_keys ks = config.keys();
+		const Slic3r::ConfigDef* df = config.def();
 		for (const t_config_option_key& k : ks)
 		{
+			if (!df->has(k))
+				continue;
+
 			const ConfigOption* option = config.optptr(k);
 			j[k] = option->serialize();
 		}
@@ -743,7 +747,7 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 	print.apply(model, config);
 	SYSTEM_TICK("verify <-");
 
-	//Slic3r::Model::setExtruderParams(config, tp.extruderCount);
+	Slic3r::Model::setExtruderParams(config, (int)print.extruders(true).size());
 	Slic3r::Model::setPrintSpeedTable(config, print.config());
 
 	print.is_BBL_printer() = print.getMultiColor();

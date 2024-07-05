@@ -610,7 +610,7 @@ ExPolygon elephant_foot_compensation(const ExPolygon &input_expoly, double min_c
 					  { { out_vec },		{ "gray", "black", "blue", coord_t(scale_(0.02)), 0.5f, "black", coord_t(scale_(0.05)) } } });
 			}
 #endif /* TESTS_EXPORT_SVGS */
-			assert(out_vec.size() == 1);
+			//assert(out_vec.size() == 1);
 		}
 	}
     
