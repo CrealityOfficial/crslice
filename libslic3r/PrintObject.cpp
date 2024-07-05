@@ -460,8 +460,8 @@ void PrintObject::prepare_infill()
     // 3) Clip the internal surfaces by the grown top/bottom surfaces.
     // 4) Merge surfaces with the same style. This will mostly get rid of the overlaps.
     //FIXME This does not likely merge surfaces, which are supported by a material with different colors, but same properties.
-    this->process_external_surfaces();
-    m_print->throw_if_canceled();
+    //this->process_external_surfaces();
+    //m_print->throw_if_canceled();
 
     // Debugging output.
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
