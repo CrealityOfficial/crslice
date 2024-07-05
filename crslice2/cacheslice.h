@@ -65,6 +65,7 @@ namespace crslice2
 		CrSliceObject();
 		~CrSliceObject();
 
+		void clearParameter();
 		void setName(const std::string& name);
 		void setParameter(const std::string& key, const std::string& value);
 		void setMatrix(const trimesh::xform& matrix);
@@ -85,6 +86,7 @@ namespace crslice2
 		CrSliceVolume();
 		~CrSliceVolume();
 
+		void clearParameter();
 		void setParameter(const std::string& key, const std::string& value);
 		void setMatrix(const trimesh::xform& matrix);
 		void setMeshData(TriMeshPtr mesh);

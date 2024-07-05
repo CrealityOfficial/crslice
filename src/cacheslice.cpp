@@ -266,6 +266,14 @@ namespace crslice2
 		set_key_value(&impl->object->config, key, value);
 	}
 
+	void CrSliceObject::clearParameter()
+	{
+		if (!impl->object)
+			return;
+
+		impl->object->config.reset();
+	}
+
 	void CrSliceObject::setMatrix(const trimesh::xform& matrix)
 	{
 		if (!impl->object)
@@ -329,6 +337,14 @@ namespace crslice2
 	void CrSliceVolume::setParameter(const std::string& key, const std::string& value)
 	{
 		set_key_value(&impl->volume->config, key, value);
+	}
+
+	void CrSliceVolume::clearParameter()
+	{
+		if (!impl->volume)
+			return;
+
+		impl->volume->config.reset();
 	}
 
 	void CrSliceVolume::setMatrix(const trimesh::xform& matrix)
