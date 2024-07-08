@@ -721,6 +721,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     };
 
     unsigned int line_id = 0;
+    unsigned int igcode_lines = 0;
     std::vector<std::pair<unsigned int, unsigned int>> offsets;
 
     {
@@ -750,6 +751,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     gcode_line += *it_end;
                     if(*it_end == '\r' && *(++ it_end) == '\n')
                         gcode_line += '\n';
+
+                    int igcode_line_1 = std::count(gcode_line.begin(), gcode_line.end(), '\n');
                     // replace placeholder lines
                     auto [processed, lines_added_count] = process_placeholders(gcode_line);
                     if (processed && lines_added_count != 0)
@@ -774,8 +777,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     export_line += gcode_line;
                     if (export_line.length() > 65535)
                         write_string(export_line);
+
+                    int igcode_line_2 = std::count(gcode_line.begin(), gcode_line.end(), '\n');
+                    igcode_lines += igcode_line_2 - igcode_line_1 < 1 ? 1 : (igcode_line_2 - igcode_line_1 + 1);
                     gcode_line.clear();
+
                 }
+
                 // Skip EOL.
                 it = it_end; 
                 if (it != it_bufend && *it == '\r')
@@ -788,6 +796,14 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         }
     }
 
+    for (auto& _line : offsets)
+    {
+        igcode_lines += _line.second;
+    }
+
+    std::string _gcode_lines = "; gcode_lines = ";
+    _gcode_lines += std::to_string(++igcode_lines);
+    export_line += _gcode_lines;
     if (!export_line.empty())
         write_string(export_line);
 
