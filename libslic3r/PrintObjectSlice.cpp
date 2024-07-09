@@ -6,8 +6,7 @@
 #include "ClipperUtils.hpp"
 //BBS
 #include "ShortestPath.hpp"
-
-
+#include "libslic3r/Debugger.hpp"
 
 #include <tbb/parallel_for.h>
 
@@ -1029,6 +1028,8 @@ void PrintObject::slice_volumes()
     //applyNegtiveVolumes(this->model_object()->volumes, objSliceByVolume, firstLayerObjSliceByGroups, scaled_resolution);
     firstLayerObjSliceByVolume = objSliceByVolume;
 
+    bench_debug_volume_slices(m_print, this, objSliceByVolume);
+
     std::vector<std::vector<ExPolygons>> region_slices =
         slices_to_regions(print->config(), *this, this->model_object()->volumes, *m_shared_regions, slice_zs,
                           std::move(objSliceByVolume), PrintObject::clip_multipart_objects, throw_on_cancel_callback);
@@ -1052,6 +1053,8 @@ void PrintObject::slice_volumes()
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
 
+    bench_debug_slice_2_regions(m_print, this);
+
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
@@ -1071,8 +1074,12 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
+    bench_debug_mm_segmentation(m_print, this);
+
     this->apply_conical_overhang();
     m_print->throw_if_canceled();
+
+    bench_debug_conical_overhang(m_print, this);
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {

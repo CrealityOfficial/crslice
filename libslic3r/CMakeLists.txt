@@ -373,6 +373,8 @@ set(lisbslic3r_sources
 	NanoSVGImpl.cpp
 	Platform.cpp
 	Platform.hpp
+	Debugger.hpp
+	Debugger.cpp
 )
 
 set(EXTRA_SOURCES 	
@@ -444,6 +446,10 @@ list(APPEND ILIBS eigen clipper2 admesh boost_filesystem boost_nowide boost_thre
 			 boost_regex png_static ssl crypto expat nlopt_static qhullstatic glu-libtess)
 list(APPEND DEFS BOOST_ALL_NO_LIB TBB_USE_CAPTURED_EXCEPTION=0
 	_CRT_SECURE_NO_WARNINGS _USE_MATH_DEFINES NOMINMAX UNICODE)
+
+if(USE_BENCH_DEBUG)
+	list(APPEND DEFS BENCH_DEBUG) 
+endif()
 
 if(TARGET tbb_inner)
 	list(APPEND DEFS USE_TBB)

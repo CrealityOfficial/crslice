@@ -38,6 +38,8 @@ class SupportLayer;
 class TreeSupportData;
 class TreeSupport;
 
+class Debugger;
+
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
 {
@@ -1034,6 +1036,8 @@ private:
 public:
     //BBS: this was a print config and now seems to be useless so we move it to here
     static float min_skirt_length;
+
+    Debugger* debugger = nullptr;
 };
 
 
