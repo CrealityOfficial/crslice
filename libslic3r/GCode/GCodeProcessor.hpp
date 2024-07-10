@@ -262,6 +262,7 @@ namespace Slic3r {
         static const std::vector<std::string> Reserved_Tags_compatible;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
+        static const std::string Firmware_Flush;
     public:
         enum class ETags : unsigned char
         {
@@ -503,6 +504,7 @@ namespace Slic3r {
 
             //BBS: the flush amount of every filament
             std::map<size_t, double> flush_per_filament;
+            std::map<size_t, int> flush_icount_per_filament;
 
             double role_cache;
             std::map<ExtrusionRole, std::pair<double, double>> filaments_per_role;
@@ -663,6 +665,7 @@ namespace Slic3r {
         CachedPosition m_cached_position;
         bool m_wiping;
         bool m_flushing;
+        bool m_Firmware_flushing;
         bool m_wipe_tower;
         float m_remaining_volume;
         bool m_manual_filament_change;

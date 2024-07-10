@@ -93,6 +93,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
+const std::string GCodeProcessor::Firmware_Flush = " FIRMWARE FLUSH";
+
 
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
@@ -2345,6 +2347,12 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         return;
     }
 
+	//BBS: Firmware flush start tag
+	if (boost::starts_with(comment, GCodeProcessor::Firmware_Flush)) {
+        m_Firmware_flushing = true;
+		return;
+	}
+
     if (!producers_enabled || m_producer == EProducer::OrcaSlicer) {
         // height tag
         if (boost::starts_with(comment, reserved_tag(ETags::Height))) {
@@ -3105,6 +3113,16 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             m_used_filaments.update_flush_per_filament(m_extruder_id, volume_flushed_filament - m_remaining_volume);
             m_remaining_volume = 0.f;
         }
+    }
+    else if (type == EMoveType::Unretract && m_Firmware_flushing)
+    {
+        //m_used_filaments.update_flush_per_filament(m_extruder_id, 100.0);
+		if (m_used_filaments.flush_icount_per_filament.find(m_extruder_id) != m_used_filaments.flush_icount_per_filament.end())
+		{
+			m_used_filaments.flush_icount_per_filament[m_extruder_id]++;
+		}
+		else
+			m_used_filaments.flush_icount_per_filament[m_extruder_id] = 1;
     }
 
     // time estimate section
