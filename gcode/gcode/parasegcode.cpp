@@ -57,6 +57,7 @@ namespace gcode
 
         //BBS: the flush amount of every filament
         std::map<int, double> flush_per_filament;
+        std::map<size_t, int> flush_icount_per_filament;
 
         //double role_cache;
         //std::map<ExtrusionRole, std::pair<double, double>> filaments_per_role;
@@ -89,12 +90,12 @@ namespace gcode
         }
 
         void update_flush_per_filament(size_t extrude_id, float flush_volume)
-        {
-            if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
-                flush_per_filament[extrude_id] += flush_volume;
-            else
-                flush_per_filament[extrude_id] = flush_volume;
-        }
+		{
+			if (flush_per_filament.find(extrude_id) != flush_per_filament.end())
+				flush_per_filament[extrude_id] += flush_volume;
+			else
+				flush_per_filament[extrude_id] = flush_volume;
+		}
 
         void increase_caches(double extruded_volume)
         {
@@ -168,6 +169,7 @@ namespace gcode
         float m_remaining_volume;
 
         bool m_flushing{false};
+        bool m_Firmware_flushing{ false };
         bool m_wiping{ false };
 
         bool isFirstLayerHeight{ false };
@@ -1928,6 +1930,12 @@ namespace gcode
             gcodeProcessor.m_flushing = false;
             kvs.erase(iter1);
         }
+		iter1 = kvs.find("FIRMWARE FLUSH");
+		if (iter1 != kvs.end())
+		{
+			gcodeProcessor.m_Firmware_flushing = true;
+			kvs.erase(iter1);
+		}
 
         iter1 = kvs.find("WIPE_START");
         if (iter1 != kvs.end())
@@ -2674,6 +2682,15 @@ namespace gcode
                 pathParam.m_remaining_volume = 0.f;
             }
         }
+        else if (type == EMoveType::Unretract && pathParam.m_Firmware_flushing) {
+			if (pathParam.m_used_filaments.flush_icount_per_filament.find(pathParam.m_extruder_id) != pathParam.m_used_filaments.flush_icount_per_filament.end()) {
+				pathParam.m_used_filaments.flush_icount_per_filament[pathParam.m_extruder_id]++;
+			}
+			else {
+				pathParam.m_used_filaments.flush_icount_per_filament[pathParam.m_extruder_id] = 1;
+			}
+        }
+
         else  if (type == EMoveType::Wipe)
         {
             float volume_extruded_filament = area_filament_cross_section * pathParam.current_e;
@@ -3594,12 +3611,35 @@ namespace gcode
             pathParam.volumes_per_tower.push_back(std::pair(f.first, weight));
         }
 
-
         //; type_times_1 =  1,5.778656; 2,5.746951; 8,20.648708; 10,399.188141;
         //; type_times_2 =  0,20.648708; 1,150.658997; 2,86.188622; 4,142.359619; 5,16.140944; 7,6.060084; 10,9.247404; 18,1.099889; 
         std::string moves_times = getValue(kvs, "type_times_1");
         std::string roles_times = getValue(kvs, "type_times_2");
         std::string model_time = getValue(kvs, "type_times_3");
+
+
+        float printTime = 0.0;
+        if (!model_time.empty())
+        {
+            printTime = std::atof(model_time.c_str());
+        }
+		if (gcodeProcessor.m_used_filaments.flush_per_filament.empty())
+		{
+			for (auto& f : gcodeProcessor.m_used_filaments.flush_icount_per_filament)
+			{
+				if (f.first < 0 || f.first > 254)
+					continue;
+				float filament_radius = 0.5f * gcodeProcessor.filament_diameters[f.first % gcodeProcessor.filament_diameters.size()];
+				float filament_density = gcodeProcessor.material_densitys[f.first % gcodeProcessor.material_densitys.size()];
+				double s = M_PI * sqr(filament_radius) > 0.0f ? M_PI * sqr(filament_radius) : 1.0f;
+				float used_filament = f.second * 86 / s * 0.001;
+				float weight = f.second * 86 * filament_density * 0.001;
+				pathParam.flush_per_filament.push_back(std::pair(f.first, used_filament));
+				pathParam.flush_per_filament.push_back(std::pair(f.first, weight));
+				pathParam.weight += weight;
+                printTime += f.second * 19;
+			}
+		}
 
         std::vector<std::pair<int, float>> roles_times_pair;
         std::vector<std::pair<int, float>> moves_times_pair;
@@ -3649,7 +3689,7 @@ namespace gcode
         if (!model_time.empty())
         {
             pathParam.have_roles_time = true;
-            pathParam.printTime = std::atof(model_time.c_str());
+            pathParam.printTime = printTime;
         }
 
     }
