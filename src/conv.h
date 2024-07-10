@@ -10,8 +10,8 @@ namespace crslice2
 
 	struct CovertParam
 	{
-		trimesh::vec4 out;
-		trimesh::vec4 in;
+		trimesh::vec4 out = trimesh::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+		trimesh::vec4 in = trimesh::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 		float z = 0.0f;
 		bool to_lines = true;
 	};

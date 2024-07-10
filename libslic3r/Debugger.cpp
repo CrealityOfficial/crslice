@@ -23,10 +23,10 @@ namespace Slic3r {
 #endif
 	}
 
-	void bench_debug_volume_slices(Print* print, PrintObject* object, const std::vector<VolumeSlices>& slices)
+	void bench_debug_volume_slices(Print* print, PrintObject* object, const std::vector<VolumeSlices>& slices, const std::vector<float>& slice_zs)
 	{
 #ifdef BENCH_DEBUG
-		print->debugger->cache_volume_slices(index_object(print, object), slices);
+		print->debugger->cache_volume_slices(index_object(print, object), slices, slice_zs);
 #endif
 	}
 

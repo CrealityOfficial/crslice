@@ -13,9 +13,25 @@
 
 namespace crslice2
 {
+	trimesh::vec4 indexColor(int index)
+	{
+		trimesh::vec4 colors[6] = {
+			trimesh::vec4(1.0f, 0.0f, 0.0f, 1.0f),
+			trimesh::vec4(0.0f, 1.0f, 0.0f, 1.0f),
+			trimesh::vec4(0.0f, 0.0f, 1.0f, 1.0f),
+			trimesh::vec4(1.0f, 1.0f, 0.0f, 1.0f),
+			trimesh::vec4(1.0f, 0.0f, 1.0f, 1.0f),
+			trimesh::vec4(0.0f, 1.0f, 1.0f, 1.0f)
+		};
+
+		return colors[index % 6];
+	}
+
 	struct ModelObjectCache
 	{
 		std::vector<Slic3r::VolumeSlices> volume_slices;
+		std::vector<float> slice_zs;
+
 		std::vector<std::vector<Slic3r::SurfaceCollection>> slice_2_regions;
 
 		Slic3r::ExPolygons polys;
@@ -36,9 +52,10 @@ namespace crslice2
 			m_object_caches.resize(num);
 		}
 
-		void cache_volume_slices(int index, const std::vector<Slic3r::VolumeSlices>& slices) override
+		void cache_volume_slices(int index, const std::vector<Slic3r::VolumeSlices>& slices, const std::vector<float>& slice_zs) override
 		{
 			m_object_caches.at(index).volume_slices = slices;
+			m_object_caches.at(index).slice_zs = slice_zs;
 		}
 
 		void cache_slice_2_regions(int index, Slic3r::PrintObject* object) override
@@ -128,11 +145,12 @@ namespace crslice2
 		return true;
 	}
 
-	void CacheSlice::volume_slices(ccglobal::VisualDebugger* debugger)
+	void CacheSlice::volume_slices(int index, ccglobal::VisualDebugger* debugger)
 	{
 		if (!debugger)
 			return;
 
+		debugger->clear_visual();
 		for (const ModelObjectCache& moc : m_impl->m_object_caches)
 		{
 			int volume_count = (int)moc.volume_slices.size();
@@ -142,11 +160,13 @@ namespace crslice2
 				int layer_count = (int)vs.slices.size();
 				for (int j = 0; j < layer_count; ++j)
 				{
-					std::string name = boost::str(boost::format("volume_slices_%d_%d")%i%j);
+					if (index >= 0 && j != index)
+						continue;
+
+					std::string name = boost::str(boost::format("volume_slices_%d_%d") % i % j);
 
 					CovertParam param;
-					param.out = trimesh::vec3(1.0f, 0.0f, 0.0f);
-					param.in = trimesh::vec3(0.0f, 1.0f, 0.0f);
+					param.z = moc.slice_zs.at(j);
 					std::vector<trimesh::vec3> lines;
 					std::vector<trimesh::vec4> colors;
 					convert(vs.slices.at(j), lines, &colors, param);
@@ -156,4 +176,46 @@ namespace crslice2
 		}
 	}
 
+	void CacheSlice::surfaces(int index, ccglobal::VisualDebugger* debugger)
+	{
+		if (!debugger)
+			return;
+
+		debugger->clear_visual();
+		for (const ModelObjectCache& moc : m_impl->m_object_caches)
+		{
+			int layer_count = (int)moc.slice_2_regions.size();
+			for (int i = 0; i < layer_count; ++i)
+			{
+				if (index >= 0 && i != index)
+					continue;
+
+				const std::vector<Slic3r::SurfaceCollection>& scs = moc.slice_2_regions.at(i);
+				int region_count = (int)scs.size();
+				for (int j = 0; j < region_count; ++j)
+				{
+					const Slic3r::SurfaceCollection& sc = scs.at(j);
+					int index = 0;
+					for (const Slic3r::Surface& surf : sc.surfaces)
+					{
+						std::string name = boost::str(boost::format("surfaces_%d_%d_%d") % i % j % index);
+
+						CovertParam param;
+						param.in = indexColor(index);
+						param.out = indexColor(index);
+						param.z = moc.slice_zs.at(i);
+						std::vector<trimesh::vec3> lines;
+						std::vector<trimesh::vec4> colors;
+
+						lines.clear();
+						colors.clear();
+						append(surf.expolygon, lines, &colors, param);
+						debugger->visual_color_polygon(name, lines, colors, 1.0f);
+
+						++index;
+					}
+				}
+			}
+		}
+	}
 }

@@ -1028,7 +1028,7 @@ void PrintObject::slice_volumes()
     //applyNegtiveVolumes(this->model_object()->volumes, objSliceByVolume, firstLayerObjSliceByGroups, scaled_resolution);
     firstLayerObjSliceByVolume = objSliceByVolume;
 
-    bench_debug_volume_slices(m_print, this, objSliceByVolume);
+    bench_debug_volume_slices(m_print, this, objSliceByVolume, slice_zs);
 
     std::vector<std::vector<ExPolygons>> region_slices =
         slices_to_regions(print->config(), *this, this->model_object()->volumes, *m_shared_regions, slice_zs,

@@ -24,7 +24,8 @@ namespace crslice2
 
 		bool slice(const CacheSliceParam& param, ccglobal::Tracer* tracer = nullptr);
 
-		void volume_slices(ccglobal::VisualDebugger* debugger);
+		void volume_slices(int index, ccglobal::VisualDebugger* debugger);
+		void surfaces(int index, ccglobal::VisualDebugger* debugger);
 	protected:
 		CacheSliceImpl* m_impl;
 	};
