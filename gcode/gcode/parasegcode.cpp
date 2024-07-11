@@ -2683,6 +2683,7 @@ namespace gcode
             }
         }
         else if (type == EMoveType::Unretract && pathParam.m_Firmware_flushing) {
+            pathParam.m_Firmware_flushing = false;
 			if (pathParam.m_used_filaments.flush_icount_per_filament.find(pathParam.m_extruder_id) != pathParam.m_used_filaments.flush_icount_per_filament.end()) {
 				pathParam.m_used_filaments.flush_icount_per_filament[pathParam.m_extruder_id]++;
 			}
@@ -3632,12 +3633,12 @@ namespace gcode
 				float filament_radius = 0.5f * gcodeProcessor.filament_diameters[f.first % gcodeProcessor.filament_diameters.size()];
 				float filament_density = gcodeProcessor.material_densitys[f.first % gcodeProcessor.material_densitys.size()];
 				double s = M_PI * sqr(filament_radius) > 0.0f ? M_PI * sqr(filament_radius) : 1.0f;
-				float used_filament = f.second * 86 / s * 0.001;
-				float weight = f.second * 86 * filament_density * 0.001;
+				float used_filament = f.second * 290 / s * 0.001;
+				float weight = f.second * 290 * filament_density * 0.001;
 				pathParam.flush_per_filament.push_back(std::pair(f.first, used_filament));
 				pathParam.flush_per_filament.push_back(std::pair(f.first, weight));
 				pathParam.weight += weight;
-                printTime += f.second * 19;
+				printTime += f.second * 50;
 			}
 		}
 
