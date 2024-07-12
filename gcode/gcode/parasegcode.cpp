@@ -187,6 +187,7 @@ namespace gcode
         SeamsDetector m_seams_detector;
 
         std::vector<float> filament_diameters;
+        std::vector<float> filament_costs;
         std::vector<float> material_densitys;
         GCodeProcessor()
         {
@@ -196,6 +197,7 @@ namespace gcode
             m_remaining_volume = 0.0f;
             filament_diameters.clear();
             material_densitys.clear();
+            filament_costs.clear();
         }
     };
 
@@ -1909,7 +1911,18 @@ namespace gcode
             {
                 gcodeProcessor.material_densitys.push_back(std::atof(v.c_str()));
             }
-        }     
+        } 
+
+        iter1 = kvs.find("filament_cost");
+        if (iter1 != kvs.end() && gcodeProcessor.filament_costs.empty())
+        {
+            std::vector<std::string> _kvs;
+            Stringsplit(iter1->second, ',', _kvs);
+            for (auto& v : _kvs)
+            {
+                gcodeProcessor.filament_costs.push_back(std::atof(v.c_str()));
+            }
+        }
 
         iter1 = kvs.find("nozzle_volume");
         if (iter1 != kvs.end() && gcodeProcessor.m_nozzle_volume <= 0 )
@@ -3542,14 +3555,14 @@ namespace gcode
         float materialDensity;//单位面积密度
         float material_diameter = { 1.75f }; //材料直径
         float material_density = { 1.24f };  //材料密度
-        pathParam.materialLenth =  std::atof(getValue(kvs, "filament_used").c_str());
+        //pathParam.materialLenth =  std::atof(getValue(kvs, "filament_used").c_str());
         pathParam.material_diameter = std::atof(getValue(kvs, "material_diameter").c_str());
         pathParam.material_density = std::atof(getValue(kvs, "material_density").c_str()); 
         pathParam.materialDensity = M_PI * (pathParam.material_diameter * 0.5) * (pathParam.material_diameter * 0.5) * pathParam.material_density;//单位面积密度
         pathParam.lineWidth = std::atof(getValue(kvs, "wall_line_width").c_str());
         pathParam.layerHeight = std::atof(getValue(kvs, "layer_height").c_str());
         pathParam.cost = std::atof(getValue(kvs, "gcode_filament_cost").c_str());
-        pathParam.weight = std::atof(getValue(kvs, "filament_weight").c_str());
+        //pathParam.weight = std::atof(getValue(kvs, "filament_weight").c_str());
         float filament_cost = std::atof(getValue(kvs, "gcode_filament_cost").c_str());
         pathParam.unitPrice = pathParam.materialLenth > 0.0f ? filament_cost / pathParam.materialLenth : 0.0f;
         pathParam.relativeExtrude = std::atoi(getValue(kvs, "relative_extrusion").c_str()) == 1 ? true: false;
@@ -3573,7 +3586,14 @@ namespace gcode
         {
             gcodeProcessor.material_densitys.push_back(1.24);
         }
+        if (gcodeProcessor.filament_costs.empty())
+        {
+            gcodeProcessor.filament_costs.push_back(20.0);//default per kg
+        }      
 
+        pathParam.materialLenth = 0;
+        pathParam.weight = 0;
+        pathParam.cost = 0;
         for (auto&f :  gcodeProcessor.m_used_filaments.volumes_per_extruder)
         {
             if (f.first < 0 || f.first > 254)
@@ -3585,6 +3605,10 @@ namespace gcode
             float weight = f.second * filament_density * 0.001;
             pathParam.volumes_per_extruder.push_back(std::pair(f.first,used_filament));
             pathParam.volumes_per_extruder.push_back(std::pair(f.first, weight));
+
+            pathParam.weight += weight;
+            pathParam.materialLenth += used_filament;
+            pathParam.cost += weight * gcodeProcessor.filament_costs[f.first % gcodeProcessor.filament_costs.size()] * 0.001;
         }
         for (auto& f : gcodeProcessor.m_used_filaments.flush_per_filament)
         {
@@ -3597,7 +3621,10 @@ namespace gcode
             float weight = f.second * filament_density * 0.001;
             pathParam.flush_per_filament.push_back(std::pair(f.first, used_filament));
             pathParam.flush_per_filament.push_back(std::pair(f.first, weight));
+
             pathParam.weight += weight;
+            pathParam.materialLenth += used_filament;
+            pathParam.cost += weight * gcodeProcessor.filament_costs[f.first % gcodeProcessor.filament_costs.size()] * 0.001;
         }
         for (auto& f : gcodeProcessor.m_used_filaments.volumes_per_tower)
         {
@@ -3610,6 +3637,10 @@ namespace gcode
             float weight = f.second * filament_density * 0.001;
             pathParam.volumes_per_tower.push_back(std::pair(f.first, used_filament));
             pathParam.volumes_per_tower.push_back(std::pair(f.first, weight));
+
+            pathParam.weight += weight;
+            pathParam.materialLenth += used_filament;
+            pathParam.cost += weight * gcodeProcessor.filament_costs[f.first % gcodeProcessor.filament_costs.size()] * 0.001;
         }
 
         //; type_times_1 =  1,5.778656; 2,5.746951; 8,20.648708; 10,399.188141;
