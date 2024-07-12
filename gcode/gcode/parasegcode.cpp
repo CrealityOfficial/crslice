@@ -916,7 +916,7 @@ namespace gcode
             Stringsplit(iter->second, ',', _kvs);
             for (auto& v : _kvs)
             {
-                filament_len += std::atof(_kvs[0].c_str());
+                filament_len += std::atof(v.c_str());
             }
             filament_len /= 1000.f;
             iter->second = std::to_string(filament_len);
@@ -945,7 +945,7 @@ namespace gcode
             Stringsplit(iter->second, ',', _kvs);
             for (auto& v : _kvs)
             {
-                filament_len += std::atof(_kvs[0].c_str());
+                filament_len += std::atof(v.c_str());
             }
             iter->second = std::to_string(filament_len);
         }
