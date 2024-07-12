@@ -410,6 +410,20 @@ namespace crslice2
 			result.success = false;
 		}
 
+		{
+			const Slic3r::PrintEstimatedStatistics& process_result = orca_result.gcode_result.print_statistics;
+			result.volumes_per_color_change = process_result.volumes_per_color_change;
+			result.volumes_per_extruder = process_result.volumes_per_extruder;
+			result.wipe_tower_volumes_per_extruder = process_result.wipe_tower_volumes_per_extruder;
+			result.flush_per_filament = process_result.flush_per_filament;
+			for (std::map<Slic3r::ExtrusionRole, std::pair<double, double>>::const_iterator it = process_result.used_filaments_per_role.begin();
+				it != process_result.used_filaments_per_role.end(); ++it)
+			{
+				result.used_filaments_per_role.insert(std::pair<int, std::pair<double, double>>((int)it->first, it->second));
+			}
+			result.total_filamentchanges = process_result.total_filamentchanges;
+		}
+
 		if (orca_result.gcode_result.conflict_result.has_value())
 		{
 			const Slic3r::GCodeProcessorResult& process_result = orca_result.gcode_result;

@@ -105,6 +105,15 @@ namespace crslice2
 	{
 		bool success = true;
 		std::map<std::string, std::pair<std::string, int64_t>> warnings;
+
+		//statics
+		std::vector<double>                                 volumes_per_color_change;
+		std::map<size_t, double>                            volumes_per_extruder;
+		std::map<size_t, double>                            wipe_tower_volumes_per_extruder;
+		//BBS: the flush amount of every filament
+		std::map<size_t, double>                            flush_per_filament;
+		std::map<int, std::pair<double, double>>  used_filaments_per_role;
+		unsigned int                                        total_filamentchanges;
 	};
 
 	CRSLICE2_API void update_print_volume_state(CrSliceModel& model, const std::vector<trimesh::dvec2>& shapes, double height);
