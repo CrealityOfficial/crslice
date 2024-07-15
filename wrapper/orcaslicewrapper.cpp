@@ -755,8 +755,7 @@ void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::
 	if (printer_model)
 	{
 		std::string name = printer_model->serialize();
-		
-		if (name._Starts_with("Bambu"))
+		if (boost::starts_with(name.c_str(), "Bambu"))
 			print.is_BBL_printer() = true;
 		else
 		{
