@@ -11,6 +11,10 @@
 #include "crsliceexception.h"
 #include "ccglobal/profile.h"
 
+#ifdef BENCH_DEBUG
+#include "ccglobal/debugger.h"
+#endif
+
 namespace crslice2
 {
 	trimesh::vec4 indexColor(int index)
@@ -147,6 +151,7 @@ namespace crslice2
 
 	void CacheSlice::volume_slices(int index, ccglobal::VisualDebugger* debugger)
 	{
+#ifdef BENCH_DEBUG
 		if (!debugger)
 			return;
 
@@ -174,10 +179,12 @@ namespace crslice2
 				}
 			}
 		}
+#endif
 	}
 
 	void CacheSlice::surfaces(int index, ccglobal::VisualDebugger* debugger)
 	{
+#ifdef BENCH_DEBUG
 		if (!debugger)
 			return;
 
@@ -217,5 +224,6 @@ namespace crslice2
 				}
 			}
 		}
+#endif
 	}
 }

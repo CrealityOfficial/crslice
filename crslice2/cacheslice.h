@@ -1,9 +1,13 @@
 #ifndef CRSLICE_CACHE_SLICE_H_2
 #define CRSLICE_CACHE_SLICE_H_2
 #include "crslice2/header.h"
-#include "ccglobal/debugger.h"
 
 #include <list>
+
+namespace ccglobal
+{
+	class VisualDebugger;
+}
 
 namespace crslice2
 {
