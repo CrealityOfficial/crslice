@@ -59,6 +59,9 @@ private:
     bool                        m_cooling_logic_proportional = false;
     //BBS: current fan speed
     int                         m_current_fan_speed;
+
+    //flag: set flag for additional fan per layers
+    int                         m_additional_fan_count;
 };
 
 }

@@ -17,7 +17,7 @@
 #include <assert.h>
 
 namespace Slic3r {
-
+#define MAX_ADDITIONAL_LAYES 4
 CoolingBuffer::CoolingBuffer(GCode &gcodegen) : m_config(gcodegen.config()), m_toolchange_prefix(gcodegen.writer().toolchange_prefix()), m_current_extruder(0)
 {
     this->reset(gcodegen.writer().get_position());
@@ -41,6 +41,7 @@ void CoolingBuffer::reset(const Vec3d &position)
     m_fan_speed = -1;
     m_additional_fan_speed = -1;
     m_current_fan_speed = -1;
+    m_additional_fan_count = 0;
 }
 
 struct CoolingLine
@@ -734,8 +735,16 @@ std::string CoolingBuffer::apply_layer_cooldown(
     int  overhang_fan_speed   = 0;
     bool supp_interface_fan_control= false;
     int  supp_interface_fan_speed = 0;
-    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &supp_interface_fan_control, &supp_interface_fan_speed](bool immediately_apply) {
+
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
+    //limit for height
+    bool limit_height_fan = true;
+    if (m_current_pos.size() > 2)
+    {
+        limit_height_fan = m_current_pos[2] > EXTRUDER_CONFIG(cool_cds_fan_start_at_height);
+    }
+    auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &supp_interface_fan_control, &supp_interface_fan_speed,&limit_height_fan](bool immediately_apply) {
+
         float fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         float fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
         //BBS
@@ -750,7 +759,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
             // so there will be a zero fan speed at least at the 1st layer.
             close_fan_the_first_x_layers = 1;
         }
-        if (int(layer_id) >= close_fan_the_first_x_layers) {
+
+        if (int(layer_id) >= close_fan_the_first_x_layers && limit_height_fan) {
             float   fan_max_speed             = EXTRUDER_CONFIG(fan_max_speed);
             float slow_down_layer_time = float(EXTRUDER_CONFIG(slow_down_layer_time));
             float fan_cooling_layer_time      = float(EXTRUDER_CONFIG(fan_cooling_layer_time));
@@ -776,7 +786,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
             supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
             supp_interface_fan_control = supp_interface_fan_speed >= 0;
 
-#undef EXTRUDER_CONFIG
+//#undef EXTRUDER_CONFIG
             overhang_fan_control= overhang_fan_speed > fan_speed_new;
         } else {
             overhang_fan_control= false;
@@ -793,11 +803,11 @@ std::string CoolingBuffer::apply_layer_cooldown(
                 new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
         }
         //BBS
-        if (additional_fan_speed_new != m_additional_fan_speed) {
-            m_additional_fan_speed = additional_fan_speed_new;
-            if (immediately_apply && m_config.auxiliary_fan.value)
-                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
-        }
+        //if (additional_fan_speed_new != m_additional_fan_speed) {
+        //    m_additional_fan_speed = additional_fan_speed_new;
+        //    if (immediately_apply && m_config.auxiliary_fan.value)
+        //        new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+        //}
     };
 
     const char         *pos               = gcode.c_str();
@@ -811,6 +821,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
                                                                {CoolingLine::TYPE_FORCE_RESUME_FAN, false}};
     bool need_set_fan = false;
 
+    bool have_type_overhang = false;
     for (const CoolingLine *line : lines) {
         const char *line_start  = gcode.c_str() + line->line_start;
         const char *line_end    = gcode.c_str() + line->line_end;
@@ -827,6 +838,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
             }
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
+            have_type_overhang = true;
             if (overhang_fan_control && !fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
                 need_set_fan = true;
                 fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START] = true;
@@ -940,6 +952,16 @@ std::string CoolingBuffer::apply_layer_cooldown(
             new_gcode.append(line_start, line_end - line_start);
         }
 
+        if (have_type_overhang && limit_height_fan)
+        {
+            float cool_special_cds_fan_speed = EXTRUDER_CONFIG(cool_special_cds_fan_speed);
+            if (cool_special_cds_fan_speed != m_additional_fan_speed) {
+                m_additional_fan_speed = cool_special_cds_fan_speed;
+                if (m_config.auxiliary_fan.value)
+                    new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+            }
+        }
+
         if (need_set_fan) {
             if (fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]){
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
@@ -963,7 +985,26 @@ std::string CoolingBuffer::apply_layer_cooldown(
     if (pos < gcode_end)
         new_gcode.append(pos, gcode_end - pos);
 
+    if (have_type_overhang)
+    {
+        m_additional_fan_count = MAX_ADDITIONAL_LAYES;
+    }
+    else
+    {
+        m_additional_fan_count >= 0? m_additional_fan_count-- : 0;
+
+        if (m_additional_fan_count <= 0 && limit_height_fan)
+        {
+            int additional_fan_speed_new = EXTRUDER_CONFIG(additional_cooling_fan_speed);
+            if (additional_fan_speed_new != m_additional_fan_speed) {
+                m_additional_fan_speed = additional_fan_speed_new;
+                if (m_config.auxiliary_fan.value)
+                    new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+            }
+        }
+    }
+#undef EXTRUDER_CONFIG
     return new_gcode;
 }
-
+#undef MAX_ADDITIONAL_LAYES
 } // namespace Slic3r
