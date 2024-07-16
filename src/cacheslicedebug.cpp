@@ -133,7 +133,7 @@ namespace crslice2
 
 		try
 		{
-			orca_slice_impl_result(print, model, config, param.outName, param.tempDirectory, thumbnail_callback, calib_params, orca_result, tracer);
+			orca_slice_impl_result(print, model, config, param.outName, "", thumbnail_callback, calib_params, orca_result, tracer);
 		}
 		catch (const crslice2::CrSliceException& e)
 		{
@@ -150,7 +150,7 @@ namespace crslice2
 		if (!debugger)
 			return;
 
-		debugger->clear_visual();
+		debugger->clear_visual("volume_slices*");
 		for (const ModelObjectCache& moc : m_impl->m_object_caches)
 		{
 			int volume_count = (int)moc.volume_slices.size();
@@ -181,7 +181,7 @@ namespace crslice2
 		if (!debugger)
 			return;
 
-		debugger->clear_visual();
+		debugger->clear_visual("surfaces*");
 		for (const ModelObjectCache& moc : m_impl->m_object_caches)
 		{
 			int layer_count = (int)moc.slice_2_regions.size();
