@@ -64,6 +64,10 @@ if(Python3_FOUND)
 endif()
 
 list(APPEND DEFS _UNICODE UNICODE NOMINMAX BOOST_ALL_NO_LIB _USE_MATH_DEFINES)
+if(USE_BENCH_DEBUG)
+	list(APPEND DEFS BENCH_DEBUG) 
+endif()
+
 if(TARGET libslic3r)
 	list(APPEND LIBS libslic3r)
 endif()
