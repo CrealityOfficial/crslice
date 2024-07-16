@@ -8,7 +8,7 @@
 
 #include "crsliceexception.h"
 #include "ccglobal/profile.h"
-
+#include "../wrapper/baselineorcinput.h"
 namespace crslice2
 {
 	//cache interface
@@ -389,6 +389,27 @@ namespace crslice2
 		try
 		{
 			orca_slice_impl_result(print.impl->print, model.impl->model, model.impl->config, param.outName, param.tempDirectory, thumbnail_callback, calib_params, orca_result, tracer);
+			Slic3r::ThumbnailsList  thumbnails = f(Slic3r::ThumbnailsParams{});
+			if (param.baselineType > 0)
+			{
+				//run baseline test
+				TempParamater tp;
+				tp.is_bbl_printer = print.impl->print.is_BBL_printer();
+				tp.extruderCount = (int)print.impl->print.extruders(true).size();
+				tp.plate_origin = print.impl->print.get_plate_origin();
+				tp.plate_index = print.impl->print.get_plate_index();
+				bool ret = slice_bl_function(model.impl->model,model.impl->config,calib_params,thumbnails,tp,param.baselineType,param.blName,param.blDir,param.resultDir);
+				if (!ret)
+				{
+					tracer->message("${UnitTest}BaseLine Test Failed");
+				}
+				else
+				{
+					tracer->message("${UnitTest}BaseLine Test Success");
+				}
+		
+			}
+
 		}
 		catch (const crslice2::CrSliceException& e)
 		{

@@ -26,7 +26,6 @@
 #include "crgroup.h"
 #include "crobject.h"
 #include "ccglobal/log.h"
-#include "libslic3r/Utils.hpp"
 using namespace cxbaseline;
 
 void BaseLineLogger::PushKey(const std::string& key)
@@ -1015,9 +1014,9 @@ void BaselineOrcaInput::_BuildEntityModelObject(nlohmann::json& json_object, con
     using namespace nlohmann;
 
     // std::string             name
-    json_object[BLName_Val(name)] = Slic3r::decode_path(object.name.c_str());
+    json_object[BLName_Val(name)] = object.name;
     // std::string             module_name
-    json_object[BLName_Val(module_name)] = Slic3r::decode_path(object.module_name.c_str());
+    json_object[BLName_Val(module_name)] = object.module_name;
     // std::string             input_file
     _BuildEntityPath(json_object[BLName_Val(input_file)], object.input_file);
     // ModelInstancePtrs       instances
@@ -1108,9 +1107,9 @@ bool BaselineOrcaInput::_CompareEntityModelObject(const nlohmann::json& json_obj
     bool err = true;
 
     // std::string             name
-    err &= _CompareObject(json_object, BLName_Val(name), Slic3r::decode_path(object.name.c_str()), log);
+    err &= _CompareObject(json_object, BLName_Val(name), object.name.c_str(), log);
     // std::string             module_name
-    err &= _CompareObject(json_object, BLName_Val(module_name),Slic3r::decode_path(object.module_name.c_str()), log);
+    err &= _CompareObject(json_object, BLName_Val(module_name),object.module_name, log);
     // std::string             input_file
     err &= _CompareObjectPath(json_object, BLName_Val(input_file), object.input_file, log);
     // ModelInstancePtrs       instances

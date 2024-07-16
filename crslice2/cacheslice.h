@@ -13,6 +13,11 @@ namespace crslice2
 		std::string tempDirectory; //debug 
 
 		std::string outName;
+
+		int baselineType = -1;
+		std::string blDir = "";
+		std::string resultDir = "";
+		std::string blName = "";
 	};
 
 	class CacheSliceImpl;

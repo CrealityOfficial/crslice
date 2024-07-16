@@ -4,7 +4,7 @@
 #include "crslice2/crslice.h"
 #include "crslice2/base/parametermeta.h"
 #include "libslic3r/Print.hpp"
-
+struct TempParamater;
 void trimesh2Slic3rTriangleMesh(trimesh::TriMesh* mesh, Slic3r::TriangleMesh& tmesh);
 Slic3r::Geometry::Transformation convert_matrix(const trimesh::xform& xf);
 
@@ -19,7 +19,8 @@ struct OrcaResult
 
 	std::map<std::string, std::pair<std::string, int64_t>> key_warnings;
 };
-
+bool slice_bl_function(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, const Slic3r::Calib_Params& _calibParams,
+	const Slic3r::ThumbnailsList& thumbnailDatas, const TempParamater& tp, const int blType, const std::string& blName, const std::string& blDir, const std::string& resultDir);
 void orca_slice_impl_result(Slic3r::Print& print, Slic3r::Model& model, Slic3r::DynamicPrintConfig& config, const std::string& out_file, const std::string& temp_directory
 	, Slic3r::ThumbnailsGeneratorCallback callback, Slic3r::Calib_Params& calib_params   
 	, OrcaResult& result, ccglobal::Tracer* tracer);

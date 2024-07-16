@@ -935,28 +935,37 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3
 	{
 		return _handle_slice_exception_ex(scene, e.sliceObjectId(), e.what(), tracer);
 	}
+
+	//bl test
+	bool bRet = slice_bl_function(model, config, calibParams, thumbnailData,tp, scene->m_unittest_type, 
+		baseline_orcal_inputname, scene->m_sliceBLDirectory, scene->m_BLCompareErrorDirectory);
 	
 
+}
+
+bool slice_bl_function(const Slic3r::Model& model, const Slic3r::DynamicPrintConfig& config, const Slic3r::Calib_Params& _calibParams, 
+	const Slic3r::ThumbnailsList& thumbnailDatas,const TempParamater& tp,const int blType, const std::string& blName, const std::string& blDir, const std::string& resultDir) {
+
 	//---start baseline test 
-	cxbaseline::BaseLineUtils::SetRootDirectory(scene->m_sliceBLDirectory);
-	cxbaseline::BaseLineUtils::SetCompareDirectory(scene->m_BLCompareErrorDirectory);
+	cxbaseline::BaseLineUtils::SetRootDirectory(blDir);
+	cxbaseline::BaseLineUtils::SetCompareDirectory(resultDir);
 	std::string error_text = "";
-	switch (scene->m_unittest_type)
+	switch (blType)
 	{
 	case 0:
 		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::NormalRun);
 		break;
 	case 1:
 		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Generate);
-		error_text = "${UnitTest}" + std::string("BaseLine Generate Failed");
+		//error_text = "${UnitTest}" + std::string("BaseLine Generate Failed");
 		break;
 	case 2:
 		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Compare);
-		error_text = "${UnitTest}" + std::string("BaseLine Compare has error");
+		//error_text = "${UnitTest}" + std::string("BaseLine Compare has error");
 		break;
 	case 3:
 		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::Update);
-		error_text = "${UnitTest}" + std::string("BaseLine Update Failed");
+		//error_text = "${UnitTest}" + std::string("BaseLine Update Failed");
 		break;
 	default:
 		cxbaseline::BaseLineUtils::SetBaselineType(cxbaseline::BaseLineType::NormalRun);
@@ -967,27 +976,18 @@ void orca_slice_impl(crslice2::CrScenePtr scene, ccglobal::Tracer* tracer, Slic3
 		cxbaseline::Baseline* baseline = cxbaseline::BaseLineUtils::CreateBaseline(BaseLineOrcaInputName);
 
 		auto orca_inpute_baseline = dynamic_cast<cxbaseline::BaselineOrcaInput*>(baseline);
-		orca_inpute_baseline->SetName(baseline_orcal_inputname);
+		orca_inpute_baseline->SetName(blName);
 		orca_inpute_baseline->Add(&model);
 		orca_inpute_baseline->Add(&config);
 		orca_inpute_baseline->Add(&tp);
-		orca_inpute_baseline->Add(&calibParams);
-		orca_inpute_baseline->Add(&thumbnailData);
+		orca_inpute_baseline->Add(&_calibParams);
+		orca_inpute_baseline->Add(&thumbnailDatas);
 
 		bool ret =  cxbaseline::BaseLineUtils::RunBaseline(baseline);
-		if (!ret)
-		{
-			tracer->message(error_text.c_str());
-		}
-		else
-		{
-			tracer->message("${UnitTest}Unit Test Success");
-		}
-		
 		cxbaseline::BaseLineUtils::RemoveBaseline(baseline);
+		return ret;
 	}
-	//--end baseline test
-
+	return true;
 }
 
 void orca_slice_from_arch_impl(const std::string& file, const std::string& out, ccglobal::Tracer* tracer)
