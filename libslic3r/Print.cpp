@@ -1905,8 +1905,6 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         }
     }
 
-    bench_debug_objects_num(this);
-
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size();
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
     if (!use_cache) {

@@ -1,4 +1,4 @@
-#include "orcaslicewrapper.h"
+#include "serialization.h"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Print.hpp"
@@ -6,15 +6,8 @@
 #include <fstream>
 #include "ccglobal/log.h"
 #include "ccglobal/serial.h"
+#include "crslice2/header.h"
 
-namespace Slic3r
-{
-	void Print::debug(const std::string& name)
-	{
-		if (!m_debug)
-			return;
-	}
-}
 
 void cache_config(const Slic3r::DynamicPrintConfig& config, std::fstream& out)
 {

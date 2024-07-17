@@ -36,6 +36,7 @@
 #include <fstream>
 #include <string>
 #include "baselineorcinput.h"
+#include "serialization.h"
 #include "libslic3r/I18N.hpp"
 
 #include "ccglobal/profile.h"

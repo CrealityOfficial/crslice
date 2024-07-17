@@ -826,7 +826,6 @@ public:
     //return 0 means successful
     int                 export_cached_data(const std::string& dir_path, bool with_space=false);
     int                 load_cached_data(const std::string& directory);
-    void debug(const std::string& name);
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }
@@ -960,9 +959,6 @@ public:
     void setMultiColor(bool multiColor) { m_isMultiColor = multiColor; }
     bool getMultiColor() const { return m_isMultiColor; }
 
-    void setDebug(bool debug) { m_debug = debug; }
-    void setDebugDirectory(const std::string& directory) { m_debug_directory = directory; }
-
     void setCrealityOS(bool isCrealityOS) { m_isCrealityOS= isCrealityOS; }
     bool getCrealityOS() const { return m_isCrealityOS; }
   protected:
@@ -989,9 +985,6 @@ private:
     
     //SoftFever
     bool m_isBBLPrinter;
-    
-    bool m_debug{false};
-    std::string m_debug_directory;
 
     bool m_isMultiColor;
     bool m_isCrealityOS;

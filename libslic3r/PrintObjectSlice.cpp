@@ -14,6 +14,10 @@
 #define L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {
+    //debug
+    void bench_debug_volume_slices(Print* print, PrintObject* object, const std::vector<VolumeSlices>& slices, const std::vector<float>& slice_zs);
+    //debug
+
 
 bool PrintObject::clip_multipart_objects = true;
 bool PrintObject::infill_only_where_needed = false;
@@ -1053,8 +1057,6 @@ void PrintObject::slice_volumes()
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
 
-    bench_debug_slice_2_regions(m_print, this);
-
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
@@ -1074,12 +1076,8 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
-    bench_debug_mm_segmentation(m_print, this);
-
     this->apply_conical_overhang();
     m_print->throw_if_canceled();
-
-    bench_debug_conical_overhang(m_print, this);
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {

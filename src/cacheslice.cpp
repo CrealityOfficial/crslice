@@ -9,6 +9,8 @@
 #include "crsliceexception.h"
 #include "ccglobal/profile.h"
 #include "../wrapper/baselineorcinput.h"
+#include "../wrapper/serialization.h"
+
 namespace crslice2
 {
 	//cache interface
