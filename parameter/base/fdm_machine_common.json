@@ -6518,5 +6518,21 @@
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false"
+    },
+    "prime_tower_enhance_type": {
+        "label": "Prime tower enhance type",
+        "description": "Prime tower enhance type",
+        "unit": "",
+        "type": "coEnum",
+        "options": {
+            "cone": "Cone",
+            "chamfer": "Chamfer"
+        },
+        "default_value": "chamfer",
+        "enabled": "true",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false"
     }
 }

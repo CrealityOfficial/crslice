@@ -121,6 +121,7 @@ elefant_foot_compensation_layers
 xy_contour_compensation
 xy_hole_compensation
 resolution
+prime_tower_enhance_type
 enable_prime_tower
 prime_tower_width
 prime_tower_brim_width

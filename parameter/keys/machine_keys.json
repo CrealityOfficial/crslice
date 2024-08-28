@@ -120,6 +120,7 @@
         "default_filament_profile",
 		"machine_LED_light_exist",
 		"machine_platform_motion_enable",
-		"creality_flush_time"
+		"creality_flush_time",
+        "curr_bed_type"
     ]
 }

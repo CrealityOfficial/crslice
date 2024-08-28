@@ -266,6 +266,7 @@
         "material_flow_dependent_temperature",
         "material_flow_temp_graph",
         "ai_infill",
-        "has_scarf_joint_seam"
+        "has_scarf_joint_seam",
+        "prime_tower_enhance_type"
     ]
 }
