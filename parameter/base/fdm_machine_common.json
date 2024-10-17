@@ -2901,7 +2901,7 @@
         "unit": ""
     },
     "machine_end_gcode": {
-        "default_value": "M104 S0 ; turn off temperature\\nG28 X0  ; home X axis\\nM84     ; disable motors\\n",
+        "default_value": "M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n",
         "description": "End G-code when finish the whole printing",
         "enabled": "true",
         "label": "End G-code",
@@ -3171,7 +3171,7 @@
         "unit": ""
     },
     "machine_start_gcode": {
-        "default_value": "G28 ; home all axes\\nG1 Z5 F5000 ; lift nozzle\\n",
+        "default_value": "G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n",
         "description": "Start G-code when start the whole printing",
         "enabled": "true",
         "label": "Start G-code",
@@ -4899,7 +4899,7 @@
         "unit": ""
     },
     "small_area_infill_flow_compensation_model": {
-        "default_value": "0,0;\"\\n0.2,0.4444\";\"\\n0.4,0.6145\";\"\\n0.6,0.7059\";\"\\n0.8,0.7619\";\"\\n1.5,0.8571\";\"\\n2,0.8889\";\"\\n3,0.9231\";\"\\n5,0.9520\";\"\\n10,1\"",
+        "default_value": "0,0;\n0.2,0.4444;\n0.4,0.6145;\n0.6,0.7059;\n0.8,0.7619;\n1.5,0.8571;\n2,0.8889;\n3,0.9231;\n5,0.9520;\n10,1",
         "description": "Flow Compensation Model, used to adjust the flow for small infill areas. The model is expressed as a comma separated pair of values for extrusion length and flow correction factors, one per line, in the following format: \"1.234,5.678\"",
         "enabled": "true",
         "label": "Flow Compensation Model",
@@ -6403,6 +6403,29 @@
         "type": "coFloat",
         "unit": "."
     },
+	"prime_tower_position_type": {
+        "default_value": "Middle Upper",
+        "description": "The position of the Prime Tower on the platform.",
+        "enabled": "true",
+        "label": "Prime tower position type",
+        "options": {
+            "Left Upper": "left upper",
+            "Middle Upper": "middle upper",
+            "Right Upper": "right upper",
+            "Left Center": "left center",
+            "Middle Center": "middle center",
+            "Right Center": "right center",
+			"Left Below": "left below",
+            "Middle Below": "middle below",
+            "Right Below": "right below"
+        },
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coEnums",
+        "unit": ""
+    },
     "wipe_tower_x": {
         "default_value": "15",
         "description": "",
@@ -6514,6 +6537,18 @@
         "type": "coBool",
         "default_value": "0",
         "enabled": "true",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false"
+    },
+	"cpp_version": {
+        "label": "Cpp Version",
+        "description": "Cpp Version",
+        "unit": "",
+        "type": "coString",
+        "default_value": "",
+        "enabled": "false",
         "settable_globally": "true",
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
