@@ -1,6 +1,6 @@
 {
     "name": "FDM Printer Base Description",
-    "version": "2.2.3",
+    "version": "3.0.0",
 	"subs":[
 		"fdm_filament_common.json",
 		"fdm_machine_common.json",
