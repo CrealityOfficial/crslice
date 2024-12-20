@@ -1,5 +1,7 @@
 printer_technology
 printable_area
+color_bed_exclude_area
+network_support_types
 bed_exclude_area
 bed_custom_texture
 bed_custom_model

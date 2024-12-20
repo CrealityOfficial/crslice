@@ -73,6 +73,7 @@
         "pressure_advance",
         "chamber_temperature",
         "filament_shrink",
+		"filament_shrinkage_compensation_z",
         "support_material_interface_fan_speed",
         "filament_notes",
         "filament_loading_speed",
