@@ -45,6 +45,7 @@ internal_solid_infill_speed
 top_surface_speed
 support_speed
 support_object_xy_distance
+support_object_first_layer_gap
 support_interface_speed
 bridge_speed
 internal_bridge_speed
@@ -76,6 +77,7 @@ raft_first_layer_expansion
 raft_contact_distance
 raft_expansion
 support_base_pattern
+support_base_pattern_tree
 support_base_pattern_spacing
 support_expansion
 support_style
@@ -136,6 +138,7 @@ flush_into_support
 tree_support_branch_angle
 tree_support_angle_slow
 tree_support_wall_count
+tree_support_wall_count_tree
 tree_support_top_rate
 tree_support_branch_distance
 tree_support_tip_diameter
