@@ -4198,6 +4198,18 @@
         "type": "coBool",
         "unit": ""
     },
+	 "color_bed_exclude_area": {
+        "default_value": "",
+        "description": "Multi color printing hot bed exclusion area",
+        "enabled": "true",
+        "label": "Printable area",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coPoints",
+        "unit": ""
+    },
     "post_process": {
         "default_value": "",
         "description": "If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and they can access the Creality Print config settings by reading environment variables.",
