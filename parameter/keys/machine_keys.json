@@ -104,6 +104,7 @@
         "use_relative_e_distances",
         "z_offset",
         "cpp_version",
+		"color_bed_exclude_area",
         "prime_tower_position_type"
     ]
 }
