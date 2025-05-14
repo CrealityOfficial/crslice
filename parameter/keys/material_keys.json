@@ -76,6 +76,7 @@
         "enable_pressure_advance",
         "pressure_advance",
         "chamber_temperature",
+		"activate_chamber_layer",
         "filament_shrink",
         "support_material_interface_fan_speed",
         "filament_notes",

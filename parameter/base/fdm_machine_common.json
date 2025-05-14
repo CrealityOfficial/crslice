@@ -511,6 +511,19 @@
         "type": "coInts",
         "unit": "°C"
     },
+	"activate_chamber_layer": {
+        "default_value": "1",
+        "description": "The number of layers for opening the cavity temperature",
+        "enabled": "true",
+        "label": "Activate chamber layer",
+        "minimum_value": "1",
+        "settable_globally": "false",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": ""
+    },
     "change_extrusion_role_gcode": {
         "default_value": "",
         "description": "This gcode is inserted when the extrusion role is changed",
