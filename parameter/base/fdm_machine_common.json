@@ -7195,5 +7195,17 @@
         "settable_per_extruder": "false",
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false"
-    }
+    },
+	"machine_ptc_exist": {
+		"default_value": "0",
+        "description": "Chamber ptc heater exist",
+        "enabled": "true",
+        "label": "Chamber ptc heater",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+	}
 }
