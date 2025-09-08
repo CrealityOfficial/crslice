@@ -106,6 +106,7 @@
         "cpp_version",
 		"color_bed_exclude_area",
         "prime_tower_position_type",
-		"machine_ptc_exist"
+		"machine_ptc_exist",
+		"default_flush_multiplier"
     ]
 }

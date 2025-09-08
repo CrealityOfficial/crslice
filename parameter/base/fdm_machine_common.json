@@ -2218,6 +2218,18 @@
         "type": "coFloat",
         "unit": ""
     },
+	"default_flush_multiplier": {
+        "default_value": "1.3",
+        "description": "The machine default flush multiplier",
+        "enabled": "true",
+        "label": "Flush multiplier",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": ""
+    },
     "flush_volumes_matrix": {
         "default_value": "0,280,280,280,280,0,280,280,280,280,0,280,280,280,280,0",
         "description": "",

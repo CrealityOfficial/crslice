@@ -105,3 +105,4 @@ retract_restart_extra_toolchange
 extruder_colour
 default_filament_profile
 machine_ptc_exist
+default_flush_multiplier
