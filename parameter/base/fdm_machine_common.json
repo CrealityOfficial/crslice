@@ -1076,18 +1076,6 @@
         "type": "coBool",
         "unit": ""
     },
-    "enable_long_retraction_when_cut": {
-        "default_value": "0",
-        "description": "",
-        "enabled": "true",
-        "label": "",
-        "settable_globally": "true",
-        "settable_per_extruder": "false",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "false",
-        "type": "coInt",
-        "unit": ""
-    },
     "enable_overhang_bridge_fan": {
         "default_value": "1",
         "description": "Enable this option to optimize part cooling fan speed for overhang and bridge to get better cooling",
@@ -7243,5 +7231,31 @@
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
-	}
+	},
+	 "enable_long_retraction_when_cut": {
+        "default_value": "0",
+        "description": "Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge. While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems.",
+        "enabled": "true",
+        "label": "Long retraction when cut(experimental)",
+        "maximum_value": "100",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": ""
+    },
+	"filament_retraction_long_retractions_when_cut": {
+        "default_value": "0,0,0,0,0,0,0,0,0,0",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": ""
+    }
 }
