@@ -107,6 +107,8 @@
 		"color_bed_exclude_area",
         "prime_tower_position_type",
 		"machine_ptc_exist",
-		"default_flush_multiplier"
+		"default_flush_multiplier",
+		"multicolor_method",
+		"machine_is_belt"
     ]
 }

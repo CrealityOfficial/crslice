@@ -7219,5 +7219,29 @@
         "settable_per_meshgroup": "false",
         "type": "coBool",
         "unit": ""
+	},
+	"multicolor_method": {
+		"default_value": "0",
+        "description": "Using slicing software for color change and purge control",
+        "enabled": "true",
+        "label": "multicolor method",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+	},
+	"machine_is_belt": {
+		"default_value": "0",
+        "description": "is belt machine",
+        "enabled": "true",
+        "label": "is belt machine",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
 	}
 }

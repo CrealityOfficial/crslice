@@ -106,3 +106,5 @@ extruder_colour
 default_filament_profile
 machine_ptc_exist
 default_flush_multiplier
+multicolor_method
+machine_is_belt
