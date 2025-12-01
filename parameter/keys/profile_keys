@@ -226,3 +226,5 @@ tree_support_branch_angle_organic
 hole_to_polyhole
 hole_to_polyhole_threshold
 hole_to_polyhole_twisted
+smooth_speed_discontinuity_area
+smooth_coefficient

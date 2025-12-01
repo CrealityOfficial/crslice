@@ -7257,5 +7257,29 @@
         "settable_per_meshgroup": "false",
         "type": "coFloats",
         "unit": ""
-    }
+    },
+	"smooth_speed_discontinuity_area": {
+		"default_value": "0",
+        "description": "Add the speed transition between discontinuity area.",
+        "enabled": "true",
+        "label": "Smooth speed discontinuity area (Beta)",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+	},
+	"smooth_coefficient": {
+		"default_value": "80",
+        "description": "The smaller the number, the longer the speed transition path. 0 means not apply.",
+        "enabled": "true",
+        "label": "Smooth coefficient",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": ""
+	}
 }

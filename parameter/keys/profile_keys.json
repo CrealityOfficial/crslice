@@ -284,6 +284,8 @@
         "interlocking_beam_layer_count",
         "interlocking_depth",
         "interlocking_boundary_avoidance",
-        "interlocking_beam_width"
+        "interlocking_beam_width",
+		"smooth_speed_discontinuity_area",
+		"smooth_coefficient"
     ]
 }
