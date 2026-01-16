@@ -7281,5 +7281,47 @@
         "settable_per_meshgroup": "false",
         "type": "coFloat",
         "unit": ""
-	}
+	},
+	"flush_box_first_clean_length": {
+        "default_value": "90",
+        "description": "First segment length used to split flush_length into flush_length_1..N for change filament G-code.",
+        "enabled": "true",
+        "label": "Flush length (first segment)",
+        "maximum_value": "1000",
+        "minimum_value": "1",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": "mm"
+    },
+	"flush_box_need_clean_length": {
+        "default_value": "70",
+        "description": "Standard segment length used to split flush_length into flush_length_1..N for change filament G-code.",
+        "enabled": "true",
+        "label": "Flush length (standard segment)",
+        "maximum_value": "1000",
+        "minimum_value": "1",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": "mm"
+    },
+	"flush_box_need_clean_length_max": {
+        "default_value": "100",
+        "description": "Maximum segment length used to split flush_length into flush_length_1..N for change filament G-code.",
+        "enabled": "true",
+        "label": "Flush length (max segment)",
+        "maximum_value": "1000",
+        "minimum_value": "1",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": "mm"
+    }
 }
