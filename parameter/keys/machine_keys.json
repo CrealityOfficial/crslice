@@ -110,6 +110,9 @@
 		"default_flush_multiplier",
 		"multicolor_method",
 		"machine_is_belt",
-		"enable_long_retraction_when_cut"
+		"enable_long_retraction_when_cut",
+		"flush_box_first_clean_length",
+		"flush_box_need_clean_length",
+	    "flush_box_need_clean_length_max"
     ]
 }

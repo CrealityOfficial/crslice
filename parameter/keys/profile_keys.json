@@ -286,9 +286,6 @@
         "interlocking_boundary_avoidance",
         "interlocking_beam_width",
 		"smooth_speed_discontinuity_area",
-		"smooth_coefficient",
-		"flush_box_first_clean_length",
-		"flush_box_need_clean_length",
-	    "flush_box_need_clean_length_max"
+		"smooth_coefficient"
     ]
 }
