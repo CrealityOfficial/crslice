@@ -4090,6 +4090,19 @@
         "type": "coFloatOrPercent",
         "unit": "mm/s or %"
     },
+    "overhang_totally_speed": {
+        "default_value": "10",
+        "description": "",
+        "enabled": "true",
+        "label": "100%",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "true",
+        "type": "coFloatOrPercent",
+        "unit": "mm/s or %"
+    },
     "overhang_fan_speed": {
         "default_value": "100",
         "description": "Force part cooling fan to be this speed when printing bridge or overhang wall which has large overhang degree. Forcing cooling for overhang and bridge can get better quality for these part",
