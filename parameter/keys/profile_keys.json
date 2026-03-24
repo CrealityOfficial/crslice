@@ -286,6 +286,7 @@
         "interlocking_boundary_avoidance",
         "interlocking_beam_width",
 		"smooth_speed_discontinuity_area",
-		"smooth_coefficient"
+		"smooth_coefficient",
+        "overhang_totally_speed"
     ]
 }
