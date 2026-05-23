@@ -6443,6 +6443,32 @@
         "type": "coFloat",
         "unit": "mm/s²"
     },
+    "travel_short_distance_acceleration": {
+        "default_value": "0",
+        "description": "Acceleration used for short travel moves. Short travel distance is determined by the retract_before_travel setting.",
+        "enabled": "true",
+        "label": "Travel short distance acceleration",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm/s²"
+    },
+    "travel_short_distance_threshold": {
+        "default_value": "1.5",
+        "description": "Short travel distance threshold for travel_short_distance_acceleration.",
+        "enabled": "true",
+        "label": "Travel short distance threshold",
+        "minimum_value": "0",
+        "settable_globally": "false",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "true",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm"
+    },
     "travel_jerk": {
         "default_value": "12",
         "description": "Jerk for travel",

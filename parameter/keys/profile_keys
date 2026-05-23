@@ -190,6 +190,8 @@ seam_gap
 role_based_wipe_speed
 wipe_speed
 accel_to_decel_enable
+travel_short_distance_acceleration
+travel_short_distance_threshold
 accel_to_decel_factor
 wipe_on_loops
 bridge_density
