@@ -98,10 +98,7 @@ max_bridge_length
 print_sequence
 support_remove_small_overhang
 filename_format
-wall_filament
 support_bottom_z_distance
-sparse_infill_filament
-solid_infill_filament
 support_filament
 support_interface_filament
 ooze_prevention

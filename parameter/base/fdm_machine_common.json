@@ -5466,19 +5466,6 @@
         "type": "coFloat",
         "unit": "°"
     },
-    "solid_infill_filament": {
-        "default_value": "1",
-        "description": "Filament to print solid infill",
-        "enabled": "true",
-        "label": "Solid infill",
-        "minimum_value": "1",
-        "settable_globally": "false",
-        "settable_per_extruder": "true",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "true",
-        "type": "coInt",
-        "unit": ""
-    },
     "sparse_infill_acceleration": {
         "default_value": "100%",
         "description": "Acceleration of sparse infill. If the value is expressed as a percentage (e.g. 100%), it will be calculated based on the default acceleration.",
@@ -5505,19 +5492,6 @@
         "settable_per_meshgroup": "true",
         "type": "coPercent",
         "unit": "%"
-    },
-    "sparse_infill_filament": {
-        "default_value": "1",
-        "description": "Filament to print internal sparse infill.",
-        "enabled": "true",
-        "label": "Infill",
-        "minimum_value": "1",
-        "settable_globally": "false",
-        "settable_per_extruder": "true",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "true",
-        "type": "coInt",
-        "unit": ""
     },
     "sparse_infill_line_width": {
         "default_value": "0",
@@ -6827,19 +6801,6 @@
         "settable_per_extruder": "true",
         "settable_per_mesh": "true",
         "settable_per_meshgroup": "false",
-        "type": "coInt",
-        "unit": ""
-    },
-    "wall_filament": {
-        "default_value": "1",
-        "description": "Filament to print walls",
-        "enabled": "true",
-        "label": "Walls",
-        "minimum_value": "1",
-        "settable_globally": "false",
-        "settable_per_extruder": "true",
-        "settable_per_mesh": "false",
-        "settable_per_meshgroup": "true",
         "type": "coInt",
         "unit": ""
     },
