@@ -286,6 +286,7 @@
         "interlocking_beam_width",
 		"smooth_speed_discontinuity_area",
 		"smooth_coefficient",
-        "overhang_totally_speed"
+        "overhang_totally_speed",
+		"preheat_temperature_delta"
     ]
 }

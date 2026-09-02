@@ -7323,5 +7323,19 @@
         "settable_per_meshgroup": "false",
         "type": "coInt",
         "unit": "mm"
+    },
+	"preheat_temperature_delta": {
+        "default_value": "-30",
+        "description": "Temperature difference applied before a nozzle is activated. The advance preheat temperature is calculated as the printing temperature plus this value.",
+        "enabled": "true",
+        "label": "Preheat temperature",
+        "maximum_value": "50",
+        "minimum_value": "-100",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": "∆°C"
     }
 }
