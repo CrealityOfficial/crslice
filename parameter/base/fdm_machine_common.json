@@ -7339,7 +7339,7 @@
         "unit": "∆°C"
     },
 	"initial_layer_travel_acceleration": {
-		"default_value": "-30",
+		"default_value": "0",
         "description": "The acceleration of travel of initial layer",
         "enabled": "true",
         "label": "Initial layer travel",
