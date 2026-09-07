@@ -7337,5 +7337,19 @@
         "settable_per_meshgroup": "false",
         "type": "coInt",
         "unit": "∆°C"
-    }
+    },
+	"initial_layer_travel_acceleration": {
+		"default_value": "-30",
+        "description": "The acceleration of travel of initial layer",
+        "enabled": "true",
+        "label": "Initial layer travel",
+        "maximum_value": "999999",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm/s²"
+	}
 }
