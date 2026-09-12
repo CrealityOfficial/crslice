@@ -1,0 +1,4 @@
+interface:
+  display_name: "发布后台参数"
+  short_description: "拉取并变基当前分支，递增后台参数发布标签，将提交和标签推送到 origin"
+  default_prompt: "使用 $publish-backend-params 发布当前分支的后台参数，先 pull --rebase，按最大 fix 编号递增标签，并将提交和标签推送到 origin。"
