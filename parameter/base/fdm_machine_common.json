@@ -7338,6 +7338,66 @@
         "type": "coInt",
         "unit": "∆°C"
     },
+    "pathological_segment_protection_enable": {
+        "default_value": "0",
+        "description": "When enabled, the slicer detects dense short-segment sequences (such as zigzag patterns with sub-millimeter moves) that can cause Klipper firmware to accumulate an excessive move queue, potentially leading to MCU communication stalls and printer crashes.\n\nThe slicer inserts SET_VELOCITY_LIMIT commands to temporarily reduce acceleration before these pathological regions and restore it afterwards.",
+        "enabled": "true",
+        "label": "Pathological segment accel protection",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
+    "xy_step_dist": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "XY step distance",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": ""
+    },
+    "e_step_dist": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "E step distance",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": ""
+    },
+    "mcu_pool_total": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "MCU pool total",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": ""
+    },
+    "nozzle_pool_total": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "Nozzle MCU pool total",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": ""
+    },
 	"initial_layer_travel_acceleration": {
 		"default_value": "0",
         "description": "The acceleration of travel of initial layer",

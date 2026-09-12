@@ -113,6 +113,11 @@
 		"enable_long_retraction_when_cut",
 		"flush_box_first_clean_length",
 		"flush_box_need_clean_length",
-	    "flush_box_need_clean_length_max"
+	    "flush_box_need_clean_length_max",
+        "pathological_segment_protection_enable",
+        "xy_step_dist",
+        "e_step_dist",
+        "mcu_pool_total",
+        "nozzle_pool_total"
     ]
 }

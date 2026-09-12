@@ -1,0 +1,4 @@
+interface:
+  display_name: "增加后台参数"
+  short_description: "根据切片器源码补充后台参数定义，按机器、工艺、耗材分类同步清单"
+  default_prompt: "使用 $add-backend-params 增加后台参数，参考 PrintConfig.cpp 的定义和默认值，按分类同步 key 清单并提交。"
