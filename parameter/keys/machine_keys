@@ -18,6 +18,7 @@ change_filament_gcode
 change_extrusion_role_gcode
 printer_model
 printer_variant
+support_filament_nozzle_mapping
 printable_height
 extruder_clearance_radius
 extruder_clearance_height_to_lid

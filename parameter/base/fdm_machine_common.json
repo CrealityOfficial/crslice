@@ -5806,6 +5806,18 @@
         "type": "coFloat",
         "unit": "mm"
     },
+    "support_filament_nozzle_mapping": {
+        "default_value": "0",
+        "description": "Shows project filament to nozzle grouping controls for this printer.",
+        "enabled": "true",
+        "label": "Support filament nozzle mapping",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "support_filament": {
         "default_value": "0",
         "description": "Filament to print support base and raft. \"Default\" means no specific filament for support and current filament is used",

@@ -93,6 +93,7 @@
         "single_extruder_multi_material",
         "support_air_filtration",
         "support_chamber_temp_control",
+        "support_filament_nozzle_mapping",
         "support_multi_bed_types",
         "template_custom_gcode",
         "thumbnails",
