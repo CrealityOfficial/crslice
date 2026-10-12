@@ -4380,6 +4380,18 @@
         "type": "coEnum",
         "unit": ""
     },
+    "prime_tower_skip_points": {
+        "default_value": "1",
+        "description": "The wall of prime tower will skip the start points of wipe path",
+        "enabled": "true",
+        "label": "Skip points",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "prime_tower_width": {
         "default_value": "60",
         "description": "Width of prime tower",
@@ -7004,6 +7016,19 @@
         "settable_per_meshgroup": "false",
         "type": "coPercent",
         "unit": "%"
+    },
+    "wipe_tower_extra_interlayer_wipe_layers": {
+        "default_value": "5",
+        "description": "Number of consecutive single-color layers that use a serpentine wipe path on the prime tower.",
+        "enabled": "true",
+        "label": "Extra interlayer wipe layers",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInt",
+        "unit": "layers"
     },
     "wipe_tower_extra_spacing": {
         "default_value": "100%",

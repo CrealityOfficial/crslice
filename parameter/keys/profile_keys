@@ -122,6 +122,7 @@ xy_hole_compensation
 resolution
 prime_tower_enhance_type
 enable_prime_tower
+prime_tower_skip_points
 prime_tower_width
 prime_tower_brim_width
 prime_volume
