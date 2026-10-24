@@ -119,6 +119,16 @@
         "xy_step_dist",
         "e_step_dist",
         "mcu_pool_total",
-        "nozzle_pool_total"
+        "nozzle_pool_total",
+        "extruder_printable_area",
+        "extruder_printable_height",
+        "filament_mapping_nozzle_capacities",
+        "filament_mapping_nozzle_allow_mixed_materials",
+        "nozzle_variant_diameters",
+        "nozzle_variant_extruder_ids",
+        "nozzle_variant_ids",
+        "nozzle_variant_indices",
+        "printer_extruder_id",
+        "printer_nozzle_variant"
     ]
 }

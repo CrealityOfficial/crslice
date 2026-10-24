@@ -1336,6 +1336,30 @@
         "type": "coStrings",
         "unit": ""
     },
+    "extruder_printable_area": {
+        "default_value": "",
+        "description": "",
+        "enabled": "true",
+        "label": "Extruder printable area",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coStrings",
+        "unit": ""
+    },
+    "extruder_printable_height": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "Extruder printable height",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": ""
+    },
     "extruder_offset": {
         "default_value": "0x0",
         "description": "",
@@ -1627,6 +1651,30 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coBools",
+        "unit": ""
+    },
+    "filament_mapping_nozzle_allow_mixed_materials": {
+        "default_value": "",
+        "description": "Whether each physical nozzle may carry different material types at the same time.",
+        "enabled": "true",
+        "label": "Allow mixed materials by nozzle",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBools",
+        "unit": ""
+    },
+    "filament_mapping_nozzle_capacities": {
+        "default_value": "",
+        "description": "Preferred number of project filaments assigned to each physical nozzle. When the aggregate capacity is sufficient, automatic mapping honors these limits; when it is insufficient, the limits are relaxed so all otherwise valid filaments can be assigned. Manual mapping may exceed this preference.",
+        "enabled": "true",
+        "label": "Filament capacities by nozzle",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
         "unit": ""
     },
     "filament_max_volumetric_speed": {
@@ -3895,6 +3943,54 @@
         "type": "coEnum",
         "unit": ""
     },
+    "nozzle_variant_diameters": {
+        "default_value": "",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": ""
+    },
+    "nozzle_variant_extruder_ids": {
+        "default_value": "",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": ""
+    },
+    "nozzle_variant_ids": {
+        "default_value": "",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coStrings",
+        "unit": ""
+    },
+    "nozzle_variant_indices": {
+        "default_value": "",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": ""
+    },
     "nozzle_volume": {
         "default_value": "0",
         "description": "Volume of nozzle between the cutter and the end of nozzle",
@@ -4550,6 +4646,18 @@
         "type": "coFloat",
         "unit": "mm"
     },
+    "printer_extruder_id": {
+        "default_value": "1",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
+        "unit": ""
+    },
     "printer_model": {
         "default_value": "",
         "description": "Type of the printer",
@@ -4560,6 +4668,18 @@
         "settable_per_mesh": "false",
         "settable_per_meshgroup": "false",
         "type": "coString",
+        "unit": ""
+    },
+    "printer_nozzle_variant": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "",
+        "settable_globally": "false",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coInts",
         "unit": ""
     },
     "printer_notes": {
