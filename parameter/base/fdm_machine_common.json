@@ -4392,6 +4392,18 @@
         "type": "coBool",
         "unit": ""
     },
+    "prime_tower_toolchange_at_start": {
+        "default_value": "0",
+        "description": "",
+        "enabled": "true",
+        "label": "In-tower filament change",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "prime_tower_width": {
         "default_value": "60",
         "description": "Width of prime tower",
