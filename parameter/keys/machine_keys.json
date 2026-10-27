@@ -88,6 +88,7 @@
         "printhost_user",
         "printing_by_object_gcode",
         "purge_in_prime_tower",
+        "prime_tower_toolchange_at_start",
         "scan_first_layer",
         "silent_mode",
         "single_extruder_multi_material",

@@ -154,7 +154,6 @@
         "resolution",
         "enable_prime_tower",
         "prime_tower_skip_points",
-        "prime_tower_toolchange_at_start",
         "prime_tower_width",
         "prime_tower_brim_width",
         "prime_volume",
