@@ -3817,6 +3817,19 @@
         "type": "coFloat",
         "unit": "mm"
     },
+    "no_prime_tower_retract_restart_extra": {
+        "default_value": "0",
+        "description": "When the prime tower is disabled, this additional length is added to the printer or filament extra length on restart after a material change. It has no effect when the prime tower is enabled.",
+        "enabled": "true",
+        "label": "Extra length on restart after material change",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm"
+    },
     "notes": {
         "default_value": "",
         "description": "You can put here your personal notes. This text will be added to the G-code header comments.",

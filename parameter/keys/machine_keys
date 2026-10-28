@@ -65,6 +65,7 @@ parking_pos_retraction
 extra_loading_move
 purge_in_prime_tower
 prime_tower_toolchange_at_start
+no_prime_tower_retract_restart_extra
 enable_filament_ramming
 z_offset
 machine_max_acceleration_extruding
