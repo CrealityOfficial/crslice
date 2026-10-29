@@ -7,6 +7,7 @@
         "long_retractions_when_cut",
         "max_layer_height",
         "min_layer_height",
+        "no_prime_tower_retract_restart_extra",
         "nozzle_diameter",
         "retract_before_wipe",
         "retract_length_toolchange",

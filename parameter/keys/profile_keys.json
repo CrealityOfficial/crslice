@@ -157,7 +157,6 @@
         "prime_tower_width",
         "prime_tower_brim_width",
         "prime_volume",
-        "no_prime_tower_retract_restart_extra",
         "prime_tower_enhance_type",
         "wipe_tower_no_sparse_layers",
         "compatible_printers",

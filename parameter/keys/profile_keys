@@ -126,7 +126,6 @@ prime_tower_skip_points
 prime_tower_width
 prime_tower_brim_width
 prime_volume
-no_prime_tower_retract_restart_extra
 wipe_tower_no_sparse_layers
 compatible_printers
 compatible_printers_condition
