@@ -100,6 +100,8 @@
         "thumbnails",
         "thumbnails_format",
         "time_cost",
+        "time_flush_gcode",
+        "time_flush_interval",
         "time_lapse_gcode",
         "upward_compatible_machine",
         "use_firmware_retraction",

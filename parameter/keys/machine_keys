@@ -7,6 +7,8 @@ gcode_flavor
 fan_kickstart
 fan_speedup_time
 fan_speedup_overhangs
+time_flush_interval
+time_flush_gcode
 single_extruder_multi_material
 manual_filament_change
 machine_start_gcode
