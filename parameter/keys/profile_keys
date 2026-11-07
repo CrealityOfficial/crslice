@@ -1,5 +1,6 @@
 layer_height
 initial_layer_print_height
+mixed_color_min_sublayer_height
 wall_loops
 slice_closing_radius
 spiral_mode

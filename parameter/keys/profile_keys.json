@@ -2,6 +2,7 @@
     "keys": [
         "layer_height",
         "initial_layer_print_height",
+        "mixed_color_min_sublayer_height",
         "wall_loops",
         "alternate_extra_wall",
         "slice_closing_radius",

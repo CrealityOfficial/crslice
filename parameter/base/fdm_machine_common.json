@@ -3791,6 +3791,19 @@
         "type": "coFloat",
         "unit": "mm"
     },
+    "mixed_color_min_sublayer_height": {
+        "default_value": "0.02",
+        "description": "Minimum thickness of each mixed or gradient filament sublayer. Color ratios are adjusted when necessary while preserving the total layer height. Slicing stops with an error if the layer is too thin to fit all colors. Set to 0 to disable this limit.",
+        "enabled": "true",
+        "label": "Minimum mixed sublayer thickness",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloat",
+        "unit": "mm"
+    },
     "mmu_segmented_region_interlocking_depth": {
         "default_value": "0",
         "description": "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\"is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.",
