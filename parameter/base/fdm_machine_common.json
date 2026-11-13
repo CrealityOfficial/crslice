@@ -1766,6 +1766,19 @@
         "type": "coFloats",
         "unit": "mm"
     },
+    "filament_pre_flush_volume": {
+        "default_value": "0",
+        "description": "After a filament change, the pre-flush volume of the new filament. Set to 0 to disable pre-flushing.",
+        "enabled": "true",
+        "label": "Filament pre-flush volume",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": "mm³"
+    },
     "filament_ramming_parameters": {
         "default_value": "\"120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0| 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6\"",
         "description": "This string is edited by RammingDialog and contains ramming specific parameters.",

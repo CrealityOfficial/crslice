@@ -12,6 +12,7 @@
         "filament_density",
         "filament_cost",
         "filament_minimal_purge_on_wipe_tower",
+        "filament_pre_flush_volume",
         "filament_pre_flush_length",
         "nozzle_temperature",
         "nozzle_temperature_initial_layer",
