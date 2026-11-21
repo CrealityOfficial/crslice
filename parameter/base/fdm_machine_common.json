@@ -4528,6 +4528,18 @@
         "type": "coEnum",
         "unit": ""
     },
+    "prime_tower_fillet_wall": {
+        "default_value": "0",
+        "description": "The wall of prime tower will fillet",
+        "enabled": "true",
+        "label": "Fillet wall",
+        "settable_globally": "true",
+        "settable_per_extruder": "true",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coBool",
+        "unit": ""
+    },
     "prime_tower_skip_points": {
         "default_value": "1",
         "description": "The wall of prime tower will skip the start points of wipe path",
