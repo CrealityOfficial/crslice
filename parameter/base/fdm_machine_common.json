@@ -1766,6 +1766,32 @@
         "type": "coFloats",
         "unit": "mm"
     },
+    "filament_pre_flush_tower_time": {
+        "default_value": "20",
+        "description": "Estimated idle time in minutes at which the time-based prime tower purge reaches its maximum. The amount grows linearly from the target filament's Minimal purge on wipe tower. If a periodic flush has run since the filament was last used, the time-based amount uses that minimum. Set to 0 to disable.",
+        "enabled": "true",
+        "label": "Timed pre-flush into prime tower time",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": "min"
+    },
+    "filament_pre_flush_tower_volume": {
+        "default_value": "72",
+        "description": "Maximum time-based purge volume on the prime tower. The tower uses the greater of the time-based amount and the color-change volume routed to the tower. A positive value below the target filament's Minimal purge on wipe tower uses that minimum. Set to 0 to disable.",
+        "enabled": "true",
+        "label": "Timed pre-flush into prime tower volume",
+        "minimum_value": "0",
+        "settable_globally": "true",
+        "settable_per_extruder": "false",
+        "settable_per_mesh": "false",
+        "settable_per_meshgroup": "false",
+        "type": "coFloats",
+        "unit": "mm³"
+    },
     "filament_pre_flush_volume": {
         "default_value": "0",
         "description": "After a filament change, the pre-flush volume of the new filament. Set to 0 to disable pre-flushing.",

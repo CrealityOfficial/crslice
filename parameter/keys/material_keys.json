@@ -14,6 +14,8 @@
         "filament_minimal_purge_on_wipe_tower",
         "filament_pre_flush_volume",
         "filament_pre_flush_length",
+        "filament_pre_flush_tower_time",
+        "filament_pre_flush_tower_volume",
         "nozzle_temperature",
         "nozzle_temperature_initial_layer",
         "material_flow_dependent_temperature",
